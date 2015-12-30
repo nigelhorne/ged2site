@@ -101,6 +101,35 @@ sub print_person
 	my $year = $params{'year'} || (localtime)[5];
 	$year += 1900 if($year < 1900);
 
+	my $yob;	# Year of birth
+	if($dob && ($dob =~ /.*?(\d{3,4})/)) {
+		$yob = $1;
+	} elsif($dob) {
+		if($opts{'w'} && !$warned{$person}) {
+			if($opts{'f'}) {
+				die $person->name(), ": invalid date of birth $dob\n";
+			}
+			warn $person->name(), ": invalid date of birth $dob\n";
+			$warned{$person} = 1;
+		}
+	} else {
+		$yob = $dob;
+	}
+
+	my $is_alive = 1;
+	if($yob && ($year >= $yob + 150)) {
+		$is_alive = 0;
+	}
+
+	my $death = $person->get_record('death');
+	my $dateofdeath = get_value({ person => $person, value => 'death date' });
+	if((!$dateofdeath) && $death) {
+		$dateofdeath = $death->date();
+	}
+	if($dateofdeath) {
+		$is_alive = 0;
+	}
+		
 	my $title = $person->as_string({
 		include_years => 1,
 		nee => 1,
@@ -112,12 +141,12 @@ sub print_person
 		open(my $html, '>', 'html/index.html');
 		my $name = $person->as_string(nee => 1);
 
-		print $html "<html><title>The Family Tree of $name</title></head",
-			"<body><h1>The Family Tree of $name<a href=\"", $person->{'xref'}, ".html\">$name</a></h1></body></html>";
+		print $html "<html><title>The Family Tree of $name</title>",
+			'<meta http-equiv="Refresh" content="1;URL=', $person->{'xref'}, '.html">',
+			'</head>',
+			"<body><h1>The Family Tree of $name</h1><a href=\"", $person->{'xref'}, ".html\">$name</a></h1></body></html>";
 		close $html;
 	}
-	open(my $html, '>', 'html/' . $person->{'xref'} . '.html');
-	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1></center>";
 
 	my $name = $person->name();
 	$name =~ s/\///g;
@@ -125,17 +154,22 @@ sub print_person
 	my %name_components = $nameparser->components();
 	my $firstname = $name_components{'given_name_1'};
 
+	if($is_alive && !$opts{'l'}) {
+		$title = $firstname;
+	}
+
+	open(my $html, '>', 'html/' . $person->{'xref'} . '.html');
+	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1></center>";
+
+	if($is_alive && !$opts{'l'}) {
+		print $html '<p><i>This is the record of a living person, so much data will not be shown</i></p>';
+	}
+
 	my ($birth_dt, $death_dt);
 	my $birth = $person->get_record('birth');
 	my $dateofbirth = get_value({ person => $person, value => 'birth date' });
 	if((!$dateofbirth) && $birth) {
 		$dateofbirth = $birth->date();
-	}
-
-	my $death = $person->get_record('death');
-	my $dateofdeath = get_value({ person => $person, value => 'death date' });
-	if((!$dateofdeath) && $death) {
-		$dateofdeath = $death->date();
 	}
 
 	my %citations;
@@ -194,6 +228,7 @@ sub print_person
 				$death_dt = $dfn->parse_datetime($d->{'canonical'});
 			}
 		}
+		$is_alive = 0;
 	}
 
 	my $placeofbirth = get_value({ person => $person, value => 'birth place' });
@@ -237,6 +272,9 @@ sub print_person
 	my $placeofburial = get_value({ person => $person, value => 'burial place' });
 	if((!$placeofburial) && $burial) {
 		$placeofburial = $burial->place();
+	}
+	if($placeofburial || $dateofburial || $placeofdeath || $dateofdeath) {
+		$is_alive = 0;
 	}
 
 	my $marriagecitation;
@@ -338,7 +376,7 @@ sub print_person
 			print $html 'The ';
 		}
 
-		if($birth_dt) {
+		if($birth_dt && ($opts{'l'} || !$is_alive)) {
 			if(scalar(@siblings)) {
 				my $count = 1;
 				$print_sibling_count = 1;
@@ -381,36 +419,52 @@ sub print_person
 
 		print $html ' of';
 
-		if($father) {
-			print $html ' <a href=', $father->{'xref'}, '.html>',
-				$father->as_string(),
-				'</a>';
-			my @occupations = $father->get_value('occupation');
-			# TODO: print $html all occupations
-			if($occupations[0]) {
-				print $html ' (a';
-				if($occupations[0] =~ /^[aeiou]/i) {
-					print $html 'n';
+		if($opts{'l'} || !$is_alive) {
+			if($father) {
+				print $html ' <a href=', $father->{'xref'}, '.html>',
+					$father->as_string(),
+					'</a>';
+				my @occupations = $father->get_value('occupation');
+				# TODO: print $html all occupations
+				if($occupations[0]) {
+					print $html ' (a';
+					if($occupations[0] =~ /^[aeiou]/i) {
+						print $html 'n';
+					}
+					print $html ' ', lc($occupations[0]), ')';
 				}
-				print $html ' ', lc($occupations[0]), ')';
+				if($mother) {
+					print $html ' and';
+				}
 			}
 			if($mother) {
-				print $html ' and';
-			}
-		}
-		if($mother) {
-			print $html ' <a href=', $mother->{'xref'}, '.html>',
-				$mother->as_string(give_maidenname => 0),
-				'</a>';
+				print $html ' <a href=', $mother->{'xref'}, '.html>',
+					$mother->as_string(give_maidenname => 0),
+					'</a>';
 
-			my @occupations = $mother->get_value('occupation');
-			# TODO: print $html all occupations
-			if($occupations[0]) {
-				print $html ' (a';
-				if($occupations[0] =~ /^[aeiou]/i) {
-					print $html 'n';
+				my @occupations = $mother->get_value('occupation');
+				# TODO: print $html all occupations
+				if($occupations[0]) {
+					print $html ' (a';
+					if($occupations[0] =~ /^[aeiou]/i) {
+						print $html 'n';
+					}
+					print $html ' ', lc($occupations[0]), ')';
 				}
-				print $html ' ', lc($occupations[0]), ')';
+			}
+		} else {
+			if($father) {
+				print $html ' <a href=', $father->{'xref'}, '.html>',
+					$father->given_names(),
+					'</a>';
+				if($mother) {
+					print $html ' and';
+				}
+			}
+			if($mother) {
+				print $html ' <a href=', $mother->{'xref'}, '.html>',
+					$mother->given_names(),
+					'</a>';
 			}
 		}
 	}
@@ -446,36 +500,76 @@ sub print_person
 
 	my $end_of_sentence = 0;
 
-	if(($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism)) {
-		if($dateofbirth || $placeofbirth) {
-			print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
+	if($opts{'l'} || !$is_alive) {
+		if(($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism)) {
+			if($dateofbirth || $placeofbirth) {
+				print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
-			print $html ' was born';
-			if($placeofbirth) {
-				print $html place({ person => $person, place => $placeofbirth });
+				print $html ' was born';
+				if($placeofbirth) {
+					print $html place({ person => $person, place => $placeofbirth });
+				}
+				if($dateofbirth) {
+					print $html ' ', year({
+						person => $person,
+						date => $dateofbirth,
+						must_predate => $death_dt
+					});
+				}
+				print $html "[$_]" foreach(@birthcitations);
+				if($dateofbaptism || $placeofbaptism) {
+					if(scalar(@spouses)) {
+						print $html ', was';
+					} else {
+						print $html ' and';
+					}
+				}
+				$end_of_sentence = 0;
 			}
-			if($dateofbirth) {
-				print $html ' ', year({
-					person => $person,
-					date => $dateofbirth,
-					must_predate => $death_dt
-				});
-			}
-			print $html "[$_]" foreach(@birthcitations);
 			if($dateofbaptism || $placeofbaptism) {
-				if(scalar(@spouses)) {
-					print $html ', was';
+				print $html ' ';
+				unless($dateofbirth || $placeofbirth) {
+					print $html 'was ';
+				}
+				if($ENV{'LANG'} =~ /^en_US/) {
+					print $html 'baptized';
 				} else {
-					print $html ' and';
+					print $html 'baptised';
+				}
+				if($placeofbaptism) {
+					if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
+						print $html ' there';
+					} else {
+						my $p = place({ person => $person, place => $placeofbaptism });
+						print $html $p;
+						$places_printed{$p} = 1;
+					}
+				}
+				if($dateofbaptism) {
+					print $html ' ', year({
+						person => $person,
+						date => $dateofbaptism,
+						must_postdate => $birth_dt,
+						must_predate => $death_dt
+					});
+					print_sibling_baptism({
+						person => $person,
+						siblings => \@siblings,
+						date => $dateofbaptism,
+						birthdate => $dateofbirth,
+						fout => $html
+					});
 				}
 			}
-			$end_of_sentence = 0;
-		}
-		if($dateofbaptism || $placeofbaptism) {
-			print $html ' ';
-			unless($dateofbirth || $placeofbirth) {
-				print $html 'was ';
+			if(scalar(@spouses)) {
+				print $html ' and';
+			} else {
+				print $html '.';
+				$end_of_sentence = 1;
 			}
+		} elsif($dateofbaptism || $placeofbaptism) {
+			print $html "  $pronoun was ";
+
 			if($ENV{'LANG'} =~ /^en_US/) {
 				print $html 'baptized';
 			} else {
@@ -505,67 +599,14 @@ sub print_person
 					fout => $html
 				});
 			}
-		}
-		if(scalar(@spouses)) {
-			print $html ' and';
-		} else {
-			print $html '.';
-			$end_of_sentence = 1;
-		}
-	} elsif($dateofbaptism || $placeofbaptism) {
-		print $html "  $pronoun was ";
-
-		if($ENV{'LANG'} =~ /^en_US/) {
-			print $html 'baptized';
-		} else {
-			print $html 'baptised';
-		}
-		if($placeofbaptism) {
-			if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
-				print $html ' there';
+			if(scalar(@spouses)) {
+				print $html ' and';
+				$end_of_sentence = 0;
 			} else {
-				my $p = place({ person => $person, place => $placeofbaptism });
-				print $html $p;
-				$places_printed{$p} = 1;
+				print $html '.';
+				$end_of_sentence = 1;
 			}
 		}
-		if($dateofbaptism) {
-			print $html ' ', year({
-				person => $person,
-				date => $dateofbaptism,
-				must_postdate => $birth_dt,
-				must_predate => $death_dt
-			});
-			print_sibling_baptism({
-				person => $person,
-				siblings => \@siblings,
-				date => $dateofbaptism,
-				birthdate => $dateofbirth,
-				fout => $html
-			});
-		}
-		if(scalar(@spouses)) {
-			print $html ' and';
-			$end_of_sentence = 0;
-		} else {
-			print $html '.';
-			$end_of_sentence = 1;
-		}
-	}
-
-	my $yob;	# Year of birth
-	if($dob && ($dob =~ /.*?(\d{3,4})/)) {
-		$yob = $1;
-	} elsif($dob) {
-		if($opts{'w'} && !$warned{$person}) {
-			if($opts{'f'}) {
-				die $person->name(), ": invalid date of birth $dob\n";
-			}
-			warn $person->name(), ": invalid date of birth $dob\n";
-			$warned{$person} = 1;
-		}
-	} else {
-		$yob = $dob;
 	}
 
 	my $all_children_are_alive = 1;
@@ -620,9 +661,15 @@ sub print_person
 			if($haveprintedspousename) {
 				print $html $spouses[0]->given_names();
 			} else {
-				print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
-					$spouses[0]->as_string(),
-					'</a>';
+				if($opts{'l'} || !$is_alive) {
+					print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
+						$spouses[0]->as_string(),
+						'</a>';
+				} else {
+					print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
+						$spouses[0]->given_names(),
+						'</a>';
+				}
 				$haveprintedspousename = 1;
 			}
 			if($numberofchildren) {
@@ -658,20 +705,22 @@ sub print_person
 					print $html $childnames;
 				}
 			}
-			print $html ',' if(($dateofmarriage || $placeofmarriage) && $numberofchildren);
-			if($placeofmarriage && $dateofmarriage &&
-			   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
-				print $html ' there ',
-					year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
-			} else {
-				print $html ' ', year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
-				if($placeofmarriage) {
-					my $p = place({ place => $placeofmarriage, person => $person, places_printed => \%places_printed });
-					print $html $p;
-					$places_printed{$p} = 1;
+			if($opts{'l'} || !$is_alive) {
+				print $html ',' if(($dateofmarriage || $placeofmarriage) && $numberofchildren);
+				if($placeofmarriage && $dateofmarriage &&
+				   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
+					print $html ' there ',
+						year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
+				} else {
+					print $html ' ', year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
+					if($placeofmarriage) {
+						my $p = place({ place => $placeofmarriage, person => $person, places_printed => \%places_printed });
+						print $html $p;
+						$places_printed{$p} = 1;
+					}
 				}
+				print $html "[$marriagecitation]" if($marriagecitation);
 			}
-			print $html "[$marriagecitation]" if($marriagecitation);
 		} else {
 			print $html ' was married ';
 			if(scalar(@spouses) == 2) {
@@ -703,7 +752,10 @@ sub print_person
 						print $html "$numberofchildren children, ";
 					}
 					if($numberofchildren > 1) {
-						my $childnames = join(', ', map { $_->given_names() } @children);
+						my $childnames = join(', ', map {
+							' <a href=' . $_->{'xref'} . '.html>' .
+								$_->given_names() .  '</a>'
+						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						print $html $childnames;
 					}
@@ -907,113 +959,140 @@ sub print_person
 		$end_of_sentence = 0;
 	}
 	print $html '.' if(!$end_of_sentence);
-	print $html "</p><ul>" if(@children);
 
-	foreach my $child(@children) {
-		my $dob = get_value({ person => $child, value => 'birth date' });
-		if($dob) {
-			print $html '<li>', $child->given_names(),
-				' was born ',
-				year({ person => $child, date => $dob });
-			if($opts{'w'} && ($birth_dt || $death_dt) && ($dob =~ /^\d/)) {
-				my $d;
-				eval {
-					$d = $date_parser->parse(date => $dob);
-				};
-				if($d) {
-					$d = @{$d}[0];
-				}
-				if($d) {
-					$d = $dfn->parse_datetime($d->{'canonical'});
-					if($birth_dt && ($d <= $birth_dt)) {
-						if($opts{'f'}) {
-							die $child->name(), ': Born before parent was born';
-						}
-						red_warning({ person => $child, warning => 'born before parent was born' });
+	if($opts{'l'} || !$is_alive) {
+		print $html "</p><h2>Children</h2><ol>" if(@children);
+
+		foreach my $child(@children) {
+			my $dob = get_value({ person => $child, value => 'birth date' });
+			if($dob) {
+				print $html '<li><a href="', $child->{'xref'}, '.html">',
+					$child->given_names(),
+					'</a> was born ',
+					year({ person => $child, date => $dob });
+				if($opts{'w'} && ($birth_dt || $death_dt) && ($dob =~ /^\d/)) {
+					my $d;
+					eval {
+						$d = $date_parser->parse(date => $dob);
+					};
+					if($d) {
+						$d = @{$d}[0];
 					}
-					if($sex eq 'F') {
-						if($death_dt && ($d > $death_dt)) {
+					if($d) {
+						$d = $dfn->parse_datetime($d->{'canonical'});
+						if($birth_dt && ($d <= $birth_dt)) {
 							if($opts{'f'}) {
-								die $child->name(), ': Born after mother died';
+								die $child->name(), ': Born before parent was born';
 							}
-							red_warning({ person => $child, warning => 'born after mother died' });
+							red_warning({ person => $child, warning => 'born before parent was born' });
 						}
-					} elsif($death_dt && ($d > ($death_dt + $ninemonths))) {
-						# Allow the child to be
-						# born up to 9 months
-						# after the death of the
-						# father
-						if($opts{'f'}) {
-							die $child->name(), ': Born more than 9 months after father died';
+						if($sex eq 'F') {
+							if($death_dt && ($d > $death_dt)) {
+								if($opts{'f'}) {
+									die $child->name(), ': Born after mother died';
+								}
+								red_warning({ person => $child, warning => 'born after mother died' });
+							}
+						} elsif($death_dt && ($d > ($death_dt + $ninemonths))) {
+							# Allow the child to be
+							# born up to 9 months
+							# after the death of the
+							# father
+							if($opts{'f'}) {
+								die $child->name(), ': Born more than 9 months after father died';
+							}
+							red_warning({ person => $child, warning => 'born more than 9 months after father died' });
 						}
-						red_warning({ person => $child, warning => 'born more than 9 months after father died' });
 					}
 				}
+				print $html '</li>';
+			} elsif(get_value({ person => $child, value => 'baptism date' })) {
+				print $html '<li><a href="', $child->{'xref'}, '.html">',
+					$child->given_names(),
+					'</a> was born c',
+					get_value({ person => $child, value => 'baptism date' }),
+					'</li>';
 			}
-			print $html '</li>';
-		} elsif(get_value({ person => $child, value => 'baptism date' })) {
-			print $html "<li>", $child->given_names(),
-				' was born c',
-				get_value({ person => $child, value => 'baptism date' }),
-				'</li>';
 		}
-	}
-	print $html '</ul>' if(@children);
-	if($opts{'c'}) {
-		print $html '<h2>Citations</h2>' if($citationcount);
-		foreach my $citation(1..$citationcount) {
-			print $html "[$citation]: ", $citations{$citation}->title(), "<br>\n";
-			# TODO - print $html NOTE
-		}
+		print $html '</ol>' if(@children);
 	}
 
-	my $note = $person->note();
+	if($opts{'l'} || !$is_alive) {
+		if($opts{'c'}) {
+			print $html '<h2>Citations</h2><ol>' if($citationcount);
+			foreach my $citation(1..$citationcount) {
+				print $html '<li>', $citations{$citation}->title(), "</li>";
+				# TODO - print $html NOTE
+			}
+			print $html '</ol>';
+		}
 
-	print $html "<h2>Notes</h2><p>$note</p>" if($note);
+		my $note = $person->note();
 
-	# print 'f:', $person->form() if($person->form());
+		print $html "<h2>Notes</h2><p>$note</p>" if($note);
 
-	if($person->obje()) {
-		print $html '<h2>Media</h2>';
-		# TODO - find primary and do something different with that
-		#	The obje should be in order with primary first
-		foreach my $o($person->obje()) {
-			my $obje = $ged->resolve_xref($o);
-			my $file = $obje->file();
-			if($file) {
-				$file =~ s/\{0\}//;
-				my $form = $obje->form();
-				my $title = $obje->title();
-				if($form && ($form eq 'JPG')) {
-					print $html "<img src=\"$file\" alt=\"$title\">";
-				} else {
-					print $html "<a href=\"$file\">$title</a>";
+		# print 'f:', $person->form() if($person->form());
+
+		if($person->obje()) {
+			print $html '<h2>Media</h2>';
+			# TODO - find primary and do something different with that
+			#	The obje should be in order with primary first, but FMP
+			#	doesn't do that
+			#	Gedcom doesn't seem to be able to handle extra '_ tags,
+			#	or if it can I can't work out how to make use of it
+			print $person->{"_prof"}, "\n" if($person->{'_prof'});
+			print $person->{"prof"}, "\n" if($person->{'prof'});
+			print $person->{"_PROF"}, "\n" if($person->{'_PROF'});
+			print $person->{"PROF"}, "\n" if($person->{'PROF'});
+			print $person->{"_prim"}, "\n" if($person->{'_prim'});
+			print $person->{"prim"}, "\n" if($person->{'prim'});
+			print $person->{"_PRIM"}, "\n" if($person->{'_PRIM'});
+			print $person->{"PRIM"}, "\n" if($person->{'PRIM'});
+			foreach my $o($person->obje()) {
+				my $obje = $ged->resolve_xref($o);
+				my $file = $obje->file();
+				if($file) {
+					$file =~ s/\{0\}//;
+					print $obje->{"_prim"}, "\n" if($obje->{'_prim'});
+					print $obje->{"prim"}, "\n" if($obje->{'prim'});
+					print $obje->{"_PRIM"}, "\n" if($obje->{'_PRIM'});
+					print $obje->{"PRIM"}, "\n" if($obje->{'PRIM'});
+					my $form = $obje->form();
+					my $title = $obje->title();
+					if($form && ($form eq 'JPG')) {
+						print $html "<h3>$title</h3><img src=\"$file\" alt=\"$title\" width=\"175\">";
+					} else {
+						print $html "<a href=\"$file\">$title</a>";
+					}
+					print $html '<br>';
 				}
-				print $html '<br>';
 			}
 		}
-	}
 
-	if(0) {	# RT110778
-		my $tree = Tree::Family->new(filename => '/tmp/dddddd');
+		# use Data::Dumper;
+		# print $html Dumper(\$person);
 
-		my $root = Tree::Family::Person->new(name => $firstname);
-		if($mother) {
-			my $m = Tree::Family::Person->new(name => 'Mother');
-			$root->mom($m);
-			$tree->add_person($m);
-		}
-		if($father) {
-			my $f = Tree::Family::Person->new(name => 'Father');
-			$root->dad($f);
-			$tree->add_person($f);
-		}
-		$tree->add_person($root);
+		if(0) {	# RT110778
+			my $tree = Tree::Family->new(filename => '/tmp/dddddd');
 
-		if(open(my $fout, '|-', '/usr/bin/dot > img/' . $person->{'xref'} . '.png')) {
-			print $fout, $tree->as_dot();
-			close $fout;
-			print $html '<br><img src="img/', $person->{'xref'}, '.png">';
+			my $root = Tree::Family::Person->new(name => $firstname);
+			$tree->add_person($root);
+			if($mother) {
+				my $m = Tree::Family::Person->new(name => 'Mother');
+				$tree->add_person($m);
+				$root->mom($m);
+			}
+			if($father) {
+				my $f = Tree::Family::Person->new(name => 'Father');
+				$tree->add_person($f);
+				$root->dad($f);
+			}
+
+			if(open(my $fout, '|-', '/usr/bin/dot > img/' . $person->{'xref'} . '.png')) {
+				print $fout, $tree->as_dot();
+				close $fout;
+				print $html '<br><img src="img/', $person->{'xref'}, '.png">';
+			}
 		}
 	}
 
