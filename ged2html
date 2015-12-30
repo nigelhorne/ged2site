@@ -37,6 +37,8 @@ use Geo::Coder::OSM;
 use Tie::Static;
 use Term::ANSIColor;
 use HTML::Entities;
+use Tree::Family;
+use Tree::Family::Person;
 
 my %opts;
 getopts('cfh:lwv', \%opts);
@@ -65,6 +67,7 @@ if($opts{h}) {
 }
 
 mkdir 'html';
+mkdir 'img';
 
 foreach my $person($ged->individuals()) {
 	if(!$printed{$person->{'xref'}}) {
@@ -110,7 +113,7 @@ sub print_person
 		my $name = $person->as_string(nee => 1);
 
 		print $html "<html><title>The Family Tree of $name</title></head",
-			'<body><a href=', $person->{'xref'}, ".html>$name</a></body></html>";
+			"<body><h1>The Family Tree of $name<a href=\"", $person->{'xref'}, ".html\">$name</a></h1></body></html>";
 		close $html;
 	}
 	open(my $html, '>', 'html/' . $person->{'xref'} . '.html');
@@ -479,9 +482,13 @@ sub print_person
 				print $html 'baptised';
 			}
 			if($placeofbaptism) {
-				my $p = place({ person => $person, place => $placeofbaptism });
-				print $html $p;
-				$places_printed{$p} = 1;
+				if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
+					print $html ' there';
+				} else {
+					my $p = place({ person => $person, place => $placeofbaptism });
+					print $html $p;
+					$places_printed{$p} = 1;
+				}
 			}
 			if($dateofbaptism) {
 				print $html ' ', year({
@@ -499,8 +506,12 @@ sub print_person
 				});
 			}
 		}
-		print $html '.';
-		$end_of_sentence = 1;
+		if(scalar(@spouses)) {
+			print $html ' and';
+		} else {
+			print $html '.';
+			$end_of_sentence = 1;
+		}
 	} elsif($dateofbaptism || $placeofbaptism) {
 		print $html "  $pronoun was ";
 
@@ -964,7 +975,8 @@ sub print_person
 
 	if($person->obje()) {
 		print $html '<h2>Media</h2>';
-		# TODO - find primary flag and do something different with that
+		# TODO - find primary and do something different with that
+		#	The obje should be in order with primary first
 		foreach my $o($person->obje()) {
 			my $obje = $ged->resolve_xref($o);
 			my $file = $obje->file();
@@ -979,6 +991,29 @@ sub print_person
 				}
 				print $html '<br>';
 			}
+		}
+	}
+
+	if(0) {	# RT110778
+		my $tree = Tree::Family->new(filename => '/tmp/dddddd');
+
+		my $root = Tree::Family::Person->new(name => $firstname);
+		if($mother) {
+			my $m = Tree::Family::Person->new(name => 'Mother');
+			$root->mom($m);
+			$tree->add_person($m);
+		}
+		if($father) {
+			my $f = Tree::Family::Person->new(name => 'Father');
+			$root->dad($f);
+			$tree->add_person($f);
+		}
+		$tree->add_person($root);
+
+		if(open(my $fout, '|-', '/usr/bin/dot > img/' . $person->{'xref'} . '.png')) {
+			print $fout, $tree->as_dot();
+			close $fout;
+			print $html '<br><img src="img/', $person->{'xref'}, '.png">';
 		}
 	}
 
