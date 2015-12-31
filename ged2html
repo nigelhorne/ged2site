@@ -64,18 +64,34 @@ if($opts{h}) {
 	}
 }
 
+my $dot;
+if(-x '/usr/bin/dot') {
+	$dot = '/usr/bin/dot';
+} elsif(-x '/usr/local/bin/dot') {
+	$dot = '/usr/local/bin/dot';
+}
+
+if(!defined($dot)) {
+	if($opts{'f'}) {
+		die 'Graphviz not found, no family trees';
+	}
+	if($opts{'w'}) {
+		red_warning(warning => 'Graphviz not found, no family trees');
+	}
+}
+
 mkdir 'html';
 mkdir 'html/img';
 
 my @everyone = $ged->individuals();
 my $total = scalar(@everyone);
-my $index = 1;
+my $index = 0;
 
 foreach my $person($ged->individuals()) {
 	$| = 1;
+	$index++;
 	print "\r$index/$total";
 	$| = 0;
-	$index++;
 	if(!$printed{$person->{'xref'}}) {
 		print_person({ person => $person });
 	}
@@ -160,6 +176,7 @@ sub print_person
 	$nameparser->parse($name);
 	my %name_components = $nameparser->components();
 	my $firstname = $name_components{'given_name_1'};
+	my $surname = $name_components{'surname_1'};
 
 	if($is_alive && !$opts{'l'}) {
 		$title = $firstname;
@@ -1087,30 +1104,49 @@ sub print_person
 			}
 		}
 
-		if(-x '/usr/bin/dot') {
+		if(defined($dot) && open(my $fout, '|-', "$dot -Tpng > html/img/" . $person->{'xref'} . '.png')) {
 			my $tree = Tree::Family->new(filename => '/tmp/dddddd');
 
-			my $root = Tree::Family::Person->new(name => $firstname);
+			my $root = Tree::Family::Person->new(
+				first_name => $firstname,
+				last_name => $surname,
+				id => $person->{'xref'},
+				gender => $sex
+			);
 			$tree->add_person($root);
 			if($mother) {
-				my $m = Tree::Family::Person->new(name => 'Mother');
-				$tree->add_person($m);
+				my $m = Tree::Family::Person->new(
+					first_name => $mother->given_names(),
+					last_name => $mother->surname(),
+					id => $mother->{'xref'},
+					gender => 'F'
+				);
 				$root->mom($m);
+				$tree->add_person($m);
 			}
 			if($father) {
-				my $f = Tree::Family::Person->new(name => 'Father');
-				$tree->add_person($f);
+				my $f = Tree::Family::Person->new(
+					first_name => $father->given_names(),
+					last_name => $father->surname(),
+					id => $father->{'xref'},
+					gender => 'M'
+				);
 				$root->dad($f);
+				$tree->add_person($f);
 			}
+			$tree->_set_generations(force => 1);
 
-			if(open(my $fout, '|-', '/usr/bin/dot > html/img/' . $person->{'xref'} . '.png')) {
-				# print $fout, $tree->as_dot();	# RT110778
-				close $fout;
-				print $html '<br><img src="img/', $person->{'xref'}, '.png">';
-			} elsif($opts{'f'}) {
-				die "/usr/bin/dot: $!";
+			print $fout $tree->as_dot();
+
+			print $html '<h2>Family Tree</h2>';
+			print $html '<br><img src="img/', $person->{'xref'}, '.png">';
+
+			close $fout;
+		} elsif(defined($dot)) {
+			if($opts{'f'}) {
+				die "$dot: $!";
 			} else {
-				red_warning(warning => "/usr/bin/dot: $!");
+				red_warning(warning => "$dot: $!");
 			}
 		}
 	}
