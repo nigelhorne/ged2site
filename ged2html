@@ -67,11 +67,20 @@ if($opts{h}) {
 mkdir 'html';
 mkdir 'html/img';
 
+my @everyone = $ged->individuals();
+my $total = scalar(@everyone);
+my $index = 1;
+
 foreach my $person($ged->individuals()) {
+	$| = 1;
+	print "\r$index/$total";
+	$| = 0;
+	$index++;
 	if(!$printed{$person->{'xref'}}) {
 		print_person({ person => $person });
 	}
 }
+print "\r$index records exported\n";
 
 sub print_person
 {
@@ -567,7 +576,7 @@ sub print_person
 				$end_of_sentence = 1;
 			}
 		} elsif($dateofbaptism || $placeofbaptism) {
-			print $html "  $pronoun was ";
+			print $html " $pronoun was ";
 
 			if($ENV{'LANG'} =~ /^en_US/) {
 				print $html 'baptized';
@@ -672,7 +681,7 @@ sub print_person
 				$haveprintedspousename = 1;
 			}
 			if($numberofchildren) {
-				print $html ' with whom ', lcfirst($pronoun);
+				print $html ', with whom ', lcfirst($pronoun);
 				if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
 					print $html ' had ';
 				} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
@@ -763,7 +772,7 @@ sub print_person
 		}
 		$end_of_sentence = 0;
 	} elsif($numberofchildren) {
-		print $html "  $pronoun had ",
+		print $html " $pronoun had ",
 			($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ";
 		if($numberofchildren == 1) {
 			print $html $children[0]->given_names();
@@ -822,7 +831,7 @@ sub print_person
 		foreach my $residence(@residencelist) {
 			if($count == 0) {
 				print $html '.' unless($end_of_sentence);
-				print $html '  During ',
+				print $html ' During ',
 					lc($person->possessive()),
 					' life ', lcfirst($pronoun), ' lived';
 			}
@@ -864,7 +873,7 @@ sub print_person
 		if((!$dateofdeath) && !$placeofdeath) {
 			print $html '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
 			if($dateofburial) {
-				print $html "  $pronoun was buried ",
+				print $html " $pronoun was buried ",
 					year({ person => $person, date => $dateofburial });
 				if($placeofburial) {
 					if($placeofbirth && ($placeofburial eq $placeofbirth)) {
@@ -882,7 +891,7 @@ sub print_person
 					}
 				}
 			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
-				print $html "  $pronoun was buried in ",
+				print $html " $pronoun was buried in ",
 					lcfirst($person->possessive()),
 					' home town of ';
 				my $city = $placeofburial;
@@ -893,12 +902,12 @@ sub print_person
 				}
 			} else {
 				my $p = place({ person => $person, place => $placeofburial, places_printed => \%places_printed, there => $placeofmarriage });
-				print $html "  $pronoun is buried$p";
+				print $html " $pronoun is buried$p";
 			}
 			$end_of_sentence = 0;
 		} elsif($dateofdeath || $placeofdeath) {
 			print $html '.' if(!$end_of_sentence);
-			print $html "  $pronoun died";
+			print $html " $pronoun died";
 			if($dateofdeath) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath) {
@@ -932,7 +941,7 @@ sub print_person
 			print $html ', which is also where ', lcfirst($pronoun);
 		} else {
 			print $html '.' if(!$end_of_sentence);
-			print $html "  $pronoun";
+			print $html " $pronoun";
 		}
 		print $html ' died';
 		if($dateofdeath) {
@@ -1067,11 +1076,11 @@ sub print_person
 					my $title = $obje->title();
 					if($form && ($form eq 'JPG')) {
 						print $html "<h3>$title</h3>",
-							"<a href=\"$file\">",
+							"<a href=\"$file\" target=\"_blank\">",
 								"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 							'</a>';
 					} else {
-						print $html "<a href=\"$file\">$title</a>";
+						print $html "<a href=\"$file\" target=\"_blank\">$title</a>";
 					}
 					print $html '<br>';
 				}
