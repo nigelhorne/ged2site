@@ -10,8 +10,6 @@
 #	must apply in writing for a licence for use from Nigel Horne at the
 #	above e-mail.
 
-# So far this has only tested on FMP Gedcoms
-
 # -c: Give citations
 # -f: treat warnings as fatals, implies -w
 # -h: set the home person
@@ -140,7 +138,7 @@ sub print_person
 	}
 
 	my $is_alive = 1;
-	if($yob && ($year >= $yob + 150)) {
+	if($yob && ($year >= $yob + 120)) {
 		$is_alive = 0;
 	}
 
@@ -152,7 +150,7 @@ sub print_person
 	if($dateofdeath) {
 		$is_alive = 0;
 	}
-		
+
 	my $title = $person->as_string({
 		include_years => 1,
 		nee => 1,
@@ -161,9 +159,9 @@ sub print_person
 	});
 
 	if($person eq $me) {
-		open(my $html, '>', 'html/index.html');
 		my $name = $person->as_string(nee => 1);
 
+		open(my $html, '>', 'html/index.html');
 		print $html "<html><title>The Family Tree of $name</title>",
 			'<meta http-equiv="Refresh" content="1;URL=', $person->{'xref'}, '.html">',
 			'</head>',
@@ -986,16 +984,23 @@ sub print_person
 	print $html '.' if(!$end_of_sentence);
 
 	if($opts{'l'} || !$is_alive) {
+		if($mother || $father) {
+			print $html "</p><h2>Parents</h2><ol>";
+			if($father) {
+				output_person_line({ fout => $html, person => $father });
+			}
+			if($mother) {
+				output_person_line({ fout => $html, person => $mother });
+			}
+			print $html '</ol>';
+		}
 		print $html "</p><h2>Children</h2><ol>" if(@children);
 
 		foreach my $child(@children) {
-			my $dob = get_value({ person => $child, value => 'birth date' });
-			if($dob) {
-				print $html '<li><a href="', $child->{'xref'}, '.html">',
-					$child->given_names(),
-					'</a> was born ',
-					year({ person => $child, date => $dob });
-				if($opts{'w'} && ($birth_dt || $death_dt) && ($dob =~ /^\d/)) {
+			output_person_line({ fout => $html, person => $child });
+			if($opts{'w'} && ($birth_dt || $death_dt)) {
+				my $dob = get_value({ person => $child, value => 'birth date' });
+				if($dob && ($dob =~ /^\d/)) {
 					my $d;
 					eval {
 						$d = $date_parser->parse(date => $dob);
@@ -1030,13 +1035,6 @@ sub print_person
 						}
 					}
 				}
-				print $html '</li>';
-			} elsif(get_value({ person => $child, value => 'baptism date' })) {
-				print $html '<li><a href="', $child->{'xref'}, '.html">',
-					$child->given_names(),
-					'</a> was born c',
-					get_value({ person => $child, value => 'baptism date' }),
-					'</li>';
 			}
 		}
 		print $html '</ol>' if(@children);
@@ -1111,7 +1109,11 @@ sub print_person
 				first_name => $firstname,
 				last_name => $surname,
 				id => $person->{'xref'},
-				gender => $sex
+				birth_date => $dateofbirth,
+				birth_place => $placeofbirth,
+				death_date => $dateofdeath,
+				gender => lc($sex),
+				generation => 2,
 			);
 			$tree->add_person($root);
 			if($mother) {
@@ -1119,27 +1121,58 @@ sub print_person
 					first_name => $mother->given_names(),
 					last_name => $mother->surname(),
 					id => $mother->{'xref'},
-					gender => 'F'
+					gender => 'f',
+					generation => 1,
 				);
-				$root->mom($m);
 				$tree->add_person($m);
+				$root->mom($m);
 			}
 			if($father) {
 				my $f = Tree::Family::Person->new(
 					first_name => $father->given_names(),
 					last_name => $father->surname(),
 					id => $father->{'xref'},
-					gender => 'M'
+					gender => 'm',
+					generation => 1,
 				);
-				$root->dad($f);
 				$tree->add_person($f);
+				$root->dad($f);
 			}
-			$tree->_set_generations(force => 1);
+			foreach my $spouse(@spouses) {
+				my $s = Tree::Family::Person->new(
+					first_name => $spouse->given_names(),
+					last_name => $spouse->surname(),
+					id => $spouse->{'xref'},
+					gender => ($sex eq 'M') ? 'f' : 'm',
+					generation => 2,
+				);
+				$tree->add_person($s);
+				$root->spouse($s);
+			}
+			foreach my $child(@children) {
+				my $c = Tree::Family::Person->new(
+					first_name => $child->given_names(),
+					last_name => $child->surname(),
+					id => $child->{'xref'},
+					gender => lc(get_value({ person => $child, value => 'sex' })),
+					generation => 3,
+				);
+				$tree->add_person($c);
+				$root->add_kid($c);
+			}
+			# $tree->_set_generations(force => 1);
 
 			print $fout $tree->as_dot();
 
 			print $html '<h2>Family Tree</h2>';
-			print $html '<br><img src="img/', $person->{'xref'}, '.png">';
+			my $height = 125;
+			if(@children) {
+				$height = 250;
+			}
+			if($father || $mother) {
+				$height += 250;
+			}
+			print $html '<br><img src="img/', $person->{'xref'}, ".png\" height=\"$height\">";
 
 			close $fout;
 		} elsif(defined($dot)) {
@@ -1649,6 +1682,28 @@ sub validate_place
 	}
 	$places{$place} = 1;
 	return 1;
+}
+
+sub output_person_line
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $person = $params{'person'};
+	my $fout = $params{'fout'};
+
+	my $dob = get_value({ person => $person, value => 'birth date' });
+	if($dob) {
+		print $fout '<li><a href="', $person->{'xref'}, '.html">',
+			$person->given_names(),
+			'</a> was born ',
+			year({ person => $person, date => $dob }),
+			'</li>';
+	} elsif(get_value({ person => $person, value => 'baptism date' })) {
+		print $fout '<li><a href="', $person->{'xref'}, '.html">',
+			$person->given_names(),
+			'</a> was born c',
+			get_value({ person => $person, value => 'baptism date' }),
+			'</li>';
+	}
 }
 
 sub print_sibling_baptism
