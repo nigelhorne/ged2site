@@ -10,8 +10,6 @@
 #	must apply in writing for a licence for use from Nigel Horne at the
 #	above e-mail.
 
-# TODO: Honour the -l flag, currently living people are always added
-
 # So far this has only tested on FMP Gedcoms
 
 # -c: Give citations
@@ -67,7 +65,7 @@ if($opts{h}) {
 }
 
 mkdir 'html';
-mkdir 'img';
+mkdir 'html/img';
 
 foreach my $person($ged->individuals()) {
 	if(!$printed{$person->{'xref'}}) {
@@ -474,6 +472,7 @@ sub print_person
 			print $html ', ';
 		}
 		print $html $firstname;
+		print $html ', ' if($relationship);
 	} else {
 		print $html $pronoun;
 	}
@@ -827,7 +826,7 @@ sub print_person
 					lc($person->possessive()),
 					' life ', lcfirst($pronoun), ' lived';
 			}
-			if(($count == 0) && ($residencelist[$count - 1]->place() ne $residence->place())) {
+			if(($count == 0) || ($residencelist[$count - 1]->place() ne $residence->place())) {
 				print $html place({ person => $person, record => $residence });
 			}
 			my $date = $residence->date();
@@ -1021,7 +1020,14 @@ sub print_person
 		if($opts{'c'}) {
 			print $html '<h2>Citations</h2><ol>' if($citationcount);
 			foreach my $citation(1..$citationcount) {
-				print $html '<li>', $citations{$citation}->title(), "</li>";
+				print $html '<li>';
+				my $file = $citations{$citation}->file();
+				if($file) {
+					print $html "<a href=\"$file\">", $citations{$citation}->title(), '</a>';
+				} else {
+					print $html $citations{$citation}->title();
+				}
+				print $html '</li>';
 				# TODO - print $html NOTE
 			}
 			print $html '</ol>';
@@ -1060,7 +1066,10 @@ sub print_person
 					my $form = $obje->form();
 					my $title = $obje->title();
 					if($form && ($form eq 'JPG')) {
-						print $html "<h3>$title</h3><img src=\"$file\" alt=\"$title\" width=\"175\">";
+						print $html "<h3>$title</h3>",
+							"<a href=\"$file\">",
+								"<img src=\"$file\" alt=\"$title\" width=\"175\">",
+							'</a>';
 					} else {
 						print $html "<a href=\"$file\">$title</a>";
 					}
@@ -1069,10 +1078,7 @@ sub print_person
 			}
 		}
 
-		# use Data::Dumper;
-		# print $html Dumper(\$person);
-
-		if(0) {	# RT110778
+		if(-x '/usr/bin/dot') {
 			my $tree = Tree::Family->new(filename => '/tmp/dddddd');
 
 			my $root = Tree::Family::Person->new(name => $firstname);
@@ -1088,10 +1094,14 @@ sub print_person
 				$root->dad($f);
 			}
 
-			if(open(my $fout, '|-', '/usr/bin/dot > img/' . $person->{'xref'} . '.png')) {
-				print $fout, $tree->as_dot();
+			if(open(my $fout, '|-', '/usr/bin/dot > html/img/' . $person->{'xref'} . '.png')) {
+				# print $fout, $tree->as_dot();	# RT110778
 				close $fout;
 				print $html '<br><img src="img/', $person->{'xref'}, '.png">';
+			} elsif($opts{'f'}) {
+				die "/usr/bin/dot: $!";
+			} else {
+				red_warning(warning => "/usr/bin/dot: $!");
 			}
 		}
 	}
