@@ -1165,12 +1165,12 @@ sub print_person
 			print $fout $tree->as_dot();
 
 			print $html '<h2>Family Tree</h2>';
-			my $height = 125;
+			my $height = 100;
 			if(@children) {
-				$height = 250;
+				$height = 200;
 			}
 			if($father || $mother) {
-				$height += 250;
+				$height += 200;
 			}
 			print $html '<br><img src="img/', $person->{'xref'}, ".png\" height=\"$height\">";
 
