@@ -67,6 +67,8 @@ if(-x '/usr/bin/dot') {
 	$dot = '/usr/bin/dot';
 } elsif(-x '/usr/local/bin/dot') {
 	$dot = '/usr/local/bin/dot';
+} elsif(-x '/sw/bin/dot') {
+	$dot = '/sw/bin/dot';
 }
 
 if(!defined($dot)) {
@@ -76,6 +78,8 @@ if(!defined($dot)) {
 	if($opts{'w'}) {
 		red_warning(warning => 'Graphviz not found, no family trees');
 	}
+} else {
+	print "Using $dot\n" if($opts{'v'});
 }
 
 mkdir 'html';
@@ -1080,6 +1084,7 @@ sub print_person
 			print $person->{"PRIM"}, "\n" if($person->{'PRIM'});
 			foreach my $o($person->obje()) {
 				my $obje = $ged->resolve_xref($o);
+				next if(!defined($obje));
 				my $file = $obje->file();
 				if($file) {
 					$file =~ s/\{0\}//;
@@ -1150,11 +1155,24 @@ sub print_person
 				$root->spouse($s);
 			}
 			foreach my $child(@children) {
+				my $gender = get_value({ person => $child, value => 'sex' });
+				if(defined($gender)) {
+					$gender = lc($gender);
+				} else {
+					if($opts{'f'}) {
+						die "\n", $child->as_string(), ": unknown sex\n";
+					}
+					if($opts{'w'}) {
+						red_warning({ person => $child, warning => 'unknown sex' });
+					}
+					$gender = 'm';	# Avoid "Use of uninitialized value" in Tree::Family
+				}
+
 				my $c = Tree::Family::Person->new(
 					first_name => $child->given_names(),
 					last_name => $child->surname(),
 					id => $child->{'xref'},
-					gender => lc(get_value({ person => $child, value => 'sex' })),
+					gender => $gender,
 					generation => 3,
 				);
 				$tree->add_person($c);
