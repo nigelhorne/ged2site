@@ -1684,6 +1684,10 @@ sub validate_place
 		if($place =~ /(.*),\s*Independent Cities\s*(.*)/i) {
 			$place = "$1$2";
 		}
+		if($place =~ /,\s*(.+,.+,.+,.+)$/) {
+			# Use only the town part
+			$place = $1;
+		}
 		if(!$geocoder->geocode($place)) {
 			# Don't die because there are many
 			# false positives as locations
