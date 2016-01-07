@@ -45,6 +45,7 @@ my @myancestors;
 my %warned;
 my %printed;
 my %places;
+my $surnames;
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
@@ -99,6 +100,40 @@ foreach my $person($ged->individuals()) {
 	}
 }
 print "\r$index records exported\n";
+
+my $name = $me->as_string(nee => 1);
+
+open(my $html, '>', 'html/surnames.html');
+print $html "<html><head><title>Surnames in the Family Tree of $name</title>",
+	"</head><body><h1>Surnames in the Family Tree of $name</h1><ul>";
+
+foreach my $surname(sort keys %{$surnames}) {
+	my $filename = $surname;
+	if($filename eq '') {
+		$filename = 'UNKNOWN';
+	}
+	print $html "<li><a href=\"$filename.html\">$filename</a></li>";
+	open(my $shtml, '>', "html/$filename.html");
+	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
+		'</head>',
+		"<body><center><h1>The Family Tree of $name - $surname</h1><br>",
+		'[ <a href="', $me->{'xref'}, '.html">Home</a> ] ',
+		' | [ <a href="surnames.html">Surnames Index</a> ]</center><br>',
+		'<ul>';
+
+	foreach my $person(sort keys %{$surnames->{$surname}}) {
+		# print "\t$person maps to ", $surnames->{$surname}->{$person}, "\n";
+		print $shtml '<li>',
+			'<a href="', $surnames->{$surname}->{$person}, ".html\">$person</a>",
+			'</li>';
+	}
+
+	print $shtml '</ul></body></html>';
+	close $shtml;
+}
+
+print $html '</ul></body></html>';
+close $html;
 
 sub print_person
 {
@@ -178,17 +213,22 @@ sub print_person
 	$nameparser->parse($name);
 	my %name_components = $nameparser->components();
 	my $firstname = $name_components{'given_name_1'};
-	my $surname = $name_components{'surname_1'};
+	# my $surname = $name_components{'surname_2'} || $name_components{'surname_1'};
+	my $surname = ucfirst(lc($person->surname())); # RT109786
 
 	if($is_alive && !$opts{'l'}) {
 		$title = $firstname;
 	}
 
 	open(my $html, '>', 'html/' . $person->{'xref'} . '.html');
-	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1></center>";
+	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
+		'[ <a href="', $me->{'xref'}, '.html">Home</a> ] ',
+		' | [ <a href="surnames.html">Surnames Index</a> ]</center><br>';
 
 	if($is_alive && !$opts{'l'}) {
 		print $html '<p><i>This is the record of a living person, so much data will not be shown</i></p>';
+	} else {
+		$surnames->{$surname}->{$title} = $person->{'xref'};
 	}
 
 	my ($birth_dt, $death_dt);
