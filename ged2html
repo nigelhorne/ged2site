@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015, Nigel Horne
+# Copyright (C) 2015-2016, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -35,10 +35,13 @@ use Term::ANSIColor;
 use HTML::Entities;
 use Tree::Family;
 use Tree::Family::Person;
+use HTTP::Cache::Transparent;
+use File::Spec;
+use LWP::Simple;
 
 my %opts;
-getopts('cfh:lwv', \%opts);
-die "Usage: $0 [ -c ] [ -f ] [ -h home-person-name ] [ -l ] [ -w ] filename\n" unless($ARGV[0]);
+getopts('cdfh:lwv', \%opts);
+die "Usage: $0 [ -c ] [ -d ] [ -f ] [ -h home-person-name ] [ -l ] [ -w ] filename\n" unless($ARGV[0]);
 
 my $me;
 my @myancestors;
@@ -85,6 +88,20 @@ if(!defined($dot)) {
 
 mkdir 'html';
 mkdir 'html/img';
+
+if($opts{'d'}) {
+	# Download copies of objects rather than link to them, useful if the
+	# objects are on pay sites such as FMP
+	my $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'http-cache-transparent');
+	if(!-d $cachedir) {
+		mkdir $cachedir || die "$cachedir: $!";
+	}
+	HTTP::Cache::Transparent::init({
+		BasePath => $cachedir,
+		# Verbose => 1,
+		NoUpdate => 24 * 60 * 60,
+	});
+}
 
 my @everyone = $ged->individuals();
 my $total = scalar(@everyone);
@@ -1088,12 +1105,14 @@ sub print_person
 		if($opts{'c'}) {
 			print $html '<h2>Citations</h2><ol>' if($citationcount);
 			foreach my $citation(1..$citationcount) {
+				my $title = $citations{$citation}->title();
+				next if(!defined($title));
 				print $html '<li>';
 				my $file = $citations{$citation}->file();
 				if($file) {
-					print $html "<a href=\"$file\">", $citations{$citation}->title(), '</a>';
+					print $html "<a href=\"$file\">", HTML::Entities::encode($title), '</a>';
 				} else {
-					print $html $citations{$citation}->title();
+					print $html HTML::Entities::encode($title);
 				}
 				print $html '</li>';
 				# TODO - print $html NOTE
@@ -1127,6 +1146,10 @@ sub print_person
 				next if(!defined($obje));
 				my $file = $obje->file();
 				if($file) {
+					if(ref($file) eq 'Gedcom::Record') {
+						$file = $file->{'file'};
+						next if($file eq '*');
+					}
 					$file =~ s/\{0\}//;
 					print $obje->{"_prim"}, "\n" if($obje->{'_prim'});
 					print $obje->{"prim"}, "\n" if($obje->{'prim'});
@@ -1135,10 +1158,28 @@ sub print_person
 					my $form = $obje->form();
 					my $title = $obje->title();
 					if($form && ($form eq 'JPG')) {
-						print $html "<h3>$title</h3>",
-							"<a href=\"$file\" target=\"_blank\">",
+						print $html "<h3>$title</h3>";
+						if($opts{'d'}) {
+							# Get and stash a local copy
+							my $localfile = 'img/' . $obje->{'xref'} . '.jpg';
+							if((-r "html/$localfile") ||
+							   is_success(getstore($file, "html/$localfile"))) {
+								print $html "<a href=\"$file\" target=\"_blank\">",
+									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\">",
+									'</a>';
+							} else {
+								red_warning({ person => $person, warning => "img/$localfile: $!" });
+								
+								print $html "<a href=\"$file\" target=\"_blank\">",
+									"<img src=\"$file\" alt=\"$title\" width=\"175\">",
+									'</a>';
+							}
+						} else {
+							# Use the remote copy
+							print $html "<a href=\"$file\" target=\"_blank\">",
 								"<img src=\"$file\" alt=\"$title\" width=\"175\">",
-							'</a>';
+								'</a>';
+						}
 					} else {
 						print $html "<a href=\"$file\" target=\"_blank\">$title</a>";
 					}
@@ -1147,81 +1188,85 @@ sub print_person
 			}
 		}
 
-		if(defined($dot) && open(my $fout, '|-', "$dot -Tpng > html/img/" . $person->{'xref'} . '.png')) {
-			my $tree = Tree::Family->new(filename => '/tmp/dddddd');
+		my $png = "html/img/" . $person->{'xref'} . '.png';
+		if(defined($dot)) {
+			if((!-r $png) &&
+			    open(my $fout, '|-', "$dot -Tpng > $png")) {
+				my $tree = Tree::Family->new(filename => '/tmp/dddddd');
 
-			my $root = Tree::Family::Person->new(
-				first_name => $firstname,
-				last_name => $surname,
-				id => $person->{'xref'},
-				birth_date => $dateofbirth,
-				birth_place => $placeofbirth,
-				death_date => $dateofdeath,
-				gender => lc($sex),
-				generation => 2,
-			);
-			$tree->add_person($root);
-			if($mother) {
-				my $m = Tree::Family::Person->new(
-					first_name => $mother->given_names(),
-					last_name => $mother->surname(),
-					id => $mother->{'xref'},
-					gender => 'f',
-					generation => 1,
-				);
-				$tree->add_person($m);
-				$root->mom($m);
-			}
-			if($father) {
-				my $f = Tree::Family::Person->new(
-					first_name => $father->given_names(),
-					last_name => $father->surname(),
-					id => $father->{'xref'},
-					gender => 'm',
-					generation => 1,
-				);
-				$tree->add_person($f);
-				$root->dad($f);
-			}
-			foreach my $spouse(@spouses) {
-				my $s = Tree::Family::Person->new(
-					first_name => $spouse->given_names(),
-					last_name => $spouse->surname(),
-					id => $spouse->{'xref'},
-					gender => ($sex eq 'M') ? 'f' : 'm',
+				my $root = Tree::Family::Person->new(
+					first_name => $firstname,
+					last_name => $surname,
+					id => $person->{'xref'},
+					birth_date => $dateofbirth,
+					birth_place => $placeofbirth,
+					death_date => $dateofdeath,
+					gender => lc($sex),
 					generation => 2,
 				);
-				$tree->add_person($s);
-				$root->spouse($s);
-			}
-			foreach my $child(@children) {
-				my $gender = get_value({ person => $child, value => 'sex' });
-				if(defined($gender)) {
-					$gender = lc($gender);
-				} else {
-					if($opts{'f'}) {
-						die "\n", $child->as_string(), ": unknown sex\n";
-					}
-					if($opts{'w'}) {
-						red_warning({ person => $child, warning => 'unknown sex' });
-					}
-					$gender = 'm';	# Avoid "Use of uninitialized value" in Tree::Family
+				$tree->add_person($root);
+				if($mother) {
+					my $m = Tree::Family::Person->new(
+						first_name => $mother->given_names(),
+						last_name => $mother->surname(),
+						id => $mother->{'xref'},
+						gender => 'f',
+						generation => 1,
+					);
+					$tree->add_person($m);
+					$root->mom($m);
 				}
+				if($father) {
+					my $f = Tree::Family::Person->new(
+						first_name => $father->given_names(),
+						last_name => $father->surname(),
+						id => $father->{'xref'},
+						gender => 'm',
+						generation => 1,
+					);
+					$tree->add_person($f);
+					$root->dad($f);
+				}
+				foreach my $spouse(@spouses) {
+					my $s = Tree::Family::Person->new(
+						first_name => $spouse->given_names(),
+						last_name => $spouse->surname(),
+						id => $spouse->{'xref'},
+						gender => ($sex eq 'M') ? 'f' : 'm',
+						generation => 2,
+					);
+					$tree->add_person($s);
+					$root->spouse($s);
+				}
+				foreach my $child(@children) {
+					my $gender = get_value({ person => $child, value => 'sex' });
+					if(defined($gender)) {
+						$gender = lc($gender);
+					} else {
+						if($opts{'f'}) {
+							die "\n", $child->as_string(), ": unknown sex\n";
+						}
+						if($opts{'w'}) {
+							red_warning({ person => $child, warning => 'unknown sex' });
+						}
+						$gender = 'm';	# Avoid "Use of uninitialized value" in Tree::Family
+					}
 
-				my $c = Tree::Family::Person->new(
-					first_name => $child->given_names(),
-					last_name => $child->surname(),
-					id => $child->{'xref'},
-					gender => $gender,
-					generation => 3,
-				);
-				$tree->add_person($c);
-				$root->add_kid($c);
+					my $c = Tree::Family::Person->new(
+						first_name => $child->given_names(),
+						last_name => $child->surname(),
+						id => $child->{'xref'},
+						gender => $gender,
+						generation => 3,
+					);
+					$tree->add_person($c);
+					$root->add_kid($c);
+				}
+				# $tree->_set_generations(force => 1);
+
+				print $fout $tree->as_dot();
+				close $fout;
 			}
-			# $tree->_set_generations(force => 1);
-
-			print $fout $tree->as_dot();
-
 			print $html '<h2>Family Tree</h2>';
 			my $height = 100;
 			if(@children) {
@@ -1230,9 +1275,7 @@ sub print_person
 			if($father || $mother) {
 				$height += 200;
 			}
-			print $html '<br><img src="img/', $person->{'xref'}, ".png\" height=\"$height\">";
-
-			close $fout;
+		print $html '<br><img src="img/', $person->{'xref'}, ".png\" height=\"$height\">";
 		} elsif(defined($dot)) {
 			if($opts{'f'}) {
 				die "$dot: $!";
