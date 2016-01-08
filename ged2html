@@ -288,7 +288,7 @@ sub print_person
 		}
 	}
 
-	if($dateofbirth && ($dateofbirth !~ /^\d{4}$/) && ($dateofbirth =~ /^\d/)) {
+	if($dateofbirth && ($dateofbirth !~ /^\d{4}$/) && ($dateofbirth =~ /^\d/) && ($dateofbirth !~ /[a-z]$/)) {
 		my $d;
 		eval {
 			$d = $date_parser->parse(date => $dateofbirth);
@@ -300,7 +300,7 @@ sub print_person
 			}
 		}
 	}
-	if($dateofdeath && ($dateofdeath !~ /^\d{4}$/) && ($dateofdeath =~ /^\d/)) {
+	if($dateofdeath && ($dateofdeath !~ /^\d{4}$/) && ($dateofdeath =~ /^\d/) && ($dateofdeath !~ /[a-z]$/)) {
 		my $d;
 		eval {
 			$d = $date_parser->parse(date => $dateofdeath);
@@ -465,7 +465,7 @@ sub print_person
 				$print_sibling_count = 1;
 				foreach my $sibling(@siblings) {
 					my $dob = get_value({ person => $sibling, value => 'birth date' });
-					if($dob) {
+					if($dob && ($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
 						my $d;
 						eval {
 							$d = $date_parser->parse(date => $dob);
@@ -713,7 +713,7 @@ sub print_person
 					$all_children_are_alive = 0;
 					last;
 				}
-				if($dob =~ /^\d/) {
+				if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
 					my $d;
 					eval {
 						$d = $date_parser->parse(date => $dob);
@@ -1061,7 +1061,7 @@ sub print_person
 			output_person_line({ fout => $html, person => $child });
 			if($opts{'w'} && ($birth_dt || $death_dt)) {
 				my $dob = get_value({ person => $child, value => 'birth date' });
-				if($dob && ($dob =~ /^\d/)) {
+				if($dob && ($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
 					my $d;
 					eval {
 						$d = $date_parser->parse(date => $dob);
@@ -1639,7 +1639,7 @@ sub year
 	if($string =~ /^(Abt|ca?)\.?\s*(.+)/i) {
 		return "c$2";
 	}
-	if($string =~ /^\d/) {
+	if(($string =~ /^\d/) && ($string !~ /[a-z]$/)) {
 		my $person = $params{'person'};
 		my $d;
 		eval {
