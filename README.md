@@ -8,5 +8,5 @@ in to FMP to view all media, however a free account will be fine.
 
 Typical usage:
 
-    ged2html -cdh 'Your Name' gedfile.ged
+    ged2html -cFdh 'Your Name' gedfile.ged
     copy files in html to your webserver

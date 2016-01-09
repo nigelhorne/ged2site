@@ -12,6 +12,7 @@
 
 # -c: Give citations
 # -f: treat warnings as fatals, implies -w
+# -F: print a family tree
 # -h: set the home person
 # -l: include living people
 # -w: print warning about unlikely data - a sort of lint for Gedcom files, may not do as
@@ -33,16 +34,14 @@ use Geo::Coder::OSM;
 use Tie::Static;
 use Term::ANSIColor;
 use HTML::Entities;
-use Tree::Family;
-use Tree::Family::Person;
 use HTTP::Cache::Transparent;
 use File::Spec;
 use File::Temp;
 use LWP::Simple;
 
 my %opts;
-getopts('cdfh:lwv', \%opts);
-die "Usage: $0 [ -c ] [ -d ] [ -f ] [ -h home-person-name ] [ -l ] [ -w ] filename\n" unless($ARGV[0]);
+getopts('cdfFh:lwv', \%opts);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -h home-person-name ] [ -l ] [ -w ] filename\n" unless($ARGV[0]);
 
 my $me;
 my @myancestors;
@@ -69,27 +68,31 @@ if($opts{h}) {
 }
 
 my $dot;
-if(-x '/usr/bin/dot') {
-	$dot = '/usr/bin/dot';
-} elsif(-x '/usr/local/bin/dot') {
-	$dot = '/usr/local/bin/dot';
-} elsif(-x '/sw/bin/dot') {
-	$dot = '/sw/bin/dot';
-}
+if($opts{'F'}) {
+	if(-x '/usr/bin/dot') {
+		$dot = '/usr/bin/dot';
+	} elsif(-x '/usr/local/bin/dot') {
+		$dot = '/usr/local/bin/dot';
+	} elsif(-x '/sw/bin/dot') {
+		$dot = '/sw/bin/dot';
+	}
 
-if(!defined($dot)) {
-	if($opts{'f'}) {
-		die 'Graphviz not found, no family trees';
+	if(!defined($dot)) {
+		if($opts{'f'}) {
+			die 'Graphviz not found, no family trees';
+		}
+		if($opts{'w'}) {
+			red_warning(warning => 'Graphviz not found, no family trees');
+		}
+	} else {
+		print "Using $dot\n" if($opts{'v'});
 	}
-	if($opts{'w'}) {
-		red_warning(warning => 'Graphviz not found, no family trees');
-	}
-} else {
-	print "Using $dot\n" if($opts{'v'});
 }
 
 mkdir 'html';
-mkdir 'html/img';
+if($dot || $opts{'d'}) {
+	mkdir 'html/img';
+}
 
 if($opts{'d'}) {
 	# Download copies of objects rather than link to them, useful if the
@@ -569,18 +572,18 @@ sub print_person
 		print $html " the $relationship of ",
 			'<a href=', $me->{'xref'}, '.html>',
 			$me->as_string(nee => 1),
-			'</a></body></html>';
+			'</a>';
 	} elsif($spouserelationship) {
 		if($sex eq 'F') {
 			print $html ', the wife of';
 		} else {
 			print $html ', the husband of';
 		}
-		print $html " the $spouserelationship of ",
+		print $html ' ', $spouse->as_string({ middle_names => 1 }),
+			" the $spouserelationship of ",
 			'<a href=', $me->{'xref'}, '.html>',
 			$me->as_string(nee => 1),
-			'</a>',
-			$spouse->as_string({ middle_names => 1 });
+			'</a>';
 		$haveprintedspousename = 1;
 	}
 
@@ -1171,7 +1174,7 @@ sub print_person
 									'</a>';
 							} else {
 								red_warning({ person => $person, warning => "img/$localfile: $!" });
-								
+
 								print $html "<a href=\"$file\" target=\"_blank\">",
 									"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 									'</a>';
@@ -1191,109 +1194,89 @@ sub print_person
 		}
 
 		if(defined($dot)) {
-			my $tree = Tree::Family->new(filename => '/tmp/dddddd');
-
-			my $root = Tree::Family::Person->new(
-				first_name => $firstname,
-				last_name => $surname,
-				id => $person->{'xref'},
-				birth_date => $dateofbirth,
-				birth_place => $placeofbirth,
-				death_date => $dateofdeath,
-				gender => lc($sex),
-				generation => 2,
-			);
-			$tree->add_person($root);
-
-			$xrefs = {};	# Ugh
-			$xrefs->{$root->id()} = $person->{'xref'};
-			if($mother) {
-				my $m = Tree::Family::Person->new(
-					first_name => $mother->given_names(),
-					last_name => $mother->surname(),
-					id => $mother->{'xref'},
-					gender => 'f',
-					generation => 1,
-				);
-				$tree->add_person($m);
-				$root->mom($m);
-				$xrefs->{$m->id()} = $mother->{'xref'};
-			}
-			if($father) {
-				my $f = Tree::Family::Person->new(
-					first_name => $father->given_names(),
-					last_name => $father->surname(),
-					id => $father->{'xref'},
-					gender => 'm',
-					generation => 1,
-				);
-				$tree->add_person($f);
-				$root->dad($f);
-				$xrefs->{$f->id()} = $father->{'xref'};
-			}
-			foreach my $spouse(@spouses) {
-				my $s = Tree::Family::Person->new(
-					first_name => $spouse->given_names(),
-					last_name => $spouse->surname(),
-					id => $spouse->{'xref'},
-					gender => ($sex eq 'M') ? 'f' : 'm',
-					generation => 2,
-				);
-				$tree->add_person($s);
-				$root->spouse($s);
-				$xrefs->{$s->id()} = $spouse->{'xref'};
-			}
-			foreach my $child(@children) {
-				my $gender = get_value({ person => $child, value => 'sex' });
-				if(defined($gender)) {
-					$gender = lc($gender);
-				} else {
-					if($opts{'f'}) {
-						die "\n", $child->as_string(), ": unknown sex\n";
-					}
-					if($opts{'w'}) {
-						red_warning({ person => $child, warning => 'unknown sex' });
-					}
-					$gender = 'm';	# Avoid "Use of uninitialized value" in Tree::Family
-				}
-
-				my $c = Tree::Family::Person->new(
-					first_name => $child->given_names(),
-					last_name => $child->surname(),
-					id => $child->{'xref'},
-					gender => $gender,
-					generation => 3,
-				);
-				$tree->add_person($c);
-				$root->add_kid($c);
-				$xrefs->{$c->id()} = $child->{'xref'};
-			}
-			# $tree->_set_generations(force => 1);
-
 			my $png = "html/img/" . $person->{'xref'} . '.png';
-			if((!-r $png) &&
-			    open(my $fout, '|-', "$dot -Tpng > $png")) {
-				print $fout $tree->as_dot();
-				close $fout;
-			}
 			my $tmp = File::Temp->new();
 			my $filename = $tmp->filename();
-			if(open(my $fout, '|-', "$dot -Tcmapx > $filename")) {
-				print $fout $tree->as_dot();
+			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
+			# if(open(my $fout, '|-', "/bin/cat")) {
+				# print $fout $tree->as_dot();
+				# close $fout;
+
+				print $fout 'digraph family { graph [rankdir=LR];';
+				print $fout ' subgraph parents { rank="min"; ';
+				if($mother) {
+					print $fout $mother->{'xref'}, ' [ shape=box,',
+						'color="#C666B8",',
+						'href="', $mother->{'xref'}, '.html",',
+						'label="', $mother->as_string(), "\"];\n";
+				}
+				if($father) {
+					print $fout $father->{'xref'}, ' [ shape=box,',
+						'color="#093AB5",',
+						'href="', $father->{'xref'}, '.html",',
+						'label="', $father->as_string(), "\"];\n";
+				}
+				print $fout '} subgraph main { rank="same"; ';
+				print $fout $person->{'xref'}, ' [ shape=box,',
+					($sex eq 'M' ? 'color="#093AB5",' : 'color="#C666B8",'),
+					# 'href="', $person->{'xref'}, '.html",',
+					'label="', $person->as_string(), "\"];\n";
+				foreach my $spouse(@spouses) {
+					print $fout $spouse->{'xref'}, ' [ shape=box,',
+						($sex eq 'F' ? 'color="#093AB5",' : 'color="#C666B8",'),
+						'href="', $spouse->{'xref'}, '.html",',
+						'label="', $spouse->as_string(), "\"];\n";
+				}
+				print $fout '} subgraph children { rank="max"; ';
+				foreach my $child(@children) {
+					my $gender = get_value({ person => $child, value => 'sex' });
+					if(defined($gender)) {
+						$gender = $gender;
+					} else {
+						if($opts{'f'}) {
+							die "\n", $child->as_string(), ": unknown sex\n";
+						}
+						if($opts{'w'}) {
+							red_warning({ person => $child, warning => 'unknown sex' });
+						}
+						$gender = 'M';	# Avoid "Use of uninitialized value" in Tree::Family
+					}
+					print $fout $child->{'xref'}, ' [ shape=box,',
+						($gender eq 'M' ? 'color="#093AB5",' : 'color="#C666B8",'),
+						'href="', $child->{'xref'}, '.html",',
+						'label="', $child->as_string(), "\"];\n";
+				}
+
+				print $fout '} ';
+				if($mother) {
+					print $fout $mother->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+				}
+				if($father) {
+					print $fout $father->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+				}
+				foreach my $spouse(@spouses) {
+					print $fout $spouse->{'xref'}, ' -> ', $person->{'xref'}, " [dir=both];\n";
+				}
+				foreach my $child(@children) {
+					print $fout $child->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+				}
+
+				print $fout '}';
 				close $fout;
-			}
-			print $html '<h2>Family Tree</h2>';
-			my $height = 100;
-			if(@children) {
-				$height = 200;
-			}
-			if($father || $mother) {
-				$height += 200;
-			}
-			print $html '<br><img src="img/', $person->{'xref'}, ".png\" usemap=\"#family\">";
-			$tmp->seek(0, SEEK_SET);
-			foreach my $line(<$tmp>) {
-				print $html $line;
+
+				print $html '<h2>Family Tree</h2>';
+				my $height = 100;
+				if(@children) {
+					$height = 200;
+				}
+				if($father || $mother) {
+					$height += 200;
+				}
+				print $html '<br><img src="img/', $person->{'xref'}, ".png\" usemap=\"#family\">";
+				$tmp->seek(0, SEEK_SET);
+				foreach my $line(<$tmp>) {
+					print $html $line;
+				}
 			}
 		} elsif(defined($dot)) {
 			if($opts{'f'}) {
@@ -1902,16 +1885,4 @@ sub get_value
 	my $rc = $person->get_value($value);
 	$values{$xref}{$value} = $rc;
 	return $rc;
-}
-
-# TODO: It may be possible to put a profile picture in here
-no warnings 'redefine';
-sub Tree::Family::_person_node {
-    my ($class, $person) = @_;
-    return $person->id . " ["
-      . ($person->get('gender') eq 'm' ? 'color="#093AB5"' : 'color="#C666B8"')
-      . ' label = "'
-      . $class->_person_label($person)
-      . qq|" href="|
-      . $xrefs->{$person->id} . '.html"];';
 }
