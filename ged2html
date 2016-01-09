@@ -37,6 +37,7 @@ use Tree::Family;
 use Tree::Family::Person;
 use HTTP::Cache::Transparent;
 use File::Spec;
+use File::Temp;
 use LWP::Simple;
 
 my %opts;
@@ -49,6 +50,7 @@ my %warned;
 my %printed;
 my %places;
 my $surnames;
+my $xrefs;	# Ugh
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
@@ -1188,82 +1190,95 @@ sub print_person
 			}
 		}
 
-		my $png = "html/img/" . $person->{'xref'} . '.png';
 		if(defined($dot)) {
-			if((!-r $png) &&
-			    open(my $fout, '|-', "$dot -Tpng > $png")) {
-				my $tree = Tree::Family->new(filename => '/tmp/dddddd');
+			my $tree = Tree::Family->new(filename => '/tmp/dddddd');
 
-				my $root = Tree::Family::Person->new(
-					first_name => $firstname,
-					last_name => $surname,
-					id => $person->{'xref'},
-					birth_date => $dateofbirth,
-					birth_place => $placeofbirth,
-					death_date => $dateofdeath,
-					gender => lc($sex),
+			my $root = Tree::Family::Person->new(
+				first_name => $firstname,
+				last_name => $surname,
+				id => $person->{'xref'},
+				birth_date => $dateofbirth,
+				birth_place => $placeofbirth,
+				death_date => $dateofdeath,
+				gender => lc($sex),
+				generation => 2,
+			);
+			$tree->add_person($root);
+
+			$xrefs = {};	# Ugh
+			$xrefs->{$root->id()} = $person->{'xref'};
+			if($mother) {
+				my $m = Tree::Family::Person->new(
+					first_name => $mother->given_names(),
+					last_name => $mother->surname(),
+					id => $mother->{'xref'},
+					gender => 'f',
+					generation => 1,
+				);
+				$tree->add_person($m);
+				$root->mom($m);
+				$xrefs->{$m->id()} = $mother->{'xref'};
+			}
+			if($father) {
+				my $f = Tree::Family::Person->new(
+					first_name => $father->given_names(),
+					last_name => $father->surname(),
+					id => $father->{'xref'},
+					gender => 'm',
+					generation => 1,
+				);
+				$tree->add_person($f);
+				$root->dad($f);
+				$xrefs->{$f->id()} = $father->{'xref'};
+			}
+			foreach my $spouse(@spouses) {
+				my $s = Tree::Family::Person->new(
+					first_name => $spouse->given_names(),
+					last_name => $spouse->surname(),
+					id => $spouse->{'xref'},
+					gender => ($sex eq 'M') ? 'f' : 'm',
 					generation => 2,
 				);
-				$tree->add_person($root);
-				if($mother) {
-					my $m = Tree::Family::Person->new(
-						first_name => $mother->given_names(),
-						last_name => $mother->surname(),
-						id => $mother->{'xref'},
-						gender => 'f',
-						generation => 1,
-					);
-					$tree->add_person($m);
-					$root->mom($m);
-				}
-				if($father) {
-					my $f = Tree::Family::Person->new(
-						first_name => $father->given_names(),
-						last_name => $father->surname(),
-						id => $father->{'xref'},
-						gender => 'm',
-						generation => 1,
-					);
-					$tree->add_person($f);
-					$root->dad($f);
-				}
-				foreach my $spouse(@spouses) {
-					my $s = Tree::Family::Person->new(
-						first_name => $spouse->given_names(),
-						last_name => $spouse->surname(),
-						id => $spouse->{'xref'},
-						gender => ($sex eq 'M') ? 'f' : 'm',
-						generation => 2,
-					);
-					$tree->add_person($s);
-					$root->spouse($s);
-				}
-				foreach my $child(@children) {
-					my $gender = get_value({ person => $child, value => 'sex' });
-					if(defined($gender)) {
-						$gender = lc($gender);
-					} else {
-						if($opts{'f'}) {
-							die "\n", $child->as_string(), ": unknown sex\n";
-						}
-						if($opts{'w'}) {
-							red_warning({ person => $child, warning => 'unknown sex' });
-						}
-						$gender = 'm';	# Avoid "Use of uninitialized value" in Tree::Family
+				$tree->add_person($s);
+				$root->spouse($s);
+				$xrefs->{$s->id()} = $spouse->{'xref'};
+			}
+			foreach my $child(@children) {
+				my $gender = get_value({ person => $child, value => 'sex' });
+				if(defined($gender)) {
+					$gender = lc($gender);
+				} else {
+					if($opts{'f'}) {
+						die "\n", $child->as_string(), ": unknown sex\n";
 					}
-
-					my $c = Tree::Family::Person->new(
-						first_name => $child->given_names(),
-						last_name => $child->surname(),
-						id => $child->{'xref'},
-						gender => $gender,
-						generation => 3,
-					);
-					$tree->add_person($c);
-					$root->add_kid($c);
+					if($opts{'w'}) {
+						red_warning({ person => $child, warning => 'unknown sex' });
+					}
+					$gender = 'm';	# Avoid "Use of uninitialized value" in Tree::Family
 				}
-				# $tree->_set_generations(force => 1);
 
+				my $c = Tree::Family::Person->new(
+					first_name => $child->given_names(),
+					last_name => $child->surname(),
+					id => $child->{'xref'},
+					gender => $gender,
+					generation => 3,
+				);
+				$tree->add_person($c);
+				$root->add_kid($c);
+				$xrefs->{$c->id()} = $child->{'xref'};
+			}
+			# $tree->_set_generations(force => 1);
+
+			my $png = "html/img/" . $person->{'xref'} . '.png';
+			if((!-r $png) &&
+			    open(my $fout, '|-', "$dot -Tpng > $png")) {
+				print $fout $tree->as_dot();
+				close $fout;
+			}
+			my $tmp = File::Temp->new();
+			my $filename = $tmp->filename();
+			if(open(my $fout, '|-', "$dot -Tcmapx > $filename")) {
 				print $fout $tree->as_dot();
 				close $fout;
 			}
@@ -1275,7 +1290,11 @@ sub print_person
 			if($father || $mother) {
 				$height += 200;
 			}
-		print $html '<br><img src="img/', $person->{'xref'}, ".png\" height=\"$height\">";
+			print $html '<br><img src="img/', $person->{'xref'}, ".png\" usemap=\"#family\">";
+			$tmp->seek(0, SEEK_SET);
+			foreach my $line(<$tmp>) {
+				print $html $line;
+			}
 		} elsif(defined($dot)) {
 			if($opts{'f'}) {
 				die "$dot: $!";
@@ -1883,4 +1902,16 @@ sub get_value
 	my $rc = $person->get_value($value);
 	$values{$xref}{$value} = $rc;
 	return $rc;
+}
+
+# TODO: It may be possible to put a profile picture in here
+no warnings 'redefine';
+sub Tree::Family::_person_node {
+    my ($class, $person) = @_;
+    return $person->id . " ["
+      . ($person->get('gender') eq 'm' ? 'color="#093AB5"' : 'color="#C666B8"')
+      . ' label = "'
+      . $class->_person_label($person)
+      . qq|" href="|
+      . $xrefs->{$person->id} . '.html"];';
 }
