@@ -1255,10 +1255,10 @@ sub print_person
 					print $fout $father->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
 				}
 				foreach my $spouse(@spouses) {
-					print $fout $spouse->{'xref'}, ' -> ', $person->{'xref'}, " [dir=both];\n";
+					print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
 				}
 				foreach my $child(@children) {
-					print $fout $child->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+					print $fout $person->{'xref'}, ' -> ', $child->{'xref'}, ";\n";
 				}
 
 				print $fout '}';
