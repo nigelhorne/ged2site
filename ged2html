@@ -49,7 +49,6 @@ my %warned;
 my %printed;
 my %places;
 my $surnames;
-my $xrefs;	# Ugh
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
@@ -134,7 +133,15 @@ foreach my $surname(sort keys %{$surnames}) {
 	if($filename eq '') {
 		$filename = 'UNKNOWN';
 	}
-	print $html "<li><a href=\"$filename.html\">$filename</a></li>";
+	print $html "<li><a href=\"$filename.html\">$filename</a> (";
+	my $count = scalar(keys %{$surnames->{$surname}});
+	if($count == 1) {
+		print $html '1 person';
+	} else {
+		print $html "$count people";
+	}
+	print $html ')</li>';
+
 	open(my $shtml, '>', "html/$filename.html");
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
@@ -580,7 +587,7 @@ sub print_person
 			print $html ', the husband of';
 		}
 		print $html ' ', $spouse->as_string({ middle_names => 1 }),
-			" the $spouserelationship of ",
+			", the $spouserelationship of ",
 			'<a href=', $me->{'xref'}, '.html>',
 			$me->as_string(nee => 1),
 			'</a>';
@@ -1132,7 +1139,6 @@ sub print_person
 		# print 'f:', $person->form() if($person->form());
 
 		if($person->obje()) {
-			print $html '<h2>Media</h2>';
 			# TODO - find primary and do something different with that
 			#	The obje should be in order with primary first, but FMP
 			#	doesn't do that
@@ -1146,6 +1152,7 @@ sub print_person
 			print $person->{"prim"}, "\n" if($person->{'prim'});
 			print $person->{"_PRIM"}, "\n" if($person->{'_PRIM'});
 			print $person->{"PRIM"}, "\n" if($person->{'PRIM'});
+			my $printed_media_header = 0;
 			foreach my $o($person->obje()) {
 				my $obje = $ged->resolve_xref($o);
 				next if(!defined($obje));
@@ -1160,16 +1167,22 @@ sub print_person
 					print $obje->{"prim"}, "\n" if($obje->{'prim'});
 					print $obje->{"_PRIM"}, "\n" if($obje->{'_PRIM'});
 					print $obje->{"PRIM"}, "\n" if($obje->{'PRIM'});
-					my $form = $obje->form();
 					my $title = $obje->title();
+					my $form = $obje->form();
 					if($form && ($form eq 'JPG')) {
+						if(!$printed_media_header) {
+							print $html '<h2>Media</h2>';
+							$printed_media_header = 1;
+						}
+
 						print $html "<h3>$title</h3>";
 						if($opts{'d'}) {
 							# Get and stash a local copy
 							my $localfile = 'img/' . $obje->{'xref'} . '.jpg';
 							if((-r "html/$localfile") ||
 							   is_success(getstore($file, "html/$localfile"))) {
-								print $html "<a href=\"$file\" target=\"_blank\">",
+								# print $html "<a href=\"$file\" target=\"_blank\">",
+								print $html "<a href=\"$localfile\" target=\"_blank\">",
 									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\">",
 									'</a>';
 							} else {
@@ -1199,55 +1212,26 @@ sub print_person
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', "/bin/cat")) {
-				# print $fout $tree->as_dot();
-				# close $fout;
-
 				print $fout 'digraph family { graph [rankdir=LR];';
-				print $fout ' subgraph parents { rank="min"; ';
-				if($mother) {
-					print $fout $mother->{'xref'}, ' [ shape=box,',
-						'color="#C666B8",',
-						'href="', $mother->{'xref'}, '.html",',
-						'label="', $mother->as_string(), "\"];\n";
-				}
+				print $fout ' subgraph parents { rank="max"; ';
 				if($father) {
-					print $fout $father->{'xref'}, ' [ shape=box,',
-						'color="#093AB5",',
-						'href="', $father->{'xref'}, '.html",',
-						'label="', $father->as_string(), "\"];\n";
+					print_graphviz({ person => $father, fout => $fout });
+				}
+				if($mother) {
+					print_graphviz({ person => $mother, fout => $fout });
 				}
 				print $fout '} subgraph main { rank="same"; ';
-				print $fout $person->{'xref'}, ' [ shape=box,',
-					($sex eq 'M' ? 'color="#093AB5",' : 'color="#C666B8",'),
-					# 'href="', $person->{'xref'}, '.html",',
-					'label="', $person->as_string(), "\"];\n";
+				print_graphviz({ person => $person, fout => $fout });
 				foreach my $spouse(@spouses) {
-					print $fout $spouse->{'xref'}, ' [ shape=box,',
-						($sex eq 'F' ? 'color="#093AB5",' : 'color="#C666B8",'),
-						'href="', $spouse->{'xref'}, '.html",',
-						'label="', $spouse->as_string(), "\"];\n";
+					print_graphviz({ person => $spouse, fout => $fout });
 				}
-				print $fout '} subgraph children { rank="max"; ';
+				print $fout '} subgraph children { rank="min"; ';
+				# TODO: sort by date of birth
 				foreach my $child(@children) {
-					my $gender = get_value({ person => $child, value => 'sex' });
-					if(defined($gender)) {
-						$gender = $gender;
-					} else {
-						if($opts{'f'}) {
-							die "\n", $child->as_string(), ": unknown sex\n";
-						}
-						if($opts{'w'}) {
-							red_warning({ person => $child, warning => 'unknown sex' });
-						}
-						$gender = 'M';	# Avoid "Use of uninitialized value" in Tree::Family
-					}
-					print $fout $child->{'xref'}, ' [ shape=box,',
-						($gender eq 'M' ? 'color="#093AB5",' : 'color="#C666B8",'),
-						'href="', $child->{'xref'}, '.html",',
-						'label="', $child->as_string(), "\"];\n";
+					print_graphviz({ person => $child, fout => $fout });
 				}
-
 				print $fout '} ';
+
 				if($mother) {
 					print $fout $mother->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
 				}
@@ -1885,4 +1869,43 @@ sub get_value
 	my $rc = $person->get_value($value);
 	$values{$xref}{$value} = $rc;
 	return $rc;
+}
+
+sub print_graphviz
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $fout = $params{'fout'};
+	my $person = $params{'person'};
+	my $colour = $params{'colour'};
+
+	if(!defined($colour)) {
+		my $gender = get_value({ person => $person, value => 'sex' });
+		if(defined($gender)) {
+			$gender = $gender;
+		} else {
+			if($opts{'f'}) {
+				die "\n", $person->as_string(), ": unknown sex\n";
+			}
+			if($opts{'w'}) {
+				red_warning({ person => $person, warning => 'unknown sex' });
+			}
+			$gender = 'M';	# Avoid "Use of uninitialized value" in Tree::Family
+		}
+		$colour = ($gender eq 'M' ? '#093AB5' : '#C666B8');
+	}
+
+	print $fout $person->{'xref'}, ' [ shape=box,fontsize="10",',
+		"color=\"$colour\",",
+		'href="', $person->{'xref'}, '.html",',
+		'label="', $person->as_string();
+	my $dob = get_value({ person => $person, value => 'birth date' });
+	if(defined($dob)) {
+		print $fout "\\nb. $dob";
+	}
+	my $dod = get_value({ person => $person, value => 'death date' });
+	if(defined($dod)) {
+		print $fout "\\nb. $dod";
+	}
+	print $fout "\"];\n";
 }
