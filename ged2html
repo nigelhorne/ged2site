@@ -1136,6 +1136,9 @@ sub print_person
 
 		print $html "<h2>Notes</h2><p>$note</p>" if($note);
 
+		# FIXME: Should be a table mapping from records to profiles
+		my $profile_image;
+
 		# print 'f:', $person->form() if($person->form());
 
 		if($person->obje()) {
@@ -1144,14 +1147,22 @@ sub print_person
 			#	doesn't do that
 			#	Gedcom doesn't seem to be able to handle extra '_ tags,
 			#	or if it can I can't work out how to make use of it
-			print $person->{"_prof"}, "\n" if($person->{'_prof'});
-			print $person->{"prof"}, "\n" if($person->{'prof'});
-			print $person->{"_PROF"}, "\n" if($person->{'_PROF'});
-			print $person->{"PROF"}, "\n" if($person->{'PROF'});
-			print $person->{"_prim"}, "\n" if($person->{'_prim'});
-			print $person->{"prim"}, "\n" if($person->{'prim'});
-			print $person->{"_PRIM"}, "\n" if($person->{'_PRIM'});
-			print $person->{"PRIM"}, "\n" if($person->{'PRIM'});
+			warn $person->{"_prof"}, "\n" if($person->{'_prof'});
+			warn $person->{"prof"}, "\n" if($person->{'prof'});
+			warn $person->{"_PROF"}, "\n" if($person->{'_PROF'});
+			warn $person->{"PROF"}, "\n" if($person->{'PROF'});
+			warn $person->{"_prim"}, "\n" if($person->{'_prim'});
+			warn $person->{"prim"}, "\n" if($person->{'prim'});
+			warn $person->{"_PRIM"}, "\n" if($person->{'_PRIM'});
+			# warn $person->tag_records("PRIM"), "\n" if($person->tag_records('PRIM'));
+			# warn $person->tag_records("_PRIM"), "\n" if($person->tag_records('_PRIM'));
+			# warn $person->get_value("_prof"), "\n" if($person->get_value('_prof'));
+			# warn $person->get_value("prof"), "\n" if($person->get_value('prof'));
+			# warn $person->get_value("_PROF"), "\n" if($person->get_value('_PROF'));
+			# warn $person->get_value("PROF"), "\n" if($person->get_value('PROF'));
+			# warn $person->get_value("_prim"), "\n" if($person->get_value('_prim'));
+			# warn $person->get_value("prim"), "\n" if($person->get_value('prim'));
+			# warn $person->get_value("_PRIM"), "\n" if($person->get_value('_PRIM'));
 			my $printed_media_header = 0;
 			foreach my $o($person->obje()) {
 				my $obje = $ged->resolve_xref($o);
@@ -1163,10 +1174,14 @@ sub print_person
 						next if($file eq '*');
 					}
 					$file =~ s/\{0\}//;
-					print $obje->{"_prim"}, "\n" if($obje->{'_prim'});
-					print $obje->{"prim"}, "\n" if($obje->{'prim'});
-					print $obje->{"_PRIM"}, "\n" if($obje->{'_PRIM'});
-					print $obje->{"PRIM"}, "\n" if($obje->{'PRIM'});
+					warn $obje->{"_prim"}, "\n" if($obje->{'_prim'});
+					warn $obje->{"prim"}, "\n" if($obje->{'prim'});
+					warn $obje->{"_PRIM"}, "\n" if($obje->{'_PRIM'});
+					warn $obje->{"PRIM"}, "\n" if($obje->{'PRIM'});
+					warn $obje->{"_prof"}, "\n" if($obje->{'_prof'});
+					warn $obje->{"prof"}, "\n" if($obje->{'prof'});
+					warn $obje->{"_PROF"}, "\n" if($obje->{'_PROF'});
+					warn $obje->{"PROF"}, "\n" if($obje->{'PROF'});
 					my $title = $obje->title();
 					my $form = $obje->form();
 					if($form && ($form eq 'JPG')) {
@@ -1185,18 +1200,27 @@ sub print_person
 								print $html "<a href=\"$localfile\" target=\"_blank\">",
 									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\">",
 									'</a>';
+								if(!defined($profile_image)) {
+									$profile_image = "html/$localfile";
+								}
 							} else {
-								red_warning({ person => $person, warning => "img/$localfile: $!" });
+								red_warning({ person => $person, warning => "html/$localfile: $!" });
 
 								print $html "<a href=\"$file\" target=\"_blank\">",
 									"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 									'</a>';
+								if(!defined($profile_image)) {
+									$profile_image = $file;
+								}
 							}
 						} else {
 							# Use the remote copy
 							print $html "<a href=\"$file\" target=\"_blank\">",
 								"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 								'</a>';
+							if(!defined($profile_image)) {
+								$profile_image = $file;
+							}
 						}
 					} else {
 						print $html "<a href=\"$file\" target=\"_blank\">$title</a>";
@@ -1221,7 +1245,7 @@ sub print_person
 					print_graphviz({ person => $mother, fout => $fout });
 				}
 				print $fout '} subgraph main { rank="same"; ';
-				print_graphviz({ person => $person, fout => $fout });
+				print_graphviz({ person => $person, fout => $fout, profile_image => $profile_image });
 				foreach my $spouse(@spouses) {
 					print_graphviz({ person => $spouse, fout => $fout });
 				}
@@ -1878,6 +1902,7 @@ sub print_graphviz
 	my $fout = $params{'fout'};
 	my $person = $params{'person'};
 	my $colour = $params{'colour'};
+	my $profile_image = $params{'profile_image'};
 
 	if(!defined($colour)) {
 		my $gender = get_value({ person => $person, value => 'sex' });
@@ -1899,6 +1924,7 @@ sub print_graphviz
 		"color=\"$colour\",",
 		'href="', $person->{'xref'}, '.html",',
 		'label="', $person->as_string();
+
 	my $dob = get_value({ person => $person, value => 'birth date' });
 	if(defined($dob)) {
 		print $fout "\\nb. $dob";
@@ -1907,5 +1933,10 @@ sub print_graphviz
 	if(defined($dod)) {
 		print $fout "\\nb. $dod";
 	}
-	print $fout "\"];\n";
+	print $fout '"';
+	# Gives 'Warning: No loadimage plugin for "jpeg:cairo"'
+	# if($profile_image) {
+		# print $fout ",image=\"$profile_image\",labelloc=b,";
+	# }
+	print $fout "];\n";
 }
