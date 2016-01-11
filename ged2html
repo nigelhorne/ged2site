@@ -1182,6 +1182,11 @@ sub print_person
 						$file = $file->{'file'};
 						next if($file eq '*');
 					}
+					if(!$printed_media_header) {
+						print $html '<h2>Media</h2>';
+						$printed_media_header = 1;
+					}
+
 					$file =~ s/\{0\}//;
 					warn $obje->{"_prim"}, "\n" if($obje->{'_prim'});
 					warn $obje->{"prim"}, "\n" if($obje->{'prim'});
@@ -1194,11 +1199,6 @@ sub print_person
 					my $title = $obje->title();
 					my $form = $obje->form();
 					if($form && ($form eq 'JPG')) {
-						if(!$printed_media_header) {
-							print $html '<h2>Media</h2>';
-							$printed_media_header = 1;
-						}
-
 						print $html "<h3>$title</h3>";
 						if($opts{'d'}) {
 							# Get and stash a local copy
