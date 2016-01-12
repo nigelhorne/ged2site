@@ -3,8 +3,9 @@ ged2html
 
 Create a website from a Gedcom file.
 
-So far this has only tested on FMP Gedcoms. I suspect you'll need to be logged
-in to FMP to view all media, however a free account will be fine.
+It's been tested more extensively with GedComs exported and downloaded from
+FindMyPast, though it should work fine with other systems such as GenesReunited
+and Ancestry.
 
 Typical usage:
 
