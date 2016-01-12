@@ -1245,8 +1245,9 @@ sub print_person
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', "/bin/cat")) {
-				print $fout 'digraph family { graph [rankdir=LR];';
-				print $fout ' subgraph parents { rank="max"; ';
+				# print $fout 'digraph family { graph [rankdir=LR];';
+				print $fout 'digraph family {';
+				print $fout ' subgraph parents { rank="min"; ';
 				if($father) {
 					print_graphviz({ person => $father, fout => $fout });
 				}
@@ -1258,7 +1259,7 @@ sub print_person
 				foreach my $spouse(@spouses) {
 					print_graphviz({ person => $spouse, fout => $fout });
 				}
-				print $fout '} subgraph children { rank="min"; ';
+				print $fout '} subgraph children { rank="max"; ';
 				# TODO: sort by date of birth
 				foreach my $child(@children) {
 					print_graphviz({ person => $child, fout => $fout });
@@ -1271,8 +1272,18 @@ sub print_person
 				if($father) {
 					print $fout $father->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
 				}
-				foreach my $spouse(@spouses) {
-					print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
+				if(scalar(@spouses) == 2) {
+					# Married twice, put the person in the middle,
+					# it looks better
+					# print $fout $person->{'xref'}, ' -> ', $spouses[0]->{'xref'}, " [dir=none];\n";
+					print $fout $spouses[0]->{'xref'}, ' -> ',
+						$person->{'xref'}, ' -> ',
+						$spouses[1]->{'xref'}, " [dir=none];\n";
+				} else {
+					foreach my $spouse(@spouses) {
+						print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
+						# print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
+					}
 				}
 				foreach my $child(@children) {
 					print $fout $person->{'xref'}, ' -> ', $child->{'xref'}, ";\n";
