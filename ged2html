@@ -1956,7 +1956,7 @@ sub print_graphviz
 	print $fout '"';
 	# Gives 'Warning: No loadimage plugin for "jpeg:cairo"'
 	# if($profile_image) {
-		# print $fout ",image=\"$profile_image\",labelloc=b,";
+		# print $fout ",image=\"$profile_image\",labelloc=b";
 	# }
 	print $fout "];\n";
 }
