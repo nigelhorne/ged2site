@@ -38,6 +38,8 @@ use HTTP::Cache::Transparent;
 use File::Spec;
 use File::Temp;
 use LWP::Simple;
+use File::Basename;
+# use GD;
 
 my %opts;
 getopts('cdfFh:lwv', \%opts);
@@ -91,6 +93,7 @@ if($opts{'F'}) {
 mkdir 'html';
 if($dot || $opts{'d'}) {
 	mkdir 'html/img';
+	mkdir 'html/thumbs';
 }
 
 if($opts{'d'}) {
@@ -1915,6 +1918,8 @@ sub get_value
 	return $rc;
 }
 
+# Inspired by Tree::Family.  That module doesn't quite do what I want, so
+# I've mercilessly re-used the ideas of what to do from it.
 sub print_graphviz
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -1954,9 +1959,21 @@ sub print_graphviz
 		print $fout "\\nb. $dod";
 	}
 	print $fout '"';
-	# Gives 'Warning: No loadimage plugin for "jpeg:cairo"'
-	# if($profile_image) {
-		# print $fout ",image=\"$profile_image\",labelloc=b";
-	# }
+	# Comment out if you get 'Warning: No loadimage plugin for "jpeg:cairo"'
+	if($profile_image) {
+		# Create a thumbnail
+		# Or look into GD::Thumbnail
+		# my $image = GD::Image->new("html/$profile_image");
+		# my ($w, $h) = $image->getBounds();
+		# my $thumbnail = GD::Image->new(100, 100);
+		# $thumbnail->copyResized($image, 0, 0, 100, 100, $h, $w);
+		# my @thumbname = File::Basename::fileparse($profile_image);
+		# open(my $thumb, '>', "thumbs/$thumbname[0].jpg");
+		# print $thumb $thumbnail->jpg());
+
+		# print $fout ",image=\"thumbs/$thumbname[0].jpg\",labelloc=b";
+
+		print $fout ",image=\"html/$profile_image\",labelloc=b";
+	}
 	print $fout "];\n";
 }
