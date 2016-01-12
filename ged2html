@@ -1958,22 +1958,21 @@ sub print_graphviz
 	if(defined($dod)) {
 		print $fout "\\nb. $dod";
 	}
-	print $fout '"';
 	# Comment out if you get 'Warning: No loadimage plugin for "jpeg:cairo"'
-	if($profile_image) {
-		# Create a thumbnail
-		# Or look into GD::Thumbnail
-		# my $image = GD::Image->new("html/$profile_image");
-		# my ($w, $h) = $image->getBounds();
-		# my $thumbnail = GD::Image->new(100, 100);
-		# $thumbnail->copyResized($image, 0, 0, 100, 100, $h, $w);
-		# my @thumbname = File::Basename::fileparse($profile_image);
-		# open(my $thumb, '>', "thumbs/$thumbname[0].jpg");
-		# print $thumb $thumbnail->jpg());
-
-		# print $fout ",image=\"thumbs/$thumbname[0].jpg\",labelloc=b";
-
-		print $fout ",image=\"html/$profile_image\",labelloc=b";
-	}
+	# if($profile_image) {
+		# # Create a thumbnail
+		# # Or look into GD::Thumbnail
+		# # my $image = GD::Image->new($profile_image);
+		# # my ($w, $h) = $image->getBounds();
+		# # my $thumbnail = GD::Image->new(100, 100);
+		# # $thumbnail->copyResized($image, 0, 0, 100, 100, $h, $w);
+		# # my @thumbname = File::Basename::fileparse($profile_image);
+		# # open(my $thumb, '>', "thumbs/$thumbname[0].jpg");
+		# # print $thumb $thumbnail->jpg();
+#
+		# # print $fout "\",image=\"thumbs/$thumbname[0].jpg\",labelloc=b";
+#
+		# print $fout "\",image=\"$profile_image\",labelloc=b";
+	# }
 	print $fout "];\n";
 }
