@@ -598,7 +598,7 @@ sub print_person
 		} else {
 			print $html ', the husband of';
 		}
-		print $html ' ', $spouse->as_string({ middle_names => 1 }),
+		print $html ' ', $spouse->as_string({ middle_names => 1, title => 1 }),
 			", the $spouserelationship of ",
 			'<a href=', $me->{'xref'}, '.html>',
 			$me->as_string(nee => 1),
@@ -767,7 +767,10 @@ sub print_person
 				print $html ' was married to ';
 			}
 			if($haveprintedspousename) {
-				print $html $spouses[0]->given_names();
+				$nameparser->parse($spouses[0]->name());
+
+				my %name_components = $nameparser->components();
+				print $html $name_components{'given_name_1'};
 			} else {
 				if($opts{'l'} || !$is_alive) {
 					print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
@@ -1378,8 +1381,13 @@ sub Gedcom::Individual::as_string
 		$rc .= $self->given_names();
 	}
 
-	if($args{'middle_names'} && $middle_name) {
-		$rc .= " $middle_name";
+	if($args{'middle_names'}) {
+		if($middle_name) {
+			$rc .= " $middle_name";
+		} elsif($name =~ /\s([A-Z])\s.+/) {
+			# Just an initial has been given
+			$rc .= " $1";
+		}
 	}
 
 	if($surname) {
