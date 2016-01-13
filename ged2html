@@ -39,7 +39,7 @@ use File::Spec;
 use File::Temp;
 use LWP::Simple;
 use File::Basename;
-# use GD;
+use GD::Thumbnail;
 
 my %opts;
 getopts('cdfFh:lwv', \%opts);
@@ -93,7 +93,7 @@ if($opts{'F'}) {
 mkdir 'html';
 if($dot || $opts{'d'}) {
 	mkdir 'html/img';
-	mkdir 'html/thumbs';
+	mkdir 'thumbs';
 }
 
 if($opts{'d'}) {
@@ -1247,7 +1247,7 @@ sub print_person
 			my $tmp = File::Temp->new();
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
-			# if(open(my $fout, '|-', "/bin/cat")) {
+			# if(open(my $fout, '|-', '/bin/cat')) {
 				# print $fout 'digraph family { graph [rankdir=LR];';
 				print $fout 'digraph family {';
 				print $fout ' subgraph parents { rank="min"; ';
@@ -1945,34 +1945,47 @@ sub print_graphviz
 		$colour = ($gender eq 'M' ? '#093AB5' : '#C666B8');
 	}
 
-	print $fout $person->{'xref'}, ' [ shape=box,fontsize="10",',
+	print $fout $person->{'xref'}, ' [shape=box,fontsize="10",',
 		"color=\"$colour\",",
-		'href="', $person->{'xref'}, '.html",',
-		'label="', $person->as_string();
+		'href="', $person->{'xref'}, '.html",';
 
+	my $label = $person->as_string();
 	my $dob = get_value({ person => $person, value => 'birth date' });
-	if(defined($dob)) {
-		print $fout "\\nb. $dob";
-	}
 	my $dod = get_value({ person => $person, value => 'death date' });
-	if(defined($dod)) {
-		print $fout "\\nb. $dod";
+
+	# If you get 'Warning: No loadimage plugin for "jpeg:cairo"', do this
+	# instead:
+	# if(0) {
+	if($profile_image) {
+		if(defined($dob)) {
+			$dob .= "<TR><TD>b. $dob</TD></TR>";
+		} else {
+			$dob = '';
+		}
+		if(defined($dod)) {
+			$dod .= "<TR><TD>d. $dod</TD></TR>";
+		} else {
+			$dod = '';
+		}
+		# Create a thumbnail
+		my $thumbnail = GD::Thumbnail->new();
+		my $raw = $thumbnail->create($profile_image, 100);
+		my @thumbname = File::Basename::fileparse($profile_image);
+		open(my $thumb, '>', "thumbs/$thumbname[0]");
+		print $thumb $raw;
+
+		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"/></TD></TR><TR><TD>$label</TD></TR>$dod$dob</TABLE>>";
+		print $fout ",labelloc=b";
+
+		# print $fout ",image=\"$profile_image\",labelloc=b";
+	} else {
+		if(defined($dob)) {
+			$label .= "\\nb. $dob";
+		}
+		if(defined($dod)) {
+			$label .= "\\nd. $dod";
+		}
+		print $fout "label=\"$label\"";
 	}
-	# Comment out if you get 'Warning: No loadimage plugin for "jpeg:cairo"'
-	# if($profile_image) {
-		# # Create a thumbnail
-		# # Or look into GD::Thumbnail
-		# # my $image = GD::Image->new($profile_image);
-		# # my ($w, $h) = $image->getBounds();
-		# # my $thumbnail = GD::Image->new(100, 100);
-		# # $thumbnail->copyResized($image, 0, 0, 100, 100, $h, $w);
-		# # my @thumbname = File::Basename::fileparse($profile_image);
-		# # open(my $thumb, '>', "thumbs/$thumbname[0].jpg");
-		# # print $thumb $thumbnail->jpg();
-#
-		# # print $fout "\",image=\"thumbs/$thumbname[0].jpg\",labelloc=b";
-#
-		# print $fout "\",image=\"$profile_image\",labelloc=b";
-	# }
 	print $fout "];\n";
 }
