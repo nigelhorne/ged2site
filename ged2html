@@ -150,7 +150,7 @@ foreach my $surname(sort keys %{$surnames}) {
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $surname</h1><br>",
-		'[ <a href="', $me->{'xref'}, '.html">Home</a> ] ',
+		'[ <a href="', $me->{'xref'}, '.html">Home</a> ]',
 		' | [ <a href="surnames.html">Surnames Index</a> ]</center><br>',
 		'<ul>';
 
@@ -264,7 +264,7 @@ sub print_person
 
 	open(my $html, '>', 'html/' . $person->{'xref'} . '.html');
 	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
-		'[ <a href="', $me->{'xref'}, '.html">Home</a> ] ',
+		'[ <a href="', $me->{'xref'}, '.html">Home</a> ]',
 		' | [ <a href="surnames.html">Surnames Index</a> ]</center><br>';
 
 	if($is_alive && !$opts{'l'}) {
@@ -581,9 +581,10 @@ sub print_person
 		if($father || $mother || $occupations[0]) {
 			print $html ', ';
 		}
-		print $html "$firstname ", 
-			$name_components{'surname_1'};
-		print $html ', ' if($relationship);
+		print $html "<b>$firstname ", 
+			$name_components{'surname_1'},
+			'</b>';
+		print $html ',' if($relationship);
 	} else {
 		print $html $pronoun;
 	}
@@ -618,7 +619,9 @@ sub print_person
 
 				print $html ' was born';
 				if($placeofbirth) {
-					print $html place({ person => $person, place => $placeofbirth });
+					my $p = place({ person => $person, place => $placeofbirth });
+					print $html $p;
+					$places_printed{$p} = 1;
 				}
 				if($dateofbirth) {
 					print $html ' ', year({
@@ -812,7 +815,7 @@ sub print_person
 					print $html $children[0]->given_names();
 				} elsif($numberofchildren > 1) {
 					my $childnames = join(', ', map {
-						' <a href=' . $_->{'xref'} . '.html>' .
+						'<a href=' . $_->{'xref'} . '.html>' .
 							$_->given_names() .  '</a>'
 					} @children);
 					substr($childnames, rindex($childnames, ', '), 2, ' and ');
@@ -826,12 +829,12 @@ sub print_person
 					print $html ' there ',
 						year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
 				} else {
-					print $html ' ', year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
 					if($placeofmarriage) {
 						my $p = place({ place => $placeofmarriage, person => $person, places_printed => \%places_printed });
 						print $html $p;
 						$places_printed{$p} = 1;
 					}
+					print $html ' ', year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
 				}
 				print $html "[$marriagecitation]" if($marriagecitation);
 			}
@@ -867,7 +870,7 @@ sub print_person
 					}
 					if($numberofchildren > 1) {
 						my $childnames = join(', ', map {
-							' <a href=' . $_->{'xref'} . '.html>' .
+							'<a href=' . $_->{'xref'} . '.html>' .
 								$_->given_names() .  '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
@@ -1323,6 +1326,11 @@ sub print_person
 			}
 		}
 	}
+
+	my $dt = DateTime->now();
+	print $html '<p align="right"><i>Last updated on ',
+		$dt->day(), ' ', $dt->month_name(), ' ', $dt->year(),
+		'</p>';
 
 	print $html '</body></html>';
 	close $html;
