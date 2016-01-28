@@ -286,7 +286,7 @@ sub print_person
 	my @deathcitations;
 	if($opts{'c'}) {
 		if($birth) {
-			my @s = $birth->source();
+			my @s = sort { $ged->get_source($a)->title() cmp $ged->get_source($b)->title() } $birth->source();
 			foreach my $src(@s) {
 				$src = $ged->get_source($src) unless ref($src);
 				push @birthcitations, ++$citationcount;
