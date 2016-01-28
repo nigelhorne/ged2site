@@ -1153,9 +1153,13 @@ sub print_person
 			print $html '</ol>';
 		}
 
-		my $note = $person->note();
+		if($person->get_value('note')) {
+			print $html "<h2>Notes</h2>";
 
-		print $html "<h2>Notes</h2><p>$note</p>" if($note);
+			my @notes = $person->get_value('note');
+			print $html map { "<p>$_</p>" } @notes;
+		}
+
 
 		# FIXME: Should be a table mapping from records to profiles
 		my $profile_image;
