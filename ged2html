@@ -286,7 +286,17 @@ sub print_person
 	my @deathcitations;
 	if($opts{'c'}) {
 		if($birth) {
-			my @s = sort { $ged->get_source($a)->title() cmp $ged->get_source($b)->title() } $birth->source();
+			if($opts{'w'}) {
+				foreach my $s($birth->source()) {
+					if(!defined($ged->get_source($s))) {
+						if($opts{'f'}) {
+							die $person->as_string(), ': Citation is missing a source';
+						}
+						red_warning({ person => $person, warning => 'Citation is missing a source' });
+					}
+				}
+			}
+			my @s = sort { ($ged->get_source($a) && $ged->get_source($b)) ? $ged->get_source($a)->title() cmp $ged->get_source($b)->title() : 0 } $birth->source();
 			foreach my $src(@s) {
 				$src = $ged->get_source($src) unless ref($src);
 				push @birthcitations, ++$citationcount;
