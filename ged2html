@@ -299,8 +299,10 @@ sub print_person
 			my @s = sort { ($ged->get_source($a) && $ged->get_source($b)) ? $ged->get_source($a)->title() cmp $ged->get_source($b)->title() : 0 } $birth->source();
 			foreach my $src(@s) {
 				$src = $ged->get_source($src) unless ref($src);
-				push @birthcitations, ++$citationcount;
-				$citations{$citationcount} = $src;
+				if(defined($src) && $src->title()) {
+					push @birthcitations, ++$citationcount;
+					$citations{$citationcount} = $src;
+				}
 			}
 		}
 		if($death) {
