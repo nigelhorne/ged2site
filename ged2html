@@ -297,9 +297,14 @@ sub print_person
 				}
 			}
 			my @s = sort { ($ged->get_source($a) && $ged->get_source($b)) ? $ged->get_source($a)->title() cmp $ged->get_source($b)->title() : 0 } $birth->source();
+			my $previous;
 			foreach my $src(@s) {
 				$src = $ged->get_source($src) unless ref($src);
 				if(defined($src) && $src->title()) {
+					if($previous && ($src->title() eq $previous)) {
+						next;
+					}
+					$previous = $src->title();
 					push @birthcitations, ++$citationcount;
 					$citations{$citationcount} = $src;
 				}
@@ -850,7 +855,7 @@ sub print_person
 				}
 				print $html "[$marriagecitation]" if($marriagecitation);
 			}
-		} else {
+		} elsif($opts{'l'} || !$is_alive) {
 			print $html ' was married ';
 			if(scalar(@spouses) == 2) {
 				print $html 'twice';
@@ -863,6 +868,7 @@ sub print_person
 			} @spouses);
 			substr($names, rindex($names, ', '), 2, ' and ');
 			print $html ", to $names";
+			print $html "[$marriagecitation]" if($marriagecitation);
 			# TODO: print $html the date and places of the marriages
 			if($numberofchildren) {
 				print $html ".  $pronoun ",
@@ -1058,6 +1064,10 @@ sub print_person
 		}
 		print $html "[$_]" foreach(@burialcitations);
 	} elsif($placeofdeath || $dateofdeath) {
+		# TODO - extract marriage banns information
+		if($person->marb()) {
+			# die 'foo';
+		}
 		if($placeofdeath && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
 			print $html ', which is also where ', lcfirst($pronoun);
 		} else {
