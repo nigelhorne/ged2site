@@ -1629,8 +1629,9 @@ sub Gedcom::Individual::relationship
 					3 << 8 | 4 => 'second cousin once-removed',
 					4 << 8 | 2 => 'first cousin twice-removed',
 					5 << 8 | 3 => 'second cousin twice-removed',
-					6 << 8 | 5 => 'fourth cousin once-removed',
+					6 << 8 | 3 => 'second cousin three-times-removed',
 					6 << 8 | 4 => 'third cousin twice-removed',
+					6 << 8 | 5 => 'fourth cousin once-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
 				);
 				my %female_relationships = (
@@ -1648,8 +1649,9 @@ sub Gedcom::Individual::relationship
 					4 << 8 | 1 => 'great-great-aunt',
 					4 << 8 | 2 => 'first cousin twice-removed',
 					5 << 8 | 3 => 'second cousin twice-removed',
-					6 << 8 | 5 => 'fourth cousin once-removed',
+					6 << 8 | 3 => 'second cousin three-times-removed',
 					6 << 8 | 4 => 'third cousin twice-removed',
+					6 << 8 | 5 => 'fourth cousin once-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
 				);
 
@@ -1658,9 +1660,11 @@ sub Gedcom::Individual::relationship
 					$female_relationships{($steps1 << 8) | $steps2};
 				# print "$steps1, $steps2\n" unless($rc);
 				if(defined($rc) && ($rc =~ /cousin/)) {
-					if($father && (stepsabove($father, $person2, 0) > 0)) {
+					my $myfather = $self->father();
+					my $mymother = $self->mother();
+					if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
 						$rc .= ' on your father\'s side';
-					} elsif($mother && (stepsabove($mother, $person2, 0) > 0)) {
+					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
 						$rc .= ' on your mother\'s side';
 					}
 				}
