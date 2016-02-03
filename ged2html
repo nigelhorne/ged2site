@@ -149,15 +149,18 @@ my $total = scalar(@everyone);
 my $index = 0;
 
 foreach my $person($ged->individuals()) {
-	$| = 1;
 	$index++;
-	print "\r$index/$total";
-	$| = 0;
+	if(!$opts{'w'}) {
+		$| = 1;
+		print "\r$index/$total";
+		$| = 0;
+	}
 	if(!$printed{$person->{'xref'}}) {
 		print_person({ person => $person });
 	}
 }
-print "\r$index records exported\n";
+print "\r" if(!$opts{'w'});
+print "$index records exported\n";
 
 my $name = $me->as_string(nee => 1);
 
