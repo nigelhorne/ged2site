@@ -698,7 +698,7 @@ sub print_person
 	if($opts{'l'} || !$is_alive) {
 		if(($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism)) {
 			if($dateofbirth || $placeofbirth) {
-				print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
+				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
 				print $html ' was born';
 				if($placeofbirth) {
