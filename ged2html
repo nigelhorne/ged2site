@@ -50,6 +50,7 @@ my %warned;
 my %printed;
 my %places;
 my $surnames;
+my %censuses;
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
@@ -57,6 +58,38 @@ my $dfn = DateTime::Format::Natural->new();
 my $geocoder = Geo::Coder::OSM->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $ninemonths = DateTime::Duration->new(months => 9);
+
+# FIXME: Do this properly
+my %censusmaps = (
+	'1841 England Census' => '1841 UK Census',
+	'1851 England Census' => '1851 UK Census',
+	'1861 England Census' => '1861 UK Census',
+	'1871 England Census' => '1871 UK Census',
+	'1881 England Census' => '1881 UK Census',
+	'1881 England, Wales & Scotland Census - Findmypast' => '1881 UK Census',
+	'1891 England Census' => '1891 UK Census',
+	'1901 England Census' => '1901 UK Census',
+	'1911 England Census' => '1911 UK Census',
+	'1911 Census for England & Wales - Findmypast' => '1911 UK Census',
+
+	'1851 Census of Canada East, Canada West, New Brunswick, and Nova Scotia' => '1851 Canadian Census',
+	'1861 Census of Canada' => '1861 Canadian Census',
+	'1871 Census of Canada' => '1871 Canadian Census',
+	'Kent County, New Brunswick Census, 1871: Eight Subdistricts' => '1881 Canadian Census',
+	'1881 Census of Canada' => '1881 Canadian Census',
+	'1891 Census of Canada' => '1891 Canadian Census',
+	'1901 Census of Canada' => '1901 Canadian Census',
+	'1906 Canada Census of Manitoba, Saskatchewan, and Alberta' => '1906 Canadian Census',
+	'1911 Census of Canada' => '1911 Canadian Census',
+	'1916 Canada Census of Manitoba, Saskatchewan, and Alberta' => '1916 Canadian Census',
+	'1921 Census of Canada' => '1921 Canadian Census',
+
+	'US Census 1870 - Findmypast' => '1870 US Census',
+	'US Census 1900 - Findmypast' => '1900 US Census',
+	'US Census 1920 - Findmypast' => '1920 US Census',
+	'US Census 1930 - Findmypast' => '1930 US Census',
+	'US Census 1940 - Findmypast' => '1940 US Census',
+);
 
 # $ged->validate();
 
@@ -128,9 +161,40 @@ print "\r$index records exported\n";
 
 my $name = $me->as_string(nee => 1);
 
-open(my $html, '>', 'html/surnames.html');
+open(my $html, '>', 'html/censuses.html');
+print $html "<html><head><title>Censuses in the Family Tree of $name</title>",
+	"</head><body><center><h1>Censuses in the Family Tree of $name</h1></center><ul>";
+
+foreach my $census(sort keys(%censuses)) {
+	my $filename = $census;
+	$filename =~ tr/ /_/;
+	print $html "<li><a href=\"$filename.html\">$census</a></li>";
+
+	open(my $chtml, '>', "html/$filename.html");
+	print $chtml "<html><head><title>The Family Tree of $name - $census</title>",
+		'</head>',
+		"<body><center><h1>The Family Tree of $name - $census</h1>",
+		'[ <a href="', $me->{'xref'}, '.html">Home</a> ]',
+		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
+		'<ul>';
+
+	foreach my $name(sort keys %{$censuses{$census}}) {
+		print $chtml '<li>',
+			'<a href="', $censuses{$census}->{$name}->{'xref'}, '.html">',
+			$name,
+			'</a></li>';
+	}
+
+	print $chtml '</ul></body></html>';
+	close $chtml;
+}
+print $html '</ul></body></html>';
+close $html;
+
+open($html, '>', 'html/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree of $name</title>",
-	"</head><body><h1>Surnames in the Family Tree of $name</h1><ul>";
+	"</head><body><center><h1>Surnames in the Family Tree of $name</h1></center><ul>";
 
 foreach my $surname(sort keys %{$surnames}) {
 	my $filename = $surname;
@@ -149,9 +213,10 @@ foreach my $surname(sort keys %{$surnames}) {
 	open(my $shtml, '>', "html/$filename.html");
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
-		"<body><center><h1>The Family Tree of $name - $surname</h1><br>",
+		"<body><center><h1>The Family Tree of $name - $surname</h1>",
 		'[ <a href="', $me->{'xref'}, '.html">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]</center><br>',
+		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
 		'<ul>';
 
 	foreach my $person(sort keys %{$surnames->{$surname}}) {
@@ -265,7 +330,8 @@ sub print_person
 	open(my $html, '>', 'html/' . $person->{'xref'} . '.html');
 	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
 		'[ <a href="', $me->{'xref'}, '.html">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]</center><br>';
+		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		' | [ <a href="censuses.html">Census Index</a> ]</center><br>';
 
 	if($is_alive && !$opts{'l'}) {
 		print $html '<p><i>This is the record of a living person, so much data will not be shown</i></p>';
@@ -1168,6 +1234,12 @@ sub print_person
 					print $html "<a href=\"$file\">", HTML::Entities::encode($title), '</a>';
 				} else {
 					print $html HTML::Entities::encode($title);
+					if($title =~ /Census/) {
+						my $census = $censusmaps{$title};
+						die "Add $title to censusmaps" unless($census);
+						# TODO: Add pointer to image
+						$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
+					}
 				}
 				print $html '</li>';
 				# TODO - print $html NOTE
