@@ -968,7 +968,10 @@ sub print_person
 		}
 		$end_of_sentence = 0;
 	} elsif($numberofchildren) {
-		print $html " $pronoun had ",
+		if($end_of_sentence) {
+			print $html "  $pronoun";
+		}
+		print $html ' had ',
 			($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ";
 		if($numberofchildren == 1) {
 			print $html $children[0]->given_names();
@@ -1796,7 +1799,7 @@ sub year
 		return "in $string";
 	}
 	if($string =~ /^(Abt|ca?)\.?\s*(.+)/i) {
-		return "c$2";
+		return "<i>c.</i> $2";
 	}
 	if(($string =~ /^\d/) && ($string !~ /[a-z]$/)) {
 		my $person = $params{'person'};
