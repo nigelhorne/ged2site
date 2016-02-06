@@ -282,8 +282,6 @@ sub print_person
 			warn $person->name(), ": invalid date of birth $dob\n";
 			$warned{$person} = 1;
 		}
-	} else {
-		$yob = $dob;
 	}
 
 	my $is_alive = 1;
