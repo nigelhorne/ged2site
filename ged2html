@@ -15,8 +15,8 @@
 # -F: print a family tree
 # -h: set the home person
 # -l: include living people
-# -w: print warning about unlikely data - a sort of lint for Gedcom files, may not do as
-#	many as gedcal(1)
+# -w: print warning about unlikely data - a sort of lint for Gedcom files,
+#	may not do as many as gedcal(1)
 
 use strict;
 use warnings;
@@ -1429,6 +1429,11 @@ sub print_person
 		}
 	}
 
+	if($person->{'warnings'}) {
+		print $html "<h2>Warnings</h2>",
+			map { "<p>$_</p>" } @{$person->{'warnings'}};
+	}
+
 	my $dt = DateTime->now();
 	print $html '<p align="right"><i>Last updated on ',
 		$dt->day(), ' ', $dt->month_name(), ' ', $dt->year(),
@@ -1935,12 +1940,10 @@ sub validate_place
 			# Don't die because there are many
 			# false positives as locations
 			# may no longer exist
-			my $person = $params{'person'};
-			if($person) {
-				warn colored($person->as_string({ include_dates => 1 }) . ": unknown location $place", 'red');
-			} else {
-				warn colored("Unknown location $place", 'red');
-			}
+			red_warning({
+				person => $params{'person'},
+				warning => "unknown location $place"
+			});
 			$places{$place} = 0;
 			return 0;
 		}
@@ -2013,10 +2016,13 @@ sub red_warning
 	if($opts{'w'}) {
 		my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
+		die "What do you want to say?" unless($params{'warning'});
+
 		if($params{'person'}) {
 			warn colored($params{'person'}->as_string() . ': ' . $params{'warning'}, 'red');
+			push @{$params{'person'}->{'warnings'}}, $params{'warning'};
 		} else {
-			warn colored($params{'warning'}, 'red');
+			warn colored(lcfirst($params{'warning'}), 'red');
 		}
 		# my $i = 0;
 		# while((my @call_details = (caller($i++)))) {
