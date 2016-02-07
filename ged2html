@@ -42,7 +42,7 @@ use File::Basename;
 
 my %opts;
 getopts('cdfFh:lwv', \%opts);
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -h home-person-name ] [ -l ] [ -w ] filename\n" unless($ARGV[0]);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -h home-person-name ] [ -l ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 my $me;
 my @myancestors;
@@ -54,6 +54,10 @@ my %censuses;
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
+my $ged2;
+if($ARGV[1]) {
+	$ged2 = Gedcom->new(gedcom_file => $ARGV[1], read_only => 1);
+}
 my $dfn = DateTime::Format::Natural->new();
 my $geocoder = Geo::Coder::OSM->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
@@ -298,6 +302,13 @@ sub print_person
 		$is_alive = 0;
 	}
 
+	my $person2;
+	if($ged2) {
+		$person2 = $ged2->get_individual($person->as_string());
+		if(!defined($person2)) {
+			die $person->as_string();
+		}
+	}
 	my $title = $person->as_string({
 		include_years => 1,
 		nee => 1,
