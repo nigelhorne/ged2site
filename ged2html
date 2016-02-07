@@ -676,10 +676,15 @@ sub print_person
 		if($father || $mother || $occupations[0]) {
 			print $html ', ';
 		}
-		print $html "<b>$firstname ", 
-			$name_components{'surname_1'},
-			'</b>';
-		print $html ',' if($relationship);
+		if($opts{'l'} || !$is_alive) {
+			print $html "<b>$firstname</b>"; 
+			print $html ' is' if($relationship);
+		} else {
+			print $html "<b>$firstname ", 
+				$name_components{'surname_1'},
+				'</b>';
+			print $html ',' if($relationship);
+		}
 	} else {
 		print $html $pronoun;
 	}
@@ -1474,10 +1479,17 @@ sub Gedcom::Individual::as_string
 		$surname .= ' ' . $name_components{'surname_2'};
 	}
 	if($name_components{'non_matching'}) {
-		if($surname) {
-			$surname .= ' ';
+		if($name =~ /(\w{2,})\s(\w{2,})\s(\w)\s(\w{2,})/) {
+			# Name parser doesn't parse names like this very well
+			$first_name = $1;
+			$middle_name = "$2 $3";
+			$surname = $4;
+		} else {
+			if($surname) {
+				$surname .= ' ';
+			}
+			$surname .= $name_components{'non_matching'};
 		}
-		$surname .= $name_components{'non_matching'};
 	} elsif(!defined($surname)) {
 		$surname = $self->surname();
 	}
@@ -1757,9 +1769,9 @@ sub Gedcom::Individual::relationship
 					my $myfather = $self->father();
 					my $mymother = $self->mother();
 					if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
-						$rc .= ' on your father\'s side';
+						$rc .= ' on the father\'s side';
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
-						$rc .= ' on your mother\'s side';
+						$rc .= ' on the mother\'s side';
 					}
 				}
 
