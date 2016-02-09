@@ -2112,7 +2112,7 @@ sub print_graphviz
 	# If you get 'Warning: No loadimage plugin for "jpeg:cairo"', do this
 	# instead:
 	# if(0) {
-	if($profile_image) {
+	if($profile_image && (defined($dod) || $opts{'l'})) {
 		if(defined($dob)) {
 			$dob .= "<TR><TD>b. $dob</TD></TR>";
 		} else {
@@ -2134,7 +2134,7 @@ sub print_graphviz
 		print $fout ",labelloc=b";
 
 		# print $fout ",image=\"$profile_image\",labelloc=b";
-	} else {
+	} elsif(defined($dod) || $opts{'l'}) {
 		if(defined($dob)) {
 			$label .= "\\nb. $dob";
 		}
