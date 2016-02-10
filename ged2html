@@ -662,10 +662,10 @@ sub print_person
 		if($father || $mother || $occupations[0]) {
 			print $html ', ';
 		}
-		if($opts{'l'} || !$was_alive) {
+		if($opts{'l'} || $was_alive) {
 			print $html "<b>$firstname</b>"; 
 			if($relationship) {
-				if($dob || $marriage) {
+				if(($dob || $marriage) && (!($was_alive || $opts{'l'}))) {
 					print $html ',';
 				} elsif($was_alive) {
 					print $html ' is';
@@ -818,126 +818,72 @@ sub print_person
 		}
 	}
 
-	my $all_children_are_alive = 1;
+	if($opts{'a'} || !$was_alive) {
+		my $all_children_are_alive = 1;
 
-	if($yob && ($year >= $yob + 150)) {
-		$all_children_are_alive = 0;
-	} else {
-		foreach my $child(@children) {
-			if(!was_alive(person => $child, year => $year)) {
-				$all_children_are_alive = 0;
-				last;
+		if($yob && ($year >= $yob + 150)) {
+			$all_children_are_alive = 0;
+		} else {
+			foreach my $child(@children) {
+				if(!was_alive(person => $child, year => $year)) {
+					$all_children_are_alive = 0;
+					last;
+				}
 			}
 		}
-	}
-	if(scalar(@spouses) &&
-	   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
-		print $html '<p>', ucfirst($pronoun) if($end_of_sentence);
 
-		if(scalar(@spouses) == 1) {
-			if($placeofmarriage || $dateofmarriage) {
-				print $html ' married ';
-			} else {
-				print $html ' was married to ';
-			}
-			if($haveprintedspousename) {
-				$nameparser->parse($spouses[0]->name());
+		if(scalar(@spouses) &&
+		   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
+			print $html '<p>', ucfirst($pronoun) if($end_of_sentence);
 
-				my %name_components = $nameparser->components();
-				print $html $name_components{'given_name_1'};
-			} else {
-				if($opts{'l'} || !$was_alive) {
-					print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
-						$spouses[0]->as_string(),
-						'</a>';
+			if(scalar(@spouses) == 1) {
+				if($placeofmarriage || $dateofmarriage) {
+					print $html ' married ';
 				} else {
-					print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
-						$spouses[0]->given_names(),
-						'</a>';
+					print $html ' was married to ';
 				}
-				$haveprintedspousename = 1;
-			}
-			if($numberofchildren) {
-				print $html ', with whom ', lcfirst($pronoun);
-				if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
-					print $html ' had ';
-				} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
-					print $html ' has had ';
+				if($haveprintedspousename) {
+					$nameparser->parse($spouses[0]->name());
+
+					my %name_components = $nameparser->components();
+					print $html $name_components{'given_name_1'};
 				} else {
-					print $html $dateofdeath || $dateofburial ? ' had ' : ' has ';
-				}
-				if($numberofchildren == 1) {
-					if($all_children_are_alive) {
-						print $html '1 surviving child, ';
+					if($opts{'l'} || !$was_alive) {
+						print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
+							$spouses[0]->as_string(),
+							'</a>';
 					} else {
-						print $html '1 child, ';
+						print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
+							$spouses[0]->given_names(),
+							'</a>';
 					}
-				} else {
-					if($all_children_are_alive) {
-						print $html "$numberofchildren surviving children, ";
-					} else {
-						print $html "$numberofchildren children, ";
-					}
+					$haveprintedspousename = 1;
 				}
-				if($numberofchildren == 1) {
-					print $html $children[0]->given_names();
-				} elsif($numberofchildren > 1) {
-					my $childnames = join(', ', map {
-						'<a href=' . $_->{'xref'} . '.html>' .
-							$_->given_names() .  '</a>'
-					} @children);
-					substr($childnames, rindex($childnames, ', '), 2, ' and ');
-					print $html $childnames;
-				}
-			}
-			if($opts{'l'} || !$was_alive) {
-				print $html ',' if(($dateofmarriage || $placeofmarriage) && $numberofchildren);
-				if($placeofmarriage && $dateofmarriage &&
-				   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
-					print $html ' there ',
-						year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
-				} else {
-					if($placeofmarriage) {
-						my $p = place({ place => $placeofmarriage, person => $person, places_printed => \%places_printed });
-						print $html $p;
-						$places_printed{$p} = 1;
-					}
-					print $html ' ', year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
-				}
-				print $html "[$marriagecitation]" if($marriagecitation);
-			}
-		} elsif($opts{'l'} || !$was_alive) {
-			print $html ' was married ';
-			if(scalar(@spouses) == 2) {
-				print $html 'twice';
-			} else {
-				print $html scalar(@spouses), ' times';
-			}
-			my $names = join(', ', map {
-				' <a href=' . $_->{'xref'} . '.html>' .
-					$_->as_string() .  '</a>'
-			} @spouses);
-			substr($names, rindex($names, ', '), 2, ' and ');
-			print $html ", to $names";
-			print $html "[$marriagecitation]" if($marriagecitation);
-			# TODO: print $html the date and places of the marriages
-			if($numberofchildren) {
-				print $html ".  $pronoun ",
-					$all_children_are_alive ? 'has ' : 'had ';
-				if($numberofchildren == 1) {
-					if($all_children_are_alive) {
-						print $html '1 surviving child, ';
+				if($numberofchildren) {
+					print $html ', with whom ', lcfirst($pronoun);
+					if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
+						print $html ' had ';
+					} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
+						print $html ' has had ';
 					} else {
-						print $html '1 child, ';
+						print $html $dateofdeath || $dateofburial ? ' had ' : ' has ';
 					}
-					print $html $children[0]->given_names();
-				} else {
-					if($all_children_are_alive) {
-						print $html "$numberofchildren surviving children, ";
+					if($numberofchildren == 1) {
+						if($all_children_are_alive) {
+							print $html '1 surviving child, ';
+						} else {
+							print $html '1 child, ';
+						}
 					} else {
-						print $html "$numberofchildren children, ";
+						if($all_children_are_alive) {
+							print $html "$numberofchildren surviving children, ";
+						} else {
+							print $html "$numberofchildren children, ";
+						}
 					}
-					if($numberofchildren > 1) {
+					if($numberofchildren == 1) {
+						print $html $children[0]->given_names();
+					} elsif($numberofchildren > 1) {
 						my $childnames = join(', ', map {
 							'<a href=' . $_->{'xref'} . '.html>' .
 								$_->given_names() .  '</a>'
@@ -946,23 +892,80 @@ sub print_person
 						print $html $childnames;
 					}
 				}
+				if($opts{'l'} || !$was_alive) {
+					print $html ',' if(($dateofmarriage || $placeofmarriage) && $numberofchildren);
+					if($placeofmarriage && $dateofmarriage &&
+					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
+						print $html ' there ',
+							year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
+					} else {
+						if($placeofmarriage) {
+							my $p = place({ place => $placeofmarriage, person => $person, places_printed => \%places_printed });
+							print $html $p;
+							$places_printed{$p} = 1;
+						}
+						print $html ' ', year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
+					}
+					print $html "[$marriagecitation]" if($marriagecitation);
+				}
+			} elsif($opts{'l'} || !$was_alive) {
+				print $html ' was married ';
+				if(scalar(@spouses) == 2) {
+					print $html 'twice';
+				} else {
+					print $html scalar(@spouses), ' times';
+				}
+				my $names = join(', ', map {
+					' <a href=' . $_->{'xref'} . '.html>' .
+						$_->as_string() .  '</a>'
+				} @spouses);
+				substr($names, rindex($names, ', '), 2, ' and ');
+				print $html ", to $names";
+				print $html "[$marriagecitation]" if($marriagecitation);
+				# TODO: print $html the date and places of the marriages
+				if($numberofchildren) {
+					print $html ".  $pronoun ",
+						$all_children_are_alive ? 'has ' : 'had ';
+					if($numberofchildren == 1) {
+						if($all_children_are_alive) {
+							print $html '1 surviving child, ';
+						} else {
+							print $html '1 child, ';
+						}
+						print $html $children[0]->given_names();
+					} else {
+						if($all_children_are_alive) {
+							print $html "$numberofchildren surviving children, ";
+						} else {
+							print $html "$numberofchildren children, ";
+						}
+						if($numberofchildren > 1) {
+							my $childnames = join(', ', map {
+								'<a href=' . $_->{'xref'} . '.html>' .
+									$_->given_names() .  '</a>'
+							} @children);
+							substr($childnames, rindex($childnames, ', '), 2, ' and ');
+							print $html $childnames;
+						}
+					}
+				}
 			}
+			$end_of_sentence = 0;
+		} elsif($numberofchildren) {
+			if($end_of_sentence) {
+				print $html "  $pronoun";
+			}
+			print $html ' had ',
+				($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ";
+			if($numberofchildren == 1) {
+				print $html $children[0]->given_names();
+			} elsif($numberofchildren > 1) {
+				my $childnames = join(', ', map { $_->given_names() } @children);
+				substr($childnames, rindex($childnames, ', '), 2, ' and ');
+				print $html $childnames;
+			}
+			$end_of_sentence = 0;
 		}
-		$end_of_sentence = 0;
-	} elsif($numberofchildren) {
-		if($end_of_sentence) {
-			print $html "  $pronoun";
-		}
-		print $html ' had ',
-			($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ";
-		if($numberofchildren == 1) {
-			print $html $children[0]->given_names();
-		} elsif($numberofchildren > 1) {
-			my $childnames = join(', ', map { $_->given_names() } @children);
-			substr($childnames, rindex($childnames, ', '), 2, ' and ');
-			print $html $childnames;
-		}
-		$end_of_sentence = 0;
 	}
 
 	my $printed_residence;
