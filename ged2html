@@ -90,6 +90,7 @@ my %censusmaps = (
 
 	'US Census 1870 - Findmypast' => '1870 US Census',
 	'US Census 1900 - Findmypast' => '1900 US Census',
+	'US Census 1910 - Findmypast' => '1910 US Census',
 	'US Census 1920 - Findmypast' => '1920 US Census',
 	'US Census 1930 - Findmypast' => '1930 US Census',
 	'US Census 1940 - Findmypast' => '1940 US Census',
@@ -288,25 +289,25 @@ sub print_person
 		}
 	}
 
-	my $is_alive = 1;
-	if($yob && ($year >= $yob + 120)) {
-		$is_alive = 0;
-	}
-
 	my $death = $person->get_record('death');
 	my $dateofdeath = get_value({ person => $person, value => 'death date' });
 	if((!$dateofdeath) && $death) {
 		$dateofdeath = $death->date();
 	}
-	if($dateofdeath) {
-		$is_alive = 0;
-	}
 
 	my $person2;
 	if($ged2) {
 		$person2 = $ged2->get_individual($person->as_string());
-		if(!defined($person2)) {
-			die $person->as_string();
+		if($opts{'w'}) {
+			if(!defined($person2)) {
+				if($opts{'f'}) {
+					die $person->as_string() . ": not found in $ARGV[1]";
+				}
+				red_warning({
+					person => $person,
+					warning => "not found in $ARGV[1]"
+				})
+			}
 		}
 	}
 	my $title = $person->as_string({
@@ -335,7 +336,8 @@ sub print_person
 	# my $surname = $name_components{'surname_2'} || $name_components{'surname_1'};
 	my $surname = ucfirst(lc($person->surname())); # RT109786
 
-	if($is_alive && !$opts{'l'}) {
+	my $was_alive = was_alive(person => $person, year => $year);
+	if($was_alive && !$opts{'l'}) {
 		$title = $firstname;
 	}
 
@@ -345,7 +347,7 @@ sub print_person
 		' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]</center><br>';
 
-	if($is_alive && !$opts{'l'}) {
+	if($was_alive && !$opts{'l'}) {
 		print $html '<p><i>This is the record of a living person, so much data will not be shown</i></p>';
 	} else {
 		$surnames->{$surname}->{$title} = $person->{'xref'};
@@ -420,19 +422,6 @@ sub print_person
 			}
 		}
 	}
-	if($dateofdeath && ($dateofdeath !~ /^\d{4}$/) && ($dateofdeath =~ /^\d/) && ($dateofdeath !~ /[a-z]$/)) {
-		my $d;
-		eval {
-			$d = $date_parser->parse(date => $dateofdeath);
-		};
-		if($d) {
-			$d = @{$d}[0];
-			if($d) {
-				$death_dt = $dfn->parse_datetime($d->{'canonical'});
-			}
-		}
-		$is_alive = 0;
-	}
 
 	my $placeofbirth = get_value({ person => $person, value => 'birth place' });
 	if((!$placeofbirth) && $birth) {
@@ -475,9 +464,6 @@ sub print_person
 	my $placeofburial = get_value({ person => $person, value => 'burial place' });
 	if((!$placeofburial) && $burial) {
 		$placeofburial = $burial->place();
-	}
-	if($placeofburial || $dateofburial || $placeofdeath || $dateofdeath) {
-		$is_alive = 0;
 	}
 
 	my $marriagecitation;
@@ -579,7 +565,7 @@ sub print_person
 			print $html 'The ';
 		}
 
-		if($birth_dt && ($opts{'l'} || !$is_alive)) {
+		if($birth_dt && ($opts{'l'} || !$was_alive)) {
 			if(scalar(@siblings)) {
 				my $count = 1;
 				$print_sibling_count = 1;
@@ -622,7 +608,7 @@ sub print_person
 
 		print $html ' of';
 
-		if($opts{'l'} || !$is_alive) {
+		if($opts{'l'} || !$was_alive) {
 			if($father) {
 				print $html ' <a href=', $father->{'xref'}, '.html>',
 					$father->as_string(),
@@ -676,9 +662,17 @@ sub print_person
 		if($father || $mother || $occupations[0]) {
 			print $html ', ';
 		}
-		if($opts{'l'} || !$is_alive) {
+		if($opts{'l'} || !$was_alive) {
 			print $html "<b>$firstname</b>"; 
-			print $html ' is' if($relationship);
+			if($relationship) {
+				if($dob || $marriage) {
+					print $html ',';
+				} elsif($was_alive) {
+					print $html ' is';
+				} else {
+					print $html ' was';
+				}
+			}
 		} else {
 			print $html "<b>$firstname ", 
 				$name_components{'surname_1'},
@@ -712,11 +706,12 @@ sub print_person
 
 	my $end_of_sentence = 0;
 
-	if($opts{'l'} || !$is_alive) {
+	if($opts{'l'} || !$was_alive) {
 		if(($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism)) {
 			if($dateofbirth || $placeofbirth) {
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
+				print $html ',' if($relationship);
 				print $html ' was born';
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
@@ -829,36 +824,9 @@ sub print_person
 		$all_children_are_alive = 0;
 	} else {
 		foreach my $child(@children) {
-			if($child->get_record('death') || get_value({ person => $child, value => 'death date' })) {
+			if(!was_alive(person => $child, year => $year)) {
 				$all_children_are_alive = 0;
 				last;
-			}
-			if($child->get_record('burial')) {
-				$all_children_are_alive = 0;
-				last;
-			}
-			my $dob = get_value({ person => $child, value => 'birth date' });
-			if($dob) {
-				if(($dob =~ /^\d{4}$/) && ($dob < ($year - 100))) {
-					$all_children_are_alive = 0;
-					last;
-				}
-				if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
-					my $d;
-					eval {
-						$d = $date_parser->parse(date => $dob);
-					};
-					if($d) {
-						$d = @{$d}[0];
-					}
-					if($d) {
-						$d = $dfn->parse_datetime($d->{'canonical'});
-						if($d->strftime('%Y') < ($year - 120)) {
-							$all_children_are_alive = 0;
-							last;
-						}
-					}
-				}
 			}
 		}
 	}
@@ -878,7 +846,7 @@ sub print_person
 				my %name_components = $nameparser->components();
 				print $html $name_components{'given_name_1'};
 			} else {
-				if($opts{'l'} || !$is_alive) {
+				if($opts{'l'} || !$was_alive) {
 					print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
 						$spouses[0]->as_string(),
 						'</a>';
@@ -922,7 +890,7 @@ sub print_person
 					print $html $childnames;
 				}
 			}
-			if($opts{'l'} || !$is_alive) {
+			if($opts{'l'} || !$was_alive) {
 				print $html ',' if(($dateofmarriage || $placeofmarriage) && $numberofchildren);
 				if($placeofmarriage && $dateofmarriage &&
 				   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
@@ -938,7 +906,7 @@ sub print_person
 				}
 				print $html "[$marriagecitation]" if($marriagecitation);
 			}
-		} elsif($opts{'l'} || !$is_alive) {
+		} elsif($opts{'l'} || !$was_alive) {
 			print $html ' was married ';
 			if(scalar(@spouses) == 2) {
 				print $html 'twice';
@@ -1185,7 +1153,7 @@ sub print_person
 	}
 	print $html '.' if(!$end_of_sentence);
 
-	if($opts{'l'} || !$is_alive) {
+	if($opts{'l'} || !$was_alive) {
 		if($mother || $father) {
 			print $html "</p><h2>Parents</h2><ol>";
 			if($father) {
@@ -1242,7 +1210,7 @@ sub print_person
 		print $html '</ol>' if(@children);
 	}
 
-	if($opts{'l'} || !$is_alive) {
+	if($opts{'l'} || !$was_alive) {
 		if($opts{'c'}) {
 			print $html '<h2>Citations</h2><ol>' if($citationcount);
 			foreach my $citation(1..$citationcount) {
@@ -2142,6 +2110,49 @@ sub print_graphviz
 			$label .= "\\nd. $dod";
 		}
 		print $fout "label=\"$label\"";
+	} else {
+		print $fout "label=\"$label\"";
 	}
 	print $fout "];\n";
+}
+
+sub was_alive
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+
+	if($person->get_record('death') || get_value({ person => $person, value => 'death date' })) {
+		return 0;
+	}
+	if($person->get_record('burial')) {
+		return 0;
+	}
+	my $dob = get_value({ person => $person, value => 'birth date' });
+
+	if(!defined($dob)) {
+		return 0;	# Err on the side of caution
+				# TODO: Look at children's lifespan for a clue
+	}
+
+	my $year = $params{'year'};
+	if(($dob =~ /^\d{4}$/) && ($dob < ($year - 100))) {
+		return 0;
+	}
+	if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
+		my $d;
+		eval {
+			$d = $date_parser->parse(date => $dob);
+		};
+		if($d) {
+			$d = @{$d}[0];
+		}
+		if($d) {
+			$d = $dfn->parse_datetime($d->{'canonical'});
+			if($d->strftime('%Y') < ($year - 120)) {
+				return 0;
+			}
+		}
+	}
+	return 1;
 }
