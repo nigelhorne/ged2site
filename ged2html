@@ -1160,17 +1160,17 @@ sub print_person
 		if($mother || $father) {
 			print $html "</p><h2>Parents</h2><ol>";
 			if($father) {
-				output_person_line({ fout => $html, person => $father });
+				output_person_line({ fout => $html, person => $father, year => $year });
 			}
 			if($mother) {
-				output_person_line({ fout => $html, person => $mother });
+				output_person_line({ fout => $html, person => $mother, year => $year });
 			}
 			print $html '</ol>';
 		}
 		print $html "</p><h2>Children</h2><ol>" if(@children);
 
 		foreach my $child(@children) {
-			output_person_line({ fout => $html, person => $child });
+			output_person_line({ fout => $html, person => $child, year => $year });
 			if($opts{'w'} && ($birth_dt || $death_dt)) {
 				my $dob = get_value({ person => $child, value => 'birth date' });
 				if($dob && ($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
@@ -1949,21 +1949,28 @@ sub validate_place
 sub output_person_line
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
 	my $person = $params{'person'};
 	my $fout = $params{'fout'};
 
-	my $dob = get_value({ person => $person, value => 'birth date' });
-	if($dob) {
+	if($opts{'l'} || !was_alive(%params)) {
+		my $dob = get_value({ person => $person, value => 'birth date' });
+		if($dob) {
+			print $fout '<li><a href="', $person->{'xref'}, '.html">',
+				$person->given_names(),
+				'</a> was born ',
+				year({ person => $person, date => $dob }),
+				'</li>';
+		} elsif(get_value({ person => $person, value => 'baptism date' })) {
+			print $fout '<li><a href="', $person->{'xref'}, '.html">',
+				$person->given_names(),
+				'</a> was born c',
+				get_value({ person => $person, value => 'baptism date' }),
+				'</li>';
+		}
+	} else {
 		print $fout '<li><a href="', $person->{'xref'}, '.html">',
 			$person->given_names(),
-			'</a> was born ',
-			year({ person => $person, date => $dob }),
-			'</li>';
-	} elsif(get_value({ person => $person, value => 'baptism date' })) {
-		print $fout '<li><a href="', $person->{'xref'}, '.html">',
-			$person->given_names(),
-			'</a> was born c',
-			get_value({ person => $person, value => 'baptism date' }),
 			'</li>';
 	}
 }
