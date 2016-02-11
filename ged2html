@@ -13,6 +13,8 @@
 # -c: Give citations
 # -f: treat warnings as fatals, implies -w
 # -F: print a family tree
+# -g: Google verification code - see www.google.com/webmasters/verification
+#	Don't include the .html at the end of the code
 # -h: set the home person
 # -l: include living people
 # -w: print warning about unlikely data - a sort of lint for Gedcom files,
@@ -41,8 +43,8 @@ use LWP::Simple;
 use File::Basename;
 
 my %opts;
-getopts('cdfFh:lwv', \%opts);
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -h home-person-name ] [ -l ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
+getopts('cdfFg:h:lwv', \%opts);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google verification ] [ -h home-person-name ] [ -l ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 my $me;
 my @myancestors;
@@ -240,6 +242,12 @@ foreach my $surname(sort keys %{$surnames}) {
 
 print $html '</ul></body></html>';
 close $html;
+
+if($opts{'g'}) {
+	open($html, '>', "html/$opts{g}.html");
+	print $html "google-site-verification: $opts{g}.html";
+	close $html;
+}
 
 sub print_person
 {
