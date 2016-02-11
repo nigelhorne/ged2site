@@ -154,6 +154,10 @@ if($opts{'d'}) {
 my @everyone = $ged->individuals();
 my $total = scalar(@everyone);
 my $index = 0;
+if($ENV{'LANG'}) {
+	# my $dtl = DateTime::Locale->load($ENV{'LANG'});
+	DateTime::Locale->load($ENV{'LANG'});
+}
 
 foreach my $person($ged->individuals()) {
 	$index++;
