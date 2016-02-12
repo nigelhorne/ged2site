@@ -1440,10 +1440,16 @@ sub print_person
 			map { "<p>$_</p>" } @{$person->{'warnings'}};
 	}
 
-	my $dt = DateTime->now();
+	my $dt;
+	if($ENV{'LANG'}) {
+		$dt = DateTime->now(locale => $ENV{'LANG'});
+	} else {
+		$dt = DateTime->now();
+	}
 	print $html '<p align="right"><i>Last updated on ',
-		$dt->day(), ' ', $dt->month_name(), ' ', $dt->year(),
-		'</p>';
+		$dt->strftime('%x'),
+		# $dt->day(), ' ', $dt->month_name(), ' ', $dt->year(),
+		'<i></p>';
 
 	print $html '</body></html>';
 	close $html;
@@ -1845,6 +1851,9 @@ sub year
 				if($opts{'w'}) {
 					red_warning({ person => $person, warning => "something is wrong with the date $string which should be before " . $must_predate->strftime('%x') }) if($d > $must_predate);
 				}
+			}
+			if($ENV{'LANG'}) {
+				$d->set_locale($ENV{'LANG'});
 			}
 			return 'on ', $d->strftime('%x');
 		}
