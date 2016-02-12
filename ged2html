@@ -1152,7 +1152,9 @@ sub print_person
 		}
 		print $html ' died';
 		if($dateofdeath) {
-			if($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
+			if($placeofdeath && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
+				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
 				print $html " in $1 ",
 					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} else {
@@ -1174,6 +1176,54 @@ sub print_person
 		$end_of_sentence = 0;
 	}
 	print $html '.' if(!$end_of_sentence);
+
+	my @events = $person->event();
+	if((scalar(@events) == 2) &&
+	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
+	    (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
+		# Simple case - one journey made
+		print $html ' ';
+
+		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
+		my $departure = ($events[0]->type() eq 'Departure') ? $events[0] : $events[1];
+		my $yod;
+		my $yoa;
+		my $dod = $departure->date();
+		my $doa = $arrival->date();
+		if($doa && $dod && ($doa =~ /(\d{4})/)) {
+			$yoa = $1;
+			$doa =~ s/\s?\d{4}//;
+			if($dod =~ /(\d{4})/) {
+				$yod = $1;
+				$dod =~ s/\s?\d{4}//;
+				if($dod =~ /^\d/) {
+					$dod = "on $dod";
+				} else {
+					$dod = "during $dod";
+				}
+				if($doa =~ /^\d/) {
+					$doa = "on $doa";
+				} else {
+					$doa = "during $doa";
+				}
+			}
+		}
+		if($yod && $yoa && ($yod == $yoa)) {
+			print $html "During $yod ", lc($person->pronoun());
+		} else {
+			print $html $person->pronoun();
+
+			$yod = year({ person => $person, record => $departure });
+			$yoa = year({ person => $person, record => $arrival });
+		}
+
+		print $html ' travelled from ',
+			$departure->place(),
+			' to ',
+			$arrival->place(),
+			", departing $dod and arriving $doa.";
+		$end_of_sentence = 1;
+	}
 
 	if($opts{'l'} || !$was_alive) {
 		if($mother || $father) {
