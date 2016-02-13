@@ -2239,7 +2239,9 @@ sub was_alive
 				# TODO: Look at children's lifespan for a clue
 	}
 
-	my $year = $params{'year'};
+	my $year = $params{'year'} || (localtime)[5];
+	$year += 1900 if($year < 1900);
+
 	if(($dob =~ /^\d{4}$/) && ($dob < ($year - 100))) {
 		return 0;
 	}
