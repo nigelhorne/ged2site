@@ -575,6 +575,9 @@ sub print_person
 			print $html 'n';
 		}
 		print $html ' ', lc($occupations[0]);
+		if(!($father || $mother)) {
+			print $html ', ';
+		}
 	}
 	my $print_sibling_count = 0;
 	if($father || $mother) {
@@ -1179,6 +1182,8 @@ sub print_person
 
 	my @events = $person->event();
 	if((scalar(@events) == 2) &&
+	   (ref($events[0]) eq 'Gedcom::Record') &&
+	   (ref($events[1]) eq 'Gedcom::Record') &&
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	    (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		# Simple case - one journey made
@@ -1217,11 +1222,22 @@ sub print_person
 			$yoa = year({ person => $person, record => $arrival });
 		}
 
-		print $html ' travelled from ',
+		if($ENV{'LANG'} =~ /^en_US/) {
+			print $html ' traveled';
+		} else {
+			print $html ' travelled';
+		}
+
+		print $html ' from ',
 			$departure->place(),
 			' to ',
-			$arrival->place(),
-			", departing $dod and arriving $doa.";
+			$arrival->place();
+
+		if(defined($dod)) {
+			print $html ", departing $dod and";
+		}
+
+		print $html " arriving $doa.";
 		$end_of_sentence = 1;
 	}
 
