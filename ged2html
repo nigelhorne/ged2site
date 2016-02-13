@@ -575,7 +575,7 @@ sub print_person
 			print $html 'n';
 		}
 		print $html ' ', lc($occupations[0]);
-		if(!($father || $mother)) {
+		if(!($father || $mother || $spouserelationship)) {
 			print $html ', ';
 		}
 	}
