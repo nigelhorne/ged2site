@@ -1155,7 +1155,9 @@ sub print_person
 		}
 		print $html ' died';
 		if($dateofdeath) {
-			if($placeofdeath && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
+			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
+				print $html ' on the same day';
+			} elsif($placeofdeath && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
 				print $html " in $1 ",
@@ -1486,7 +1488,7 @@ sub print_person
 				if($father || $mother) {
 					$height += 200;
 				}
-				print $html '<br><img src="img/', $person->{'xref'}, ".png\" usemap=\"#family\">";
+				print $html '<img src="img/', $person->{'xref'}, ".png\" usemap=\"#family\">";
 				$tmp->seek(0, SEEK_SET);
 				foreach my $line(<$tmp>) {
 					print $html $line;
