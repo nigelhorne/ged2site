@@ -1319,8 +1319,11 @@ sub print_person
 						$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
 					}
 				}
+				my $note = $citations{$citation}->note();
+				if($note && ($note !~ /^This information comes from/)) {
+					print $html " ($note)";
+				}
 				print $html '</li>';
-				# TODO - print $html NOTE
 			}
 			print $html '</ol>';
 		}
