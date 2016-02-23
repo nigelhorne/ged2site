@@ -1042,7 +1042,9 @@ sub print_person
 					' life ', lcfirst($pronoun), ' lived';
 			}
 			if(($count == 0) || ($residencelist[$count - 1]->place() ne $residence->place())) {
-				print $html place({ person => $person, record => $residence });
+				my $p = place({ person => $person, record => $residence });
+				print $html $p;
+				$places_printed{$p} = 1;
 			}
 			my $date = $residence->date();
 			if($date) {
@@ -1165,7 +1167,7 @@ sub print_person
 			} else {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath && ((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
-					print $html place({ person => $person, place => $placeofdeath });
+					print $html place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
 				}
 			}
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
