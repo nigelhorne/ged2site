@@ -685,7 +685,7 @@ sub print_person
 			print $html ', ';
 		}
 		if($opts{'l'} || $was_alive) {
-			print $html "<b>$firstname</b>"; 
+			print $html "<b>$firstname</b>";
 			if($relationship) {
 				if(($dob || $marriage) && (!($was_alive || $opts{'l'}))) {
 					print $html ',';
@@ -696,7 +696,7 @@ sub print_person
 				}
 			}
 		} else {
-			print $html "<b>$firstname ", 
+			print $html "<b>$firstname ",
 				$name_components{'surname_1'},
 				'</b>';
 			print $html ',' if($relationship);
@@ -1560,7 +1560,11 @@ sub Gedcom::Individual::as_string
 			if($surname) {
 				$surname .= ' ';
 			}
-			$surname .= $name_components{'non_matching'};
+			my $rest = $name_components{'non_matching'};
+			if($rest =~ /(.+) $/) {
+				$rest = $1;
+			}
+			$surname .= $rest;
 		}
 	} elsif(!defined($surname)) {
 		$surname = $self->surname();
