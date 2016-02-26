@@ -188,14 +188,14 @@ foreach my $census(sort keys(%censuses)) {
 	print $chtml "<html><head><title>The Family Tree of $name - $census</title>",
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $census</h1>",
-		'[ <a href="', $me->{'xref'}, '.html">Home</a> ]',
+		'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
 		' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
 		'<ul>';
 
 	foreach my $name(sort keys %{$censuses{$census}}) {
 		print $chtml '<li>',
-			'<a href="', $censuses{$census}->{$name}->{'xref'}, '.html">',
+			'<a href="', mkfilename(person => $censuses{$census}->{$name}), '">',
 			$name,
 			'</a></li>';
 	}
@@ -228,7 +228,7 @@ foreach my $surname(sort keys %{$surnames}) {
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $surname</h1>",
-		'[ <a href="', $me->{'xref'}, '.html">Home</a> ]',
+		'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
 		' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
 		'<ul>';
@@ -334,7 +334,7 @@ sub print_person
 
 		open(my $html, '>', 'html/index.html');
 		print $html "<html><head><title>The Family Tree of $name</title>",
-			'<meta http-equiv="Refresh" content="1;URL=', $person->{'xref'}, '.html">';
+			'<meta http-equiv="Refresh" content="1;URL=', mkfilename(person => $person), '">';
 		if($ENV{'LANG'}) {
 			my $lang = $ENV{'LANG'};
 			$lang =~ s/\.UTF-8//;
@@ -343,7 +343,7 @@ sub print_person
 			print $html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
 		}
 		print $html '</head>',
-			"<body><h1>The Family Tree of $name</h1><a href=\"", $person->{'xref'}, ".html\">$name</a></h1></body></html>";
+			"<body><h1>The Family Tree of $name</h1><a href=\"", mkfilename(person => $person), "\">$name</a></h1></body></html>";
 		close $html;
 	}
 
@@ -360,9 +360,9 @@ sub print_person
 		$title = $firstname;
 	}
 
-	open(my $html, '>', 'html/' . $person->{'xref'} . '.html');
+	open(my $html, '>', 'html/' . mkfilename(person => $person));
 	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
-		'[ <a href="', $me->{'xref'}, '.html">Home</a> ]',
+		'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
 		' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]</center><br>';
 
@@ -632,7 +632,7 @@ sub print_person
 
 		if($opts{'l'} || !$was_alive) {
 			if($father) {
-				print $html ' <a href=', $father->{'xref'}, '.html>',
+				print $html ' <a href="', mkfilename(person => $father), '">',
 					$father->as_string(),
 					'</a>';
 				my @occupations = $father->get_value('occupation');
@@ -649,7 +649,7 @@ sub print_person
 				}
 			}
 			if($mother) {
-				print $html ' <a href=', $mother->{'xref'}, '.html>',
+				print $html ' <a href="', mkfilename(person => $mother), '">',
 					$mother->as_string(give_maidenname => 0),
 					'</a>';
 
@@ -665,7 +665,7 @@ sub print_person
 			}
 		} else {
 			if($father) {
-				print $html ' <a href=', $father->{'xref'}, '.html>',
+				print $html ' <a href="', mkfilename(person => $father), '">',
 					$father->given_names(),
 					'</a>';
 				if($mother) {
@@ -673,7 +673,7 @@ sub print_person
 				}
 			}
 			if($mother) {
-				print $html ' <a href=', $mother->{'xref'}, '.html>',
+				print $html ' <a href="', mkfilename(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
 			}
@@ -708,7 +708,7 @@ sub print_person
 	my $haveprintedspousename;
 	if($relationship) {
 		print $html " the $relationship of ",
-			'<a href=', $me->{'xref'}, '.html>',
+			'<a href="', mkfilename(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>';
 	} elsif($spouserelationship) {
@@ -717,10 +717,10 @@ sub print_person
 		} else {
 			print $html ', the husband of';
 		}
-		print $html ' <a href=', $spouse->{'xref'}, '.html>',
+		print $html ' <a href="', mkfilename(person => $spouse), '">',
 			$spouse->as_string({ middle_names => 1, title => 1 }),
 			"</a>, the $spouserelationship of ",
-			'<a href=', $me->{'xref'}, '.html>',
+			'<a href="', mkfilename(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>,';
 		$haveprintedspousename = 1;
@@ -871,11 +871,11 @@ sub print_person
 					print $html $name_components{'given_name_1'};
 				} else {
 					if($opts{'l'} || !$was_alive) {
-						print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
+						print $html '<a href="', mkfilename(person => $spouses[0]), '">',
 							$spouses[0]->as_string(),
 							'</a>';
 					} else {
-						print $html '<a href=', $spouses[0]->{'xref'}, '.html>',
+						print $html '<a href="', mkfilename(person => $spouses[0]), '">',
 							$spouses[0]->given_names(),
 							'</a>';
 					}
@@ -907,8 +907,8 @@ sub print_person
 						print $html $children[0]->given_names();
 					} elsif($numberofchildren > 1) {
 						my $childnames = join(', ', map {
-							'<a href=' . $_->{'xref'} . '.html>' .
-								$_->given_names() .  '</a>'
+							'<a href="' . mkfilename(person => $_) . '">'.
+								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						print $html $childnames;
@@ -937,12 +937,28 @@ sub print_person
 				} else {
 					print $html scalar(@spouses), ' times';
 				}
-				my $names = join(', ', map {
-					' <a href=' . $_->{'xref'} . '.html>' .
-						$_->as_string() .  '</a>'
-				} @spouses);
+
+				my $names;
+				foreach my $spouse(@spouses) {
+					$names .= ', ' if($names);
+					$names .= ' <a href="' . mkfilename(person => $spouse) . '">' .
+						$spouse->as_string() . '</a>';
+					my $dateofmarriage = get_value({ person => $spouse, value => 'marriage date' });
+					if(!defined($dateofmarriage)) {
+						my $marriage = $spouse->get_record('marriage') || $spouse->get_record('fams marriage');
+						if($marriage) {
+							$dateofmarriage = $marriage->date();
+						}
+					}
+					if($dateofmarriage) {
+						$names .= ' (' .
+							year({ string => $dateofmarriage }) .
+							')';
+					}
+				}
 				substr($names, rindex($names, ', '), 2, ' and ');
 				print $html ", to $names";
+
 				print $html "[$marriagecitation]" if($marriagecitation);
 				# TODO: print $html the date and places of the marriages
 				if($numberofchildren) {
@@ -963,8 +979,8 @@ sub print_person
 						}
 						if($numberofchildren > 1) {
 							my $childnames = join(', ', map {
-								'<a href=' . $_->{'xref'} . '.html>' .
-									$_->given_names() .  '</a>'
+								'<a href="' . mkfilename(person => $_), '">',
+									$_->given_names() . '</a>'
 							} @children);
 							substr($childnames, rindex($childnames, ', '), 2, ' and ');
 							print $html $childnames;
@@ -2064,20 +2080,20 @@ sub output_person_line
 	if($opts{'l'} || !was_alive(%params)) {
 		my $dob = get_value({ person => $person, value => 'birth date' });
 		if($dob) {
-			print $fout '<li><a href="', $person->{'xref'}, '.html">',
+			print $fout '<li><a href="', mkfilename(person => $person), '">',
 				$person->given_names(),
 				'</a> was born ',
 				year({ person => $person, date => $dob }),
 				'</li>';
 		} elsif(get_value({ person => $person, value => 'baptism date' })) {
-			print $fout '<li><a href="', $person->{'xref'}, '.html">',
+			print $fout '<li><a href="', mkfilename(person => $person), '">',
 				$person->given_names(),
 				'</a> was born c',
 				get_value({ person => $person, value => 'baptism date' }),
 				'</li>';
 		}
 	} else {
-		print $fout '<li><a href="', $person->{'xref'}, '.html">',
+		print $fout '<li><a href="', mkfilename(person => $person), '">',
 			$person->given_names(),
 			'</li>';
 	}
@@ -2189,7 +2205,7 @@ sub print_graphviz
 
 	print $fout $person->{'xref'}, ' [shape=box,fontsize="10",',
 		"color=\"$colour\",",
-		'href="', $person->{'xref'}, '.html",';
+		'href="', mkfilename(person => $person), '",';
 
 	my $label = $person->as_string();
 	my $dob = get_value({ person => $person, value => 'birth date' });
@@ -2275,4 +2291,19 @@ sub was_alive
 		}
 	}
 	return 1;
+}
+
+sub mkfilename
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+
+	my $rc = $person->as_string(include_years => 1);
+	$rc =~ tr/ /-/s;
+	$rc =~ s/--/-/g;
+	$rc =~ s/--/-/g;
+	$rc =~ s/-$//;
+
+	return "$rc.html";
 }
