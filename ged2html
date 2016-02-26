@@ -1333,8 +1333,11 @@ sub print_person
 		if($person->get_value('note')) {
 			print $html "<h2>Notes</h2>";
 
-			my @notes = $person->get_value('note');
-			print $html map { "<p>$_</p>" } @notes;
+			foreach my $note($person->get_value('note')) {
+				$note =~ s/\n/<br>/g;
+				print $html "<p>$note</p>";
+			}
+			# print $html map { "<p>$_</p>" } @notes;
 		}
 
 
