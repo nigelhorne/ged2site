@@ -236,7 +236,7 @@ foreach my $surname(sort keys %{$surnames}) {
 	foreach my $person(sort keys %{$surnames->{$surname}}) {
 		# print "\t$person maps to ", $surnames->{$surname}->{$person}, "\n";
 		print $shtml '<li>',
-			'<a href="', $surnames->{$surname}->{$person}, ".html\">$person</a>",
+			'<a href="', mkfilename(person => $surnames->{$surname}->{$person}), "\">$person</a>",
 			'</li>';
 	}
 
@@ -369,7 +369,7 @@ sub print_person
 	if($was_alive && !$opts{'l'}) {
 		print $html '<p><i>This is the record of a living person, so much data will not be shown</i></p>';
 	} else {
-		$surnames->{$surname}->{$title} = $person->{'xref'};
+		$surnames->{$surname}->{$title} = $person;
 	}
 
 	my ($birth_dt, $death_dt);
