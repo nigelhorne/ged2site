@@ -1279,7 +1279,7 @@ sub print_person
 			output_person_line({ fout => $html, person => $child, year => $year });
 			if($opts{'w'} && ($birth_dt || $death_dt)) {
 				my $dob = get_value({ person => $child, value => 'birth date' });
-				if($dob && ($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
+				if($dob && ($dob !~ /^\d{4}$/) && ($dob =~ /^\d/)) {
 					my $d;
 					eval {
 						$d = $date_parser->parse(date => $dob);
@@ -1295,13 +1295,11 @@ sub print_person
 							}
 							red_warning({ person => $child, warning => 'born before parent was born' });
 						}
-						if($sex eq 'F') {
-							if($death_dt && ($d > $death_dt)) {
-								if($opts{'f'}) {
-									die $child->name(), ': Born after mother died';
-								}
-								red_warning({ person => $child, warning => 'born after mother died' });
+						if($death_dt && ($d > $death_dt)) {
+							if($opts{'f'}) {
+								die $child->name(), ': Born after mother died';
 							}
+							red_warning({ person => $child, warning => 'born after mother died' });
 						} elsif($death_dt && ($d > ($death_dt + $ninemonths))) {
 							# Allow the child to be
 							# born up to 9 months
