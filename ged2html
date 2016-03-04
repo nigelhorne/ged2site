@@ -1109,11 +1109,23 @@ sub print_person
 						if($city =~ /^(.+?),/) {
 							print $html $1;
 						} else {
-							print $html place({ person => $person, place => $placeofburial });
+							print $html place({
+								person => $person,
+								place => $placeofburial,
+								there => $placeofdeath,
+								places_printed => \%places_printed,
+								must_postdate => $birth_dt,
+								address => get_value({ person => $person, value => 'burial address' })
+							});
 						}
 					} else {
 						print $html place({ person => $person, place => $placeofburial, there => $placeofdeath, places_printed => \%places_printed, must_postdate => $birth_dt });
 					}
+				}
+				my $b = get_value({ person => $person, value => 'burial note' });
+				if($b) {
+					$b =~ tr/\r//;
+					print $html " ($b)";
 				}
 			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
 				print $html " $pronoun was buried in ",
@@ -2001,12 +2013,15 @@ sub place
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $place = $params{'place'};
+	my $address = $params{'address'};
 	if(!defined($place)) {
 		$place = $params{'record'};
 		return unless($place);
 
 		$place = $place->place();
 		return unless($place);
+
+		$address = $place->address();
 	}
 
 	my $there = $params{'there'};
@@ -2023,7 +2038,11 @@ sub place
 	if($place eq 'USA') {
 		return ' in the USA';
 	}
-	$place = " in $place";
+	if($address) {
+		$place = " at $address, $place";
+	} else {
+		$place = " in $place";
+	}
 
 	# Only print the town if the location has already been printed
 	my $places_printed = $params{'places_printed'};
