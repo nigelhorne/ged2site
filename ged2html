@@ -24,6 +24,11 @@ use strict;
 use warnings;
 # use warnings::unused;
 
+# BEGIN {
+	# *CORE::GLOBAL::die = \&main::die;
+# }
+
+use Gedcom;
 use Getopt::Std;
 use Gedcom;
 use Lingua::EN::NameCase;
@@ -98,6 +103,24 @@ my %censusmaps = (
 	'US Census 1930 - Findmypast' => '1930 US Census',
 	'US Census 1940 - Findmypast' => '1940 US Census',
 );
+
+# sub realdie
+# {
+	# CORE::die (@_);
+# }
+
+# sub die {
+	# my @arg = shift;
+# 
+	# print STDERR "@arg\n" if($arg[0]);
+# 
+	# my $i = 0;
+	# while((my @call_details = (caller($i++)))) {
+		# print STDERR $call_details[1], ':', $call_details[2], ' in function ', $call_details[3], "\n";
+	# }
+# 
+	# realdie @arg;
+# }
 
 # $ged->validate();
 
@@ -1163,9 +1186,21 @@ sub print_person
 			if($dateofburial) {
 				print $html ' and was buried';
 				if($placeofburial) {
-					print $html place({ person => $person, place => $placeofburial, there => $placeofdeath, places_printed => \%places_printed, must_postdate => $birth_dt });
+					print $html place({
+						person => $person,
+						place => $placeofburial,
+						there => $placeofdeath,
+						places_printed => \%places_printed,
+						must_postdate => $birth_dt,
+						address => get_value({ person => $person, value => 'burial address' })
+					});
 				}
 				print $html ' ', year({ person => $person, date => $dateofburial });
+				my $b = get_value({ person => $person, value => 'burial note' });
+				if($b) {
+					$b =~ tr/\r//;
+					print $html " ($b)";
+				}
 			} else {
 				print $html ' and is buried',
 					place({ person => $person, place => $placeofburial, there => $placeofdeath });
@@ -2018,10 +2053,9 @@ sub place
 		$place = $params{'record'};
 		return unless($place);
 
+		$address = $place->address();
 		$place = $place->place();
 		return unless($place);
-
-		$address = $place->address();
 	}
 
 	my $there = $params{'there'};
