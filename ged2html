@@ -49,6 +49,7 @@ use File::Basename;
 use Image::Info;
 use URI;
 use URI::Find::Schemeless;
+no lib '.';
 
 my %opts;
 getopts('cdfFg:h:lwv', \%opts);
@@ -1374,6 +1375,12 @@ sub print_person
 
 			my $u = URI->new($orig_uri);
 			if($u && (ref($u) ne 'URI::_generic')) {
+				if(!head($orig_uri)) {
+					if($opts{'f'}) {
+						die $person->as_string, ": $orig_uri: not found";
+					}
+					red_warning({ person => $person, warning => "$orig_uri: not found" });
+				}
 				return "<a HREF=\"$uri\">" .
 					$u->host() .
 					'</a>';
