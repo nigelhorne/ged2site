@@ -1036,6 +1036,7 @@ sub print_person
 		my $count = 0;
 		foreach my $residence(@residencelist) {
 			if($count == 0) {
+				next if($placeofbirth && ($residence eq $placeofbirth));
 				print $html '.' unless($end_of_sentence);
 				print $html ' During ',
 					lc($person->possessive()),
