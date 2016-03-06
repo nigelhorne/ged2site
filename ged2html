@@ -47,6 +47,8 @@ use File::Temp;
 use LWP::Simple;
 use File::Basename;
 use Image::Info;
+use URI;
+use URI::Find::Schemeless;
 
 my %opts;
 getopts('cdfFg:h:lwv', \%opts);
@@ -1367,6 +1369,18 @@ sub print_person
 	}
 
 	if($opts{'l'} || !$was_alive) {
+		my $ufinder = URI::Find::Schemeless->new(sub {
+			my($uri, $orig_uri) = @_;
+
+			my $u = URI->new($orig_uri);
+			if($u && (ref($u) ne 'URI::_generic')) {
+				return "<a HREF=\"$uri\">" .
+					$u->host() .
+					'</a>';
+			}
+			return $orig_uri;
+		});
+
 		if($opts{'c'} && $citationcount) {
 			print $html '<h2>Citations</h2><ol>';
 			foreach my $citation(1..$citationcount) {
@@ -1387,6 +1401,7 @@ sub print_person
 				}
 				my $note = $citations{$citation}->note();
 				if($note && ($note !~ /^This information comes from/)) {
+					$ufinder->find(\$note);
 					print $html " ($note)";
 				}
 				print $html '</li>';
@@ -1399,6 +1414,7 @@ sub print_person
 
 			foreach my $note($person->get_value('note')) {
 				$note =~ s/\n/<br>/g;
+				$ufinder->find(\$note);
 				print $html "<p>$note</p>";
 			}
 			# print $html map { "<p>$_</p>" } @notes;
@@ -1465,9 +1481,16 @@ sub print_person
 							my $localfile = 'img/' . $obje->{'xref'} . '.jpg';
 							if((-r "html/$localfile") ||
 							   is_success(getstore($file, "html/$localfile"))) {
+								my $info = Image::Info::image_info("html/$localfile");
+								my ($w, $h) = Image::Info::dim($info);
+								if(!defined($w)) {
+									die "html/$localfile";
+								}
+								$h *= 175 / $w;
+								$h = int($h);
 								# print $html "<a href=\"$file\" target=\"_blank\">",
 								print $html "<a href=\"$localfile\" target=\"_blank\">",
-									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\">",
+									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
 									'</a>';
 								if(!defined($profile_image)) {
 									$profile_image = "html/$localfile";
@@ -1492,7 +1515,9 @@ sub print_person
 							}
 						}
 					} else {
-						print $html "<a href=\"$file\" target=\"_blank\">$title</a>";
+						print $html "<a href=\"$file\" target=\"_blank\">",
+							HTML::Entities::encode($title),
+							'</a>';
 					}
 					print $html '<br>';
 				}
@@ -2081,7 +2106,7 @@ sub place
 	if($places_printed && $places_printed->{$place} && $place =~ /^(.+?),/) {
 		return $1;
 	}
-	return $place;
+	return HTML::Entities::encode($place);
 }
 
 sub validate_place
