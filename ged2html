@@ -1392,7 +1392,16 @@ sub print_person
 			print $html '<h2>Citations</h2><ol>';
 			foreach my $citation(1..$citationcount) {
 				my $title = $citations{$citation}->title();
-				next if(!defined($title));
+				if(!defined($title)) {
+					if($opts{'f'}) {
+						die $person->as_string, "[$citation]: no citation title";
+					}
+					red_warning({
+						person => $person,
+						warning => "[$citation]: no citation title"
+					});
+					next;
+				}
 				print $html '<li>';
 				my $file = $citations{$citation}->file();
 				if($file) {
