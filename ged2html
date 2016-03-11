@@ -1001,18 +1001,18 @@ sub print_person
 					}
 					$spousenumber++;
 					if($spousenumber == (scalar(@spouses) - 1)) {
-						$names .= ' and ';
+						$names .= ' and';
 					} elsif($spousenumber < (scalar(@spouses) - 1)) {
-						$names .= ', ';
+						$names .= ',';
 					}
 				}
 				# substr($names, rindex($names, ', '), 2, ' and ');
-				print $html ", to $names";
+				print $html ", to$names";
 
 				print $html "[$marriagecitation]" if($marriagecitation);
 				# TODO: print $html the date and places of the marriages
 				if($numberofchildren) {
-					print $html ".  $pronoun ",
+					print $html ". $pronoun ",
 						$all_children_are_alive ? 'has ' : 'had ';
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
@@ -1028,7 +1028,7 @@ sub print_person
 							print $html "$numberofchildren children: ";
 						}
 						my $childnames = join(', ', map {
-							'<a href="' . mkfilename(person => $_) . '">',
+							'<a href="' . mkfilename(person => $_) . '">' .
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
@@ -1039,7 +1039,7 @@ sub print_person
 			$end_of_sentence = 0;
 		} elsif($numberofchildren) {
 			if($end_of_sentence) {
-				print $html "  $pronoun";
+				print $html " $pronoun";
 			}
 			print $html ' had ',
 				($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ";
@@ -1238,7 +1238,7 @@ sub print_person
 		if($person->marb()) {
 			# die 'foo';
 		}
-		if($placeofdeath && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
+		if($placeofdeath && (scalar(@spouses) <= 1) && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
 			print $html ', which is also where ', lcfirst($pronoun);
 		} else {
 			print $html '.' if(!$end_of_sentence);
@@ -1248,14 +1248,14 @@ sub print_person
 		if($dateofdeath) {
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
 				print $html ' on the same day';
-			} elsif($placeofdeath && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
+			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
 				print $html " in $1 ",
 					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} else {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($placeofdeath && ((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
+				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
 					print $html place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
 				}
 			}
