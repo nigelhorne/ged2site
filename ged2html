@@ -966,8 +966,9 @@ sub print_person
 				}
 
 				my $names;
+				my $spousenumber = 0;
 				foreach my $spouse(@spouses) {
-					$names .= ', ' if($names);
+					# $names .= ', ' if($names);
 					$names .= ' <a href="' . mkfilename(person => $spouse) . '">' .
 						$spouse->as_string() . '</a>';
 					my $dateofmarriage = get_value({ person => $spouse, value => 'marriage date' });
@@ -987,15 +988,25 @@ sub print_person
 					if($dateofmarriage && $placeofmarriage) {
 						$names .= ' (' .
 							year({ string => $dateofmarriage }) .
-							place({ person => $spouse, place => $placeofmarriage }) .
+							place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed }) .
+							')';
+					} elsif($placeofmarriage) {
+						$names .= ' (' .
+							place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed }) .
 							')';
 					} elsif($dateofmarriage) {
 						$names .= ' (' .
 							year({ string => $dateofmarriage }) .
 							')';
 					}
+					$spousenumber++;
+					if($spousenumber == (scalar(@spouses) - 1)) {
+						$names .= ' and ';
+					} elsif($spousenumber < (scalar(@spouses) - 1)) {
+						$names .= ', ';
+					}
 				}
-				substr($names, rindex($names, ', '), 2, ' and ');
+				# substr($names, rindex($names, ', '), 2, ' and ');
 				print $html ", to $names";
 
 				print $html "[$marriagecitation]" if($marriagecitation);
