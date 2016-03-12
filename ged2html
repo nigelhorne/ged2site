@@ -2134,6 +2134,7 @@ sub year
 		return "before $1";
 	}
 
+	$string = ucfirst(lc($string));
 	return "in $string";
 }
 
