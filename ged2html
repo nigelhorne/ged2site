@@ -457,7 +457,7 @@ sub print_person
 		}
 	}
 
-	if($dateofbirth && ($dateofbirth !~ /^\d{4}$/) && ($dateofbirth =~ /^\d/) && ($dateofbirth !~ /[a-z]$/)) {
+	if($dateofbirth && ($dateofbirth !~ /^\d{4}$/) && ($dateofbirth =~ /^\d/) && ($dateofbirth !~ /[a-z]$/i)) {
 		my $d;
 		eval {
 			$d = $date_parser->parse(date => $dateofbirth);
@@ -520,7 +520,15 @@ sub print_person
 			my $src = $marriage->source();
 			if($src) {
 				$src = $ged->get_source($src) unless ref($src);
-				if($birthcitations[0] && ($citations{$birthcitations[0]} eq $src)) {
+				if(!defined($src)) {
+					if($opts{'w'}) {
+						my $src = $marriage->source();
+						if($opts{'f'}) {
+							die $person->as_string(), ": marriage citation can't find source $src";
+						}
+						red_warning({ person => $person, warning => "marriage citation can't find source $src" });
+					}
+				} elsif($birthcitations[0] && ($citations{$birthcitations[0]} eq $src)) {
 					$marriagecitation = $birthcitations[0];
 				} elsif($deathcitations[0] && ($citations{$deathcitations[0]} eq $src)) {
 					$marriagecitation = $deathcitations[0];
@@ -534,6 +542,16 @@ sub print_person
 			my @s = $burial->source();
 			foreach my $src(@s) {
 				$src = $ged->get_source($src) unless ref($src);
+				if(!defined($src)) {
+					if($opts{'w'}) {
+						my $src = $burial->source();
+						if($opts{'f'}) {
+							die $person->as_string(), ": burial citation can't find source";
+						}
+						red_warning({ person => $person, warning => "burial citation can't find source" });
+					}
+					next;
+				}
 				my $seen;
 				foreach my $dc(@deathcitations) {
 					if($src eq $citations{$dc}) {
@@ -620,7 +638,7 @@ sub print_person
 				$print_sibling_count = 1;
 				foreach my $sibling(@siblings) {
 					my $dob = get_value({ person => $sibling, value => 'birth date' });
-					if($dob && ($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
+					if($dob && ($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
 						my $d;
 						eval {
 							$d = $date_parser->parse(date => $dob);
@@ -1416,6 +1434,18 @@ sub print_person
 		if($opts{'c'} && $citationcount) {
 			print $html '<h2>Citations</h2><ol>';
 			foreach my $citation(1..$citationcount) {
+				if(!$citations{$citation}) {
+					if($opts{'f'}) {
+						die $person->as_string(), "[$citation]: empty citation";
+					}
+					if($opts{'w'}) {
+						red_warning({
+							person => $person,
+							warning => "[$citation]: empty citation"
+						});
+					}
+					next;
+				}
 				my $title = $citations{$citation}->title();
 				if(!defined($title)) {
 					if($opts{'f'}) {
@@ -1557,7 +1587,7 @@ sub print_person
 						}
 					} else {
 						print $html "<a href=\"$file\" target=\"_blank\">",
-							HTML::Entities::encode($title),
+							$title ? HTML::Entities::encode($title) : 'Source',
 							'</a>';
 					}
 					print $html '<br>';
@@ -2029,7 +2059,7 @@ sub year
 	if($string =~ /^(Abt|ca?)\.?\s*(.+)/i) {
 		return "<i>c.</i> $2";
 	}
-	if(($string =~ /^\d/) && ($string !~ /[a-z]$/)) {
+	if(($string =~ /^\d/) && ($string !~ /[a-z]$/i)) {
 		my $person = $params{'person'};
 		my $d;
 		eval {
@@ -2392,7 +2422,7 @@ sub was_alive
 	if(($dob =~ /^\d{4}$/) && ($dob < ($year - 100))) {
 		return 0;
 	}
-	if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/)) {
+	if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
 		my $d;
 		eval {
 			$d = $date_parser->parse(date => $dob);
