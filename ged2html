@@ -1107,7 +1107,11 @@ sub print_person
 					' life ', lcfirst($pronoun), ' lived';
 			}
 			if(($count == 0) || ($residencelist[$count - 1]->place() ne $residence->place())) {
-				my $p = place({ person => $person, record => $residence });
+				my $p = place({
+					person => $person,
+					record => $residence,
+					places_printed => \%places_printed
+				});
 				print $html $p;
 				$places_printed{$p} = 1;
 			}
