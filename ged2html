@@ -1545,6 +1545,15 @@ sub print_person
 					warn $obje->{"PROF"}, "\n" if($obje->{'PROF'});
 					my $title = $obje->title();
 					my $form = $obje->form();
+					if((!$form) && $obje->items()) {
+						# Family Tree Maker does this
+						my @items = $obje->items();
+						$file = $items[0]->{'value'};
+						if($file =~ /.jpe?g\r?$/i) {
+							$file =~ s/\r//g;
+						}
+						# TODO: Find the title
+					}
 					if($form && ($form eq 'JPG')) {
 						print $html "<h3>$title</h3>";
 						if($opts{'d'}) {
@@ -1587,7 +1596,7 @@ sub print_person
 						}
 					} else {
 						print $html "<a href=\"$file\" target=\"_blank\">",
-							$title ? HTML::Entities::encode($title) : 'Source',
+							$title ? HTML::Entities::encode($title) : 'Media',
 							'</a>';
 					}
 					print $html '<br>';
