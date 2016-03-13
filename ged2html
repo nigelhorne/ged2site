@@ -603,15 +603,15 @@ sub print_person
 	if($me && ($person ne $me)) {
 		$relationship = $me->relationship($person, $father, $mother);
 		if((!$relationship) && scalar(@spouses)) {
-			foreach my $s(@spouses) {
-				if($s->spouse() eq $person) {
-					$relationship = ($sex eq 'F') ? 'wife' : 'husband';
-					last;
-				}
-				$spouserelationship = $me->relationship($s, $father, $mother);
-				if($spouserelationship) {
-					$spouse = $s;
-					last;
+			if($person->spouse() eq $me) {
+				$relationship = ($sex eq 'F') ? 'wife' : 'husband';
+			} else {
+				foreach my $s(@spouses) {
+					$spouserelationship = $me->relationship($s, $father, $mother);
+					if($spouserelationship) {
+						$spouse = $s;
+						last;
+					}
 				}
 			}
 		}
