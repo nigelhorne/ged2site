@@ -49,6 +49,7 @@ use File::Basename;
 use Image::Info;
 use URI;
 use URI::Find::Schemeless;
+use LWP::UserAgent;
 no lib '.';
 
 my %opts;
@@ -1538,7 +1539,6 @@ sub print_person
 						$printed_media_header = 1;
 					}
 
-					$file =~ s/\{0\}//;
 					warn $obje->{"_prim"}, "\n" if($obje->{'_prim'});
 					warn $obje->{"prim"}, "\n" if($obje->{'prim'});
 					warn $obje->{"_PRIM"}, "\n" if($obje->{'_PRIM'});
@@ -1553,10 +1553,22 @@ sub print_person
 						# Family Tree Maker does this
 						my @items = $obje->items();
 						$file = $items[0]->{'value'};
-						if($file =~ /.jpe?g\r?$/i) {
-							$file =~ s/\r//g;
-						}
 						# TODO: Find the title
+					}
+					$file =~ s/\{0\}//g;
+					$file =~ s/\r//g;
+					if($opts{'d'} && ($file =~ /^https?:\/\//) && ($file !~ /\.jpe?g$/)) {
+						$file =~ s/%2f/\//gi;
+
+						my $browser = LWP::UserAgent->new();
+						my $resp = $browser->get($file);
+						if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
+							my $localfile = 'img/' . $obje->{'xref'} . '.jpg';
+							open(my $tmp, '>', "html/$localfile");
+							print $tmp $resp->decoded_content();
+							close $tmp;
+							$form = 'JPG';
+						}
 					}
 					if($form && ($form eq 'JPG')) {
 						print $html "<h3>$title</h3>";
