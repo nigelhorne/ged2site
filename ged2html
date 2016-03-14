@@ -547,9 +547,9 @@ sub print_person
 					if($opts{'w'}) {
 						my $src = $burial->source();
 						if($opts{'f'}) {
-							die $person->as_string(), ": burial citation can't find source";
+							die $person->as_string(), ": burial citation can't find source $src";
 						}
-						red_warning({ person => $person, warning => "burial citation can't find source" });
+						red_warning({ person => $person, warning => "burial citation can't find source $src" });
 					}
 					next;
 				}
@@ -602,13 +602,13 @@ sub print_person
 	}
 
 	if($me && ($person ne $me)) {
-		$relationship = $me->relationship($person, $father, $mother);
+		$relationship = $me->relationship($person);
 		if((!$relationship) && scalar(@spouses)) {
 			if($person->spouse() eq $me) {
 				$relationship = ($sex eq 'F') ? 'wife' : 'husband';
 			} else {
 				foreach my $s(@spouses) {
-					$spouserelationship = $me->relationship($s, $father, $mother);
+					$spouserelationship = $me->relationship($s);
 					if($spouserelationship) {
 						$spouse = $s;
 						last;
@@ -1911,8 +1911,6 @@ sub Gedcom::Individual::relationship
 {
 	my $self = shift;
 	my $other = shift;
-	my $father = shift;
-	my $mother = shift;
 
 	unless(@myancestors) {
 		@myancestors = $self->ancestors();
