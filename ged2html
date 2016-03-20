@@ -160,10 +160,22 @@ if($opts{'F'}) {
 	}
 }
 
+my $gedcal;
+if(-x '/usr/bin/gedcal') {
+	$gedcal = '/usr/bin/gedcal';
+} elsif(-x '/usr/local/bin/gedcal') {
+	$dot = '/usr/local/bin/gedcal';
+} elsif(-x '../gedcal/gedcal') {
+	$gedcal = '../gedcal/gedcal';
+}
+
 mkdir 'html';
 if($dot || $opts{'d'}) {
 	mkdir 'html/img';
 	mkdir 'thumbs';
+	if($gedcal) {
+		mkdir 'html/calendar';
+	}
 }
 
 if($opts{'d'}) {
@@ -218,8 +230,11 @@ foreach my $census(sort keys(%censuses)) {
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $census</h1>",
 		'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]',
-		' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
+		' | [ <a href="surnames.html">Surnames Index</a> ]';
+	if($gedcal) {
+		print $chtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
+	}
+	print $chtml ' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
 		'<ul>';
 
 	foreach my $name(sort keys %{$censuses{$census}}) {
@@ -257,8 +272,11 @@ foreach my $surname(sort keys %{$surnames}) {
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $surname</h1>",
-		'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		'[ <a href="', mkfilename(person => $me), '">Home</a> ]';
+	if($gedcal) {
+		print $shtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
+	}
+	print $shtml ' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
 		'<ul>';
 
@@ -280,6 +298,28 @@ if($opts{'g'}) {
 	open($html, '>', "html/$opts{g}.html");
 	print $html "google-site-verification: $opts{g}.html";
 	close $html;
+}
+
+if($gedcal) {
+	if(open(my $fout, '>', 'html/calendar/index.html')) {
+		my $dtl = DateTime::Locale->load($ENV{'LANG'});
+		print $fout "<html><head><title>Genealogy Calendar for $name</title></head>",
+			"<body><center><h1>Genealogy Calendar for $name</h1>",
+			'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
+			' | [ <a href="surnames.html">Surnames Index</a> ]',
+			' | [ <a href="censuses.html">Census Index</a> ]</center>',
+			'<ul>';
+		foreach my $month(1..12) {
+			print $fout "<li><a href=\"$month.html\">", @{$dtl->month_format_wide()}[$month - 1], '</a></li>';
+			if(open(my $fin, '-|', "$gedcal -dHm $month '$ARGV[0]'")) {
+				open(my $mout, '>', "html/calendar/$month.html");
+				while(<$fin>) {
+					print $mout $_;
+				}
+			}
+		}
+		print $fout '</ul></body></html>';
+	}
 }
 
 sub print_person
@@ -391,8 +431,11 @@ sub print_person
 
 	open(my $html, '>', 'html/' . mkfilename(person => $person));
 	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
-		'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		'[ <a href="', mkfilename(person => $me), '">Home</a> ]';
+	if($gedcal) {
+		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
+	}
+	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]</center><p>';
 
 	if($was_alive && !$opts{'l'}) {
