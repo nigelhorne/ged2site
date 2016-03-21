@@ -302,16 +302,16 @@ if($opts{'g'}) {
 
 if($gedcal) {
 	if(open(my $fout, '>', 'html/calendar/index.html')) {
-		my $dtl = DateTime::Locale->load($ENV{'LANG'});
 		print $fout "<html><head><title>Genealogy Calendar for $name</title></head>",
 			"<body><center><h1>Genealogy Calendar for $name</h1>",
-			'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
-			' | [ <a href="surnames.html">Surnames Index</a> ]',
-			' | [ <a href="censuses.html">Census Index</a> ]</center>',
+			'[ <a href="../', mkfilename(person => $me), '">Home</a> ]',
+			' | [ <a href="../surnames.html">Surnames Index</a> ]',
+			' | [ <a href="../censuses.html">Census Index</a> ]</center>',
 			'<ul>';
+		my $dtl = DateTime::Locale->load($ENV{'LANG'});
 		foreach my $month(1..12) {
-			print $fout "<li><a href=\"$month.html\">", @{$dtl->month_format_wide()}[$month - 1], '</a></li>';
-			if(open(my $fin, '-|', "$gedcal -dHm $month '$ARGV[0]'")) {
+			if(open(my $fin, '-|', "$gedcal -dHLm $month '$ARGV[0]'")) {
+				print $fout "<li><a href=\"$month.html\">", @{$dtl->month_format_wide()}[$month - 1], '</a></li>';
 				open(my $mout, '>', "html/calendar/$month.html");
 				while(<$fin>) {
 					print $mout $_;
@@ -1670,8 +1670,8 @@ sub print_person
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', '/bin/cat')) {
 				# print $fout 'digraph family { graph [rankdir=LR];';
-				print $fout 'digraph family {';
-				print $fout ' subgraph parents { rank="min"; ';
+				print $fout 'digraph family {',
+					' subgraph parents { rank="min"; ';
 				if($father) {
 					print_graphviz({ person => $father, fout => $fout });
 				}
