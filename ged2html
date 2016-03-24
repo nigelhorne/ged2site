@@ -10,16 +10,6 @@
 #	must apply in writing for a licence for use from Nigel Horne at the
 #	above e-mail.
 
-# -c: Give citations
-# -f: treat warnings as fatals, implies -w
-# -F: print a family tree
-# -g: Google verification code - see www.google.com/webmasters/verification
-#	Don't include the .html at the end of the code
-# -h: set the home person
-# -l: include living people
-# -w: print warning about unlikely data - a sort of lint for Gedcom files,
-#	may not do as many as gedcal(1)
-
 use strict;
 use warnings;
 # use warnings::unused;
