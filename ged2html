@@ -2231,8 +2231,20 @@ sub place
 
 	# Only print the town if the location has already been printed
 	my $places_printed = $params{'places_printed'};
-	if($places_printed && $places_printed->{$place} && $place =~ /^(.+?),/) {
-		return $1;
+	if($places_printed) {
+		if($places_printed->{$place} && $place =~ /^(.+?),/) {
+			return $1;
+		}
+		if($place =~ /(.+?),(.+?),(.+?),(.+)$/) {
+			my $str = "$2,$3,$4";
+			if($places_printed->{" in$str"}) {
+				return "$1,$2";
+			}
+			$str = "$3,$4";
+			if($places_printed->{" in$str"}) {
+				return "$1,$2,$3";
+			}
+		}
 	}
 	return HTML::Entities::encode($place);
 }
