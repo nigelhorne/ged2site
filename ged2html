@@ -1334,6 +1334,7 @@ sub print_person
 		$end_of_sentence = 0;
 	}
 	print $html '.' if(!$end_of_sentence);
+	$end_of_sentence = 1;
 
 	my @events = $person->event();
 	if((scalar(@events) == 2) &&
@@ -1368,31 +1369,38 @@ sub print_person
 				}
 			}
 		}
-		if($yod && $yoa && ($yod == $yoa)) {
-			print $html "During $yod ", lc($person->pronoun());
+		if($departure || !$doa) {
+			if($yod && $yoa && ($yod == $yoa)) {
+				print $html "During $yod ", lc($person->pronoun());
+			} else {
+				print $html $person->pronoun();
+
+				$yod = year({ person => $person, record => $departure });
+				$yoa = year({ person => $person, record => $arrival });
+			}
+
+			if($ENV{'LANG'} =~ /^en_US/) {
+				print $html ' traveled';
+			} else {
+				print $html ' travelled';
+			}
+
+			print $html ' from ',
+				$departure->place(),
+				' to ',
+				$arrival->place();
+
+			if(defined($dod)) {
+				print $html ", departing $dod and";
+			}
+
+			print $html " arriving $doa.";
 		} else {
-			print $html $person->pronoun();
-
-			$yod = year({ person => $person, record => $departure });
-			$yoa = year({ person => $person, record => $arrival });
+			print $html ucfirst(year({ person => $person, record => $arrival })),
+				' ', lcfirst($person->pronoun()),
+				' arrived',
+				place({ person => $person, record => $arrival }), '.';
 		}
-
-		if($ENV{'LANG'} =~ /^en_US/) {
-			print $html ' traveled';
-		} else {
-			print $html ' travelled';
-		}
-
-		print $html ' from ',
-			$departure->place(),
-			' to ',
-			$arrival->place();
-
-		if(defined($dod)) {
-			print $html ", departing $dod and";
-		}
-
-		print $html " arriving $doa.";
 		$end_of_sentence = 1;
 	}
 
@@ -2149,7 +2157,7 @@ sub year
 			if($ENV{'LANG'}) {
 				$d->set_locale($ENV{'LANG'});
 			}
-			return 'on ', $d->strftime('%x');
+			return 'on ' . $d->strftime('%x');
 		}
 		if($@) {
 			# RT 107354
@@ -2227,6 +2235,8 @@ sub place
 	}
 	if($address) {
 		$place = " at $address, $place";
+	} elsif($params{'nopreposition'}) {
+		$place = " $place";
 	} else {
 		$place = " in $place";
 	}
