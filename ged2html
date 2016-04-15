@@ -965,6 +965,10 @@ sub print_person
 							'</a>';
 					}
 					$haveprintedspousename = 1;
+					my @spouse_occupations = $spouses[0]->get_value('occupation');
+					if($spouse_occupations[0]) {
+						print $html ' (a ', lc($spouse_occupations[0]), ')';
+					}
 				}
 				if($numberofchildren) {
 					print $html ', with whom ', lcfirst($pronoun);
