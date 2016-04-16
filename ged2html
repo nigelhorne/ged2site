@@ -221,7 +221,7 @@ foreach my $census(sort keys(%censuses)) {
 	print $chtml "<html><head><title>The Family Tree of $name - $census</title>",
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $census</h1>",
-		'[ <a href="', mkfilename(person => $me), '">Home</a> ]',
+		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
 		' | [ <a href="surnames.html">Surnames Index</a> ]';
 	if($gedcal) {
 		print $chtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
@@ -231,7 +231,7 @@ foreach my $census(sort keys(%censuses)) {
 
 	foreach my $name(sort keys %{$censuses{$census}}) {
 		print $chtml '<li>',
-			'<a href="', mkfilename(person => $censuses{$census}->{$name}), '">',
+			'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
 			$name,
 			'</a></li>';
 	}
@@ -264,7 +264,7 @@ foreach my $surname(sort keys %{$surnames}) {
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $surname</h1>",
-		'[ <a href="', mkfilename(person => $me), '">Home</a> ]';
+		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	if($gedcal) {
 		print $shtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
@@ -275,7 +275,7 @@ foreach my $surname(sort keys %{$surnames}) {
 	foreach my $person(sort keys %{$surnames->{$surname}}) {
 		# print "\t$person maps to ", $surnames->{$surname}->{$person}, "\n";
 		print $shtml '<li>',
-			'<a href="', mkfilename(person => $surnames->{$surname}->{$person}), "\">$person</a>",
+			'<a href="', make_filename_from_person(person => $surnames->{$surname}->{$person}), "\">$person</a>",
 			'</li>';
 	}
 
@@ -296,7 +296,7 @@ if($gedcal) {
 	if(open(my $fout, '>', 'html/calendar/index.html')) {
 		print $fout "<html><head><title>Genealogy Calendar for $name</title></head>",
 			"<body><center><h1>Genealogy Calendar for $name</h1>",
-			'[ <a href="../', mkfilename(person => $me), '">Home</a> ]',
+			'[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]',
 			' | [ <a href="../surnames.html">Surnames Index</a> ]',
 			' | [ <a href="../censuses.html">Census Index</a> ]</center>',
 			'<ul>';
@@ -395,7 +395,7 @@ sub print_person
 
 		open(my $html, '>', 'html/index.html');
 		print $html "<html><head><title>The Family Tree of $name</title>",
-			'<meta http-equiv="Refresh" content="1;URL=', mkfilename(person => $person), '">';
+			'<meta http-equiv="Refresh" content="1;URL=', make_filename_from_person(person => $person), '">';
 		if($ENV{'LANG'}) {
 			my $lang = $ENV{'LANG'};
 			$lang =~ s/\.UTF-8//;
@@ -404,7 +404,7 @@ sub print_person
 			print $html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
 		}
 		print $html '</head>',
-			"<body><h1>The Family Tree of $name</h1><a href=\"", mkfilename(person => $person), "\">$name</a></body></html>";
+			"<body><h1>The Family Tree of $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
 		close $html;
 	}
 
@@ -421,9 +421,9 @@ sub print_person
 		$title = $firstname;
 	}
 
-	open(my $html, '>', 'html/' . mkfilename(person => $person));
+	open(my $html, '>', 'html/' . make_filename_from_person(person => $person));
 	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
-		'[ <a href="', mkfilename(person => $me), '">Home</a> ]';
+		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	if($gedcal) {
 		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
@@ -717,7 +717,7 @@ sub print_person
 
 		if($opts{'l'} || !$was_alive) {
 			if($father) {
-				print $html ' <a href="', mkfilename(person => $father), '">',
+				print $html ' <a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
 				my @occupations = $father->get_value('occupation');
@@ -734,7 +734,7 @@ sub print_person
 				}
 			}
 			if($mother) {
-				print $html ' <a href="', mkfilename(person => $mother), '">',
+				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
 					$mother->as_string(give_maidenname => 0),
 					'</a>';
 
@@ -750,7 +750,7 @@ sub print_person
 			}
 		} else {
 			if($father) {
-				print $html ' <a href="', mkfilename(person => $father), '">',
+				print $html ' <a href="', make_filename_from_person(person => $father), '">',
 					$father->given_names(),
 					'</a>';
 				if($mother) {
@@ -758,7 +758,7 @@ sub print_person
 				}
 			}
 			if($mother) {
-				print $html ' <a href="', mkfilename(person => $mother), '">',
+				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
 			}
@@ -793,7 +793,7 @@ sub print_person
 	my $haveprintedspousename;
 	if($relationship) {
 		print $html " the $relationship of ",
-			'<a href="', mkfilename(person => $me), '">',
+			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>';
 	} elsif($spouserelationship) {
@@ -802,10 +802,10 @@ sub print_person
 		} else {
 			print $html ', the husband of';
 		}
-		print $html ' <a href="', mkfilename(person => $spouse), '">',
+		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 			$spouse->as_string({ middle_names => 1, title => 1 }),
 			"</a>, the $spouserelationship of ",
-			'<a href="', mkfilename(person => $me), '">',
+			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>,';
 		$haveprintedspousename = 1;
@@ -956,11 +956,11 @@ sub print_person
 					print $html $name_components{'given_name_1'};
 				} else {
 					if($opts{'l'} || !$was_alive) {
-						print $html '<a href="', mkfilename(person => $spouses[0]), '">',
+						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->as_string(),
 							'</a>';
 					} else {
-						print $html '<a href="', mkfilename(person => $spouses[0]), '">',
+						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->given_names(),
 							'</a>';
 					}
@@ -996,7 +996,7 @@ sub print_person
 						print $html $children[0]->given_names();
 					} elsif($numberofchildren > 1) {
 						my $childnames = join(', ', map {
-							'<a href="' . mkfilename(person => $_) . '">'.
+							'<a href="' . make_filename_from_person(person => $_) . '">'.
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
@@ -1031,7 +1031,7 @@ sub print_person
 				my $spousenumber = 0;
 				foreach my $spouse(@spouses) {
 					# $names .= ', ' if($names);
-					$names .= ' <a href="' . mkfilename(person => $spouse) . '">' .
+					$names .= ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
 						$spouse->as_string() . '</a>';
 					my $dateofmarriage = get_value({ person => $spouse, value => 'marriage date' });
 					if(!defined($dateofmarriage)) {
@@ -1090,7 +1090,7 @@ sub print_person
 							print $html "$numberofchildren children: ";
 						}
 						my $childnames = join(', ', map {
-							'<a href="' . mkfilename(person => $_) . '">' .
+							'<a href="' . make_filename_from_person(person => $_) . '">' .
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
@@ -1610,8 +1610,8 @@ sub print_person
 						my $browser = LWP::UserAgent->new();
 						my $resp = $browser->get($file);
 						if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
-							my $localfile = 'img/' . $obje->{'xref'} . '.jpg';
-							open(my $tmp, '>', "html/$localfile");
+							my $localfile = make_filename_from_object(object => $obje);
+							open(my $tmp, '>', "html/img/$localfile.jpg");
 							print $tmp $resp->decoded_content();
 							close $tmp;
 							$form = 'JPG';
@@ -1621,7 +1621,7 @@ sub print_person
 						print $html "<h3>$title</h3>";
 						if($opts{'d'}) {
 							# Get and stash a local copy
-							my $localfile = 'img/' . $obje->{'xref'} . '.jpg';
+							my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
 							if((-r "html/$localfile") ||
 							   is_success(getstore($file, "html/$localfile"))) {
 								my $info = Image::Info::image_info("html/$localfile");
@@ -1668,7 +1668,7 @@ sub print_person
 		}
 
 		if(defined($dot)) {
-			my $png = "html/img/" . $person->{'xref'} . '.png';
+			my $png = "html/img/" . make_filename_from_object(object => $person) . '.png';
 			my $tmp = File::Temp->new();
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
@@ -1721,8 +1721,9 @@ sub print_person
 				close $fout;
 
 				print $html '<h2>Family Tree</h2>';
-				my $info = Image::Info::image_info('html/img/' . $person->{'xref'} . '.png');
-				print $html '<img src="img/', $person->{'xref'}, '.png" ', Image::Info::html_dim($info), ' usemap="#family" alt="Family Tree">';
+				my $filename = make_filename_from_object(object => $person);
+				my $info = Image::Info::image_info("html/img/$filename.png");
+				print $html "<img src=\"img/$filename.png\" ", Image::Info::html_dim($info), ' usemap="#family" alt="Family Tree">';
 				$tmp->seek(0, SEEK_SET);
 				foreach my $line(<$tmp>) {
 					print $html $line;
@@ -2311,20 +2312,20 @@ sub output_person_line
 	if($opts{'l'} || !was_alive(%params)) {
 		my $dob = get_value({ person => $person, value => 'birth date' });
 		if($dob) {
-			print $fout '<li><a href="', mkfilename(person => $person), '">',
+			print $fout '<li><a href="', make_filename_from_person(person => $person), '">',
 				$person->given_names(),
 				'</a> was born ',
 				year({ person => $person, date => $dob }),
 				'</li>';
 		} elsif(get_value({ person => $person, value => 'baptism date' })) {
-			print $fout '<li><a href="', mkfilename(person => $person), '">',
+			print $fout '<li><a href="', make_filename_from_person(person => $person), '">',
 				$person->given_names(),
 				'</a> was born c. ',
 				get_value({ person => $person, value => 'baptism date' }),
 				'</li>';
 		}
 	} else {
-		print $fout '<li><a href="', mkfilename(person => $person), '">',
+		print $fout '<li><a href="', make_filename_from_person(person => $person), '">',
 			$person->given_names(),
 			'</a></li>';
 	}
@@ -2436,7 +2437,7 @@ sub print_graphviz
 
 	print $fout $person->{'xref'}, ' [shape=box,fontsize="10",',
 		"color=\"$colour\",",
-		'href="', mkfilename(person => $person), '",';
+		'href="', make_filename_from_person(person => $person), '",';
 
 	my $label = $person->as_string();
 	my $dob = get_value({ person => $person, value => 'birth date' });
@@ -2525,7 +2526,7 @@ sub was_alive
 	return 1;
 }
 
-sub mkfilename
+sub make_filename_from_person
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -2533,9 +2534,27 @@ sub mkfilename
 
 	my $rc = $person->as_string(include_years => 1);
 	$rc =~ tr/ /-/s;
-	$rc =~ s/--/-/g;
-	$rc =~ s/--/-/g;
+	$rc =~ s/--+/-/g;
+	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;
 
 	return "$rc.html";
+}
+
+sub make_filename_from_object
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $object = $params{'object'};
+
+	my $rc = $object->title();
+	if(!$rc) {
+		return $object->{'xref'};
+	}
+	$rc =~ tr/ /-/s;
+	$rc =~ s/--+/-/g;
+	# $rc =~ s/--/-/g;
+	$rc =~ s/-$//;
+
+	return $rc;
 }
