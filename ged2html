@@ -1553,7 +1553,7 @@ sub print_person
 			# TODO - find primary and do something different with that
 			#	The obje should be in order with primary first, but FMP
 			#	doesn't do that
-			#	Gedcom doesn't seem to be able to handle extra '_ tags,
+			#	Gedcom doesn't seem to be able to handle extra _ tags,
 			#	or if it can I can't work out how to make use of it
 			warn $person->{"_prof"}, "\n" if($person->{'_prof'});
 			warn $person->{"prof"}, "\n" if($person->{'prof'});
