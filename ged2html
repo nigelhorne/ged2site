@@ -53,6 +53,7 @@ my %printed;
 my %places;
 my $surnames;
 my %censuses;
+my %images;
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
@@ -1611,13 +1612,20 @@ sub print_person
 						my $resp = $browser->get($file);
 						if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
 							my $localfile = 'html/img/' . make_filename_from_object(object => $obje) . '.jpg';
-							if(-r $localfile) {
-								die $person->as_string(), ': ', $localfile, ' duplicate filename';
+							my $key = $person->as_string() . ";$localfile";
+							if($images{$key}) {
+								# Flag a person having two images of the same
+								# name
+								if($opts{'f'}) {
+									die $person->as_string(), ': ', $localfile, ' duplicate filename';
+								}
+								red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
 							}
 							open(my $tmp, '>', $localfile);
 							print $tmp $resp->decoded_content();
 							close $tmp;
 							$form = 'JPG';
+							$images{$key} = 1;
 						}
 					}
 					if($form && ($form eq 'JPG')) {
