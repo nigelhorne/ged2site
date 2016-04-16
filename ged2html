@@ -1610,8 +1610,11 @@ sub print_person
 						my $browser = LWP::UserAgent->new();
 						my $resp = $browser->get($file);
 						if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
-							my $localfile = make_filename_from_object(object => $obje);
-							open(my $tmp, '>', "html/img/$localfile.jpg");
+							my $localfile = 'html/img/' . make_filename_from_object(object => $obje) . '.jpg';
+							if(-r $localfile) {
+								die $person->as_string(), ': ', $localfile, ' duplicate filename';
+							}
+							open(my $tmp, '>', $localfile);
 							print $tmp $resp->decoded_content();
 							close $tmp;
 							$form = 'JPG';
