@@ -1523,10 +1523,16 @@ sub print_person
 						$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
 					}
 				}
-				my $note = $citations{$citation}->note();
-				if($note && ($note !~ /^This information comes from/)) {
-					$ufinder->find(\$note);
-					print $html " ($note)";
+				my @notes = $citations{$citation}->note();
+				foreach my $note(@notes) {
+					if(ref($note) eq 'Gedcom::Record') {
+						$note = $note->note();
+					}
+
+					if($note && ($note !~ /^This information comes from/)) {
+						$ufinder->find(\$note);
+						print $html " ($note)";
+					}
 				}
 				print $html '</li>';
 			}
