@@ -1569,6 +1569,19 @@ sub print_person
 			}
 			foreach my $deathnote(@deathnotes) {
 				if($deathnote) {
+					if(ref($deathnote) eq 'Gedcom::Record') {
+						if($deathnote->cont()) {
+							my $n = $deathnote->value();
+							my @c = $deathnote->cont();
+							my $c = shift @c;
+							while($c = shift @c) {
+								$n .= " $c";
+							}
+							$deathnote = $n;
+						} else {
+							$deathnote = $deathnote->value();
+						}
+					}
 					$deathnote =~ s/\n/<br>/g;
 					$ufinder->find(\$deathnote);
 					print $html "<p>$deathnote</p>";
