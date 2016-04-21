@@ -1562,7 +1562,19 @@ sub print_person
 			}
 			# print $html map { "<p>$_</p>" } @notes;
 		}
-
+		my @deathnotes = get_value({ person => $person, value => 'death note' });
+		if(scalar(@deathnotes)) {
+			if(!$person->get_value('note')) {
+				print $html "<h2>Notes</h2>";
+			}
+			foreach my $deathnote(@deathnotes) {
+				if($deathnote) {
+					$deathnote =~ s/\n/<br>/g;
+					$ufinder->find(\$deathnote);
+					print $html "<p>$deathnote</p>";
+				}
+			}
+		}
 
 		# FIXME: Should be a table mapping from records to profiles
 		my $profile_image;
