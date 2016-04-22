@@ -1562,29 +1562,32 @@ sub print_person
 			}
 			# print $html map { "<p>$_</p>" } @notes;
 		}
-		my @deathnotes = get_value({ person => $person, value => 'death note' });
-		if(scalar(@deathnotes)) {
-			if(!$person->get_value('note')) {
-				print $html "<h2>Notes</h2>";
-			}
-			foreach my $deathnote(@deathnotes) {
-				if($deathnote) {
-					if(ref($deathnote) eq 'Gedcom::Record') {
-						if($deathnote->cont()) {
-							my $n = $deathnote->value();
-							my @c = $deathnote->cont();
-							my $c = shift @c;
-							while($c = shift @c) {
-								$n .= " $c";
+		if(defined($death)) {
+			# my @deathnotes = get_value({ person => $person, value => 'death note' });
+			my @deathnotes = $death->get_record('note');
+			if(scalar(@deathnotes)) {
+				if(!$person->get_value('note')) {
+					print $html "<h2>Notes</h2>";
+				}
+				foreach my $deathnote(@deathnotes) {
+					if($deathnote) {
+						if(ref($deathnote) eq 'Gedcom::Record') {
+							if($deathnote->cont()) {
+								my $n = $deathnote->value();
+								my @c = $deathnote->cont();
+								my $c = shift @c;
+								while($c = shift @c) {
+									$n .= " $c";
+								}
+								$deathnote = $n;
+							} else {
+								$deathnote = $deathnote->value();
 							}
-							$deathnote = $n;
-						} else {
-							$deathnote = $deathnote->value();
 						}
+						$deathnote =~ s/\n/<br>/g;
+						$ufinder->find(\$deathnote);
+						print $html "<p>$deathnote</p>";
 					}
-					$deathnote =~ s/\n/<br>/g;
-					$ufinder->find(\$deathnote);
-					print $html "<p>$deathnote</p>";
 				}
 			}
 		}
