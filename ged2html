@@ -690,8 +690,8 @@ sub print_person
 						if($d) {
 							$d = $dfn->parse_datetime($d->{'canonical'});
 							if($opts{'w'} &&
-							  ($d != $birth_dt) &&
-							  ($d > $birth_dt - $ninemonths)) {
+							  ($d < $birth_dt) &&
+							  ($d > ($birth_dt - $ninemonths))) {
 								if($opts{'f'}) {
 									die $sibling->as_string(),
 										' was born less than 9 months before ',
