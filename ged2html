@@ -909,7 +909,15 @@ sub print_person
 				if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 					print $html ' there';
 				} else {
-					my $p = place({ person => $person, place => $placeofbaptism, address => $baptism->address() });
+					my $opts = {
+						person => $person,
+						place => $placeofbaptism
+					};
+					my $address = $baptism->address();
+					if($address) {
+						$opts{'address'} = $address;
+					}
+					my $p = place($opts);
 					print $html $p;
 					$places_printed{$p} = 1;
 				}
