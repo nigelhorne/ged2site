@@ -1,5 +1,5 @@
-ged2html
-========
+getsite
+=======
 
 Converts a Gedcom file to HTML to create family tree website.
 
@@ -9,7 +9,7 @@ and Ancestry.
 
 Typical usage:
 
-    ged2html -cFdh 'Your Name' gedfile.ged
+    gedsite -cFdh 'Your Name' gedfile.ged
     copy files in the html directory to your webserver
 
 The options are:
@@ -27,5 +27,5 @@ The options are:
     -w: print warning about inconsistent data - a sort of lint for Gedcom files,
 	may not do as many as gedcal(1)
 
-If gedcal is installed, ged2html will also create a calendar of births and
+If gedcal is installed, gedsite will also create a calendar of births and
 deaths, one page for each month in the current year.
