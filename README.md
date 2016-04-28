@@ -1,7 +1,7 @@
 ged2html
 ========
 
-Create a website from a Gedcom file.
+Converts a Gedcom file to HTML to create family tree website.
 
 It's been tested more extensively with GedComs exported and downloaded from
 FindMyPast, though it should work fine with other systems such as GenesReunited
