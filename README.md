@@ -1,4 +1,4 @@
-getsite
+gedsite
 =======
 
 Converts a Gedcom file to HTML to create family tree website.
