@@ -1286,7 +1286,7 @@ sub print_person
 			if($dateofdeath) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath) {
-					print $html place({ person => $person, place => $placeofdeath });
+					print $html place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
 				}
 			} else {
 				print $html place({ person => $person, place => $placeofdeath });
@@ -1403,8 +1403,8 @@ sub print_person
 			} else {
 				print $html $person->pronoun();
 
-				$yod = year({ person => $person, record => $departure });
-				$yoa = year({ person => $person, record => $arrival });
+				# $yod = year({ person => $person, record => $departure });
+				# $yoa = year({ person => $person, record => $arrival });
 			}
 
 			if($ENV{'LANG'} =~ /^en_US/) {
@@ -1422,13 +1422,36 @@ sub print_person
 				print $html ", departing $dod and";
 			}
 
-			print $html " arriving $doa.";
+			print $html " arriving $doa. ";
 		} else {
 			print $html ucfirst(year({ person => $person, record => $arrival })),
 				' ', lcfirst($person->pronoun()),
 				' arrived',
-				place({ person => $person, record => $arrival }), '.';
+				place({ person => $person, record => $arrival });
+
+			my $notes = notes({ record => $arrival, person => $person });
+			if($notes) {
+				$notes = lcfirst($notes);
+				print $html " ($notes)";
+			}
+			print '. ';
 		}
+		$end_of_sentence = 1;
+	} elsif((scalar(@events) == 1)) {
+		print '.' if(!$end_of_sentence);
+
+		my $event = $person->event();
+		if((ref($event) eq 'Gedcom::Record') &&
+		   ($event->type() eq 'Arrival')) {
+			print $html ' ', $person->pronoun(), ' arrived',
+				place({ person => $person, record => $events[0] }),
+				' ',
+				year({ person => $person, record => $events[0] }),
+				'.';
+		} else {
+			print $html "$event. ";
+		}
+
 		$end_of_sentence = 1;
 	}
 
@@ -1573,32 +1596,12 @@ sub print_person
 			# print $html map { "<p>$_</p>" } @notes;
 		}
 		if(defined($death)) {
-			# my @deathnotes = get_value({ person => $person, value => 'death note' });
-			my @deathnotes = $death->get_record('note');
-			if(scalar(@deathnotes)) {
+			my $notes = notes({ person => $person, record => $death });
+			if($notes) {
 				if(!$person->get_value('note')) {
 					print $html "<h2>Notes</h2>";
 				}
-				foreach my $deathnote(@deathnotes) {
-					if($deathnote) {
-						if(ref($deathnote) eq 'Gedcom::Record') {
-							if($deathnote->cont()) {
-								my $n = $deathnote->value();
-								my @c = $deathnote->cont();
-								my $c = shift @c;
-								while($c = shift @c) {
-									$n .= " $c";
-								}
-								$deathnote = $n;
-							} else {
-								$deathnote = $deathnote->value();
-							}
-						}
-						$deathnote =~ s/\n/<br>/g;
-						$ufinder->find(\$deathnote);
-						print $html "<p>$deathnote</p>";
-					}
-				}
+				print $html $notes;
 			}
 		}
 
@@ -2354,6 +2357,65 @@ sub place
 		}
 	}
 	return HTML::Entities::encode($place);
+}
+
+sub notes
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $record = $params{'record'};
+	my $person = $params{'person'};
+
+	my $ufinder = URI::Find::Schemeless->new(sub {
+		my($uri, $orig_uri) = @_;
+
+		my $u = URI->new($orig_uri);
+		if($u && (ref($u) ne 'URI::_generic')) {
+			if(!head($orig_uri)) {
+				if($opts{'f'}) {
+					die $person->as_string, ": $orig_uri: not found";
+				}
+				red_warning({ person => $person, warning => "$orig_uri: not found" });
+			}
+			return "<a HREF=\"$uri\">" .
+				$u->host() .
+				'</a>';
+		}
+		return $orig_uri;
+	});
+
+	# my @deathnotes = get_value({ person => $person, value => 'death note' });
+	# my @deathnotes = $person, value => 'death note' });
+	my @notes = $record->get_record('note');
+	my $rc;
+	if(scalar(@notes)) {
+		foreach my $note(@notes) {
+			if($note) {
+				if(ref($note) eq 'Gedcom::Record') {
+					if($note->cont()) {
+						my $n = $note->value();
+						my @c = $note->cont();
+						my $c = shift @c;
+						while($c = shift @c) {
+							$n .= ". $c";
+						}
+						$note = $n;
+					} else {
+						$note = $note->value();
+					}
+				}
+				$note =~ s/\r//g;
+				$note =~ s/\.$//;
+				$rc .= "<p>$note.</p>";
+			}
+		}
+	}
+	if(defined($rc)) {
+		$rc =~ s/\n/<br>/g;
+		$rc =~ s/\s\s+/ /g;
+		$ufinder->find(\$rc);
+	}
+	return $rc;
 }
 
 sub validate_place
