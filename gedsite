@@ -40,6 +40,7 @@ use Image::Info;
 use URI;
 use URI::Find::Schemeless;
 use LWP::UserAgent;
+use HTML::GoogleMaps::V3;
 no lib '.';
 
 my %opts;
@@ -50,6 +51,7 @@ my $me;
 my @myancestors;
 my %warned;
 my %printed;
+my %place_map;
 my %places;
 my $surnames;
 my %censuses;
@@ -423,7 +425,7 @@ sub print_person
 	}
 
 	open(my $html, '>', 'html/' . make_filename_from_person(person => $person));
-	print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
+	print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
 		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	if($gedcal) {
 		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
@@ -1807,6 +1809,28 @@ sub print_person
 	if($person->{'warnings'}) {
 		print $html "<h2>Warnings</h2>",
 			map { "<p>$_</p>" } @{$person->{'warnings'}};
+	}
+
+	my @places = keys %places_printed;
+	if(scalar(@places)) {
+		my $map;
+		foreach my $place(@places) {
+			if($place =~ /,/) {
+				$place =~ s/^\s(at|in)\s//;
+				if(!defined($map)) {
+					$map = HTML::GoogleMaps::V3->new();
+					$map->center($place);
+				}
+				$map->add_marker(point => $place);
+			}
+		}
+		if($map) {
+			# Can't put $head into the head since it's far too
+			# late now!
+			my ($head, $map_div) = $map->onload_render();
+			$head =~ s/http:/https:/;
+			print $html "$head<h2>Map</h2>$map_div\n";
+		}
 	}
 
 	my $dt;
