@@ -509,6 +509,8 @@ sub print_person
 		}
 	}
 
+	my %place_records;
+
 	my $placeofbirth = get_value({ person => $person, value => 'birth place' });
 	if((!$placeofbirth) && $birth) {
 		$placeofbirth = $birth->place();
@@ -550,6 +552,26 @@ sub print_person
 	my $placeofburial = get_value({ person => $person, value => 'burial place' });
 	if((!$placeofburial) && $burial) {
 		$placeofburial = $burial->place();
+	}
+
+	if($placeofbirth) {
+		$place_records{'Birth'} = $birth;
+	}
+	if($placeofbaptism) {
+		if($ENV{'LANG'} =~ /^en_US/) {
+			$place_records{'Baptized'} = $baptism;
+		} else {
+			$place_records{'Baptised'} = $baptism;
+		}
+	}
+	if($placeofmarriage) {
+		$place_records{'Marriage'} = $marriage;
+	}
+	if($placeofdeath) {
+		$place_records{'Death'} = $death;
+	}
+	if($placeofburial) {
+		$place_records{'Burial'} = $burial;
 	}
 
 	my $marriagecitation;
@@ -1200,6 +1222,7 @@ sub print_person
 				});
 				print $html $p;
 				$places_printed{$p} = 1;
+				$place_records{"Residence/$count"} = $residence;
 			}
 			my $date = $residence->date();
 			if($date) {
@@ -1423,6 +1446,14 @@ sub print_person
 			}
 
 			print $html " arriving $doa. ";
+
+			if($ENV{'LANG'} =~ /^en_US/) {
+				$place_records{'Traveled from'} = $departure;
+				$place_records{'Traveled to'} = $arrival;
+			} else {
+				$place_records{'Travelled from'} = $departure;
+				$place_records{'Travelled to'} = $arrival;
+			}
 		} else {
 			print $html ucfirst(year({ person => $person, record => $arrival })),
 				' ', lcfirst($person->pronoun()),
@@ -1435,6 +1466,11 @@ sub print_person
 				print $html " ($notes)";
 			}
 			print '. ';
+			if($ENV{'LANG'} =~ /^en_US/) {
+				$place_records{'Traveled to'} = $arrival;
+			} else {
+				$place_records{'Travelled to'} = $arrival;
+			}
 		}
 		$end_of_sentence = 1;
 	} elsif((scalar(@events) == 1)) {
@@ -1448,6 +1484,11 @@ sub print_person
 				' ',
 				year({ person => $person, record => $events[0] }),
 				'.';
+			if($ENV{'LANG'} =~ /^en_US/) {
+				$place_records{'Traveled to'} = $event;
+			} else {
+				$place_records{'Travelled to'} = $event;
+			}
 		} else {
 			print $html "$event. ";
 		}
@@ -1814,17 +1855,28 @@ sub print_person
 			map { "<p>$_</p>" } @{$person->{'warnings'}};
 	}
 
-	my @places = keys %places_printed;
-	if(scalar(@places)) {
+	my @place_events = keys %place_records;
+	if(scalar(@place_events)) {
 		my $map;
-		foreach my $place(@places) {
+		foreach my $event(@place_events) {
+			my $record = $place_records{$event};
+			my $place = place({ record => $record });
+
 			if($place =~ /,/) {
 				$place =~ s/^\s(at|in)\s//;
 				if(!defined($map)) {
 					$map = HTML::GoogleMaps::V3->new();
 					$map->center($place);
 				}
-				$map->add_marker(point => $place);
+				my $text = $event;
+				$text =~ s/\/.+//;	# Remove count e.g. when more than one residence
+				if($record->date()) {
+					$text .= ' ' . year({ person => $person, record => $record });
+				}
+				if($record->note()) {
+					$text .= '<br>' . $record->note();
+				}
+				$map->add_marker(point => $place, html => "$text<br>$place");
 			}
 		}
 		if($map) {
@@ -2308,6 +2360,7 @@ sub place
 
 	my $place = $params{'place'};
 	my $address = $params{'address'};
+
 	if(!defined($place)) {
 		$place = $params{'record'};
 		return unless($place);
@@ -2323,7 +2376,9 @@ sub place
 		return ' there';
 	}
 
-	validate_place({ person => $params{'person'}, place => $place });
+	if($params{'person'}) {
+		validate_place({ person => $params{'person'}, place => $place });
+	}
 
 	if($place =~ /^\d/) {
 		return " at $place";
