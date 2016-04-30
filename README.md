@@ -24,6 +24,7 @@ The options are:
 	Don't include the .html at the end of the code
     -h: set the home person
     -l: include living people
+    -m: Generate a Google map on each page showing events
     -w: print warning about inconsistent data - a sort of lint for Gedcom files,
 	may not do as many as gedcal(1)
 

@@ -41,10 +41,11 @@ use URI;
 use URI::Find::Schemeless;
 use LWP::UserAgent;
 use HTML::GoogleMaps::V3;
+use Sort::Key::DateTime;
 no lib '.';
 
 my %opts;
-getopts('cdfFg:h:lwv', \%opts);
+getopts('cdfFg:h:lmwv', \%opts);
 die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google verification ] [ -h home-person-name ] [ -l ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 my $me;
@@ -56,6 +57,7 @@ my %places;
 my $surnames;
 my %censuses;
 my %images;
+my %all_events;	# Maps events to people
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
@@ -317,6 +319,16 @@ if($gedcal) {
 	}
 }
 
+# TODO - this is a POC which seems to work
+if(0) {
+	my @sorted_events = Sort::Key::DateTime::dtkeysort { $all_events{$_}->{'date'} } keys %all_events;
+	foreach my $e(@sorted_events) {
+		$e = $all_events{$e};
+		print $e->{'date'}->strftime('%x'), ': ';
+		print $e->{'person'}->as_string(), ': ', $e->{'event'}, "\n";
+	}
+}
+
 sub print_person
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -393,7 +405,7 @@ sub print_person
 		title => 1,
 	});
 
-	if($person eq $me) {
+	if($me && ($person eq $me)) {
 		my $name = $person->as_string(nee => 1);
 
 		open(my $html, '>', 'html/index.html');
@@ -508,6 +520,18 @@ sub print_person
 			}
 		}
 	}
+	if($dateofdeath && ($dateofdeath !~ /^\d{4}$/) && ($dateofdeath =~ /^\d/)) {
+		my $d;
+		eval {
+			$d = $date_parser->parse(date => $dateofdeath);
+		};
+		if($d) {
+			$d = @{$d}[0];
+			if($d) {
+				$death_dt = $dfn->parse_datetime($d->{'canonical'});
+			}
+		}
+	}
 
 	my %place_records;
 
@@ -552,6 +576,13 @@ sub print_person
 	my $placeofburial = get_value({ person => $person, value => 'burial place' });
 	if((!$placeofburial) && $burial) {
 		$placeofburial = $burial->place();
+	}
+
+	if($birth_dt) {
+		$all_events{'B' . $person->{'xref'}} = { person => $person, event => 'Birth', date => $birth_dt };
+	}
+	if($death_dt) {
+		$all_events{'D' . $person->{'xref'}} = { person => $person, event => 'Death', date => $death_dt };
 	}
 
 	if($placeofbirth) {
@@ -1856,7 +1887,7 @@ sub print_person
 	}
 
 	my @place_events = keys %place_records;
-	if(scalar(@place_events)) {
+	if($opts{'m'} && scalar(@place_events)) {
 		my $map;
 		foreach my $event(@place_events) {
 			my $record = $place_records{$event};
