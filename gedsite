@@ -1887,7 +1887,7 @@ sub print_person
 	}
 
 	my @place_events = keys %place_records;
-	if($opts{'m'} && scalar(@place_events)) {
+	if($opts{'m'} && ($was_alive || $opts{'l'}) && scalar(@place_events)) {
 		my $map;
 		foreach my $event(@place_events) {
 			my $record = $place_records{$event};
