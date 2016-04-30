@@ -464,7 +464,7 @@ sub print_person
 	}
 	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]',
-		' | [ <a href="history.html">Family History</a> ]</center><br>';
+		' | [ <a href="history.html">Family History</a> ]</center><p>';
 
 	if($was_alive && !$opts{'l'}) {
 		print $html '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
