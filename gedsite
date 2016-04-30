@@ -69,6 +69,7 @@ my $dfn = DateTime::Format::Natural->new();
 my $geocoder = Geo::Coder::OSM->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $ninemonths = DateTime::Duration->new(months => 9);
+my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
 # FIXME: Do this properly
 my %censusmaps = (
@@ -192,10 +193,7 @@ if($opts{'d'}) {
 my @everyone = $ged->individuals();
 my $total = scalar(@everyone);
 my $index = 0;
-if($ENV{'LANG'}) {
-	# my $dtl = DateTime::Locale->load($ENV{'LANG'});
-	DateTime::Locale->load($ENV{'LANG'});
-}
+my $dtl = DateTime::Locale->load($ENV{'LANG'});
 
 foreach my $person($ged->individuals()) {
 	$index++;
@@ -215,7 +213,7 @@ my $name = $me->as_string(nee => 1);
 
 open(my $html, '>', 'html/censuses.html');
 print $html "<html><head><title>Censuses in the Family Tree of $name</title>",
-	"</head><body><center><h1>Censuses in the Family Tree of $name</h1></center><ul>";
+	"</head><body><center><h1>Censuses in the Family Tree of $name</h1></center><br><ul>";
 
 foreach my $census(sort keys(%censuses)) {
 	my $filename = $census;
@@ -231,7 +229,8 @@ foreach my $census(sort keys(%censuses)) {
 	if($gedcal) {
 		print $chtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
-	print $chtml ' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
+	print $chtml ' | [ <a href="censuses.html">Census Index</a> ]',
+		' | [ <a href="history.html">Family History</a> ]</center><br>',
 		'<ul>';
 
 	foreach my $name(sort keys %{$censuses{$census}}) {
@@ -249,7 +248,7 @@ close $html;
 
 open($html, '>', 'html/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree of $name</title>",
-	"</head><body><center><h1>Surnames in the Family Tree of $name</h1></center><ul>";
+	"</head><body><center><h1>Surnames in the Family Tree of $name</h1></center><br><ul>";
 
 foreach my $surname(sort keys %{$surnames}) {
 	my $filename = $surname;
@@ -274,6 +273,7 @@ foreach my $surname(sort keys %{$surnames}) {
 		print $shtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
 	print $shtml ' | [ <a href="surnames.html">Surnames Index</a> ]',
+		' | [ <a href="history.html">Family History</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
 		'<ul>';
 
@@ -303,9 +303,9 @@ if($gedcal) {
 			"<body><center><h1>Genealogy Calendar for $name</h1>",
 			'[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]',
 			' | [ <a href="../surnames.html">Surnames Index</a> ]',
-			' | [ <a href="../censuses.html">Census Index</a> ]</center>',
+			' | [ <a href="../censuses.html">Census Index</a> ]',
+			' | [ <a href="../history.html">Family History</a> ]</center><br>',
 			'<ul>';
-		my $dtl = DateTime::Locale->load($ENV{'LANG'});
 		foreach my $month(1..12) {
 			if(open(my $fin, '-|', "$gedcal -dHLm $month '$ARGV[0]'")) {
 				print $fout "<li><a href=\"$month.html\">", @{$dtl->month_format_wide()}[$month - 1], '</a></li>';
@@ -320,13 +320,33 @@ if($gedcal) {
 }
 
 # TODO - this is a POC which seems to work
-if(0) {
+if(open(my $fout, '>', 'html/history.html')) {
+	print $fout "<html><head><title>Family History for $name</title></head>",
+		"<body><center><h1>Family History for $name</h1>",
+		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
+		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		' | [ <a href="censuses.html">Census Index</a> ]',
+		' | [ <a href="calendar/index.html">Calendar</a> ]</center><br>',
+		'<ul>';
 	my @sorted_events = Sort::Key::DateTime::dtkeysort { $all_events{$_}->{'date'} } keys %all_events;
+	my $year;
 	foreach my $e(@sorted_events) {
 		$e = $all_events{$e};
-		print $e->{'date'}->strftime('%x'), ': ';
-		print $e->{'person'}->as_string(), ': ', $e->{'event'}, "\n";
+		my $date = $e->{'date'};
+		if(!(defined($year)) || ($date->year() != $year)) {
+			$year = $date->year();
+			if($year) {
+				print $fout '</ul>';
+			}
+			print $fout "<h2>$year</h2><ul>";
+		}
+		my $person = $e->{'person'};
+		print $fout '<li>', @{$dtl->month_format_wide()}[$date->month() - 1], ' ',
+			$date->day(), ': <a href="',
+			make_filename_from_person(person => $person), '">',
+			$e->{'person'}->as_string(), '</a>: ', $e->{'event'}, '</li>';
 	}
+	print $fout '</ul></body></html>';
 }
 
 sub print_person
@@ -443,7 +463,8 @@ sub print_person
 		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
 	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
-		' | [ <a href="censuses.html">Census Index</a> ]</center><p>';
+		' | [ <a href="censuses.html">Census Index</a> ]',
+		' | [ <a href="history.html">Family History</a> ]</center><br>';
 
 	if($was_alive && !$opts{'l'}) {
 		print $html '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
@@ -451,7 +472,7 @@ sub print_person
 		$surnames->{$surname}->{$title} = $person;
 	}
 
-	my ($birth_dt, $death_dt);
+	my ($birth_dt, $marriage_dt, $death_dt);
 	my $birth = $person->get_record('birth');
 	my $dateofbirth = get_value({ person => $person, value => 'birth date' });
 	if((!$dateofbirth) && $birth) {
@@ -508,31 +529,6 @@ sub print_person
 		}
 	}
 
-	if($dateofbirth && ($dateofbirth !~ /^\d{4}$/) && ($dateofbirth =~ /^\d/) && ($dateofbirth !~ /[a-z]$/i)) {
-		my $d;
-		eval {
-			$d = $date_parser->parse(date => $dateofbirth);
-		};
-		if($d) {
-			$d = @{$d}[0];
-			if($d) {
-				$birth_dt = $dfn->parse_datetime($d->{'canonical'});
-			}
-		}
-	}
-	if($dateofdeath && ($dateofdeath !~ /^\d{4}$/) && ($dateofdeath =~ /^\d/)) {
-		my $d;
-		eval {
-			$d = $date_parser->parse(date => $dateofdeath);
-		};
-		if($d) {
-			$d = @{$d}[0];
-			if($d) {
-				$death_dt = $dfn->parse_datetime($d->{'canonical'});
-			}
-		}
-	}
-
 	my %place_records;
 
 	my $placeofbirth = get_value({ person => $person, value => 'birth place' });
@@ -578,11 +574,54 @@ sub print_person
 		$placeofburial = $burial->place();
 	}
 
-	if($birth_dt) {
-		$all_events{'B' . $person->{'xref'}} = { person => $person, event => 'Birth', date => $birth_dt };
+	if($dateofbirth && ($dateofbirth !~ /^\d{3,4}$/) && ($dateofbirth =~ /^\d/) && ($dateofbirth !~ /[a-z]$/i)) {
+		my $d;
+		eval {
+			$d = $date_parser->parse(date => $dateofbirth);
+		};
+		if($d) {
+			$d = @{$d}[0];
+			if($d) {
+				$birth_dt = $dfn->parse_datetime($d->{'canonical'});
+			}
+		}
 	}
-	if($death_dt) {
-		$all_events{'D' . $person->{'xref'}} = { person => $person, event => 'Death', date => $death_dt };
+	if($dateofmarriage && ($dateofmarriage !~ /^\d{3,4}$/) && ($dateofmarriage =~ /^\d/) && ($dateofmarriage !~ /[a-z]$/i)) {
+		my $d;
+		eval {
+			$d = $date_parser->parse(date => $dateofmarriage);
+		};
+		if($d) {
+			$d = @{$d}[0];
+			if($d) {
+				$marriage_dt = $dfn->parse_datetime($d->{'canonical'});
+			}
+		}
+	}
+	if($dateofdeath && ($dateofdeath !~ /^\d{3,4}$/) && ($dateofdeath =~ /^\d/)) {
+		my $d;
+		eval {
+			$d = $date_parser->parse(date => $dateofdeath);
+		};
+		if($d) {
+			$d = @{$d}[0];
+			if($d) {
+				$death_dt = $dfn->parse_datetime($d->{'canonical'});
+			}
+		}
+	}
+
+	if($opts{'l'} || !$was_alive) {
+		# RT114091
+		if($birth_dt && ($birth_dt >= $year_1000)) {
+			$all_events{'B' . $person->{'xref'}} = { person => $person, event => 'Birth', date => $birth_dt };
+		}
+		if($marriage_dt && ($marriage_dt >= $year_1000)) {
+			$all_events{'M' . $person->{'xref'}} = { person => $person, event => 'Marriage', date => $marriage_dt };
+		}
+		if($death_dt && ($death_dt >= $year_1000)) {
+			$all_events{'D' . $person->{'xref'}} = { person => $person, event => 'Death', date => $death_dt };
+		}
 	}
 
 	if($placeofbirth) {
@@ -1433,12 +1472,12 @@ sub print_person
 		my $yoa;
 		my $dod = $departure->date();
 		my $doa = $arrival->date();
-		if($doa && $dod && ($doa =~ /(\d{4})/)) {
+		if($doa && $dod && ($doa =~ /(\d{3,4})/)) {
 			$yoa = $1;
-			$doa =~ s/\s?\d{4}//;
-			if($dod =~ /(\d{4})/) {
+			$doa =~ s/\s?\d{3,4}//;
+			if($dod =~ /(\d{3,4})/) {
 				$yod = $1;
-				$dod =~ s/\s?\d{4}//;
+				$dod =~ s/\s?\d{3,4}//;
 				if($dod =~ /^\d/) {
 					$dod = "on $dod";
 				} else {
@@ -1545,7 +1584,7 @@ sub print_person
 			output_person_line({ fout => $html, person => $child, year => $year });
 			if($opts{'w'} && ($birth_dt || $death_dt)) {
 				my $dob = get_value({ person => $child, value => 'birth date' });
-				if($dob && ($dob !~ /^\d{4}$/) && ($dob =~ /^\d/)) {
+				if($dob && ($dob !~ /^\d{3,4}$/) && ($dob =~ /^\d/)) {
 					my $d;
 					eval {
 						$d = $date_parser->parse(date => $dob);
@@ -2300,7 +2339,7 @@ sub year
 		return unless($string);
 	}
 
-	if($string =~ /^\d{4}$/) {
+	if($string =~ /^\d{3,4}$/) {
 		return "in $string";
 	}
 	if($string =~ /^(Abt|ca?)\.?\s*(.+)/i) {
@@ -2356,13 +2395,13 @@ sub year
 		}
 		return "on $string";
 	}
-	if($string =~ /^bef.? (\d{4})/i) {
+	if($string =~ /^bef.? (\d{3,4})/i) {
 		return "before $1";
 	}
-	if($string =~ /^by.? (\d{4})/i) {
+	if($string =~ /^by.? (\d{3,4})/i) {
 		return "by $1";
 	}
-	if($string =~ /^By (\d{4})/i) {
+	if($string =~ /^By (\d{3,4})/i) {
 		my $person = $params{'person'};
 		if($opts{'f'}) {
 			if($person) {
@@ -2743,7 +2782,7 @@ sub was_alive
 	my $year = $params{'year'} || (localtime)[5];
 	$year += 1900 if($year < 1900);
 
-	if(($dob =~ /^\d{4}$/) && ($dob < ($year - 100))) {
+	if(($dob =~ /^\d{3,4}$/) && ($dob < ($year - 100))) {
 		return 0;
 	}
 	if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
