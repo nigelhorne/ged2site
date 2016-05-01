@@ -171,9 +171,9 @@ mkdir 'html';
 if($dot || $opts{'d'}) {
 	mkdir 'html/img';
 	mkdir 'thumbs';
-	if($gedcal) {
-		mkdir 'html/calendar';
-	}
+}
+if($gedcal) {
+	mkdir 'html/calendar';
 }
 
 if($opts{'d'}) {
@@ -1386,10 +1386,18 @@ sub print_person
 			}
 			print $html "[$_]" foreach(@deathcitations);
 			# Print notes about the death, if any
-			my $d = get_value({ person => $person, value => 'death' });
-			if($d) {
-				$d =~ tr/\r//;
-				print $html " ($d)";
+			if(defined($death)) {
+				my $notes = notes({ person => $person, record => $death });
+				if($notes) {
+					print $html " ($notes)";
+				}
+			} else {
+				my $d = get_value({ person => $person, value => 'death' });
+				if($d) {
+					$d =~ tr/\r//;
+					$d = HTML::Entities::encode($d);
+					print $html " ($d)";
+				}
 			}
 			if($dateofburial) {
 				print $html ' and was buried';
@@ -1446,11 +1454,19 @@ sub print_person
 			print $html place({ person => $person, place => $placeofdeath });
 		}
 		print $html "[$_]" foreach(@deathcitations);
-		my $d = get_value({ person => $person, value => 'death' });
-		if($d) {
-			$d =~ tr/\r//;
-			$d = HTML::Entities::encode($d);
-			print $html " ($d)";
+			# Print notes about the death, if any
+		if(defined($death)) {
+			my $notes = notes({ person => $person, record => $death });
+			if($notes) {
+				print $html " ($notes)";
+			}
+		} else {
+			my $d = get_value({ person => $person, value => 'death' });
+			if($d) {
+				$d =~ tr/\r//;
+				$d = HTML::Entities::encode($d);
+				print $html " ($d)";
+			}
 		}
 		$end_of_sentence = 0;
 	}
@@ -1699,21 +1715,11 @@ sub print_person
 		if($person->get_value('note')) {
 			print $html "<h2>Notes</h2>";
 
-			foreach my $note($person->get_value('note')) {
-				$note =~ s/\n/<br>/g;
-				$ufinder->find(\$note);
-				print $html "<p>$note</p>";
-			}
-			# print $html map { "<p>$_</p>" } @notes;
-		}
-		if(defined($death)) {
-			my $notes = notes({ person => $person, record => $death });
+			my $notes = notes({ person => $person, paragraph => 1, record => $person });
 			if($notes) {
-				if(!$person->get_value('note')) {
-					print $html "<h2>Notes</h2>";
-				}
 				print $html $notes;
 			}
+			# print $html map { "<p>$_</p>" } @notes;
 		}
 
 		# FIXME: Should be a table mapping from records to profiles
@@ -2490,6 +2496,7 @@ sub notes
 
 	my $record = $params{'record'};
 	my $person = $params{'person'};
+	my $paragraph = $params{'paragraph'};
 
 	my $ufinder = URI::Find::Schemeless->new(sub {
 		my($uri, $orig_uri) = @_;
@@ -2531,7 +2538,14 @@ sub notes
 				}
 				$note =~ s/\r//g;
 				$note =~ s/\.$//;
-				$rc .= "<p>$note.</p>";
+				if($paragraph) {
+					$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
+				} else {
+					if($rc) {
+						$rc .= '. ';
+					}
+					$rc .= HTML::Entities::encode($note);
+				}
 			}
 		}
 	}
@@ -2540,7 +2554,7 @@ sub notes
 		$rc =~ s/\s\s+/ /g;
 		$ufinder->find(\$rc);
 	}
-	return $rc;
+	return($rc);
 }
 
 sub validate_place
