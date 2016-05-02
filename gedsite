@@ -1418,8 +1418,15 @@ sub print_person
 					print $html " ($b)";
 				}
 			} else {
-				print $html ' and is buried',
-					place({ person => $person, place => $placeofburial, there => $placeofdeath });
+				my $opts = {
+					person => $person,
+					place => $placeofburial,
+					there => $placeofdeath
+				};
+				if(my $address = $burial->address()) {
+					$opts->{'address'} = $address;
+				}
+				print $html ' and is buried', place($opts);
 			}
 			$end_of_sentence = 0;
 		}
