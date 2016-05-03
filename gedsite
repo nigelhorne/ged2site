@@ -1580,8 +1580,8 @@ sub print_person
 		print '.' if(!$end_of_sentence);
 
 		my $event = $person->event();
-		if((ref($event) eq 'Gedcom::Record') &&
-			if($event->type() eq 'Arrival')) {
+		if(ref($event) eq 'Gedcom::Record') {
+			if($event->type() eq 'Arrival') {
 				print $html ' ', $person->pronoun(), ' arrived',
 					place({ person => $person, record => $events[0] }),
 					' ',
