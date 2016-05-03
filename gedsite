@@ -1273,8 +1273,18 @@ sub print_person
 
 		# FIXME: This messes citations
 		# TODO: See RT110333
-		# @residencelist = sort { $a->date() && $b->date() ? $a->date() <=> $b->date() : $a->place() cmp $b->place() } @residencelist;
 
+		# Sort residences chronologically
+		my $all_residences_have_date = 1;
+		foreach my $residence(@residencelist) {
+			if(!$residence->date()) {
+				$all_residences_have_date = 0;
+				last;
+			}
+		}
+		if($all_residences_have_date) {
+			@residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
+		}
 		my $count = 0;
 		foreach my $residence(@residencelist) {
 			if($count == 0) {
@@ -1571,22 +1581,27 @@ sub print_person
 
 		my $event = $person->event();
 		if((ref($event) eq 'Gedcom::Record') &&
-		   ($event->type() eq 'Arrival')) {
-			print $html ' ', $person->pronoun(), ' arrived',
-				place({ person => $person, record => $events[0] }),
-				' ',
-				year({ person => $person, record => $events[0] }),
-				'.';
-			if($ENV{'LANG'} =~ /^en_US/) {
-				$place_records{'Traveled to'} = $event;
-			} else {
-				$place_records{'Travelled to'} = $event;
+			if($event->type() eq 'Arrival')) {
+				print $html ' ', $person->pronoun(), ' arrived',
+					place({ person => $person, record => $events[0] }),
+					' ',
+					year({ person => $person, record => $events[0] }),
+					'.';
+				$end_of_sentence = 1;
+				if($ENV{'LANG'} =~ /^en_US/) {
+					$place_records{'Traveled to'} = $event;
+				} else {
+					$place_records{'Travelled to'} = $event;
+				}
+			} elsif(my $notes = notes({ record => $event })) {
+				$notes = lcfirst($notes);
+				print $html " ($notes)";
+				$end_of_sentence = 1;
 			}
 		} else {
 			print $html "$event. ";
+			$end_of_sentence = 1;
 		}
-
-		$end_of_sentence = 1;
 	}
 
 	if($opts{'l'} || !$was_alive) {
@@ -1623,12 +1638,12 @@ sub print_person
 							}
 							red_warning({ person => $child, warning => 'born before parent was born' });
 						}
-						if($death_dt && ($d > $death_dt)) {
+						if(($sex eq 'F') && $death_dt && ($d > $death_dt)) {
 							if($opts{'f'}) {
 								die $child->name(), ': Born after mother died';
 							}
 							red_warning({ person => $child, warning => 'born after mother died' });
-						} elsif($death_dt && ($d > ($death_dt + $ninemonths))) {
+						} elsif(($sex eq 'M') && $death_dt && ($d > ($death_dt + $ninemonths))) {
 							# Allow the child to be
 							# born up to 9 months
 							# after the death of the
