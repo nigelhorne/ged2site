@@ -1035,7 +1035,7 @@ sub print_person
 				print $html ' and';
 				$end_of_sentence = 0;
 			} else {
-				print $html '.';
+				print $html '. ';
 				$end_of_sentence = 1;
 			}
 		}
@@ -1243,6 +1243,10 @@ sub print_person
 		foreach my $residence(@residences) {
 			if(ref($residence) eq 'Gedcom::Record') {
 				my $place = $residence->place();
+				my $place = $residence->place();
+				if(my $address = $residence->address()) {
+					$place = "$address, $place";
+				}
 				if(defined($place) &&
 				  ((!$placeofbirth) || ($place ne $placeofbirth)) &&
 				  ((!$placeofmarriage) || ($place ne $placeofmarriage))) {
@@ -1277,7 +1281,7 @@ sub print_person
 		# Sort residences chronologically
 		my $all_residences_have_date = 1;
 		foreach my $residence(@residencelist) {
-			if(!$residence->date()) {
+			if((!$residence->date()) || !$date_parser->parse(date => $residence->date())) {
 				$all_residences_have_date = 0;
 				if($opts{'f'}) {
 					die $person->name(), ': Contains a residence without a date';
@@ -1291,14 +1295,15 @@ sub print_person
 		}
 		my $count = 0;
 		foreach my $residence(@residencelist) {
-			if($count == 0) {
-				next if($placeofbirth && ($residence eq $placeofbirth));
-				print $html '.' unless($end_of_sentence);
-				print $html ' During ',
-					lc($person->possessive()),
-					' life ', lcfirst($pronoun), ' lived';
-			}
+			# FIXME: skips if the place is the same, but the address is different
 			if(($count == 0) || ($residencelist[$count - 1]->place() ne $residence->place())) {
+				if($count == 0) {
+					next if($placeofbirth && ($residence->place() eq $placeofbirth));
+					print $html '.' unless($end_of_sentence);
+					print $html ' During ',
+						lc($person->possessive()),
+						' life ', lcfirst($pronoun), ' lived';
+				}
 				my $p = place({
 					person => $person,
 					record => $residence,
@@ -1468,7 +1473,7 @@ sub print_person
 			} else {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
-					print $html place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
+					print $html place({ person => $person, record => $death, places_printed => \%places_printed });
 				}
 			}
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
@@ -1603,7 +1608,11 @@ sub print_person
 				$end_of_sentence = 1;
 			}
 		} else {
-			print $html "$event. ";
+			if($end_of_sentence) {
+				print $html '  ', ucfirst($event), '. ';
+			} else {
+				print $html "$event. ";
+			}
 			$end_of_sentence = 1;
 		}
 	}
@@ -2488,6 +2497,7 @@ sub place
 	if($place eq 'USA') {
 		return ' in the USA';
 	}
+
 	if($address) {
 		$place = " at $address, $place";
 	} elsif($params{'nopreposition'}) {
@@ -2502,17 +2512,26 @@ sub place
 		if($places_printed->{$place} && $place =~ /^(.+?),/) {
 			return $1;
 		}
-		if($place =~ /(.+?),(.+?),(.+?),(.+)$/) {
+		if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
 			my $str = "$2,$3,$4";
 			if($places_printed->{" in$str"}) {
+				return "$1,$2";
+			}
+			if($places_printed->{" at$str"}) {
 				return "$1,$2";
 			}
 			$str = "$3,$4";
 			if($places_printed->{" in$str"}) {
 				return "$1,$2,$3";
 			}
+			if($places_printed->{" at$str"}) {
+				return "$1,$2,$3";
+			}
+			$places_printed->{" in$str"} = 1;
+			$places_printed->{" in$2,$3,$4"} = 1;
 		}
 	}
+	$places_printed->{$place} = 1;
 	return HTML::Entities::encode($place);
 }
 
@@ -2646,6 +2665,33 @@ sub output_person_line
 			$person->given_names(),
 			'</a></li>';
 	}
+}
+
+sub places_are_the_same
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $p1 = $params{'first'};
+	my $p2 = $params{'second'};
+
+	die 'first is not optional' unless $p1;
+	die 'second is not optional' unless $p2;
+
+	my $place1 = $p1->place();
+	my $place2 = $p1->place();
+
+	if(my $person = $params{'person'}) {
+		validate_place({ person => $params{'person'}, place => $place1 });
+		validate_place({ person => $params{'person'}, place => $place2 });
+	}
+
+	if(my $address = $p1->address()) {
+		$place1 = "$address, $place1";
+	}
+	if(my $address = $p2->address()) {
+		$place2 = "$address, $place2";
+	}
+	return $place1 eq $place2;
 }
 
 sub print_sibling_baptism
