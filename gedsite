@@ -42,6 +42,7 @@ use URI::Find::Schemeless;
 use LWP::UserAgent;
 use HTML::GoogleMaps::V3;
 use Sort::Key::DateTime;
+use String::ProgressBar;
 no lib '.';
 
 my %opts;
@@ -195,19 +196,25 @@ my $total = scalar(@everyone);
 my $index = 0;
 my $dtl = DateTime::Locale->load($ENV{'LANG'});
 
+my $pr;
+if(!$opts{'w'}) {
+	$pr = String::ProgressBar->new(max => $total, length => 60);
+}
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
 		$| = 1;
-		print "\r$index/$total";
+		$pr->update($index);
+		$pr->write();
 		$| = 0;
 	}
 	if(!$printed{$person->{'xref'}}) {
 		print_person({ person => $person });
 	}
 }
-print "\r" if(!$opts{'w'});
-print "$index records exported\n";
+if(!$opts{'w'}) {
+	print "\n$index records processed\n";
+}
 
 my $name = $me->as_string(nee => 1);
 
@@ -1790,6 +1797,7 @@ sub print_person
 				my $file = $obje->file();
 				if($file) {
 					if(ref($file) eq 'Gedcom::Record') {
+						# warn $file->tag(), "\n" if($file->tag());
 						$file = $file->{'file'};
 						next if($file eq '*');
 					}
@@ -1806,6 +1814,7 @@ sub print_person
 					warn $obje->{"prof"}, "\n" if($obje->{'prof'});
 					warn $obje->{"_PROF"}, "\n" if($obje->{'_PROF'});
 					warn $obje->{"PROF"}, "\n" if($obje->{'PROF'});
+					# warn $obje->tag(), "\n" if($obje->tag());
 					my $title = $obje->title();
 					my $form = $obje->form();
 					if((!$form) && $obje->items()) {
