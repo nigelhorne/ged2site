@@ -1243,7 +1243,6 @@ sub print_person
 		foreach my $residence(@residences) {
 			if(ref($residence) eq 'Gedcom::Record') {
 				my $place = $residence->place();
-				my $place = $residence->place();
 				if(my $address = $residence->address()) {
 					$place = "$address, $place";
 				}
