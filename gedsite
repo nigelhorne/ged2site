@@ -1397,7 +1397,7 @@ sub print_person
 			if($dateofdeath) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath) {
-					print $html place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
+					print $html place({ person => $person, record => $death, places_printed => \%places_printed });
 				}
 			} else {
 				print $html place({ person => $person, place => $placeofdeath });
