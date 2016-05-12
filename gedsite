@@ -494,7 +494,7 @@ sub print_person
 		if($birth) {
 			if($opts{'w'}) {
 				foreach my $s($birth->source()) {
-					if(!defined($ged->get_source($s))) {
+					if(!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) {
 						if($opts{'f'}) {
 							die $person->as_string(), ': Citation is missing a source';
 						}
@@ -502,10 +502,11 @@ sub print_person
 					}
 				}
 			}
-			my @s = sort { ($ged->get_source($a) && $ged->get_source($b)) ? $ged->get_source($a)->title() cmp $ged->get_source($b)->title() : 0 } $birth->source();
+			my @s = sort { (get_source({ gedcom => $ged, person => $person, source => $a }) && get_source({ gedcom => $ged, person => $person, source => $b })) ? get_source({ gedcom => $ged, person => $person, source => $a })->title() cmp get_source({ gedcom => $ged, person => $person, source => $b })->title() : 0 } $birth->source();
 			my $previous;
 			foreach my $src(@s) {
-				$src = $ged->get_source($src) unless ref($src);
+				# $src = $ged->get_source($src) unless ref($src);
+				$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
 				if(defined($src) && $src->title()) {
 					if($previous && ($src->title() eq $previous)) {
 						next;
@@ -1042,7 +1043,7 @@ sub print_person
 				print $html ' and';
 				$end_of_sentence = 0;
 			} else {
-				print $html '. ';
+				print $html '.';
 				$end_of_sentence = 1;
 			}
 		}
@@ -1300,15 +1301,19 @@ sub print_person
 			@residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
 		}
 		my $count = 0;
+		my $have_printed = 0;
 		foreach my $residence(@residencelist) {
-			# FIXME: skips if the place is the same, but the address is different
 			if(($count == 0) || ($residencelist[$count - 1]->place() ne $residence->place())) {
-				if($count == 0) {
-					next if($placeofbirth && ($residence->place() eq $placeofbirth));
+				if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
+					$count++;
+					next;
+				}
+				if(!$have_printed) {
 					print $html '.' unless($end_of_sentence);
-					print $html ' During ',
+					print $html '  During ',
 						lc($person->possessive()),
 						' life ', lcfirst($pronoun), ' lived';
+					$have_printed = 1;
 				}
 				my $p = place({
 					person => $person,
@@ -1330,7 +1335,7 @@ sub print_person
 			  ($count <= (scalar(@residencelist) - 1)) &&
 			  ($residencecitations{$residence})) {
 				my $peek = $residencelist[$count + 1];
-				if($peek && $peek->place() && ($peek->place() eq $residence->place())) {
+				if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 					if($residencecitations{$peek}) {
 						print $html '[', $residencecitations{$peek}, ']';
 					}
@@ -1583,7 +1588,7 @@ sub print_person
 				$notes = lcfirst($notes);
 				print $html " ($notes)";
 			}
-			print '. ';
+			print '.';
 			if($ENV{'LANG'} =~ /^en_US/) {
 				$place_records{'Traveled to'} = $arrival;
 			} else {
@@ -1615,9 +1620,9 @@ sub print_person
 			}
 		} else {
 			if($end_of_sentence) {
-				print $html '  ', ucfirst($event), '. ';
+				print $html '  ', ucfirst($event), '.';
 			} else {
-				print $html "$event. ";
+				print $html "$event.";
 			}
 			$end_of_sentence = 1;
 		}
@@ -2522,6 +2527,9 @@ sub place
 		}
 		if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
 			my $str = "$2,$3,$4";
+			if($params{'person'}) {
+				validate_place({ person => $params{'person'}, place => $str });
+			}
 			if($places_printed->{" in$str"}) {
 				return "$1,$2";
 			}
@@ -2776,6 +2784,26 @@ sub get_value
 
 	my $rc = $person->get_value($value);
 	$values{$xref}{$value} = $rc;
+	return $rc;
+}
+
+sub get_source
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $gedcom = $params{'gedcom'};
+	my $person = $params{'person'};
+	my $source = $params{'source'};
+
+	my $xref = $person->{'xref'};
+	tie (my %sources, 'Tie::Static');
+
+	if(defined($sources{$xref}{$source})) {
+		return $sources{$xref}{$source};
+	}
+
+	my $rc = $gedcom->get_source($source);
+	$sources{$xref}{$source} = $rc;
 	return $rc;
 }
 
