@@ -1985,7 +1985,7 @@ sub print_person
 			my $record = $place_records{$event};
 			my $place = place({ record => $record });
 
-			if($place =~ /,/) {
+			if($place =~ /,.+,/) {
 				$place =~ s/^\s(at|in)\s//;
 				if(!defined($map)) {
 					$map = HTML::GoogleMaps::V3->new();
