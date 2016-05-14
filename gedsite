@@ -2564,6 +2564,7 @@ sub validate_place
 	my $place = $params{'place'};
 	die 'place is not optional' unless $place;
 
+	$place =~ s/^\s+//;
 	if($places{$place}) {
 		return $places{$place};
 	}
