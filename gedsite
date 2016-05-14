@@ -1741,6 +1741,15 @@ sub print_person
 						$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
 					}
 				}
+				if(defined(my $publication = $citations{$citation}->publication())) {
+					print $html " $publication";
+					if(defined(my $continuation = $citations{$citation}->cont())) {
+						print $html $continuation;
+					}
+				}
+				if(defined(my $page = $citations{$citation}->page())) {
+					print $html " $page";
+				}
 				my @notes = $citations{$citation}->note();
 				foreach my $note(@notes) {
 					if(ref($note) eq 'Gedcom::Record') {
