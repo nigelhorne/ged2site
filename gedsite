@@ -1303,7 +1303,7 @@ sub print_person
 		my $count = 0;
 		my $have_printed = 0;
 		foreach my $residence(@residencelist) {
-			if(($count == 0) || ($residencelist[$count - 1]->place() ne $residence->place())) {
+			if(($count == 0) || (!places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] }))) {
 				if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 					$count++;
 					next;
