@@ -1258,9 +1258,8 @@ sub print_person
 				  ((!$placeofbirth) || ($place ne $placeofbirth)) &&
 				  ((!$placeofmarriage) || ($place ne $placeofmarriage))) {
 					push @residencelist, $residence;
-					my $src = $residence->source();
-					if($src) {
-						$src = $ged->get_source($src) unless ref($src);
+					if(my $src = $residence->source()) {
+						$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
 						foreach my $c(@birthcitations) {
 							if($src eq $citations{$c}) {
 								$residencecitations{$residence} = $c;
@@ -1303,7 +1302,7 @@ sub print_person
 		my $count = 0;
 		my $have_printed = 0;
 		foreach my $residence(@residencelist) {
-			if(($count == 0) || (!places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] }))) {
+			if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
 				if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 					$count++;
 					next;
