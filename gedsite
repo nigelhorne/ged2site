@@ -1309,7 +1309,7 @@ sub print_person
 				}
 				if(!$have_printed) {
 					print $html '.' unless($end_of_sentence);
-					print $html '  During ',
+					print $html ' During ',
 						lc($person->possessive()),
 						' life ', lcfirst($pronoun), ' lived';
 					$have_printed = 1;
@@ -1619,7 +1619,7 @@ sub print_person
 			}
 		} else {
 			if($end_of_sentence) {
-				print $html '  ', ucfirst($event), '.';
+				print $html ' ', ucfirst($event), '.';
 			} else {
 				print $html "$event.";
 			}
