@@ -42,6 +42,7 @@ use URI::Find::Schemeless;
 use LWP::UserAgent;
 use HTML::GoogleMaps::V3;
 use Sort::Key::DateTime;
+use String::ProgressBar;
 no lib '.';
 
 my %opts;
@@ -195,19 +196,25 @@ my $total = scalar(@everyone);
 my $index = 0;
 my $dtl = DateTime::Locale->load($ENV{'LANG'});
 
+my $pr;
+if(!$opts{'w'}) {
+	$pr = String::ProgressBar->new(max => $total, length => 60);
+}
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
 		$| = 1;
-		print "\r$index/$total";
+		$pr->update($index);
+		$pr->write();
 		$| = 0;
 	}
 	if(!$printed{$person->{'xref'}}) {
 		print_person({ person => $person });
 	}
 }
-print "\r" if(!$opts{'w'});
-print "$index records exported\n";
+if(!$opts{'w'}) {
+	print "\n$index records processed\n";
+}
 
 my $name = $me->as_string(nee => 1);
 
@@ -487,7 +494,7 @@ sub print_person
 		if($birth) {
 			if($opts{'w'}) {
 				foreach my $s($birth->source()) {
-					if(!defined($ged->get_source($s))) {
+					if(!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) {
 						if($opts{'f'}) {
 							die $person->as_string(), ': Citation is missing a source';
 						}
@@ -495,10 +502,11 @@ sub print_person
 					}
 				}
 			}
-			my @s = sort { ($ged->get_source($a) && $ged->get_source($b)) ? $ged->get_source($a)->title() cmp $ged->get_source($b)->title() : 0 } $birth->source();
+			my @s = sort { (get_source({ gedcom => $ged, person => $person, source => $a }) && get_source({ gedcom => $ged, person => $person, source => $b })) ? get_source({ gedcom => $ged, person => $person, source => $a })->title() cmp get_source({ gedcom => $ged, person => $person, source => $b })->title() : 0 } $birth->source();
 			my $previous;
 			foreach my $src(@s) {
-				$src = $ged->get_source($src) unless ref($src);
+				# $src = $ged->get_source($src) unless ref($src);
+				$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
 				if(defined($src) && $src->title()) {
 					if($previous && ($src->title() eq $previous)) {
 						next;
@@ -1243,6 +1251,9 @@ sub print_person
 		foreach my $residence(@residences) {
 			if(ref($residence) eq 'Gedcom::Record') {
 				my $place = $residence->place();
+				if(my $address = $residence->address()) {
+					$place = "$address, $place";
+				}
 				if(defined($place) &&
 				  ((!$placeofbirth) || ($place ne $placeofbirth)) &&
 				  ((!$placeofmarriage) || ($place ne $placeofmarriage))) {
@@ -1273,18 +1284,37 @@ sub print_person
 
 		# FIXME: This messes citations
 		# TODO: See RT110333
-		# @residencelist = sort { $a->date() && $b->date() ? $a->date() <=> $b->date() : $a->place() cmp $b->place() } @residencelist;
 
-		my $count = 0;
+		# Sort residences chronologically
+		my $all_residences_have_date = 1;
 		foreach my $residence(@residencelist) {
-			if($count == 0) {
-				next if($placeofbirth && ($residence eq $placeofbirth));
-				print $html '.' unless($end_of_sentence);
-				print $html ' During ',
-					lc($person->possessive()),
-					' life ', lcfirst($pronoun), ' lived';
+			if((!$residence->date()) || !$date_parser->parse(date => $residence->date())) {
+				$all_residences_have_date = 0;
+				if($opts{'f'}) {
+					die $person->name(), ': Contains a residence without a date';
+				}
+				red_warning({ person => $person, warning => 'Contains a residence without a date' });
+				last;
 			}
-			if(($count == 0) || ($residencelist[$count - 1]->place() ne $residence->place())) {
+		}
+		if($all_residences_have_date) {
+			@residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
+		}
+		my $count = 0;
+		my $have_printed = 0;
+		foreach my $residence(@residencelist) {
+			if(($count == 0) || (!places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] }))) {
+				if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
+					$count++;
+					next;
+				}
+				if(!$have_printed) {
+					print $html '.' unless($end_of_sentence);
+					print $html '  During ',
+						lc($person->possessive()),
+						' life ', lcfirst($pronoun), ' lived';
+					$have_printed = 1;
+				}
 				my $p = place({
 					person => $person,
 					record => $residence,
@@ -1305,7 +1335,7 @@ sub print_person
 			  ($count <= (scalar(@residencelist) - 1)) &&
 			  ($residencecitations{$residence})) {
 				my $peek = $residencelist[$count + 1];
-				if($peek && $peek->place() && ($peek->place() eq $residence->place())) {
+				if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 					if($residencecitations{$peek}) {
 						print $html '[', $residencecitations{$peek}, ']';
 					}
@@ -1379,7 +1409,7 @@ sub print_person
 			if($dateofdeath) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath) {
-					print $html place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
+					print $html place({ person => $person, record => $death, places_printed => \%places_printed });
 				}
 			} else {
 				print $html place({ person => $person, place => $placeofdeath });
@@ -1418,8 +1448,15 @@ sub print_person
 					print $html " ($b)";
 				}
 			} else {
-				print $html ' and is buried',
-					place({ person => $person, place => $placeofburial, there => $placeofdeath });
+				my $opts = {
+					person => $person,
+					place => $placeofburial,
+					there => $placeofdeath
+				};
+				if(my $address = $burial->address()) {
+					$opts->{'address'} = $address;
+				}
+				print $html ' and is buried', place($opts);
 			}
 			$end_of_sentence = 0;
 		}
@@ -1447,7 +1484,7 @@ sub print_person
 			} else {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
-					print $html place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
+					print $html place({ person => $person, record => $death, places_printed => \%places_printed });
 				}
 			}
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
@@ -1551,7 +1588,7 @@ sub print_person
 				$notes = lcfirst($notes);
 				print $html " ($notes)";
 			}
-			print '. ';
+			print '.';
 			if($ENV{'LANG'} =~ /^en_US/) {
 				$place_records{'Traveled to'} = $arrival;
 			} else {
@@ -1563,23 +1600,32 @@ sub print_person
 		print '.' if(!$end_of_sentence);
 
 		my $event = $person->event();
-		if((ref($event) eq 'Gedcom::Record') &&
-		   ($event->type() eq 'Arrival')) {
-			print $html ' ', $person->pronoun(), ' arrived',
-				place({ person => $person, record => $events[0] }),
-				' ',
-				year({ person => $person, record => $events[0] }),
-				'.';
-			if($ENV{'LANG'} =~ /^en_US/) {
-				$place_records{'Traveled to'} = $event;
-			} else {
-				$place_records{'Travelled to'} = $event;
+		if(ref($event) eq 'Gedcom::Record') {
+			if($event->type() eq 'Arrival') {
+				print $html ' ', $person->pronoun(), ' arrived',
+					place({ person => $person, record => $events[0] }),
+					' ',
+					year({ person => $person, record => $events[0] }),
+					'.';
+				$end_of_sentence = 1;
+				if($ENV{'LANG'} =~ /^en_US/) {
+					$place_records{'Traveled to'} = $event;
+				} else {
+					$place_records{'Travelled to'} = $event;
+				}
+			} elsif(my $notes = notes({ record => $event })) {
+				$notes = lcfirst($notes);
+				print $html " ($notes)";
+				$end_of_sentence = 1;
 			}
 		} else {
-			print $html "$event. ";
+			if($end_of_sentence) {
+				print $html '  ', ucfirst($event), '.';
+			} else {
+				print $html "$event.";
+			}
+			$end_of_sentence = 1;
 		}
-
-		$end_of_sentence = 1;
 	}
 
 	if($opts{'l'} || !$was_alive) {
@@ -1616,12 +1662,12 @@ sub print_person
 							}
 							red_warning({ person => $child, warning => 'born before parent was born' });
 						}
-						if($death_dt && ($d > $death_dt)) {
+						if(($sex eq 'F') && $death_dt && ($d > $death_dt)) {
 							if($opts{'f'}) {
 								die $child->name(), ': Born after mother died';
 							}
 							red_warning({ person => $child, warning => 'born after mother died' });
-						} elsif($death_dt && ($d > ($death_dt + $ninemonths))) {
+						} elsif(($sex eq 'M') && $death_dt && ($d > ($death_dt + $ninemonths))) {
 							# Allow the child to be
 							# born up to 9 months
 							# after the death of the
@@ -1756,6 +1802,7 @@ sub print_person
 				my $file = $obje->file();
 				if($file) {
 					if(ref($file) eq 'Gedcom::Record') {
+						# warn $file->tag(), "\n" if($file->tag());
 						$file = $file->{'file'};
 						next if($file eq '*');
 					}
@@ -1772,6 +1819,7 @@ sub print_person
 					warn $obje->{"prof"}, "\n" if($obje->{'prof'});
 					warn $obje->{"_PROF"}, "\n" if($obje->{'_PROF'});
 					warn $obje->{"PROF"}, "\n" if($obje->{'PROF'});
+					# warn $obje->tag(), "\n" if($obje->tag());
 					my $title = $obje->title();
 					my $form = $obje->form();
 					if((!$form) && $obje->items()) {
@@ -2214,6 +2262,13 @@ sub Gedcom::Individual::relationship
 			} elsif($steps == 4) {
 				return "great-great-grand$title";
 			} elsif($steps <= 0) {
+				if($other->spouse()) {
+					if(stepsabove($self, $other->spouse(), 0)) {
+						# The caller should now check
+						# the spouse's relationship
+						return;
+					}
+				}
 				if($opts{'f'}) {
 					die $other->as_string(), ": BUG - not a direct ancestor, steps = $steps";
 				} else {
@@ -2462,6 +2517,7 @@ sub place
 	if($place eq 'USA') {
 		return ' in the USA';
 	}
+
 	if($address) {
 		$place = " at $address, $place";
 	} elsif($params{'nopreposition'}) {
@@ -2476,17 +2532,29 @@ sub place
 		if($places_printed->{$place} && $place =~ /^(.+?),/) {
 			return $1;
 		}
-		if($place =~ /(.+?),(.+?),(.+?),(.+)$/) {
+		if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
 			my $str = "$2,$3,$4";
+			if($params{'person'}) {
+				validate_place({ person => $params{'person'}, place => $str });
+			}
 			if($places_printed->{" in$str"}) {
+				return "$1,$2";
+			}
+			if($places_printed->{" at$str"}) {
 				return "$1,$2";
 			}
 			$str = "$3,$4";
 			if($places_printed->{" in$str"}) {
 				return "$1,$2,$3";
 			}
+			if($places_printed->{" at$str"}) {
+				return "$1,$2,$3";
+			}
+			$places_printed->{" in$str"} = 1;
+			$places_printed->{" in$2,$3,$4"} = 1;
 		}
 	}
+	$places_printed->{$place} = 1;
 	return HTML::Entities::encode($place);
 }
 
@@ -2562,7 +2630,14 @@ sub validate_place
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $place = $params{'place'};
-	die 'place is not optional' unless $place;
+	if(!$place) {
+		my $i = 0;
+		print STDERR "\n";
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'place is not optional';
+	}
 
 	$place =~ s/^\s+//;
 	if($places{$place}) {
@@ -2621,6 +2696,35 @@ sub output_person_line
 			$person->given_names(),
 			'</a></li>';
 	}
+}
+
+sub places_are_the_same
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $record1 = $params{'first'};
+	my $record2 = $params{'second'};
+
+	die 'first is not optional' unless $record1;
+	die 'second is not optional' unless $record2;
+
+	my $place1 = $record1->place();
+	return 0 unless(defined($place1));
+	my $place2 = $record2->place();
+	return 0 unless(defined($place2));
+
+	if(my $person = $params{'person'}) {
+		validate_place({ person => $params{'person'}, place => $place1 });
+		validate_place({ person => $params{'person'}, place => $place2 });
+	}
+
+	if(my $address = $record1->address()) {
+		$place1 = "$address, $place1";
+	}
+	if(my $address = $record2->address()) {
+		$place2 = "$address, $place2";
+	}
+	return $place1 eq $place2;
 }
 
 sub print_sibling_baptism
@@ -2697,6 +2801,26 @@ sub get_value
 
 	my $rc = $person->get_value($value);
 	$values{$xref}{$value} = $rc;
+	return $rc;
+}
+
+sub get_source
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $gedcom = $params{'gedcom'};
+	my $person = $params{'person'};
+	my $source = $params{'source'};
+
+	my $xref = $person->{'xref'};
+	tie (my %sources, 'Tie::Static');
+
+	if(defined($sources{$xref}{$source})) {
+		return $sources{$xref}{$source};
+	}
+
+	my $rc = $gedcom->get_source($source);
+	$sources{$xref}{$source} = $rc;
 	return $rc;
 }
 
