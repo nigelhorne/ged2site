@@ -2263,8 +2263,7 @@ sub Gedcom::Individual::relationship
 				return "great-great-grand$title";
 			} elsif($steps <= 0) {
 				if($other->spouse()) {
-					$steps = stepsabove($self, $other->spouse(), 0);
-					if($steps) {
+					if(stepsabove($self, $other->spouse(), 0)) {
 						# The caller should now check
 						# the spouse's relationship
 						return;
