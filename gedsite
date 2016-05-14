@@ -1013,7 +1013,8 @@ sub print_person
 				} else {
 					my $opts = {
 						person => $person,
-						place => $placeofbaptism
+						place => $placeofbaptism,
+						places_printed => \%places_printed
 					};
 					my $address = $baptism->address();
 					if($address) {
@@ -2275,8 +2276,8 @@ sub Gedcom::Individual::relationship
 			} elsif($steps == 4) {
 				return "great-great-grand$title";
 			} elsif($steps <= 0) {
-				if($other->spouse()) {
-					if(stepsabove($self, $other->spouse(), 0)) {
+				if(my $spouse = $other->spouse()) {
+					if(stepsabove($self, $spouse, 0)) {
 						# The caller should now check
 						# the spouse's relationship
 						return;
@@ -2566,8 +2567,8 @@ sub place
 			$places_printed->{" in$str"} = 1;
 			$places_printed->{" in$2,$3,$4"} = 1;
 		}
+		$places_printed->{$place} = 1;
 	}
-	$places_printed->{$place} = 1;
 	return HTML::Entities::encode($place);
 }
 
@@ -2727,8 +2728,8 @@ sub places_are_the_same
 	return 0 unless(defined($place2));
 
 	if(my $person = $params{'person'}) {
-		validate_place({ person => $params{'person'}, place => $place1 });
-		validate_place({ person => $params{'person'}, place => $place2 });
+		validate_place({ person => $person, place => $place1 });
+		validate_place({ person => $person, place => $place2 });
 	}
 
 	if(my $address = $record1->address()) {
