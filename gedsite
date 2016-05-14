@@ -1827,6 +1827,8 @@ sub print_person
 					warn $obje->{"prof"}, "\n" if($obje->{'prof'});
 					warn $obje->{"_PROF"}, "\n" if($obje->{'_PROF'});
 					warn $obje->{"PROF"}, "\n" if($obje->{'PROF'});
+					warn $obje->{"_DATE"}, "\n" if($obje->{'_DATE'});
+					warn $obje->{"_date"}, "\n" if($obje->{'_date'});
 					# warn $obje->tag(), "\n" if($obje->tag());
 					my $title = $obje->title();
 					my $form = $obje->form();
@@ -1906,6 +1908,9 @@ sub print_person
 							$title ? HTML::Entities::encode($title) : 'Media',
 							'</a>';
 					}
+					# if($obje->date()) {
+						# die $obje->date();
+					# }
 					print $html '<br>';
 				}
 			}
