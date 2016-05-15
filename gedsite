@@ -1770,8 +1770,7 @@ sub print_person
 		if($person->get_value('note')) {
 			print $html "<h2>Notes</h2>";
 
-			my $notes = notes({ person => $person, paragraph => 1, record => $person });
-			if($notes) {
+			if(my $notes = notes({ person => $person, paragraph => 1, record => $person })) {
 				print $html $notes;
 			}
 			# print $html map { "<p>$_</p>" } @notes;
@@ -2611,7 +2610,10 @@ sub notes
 						my @c = $note->cont();
 						my $c = shift @c;
 						while($c = shift @c) {
-							$n .= ". $c";
+							if((!ref($c)) && length($c)) {
+								$c =~ s/\.$//;
+								$n .= ". $c";
+							}
 						}
 						$note = $n;
 					} else {
