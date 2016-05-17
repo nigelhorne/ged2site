@@ -1801,8 +1801,14 @@ sub print_person
 			print $html '</ol>';
 		}
 
+		my $printed_notes;
+		if($death && (my $notes = notes({ person => $person, record => $death, paragraph => 1 }))) {
+			print $html "<h2>Notes</h2>$notes";
+			$printed_notes = 1;
+		}
+
 		if($person->get_value('note')) {
-			print $html "<h2>Notes</h2>";
+			print $html "<h2>Notes</h2>" unless($printed_notes);
 
 			if(my $notes = notes({ person => $person, paragraph => 1, record => $person })) {
 				print $html $notes;
@@ -2638,24 +2644,6 @@ sub notes
 	if(scalar(@notes)) {
 		foreach my $note(@notes) {
 			if($note) {
-				if(ref($note) eq 'Gedcom::Record') {
-					if($note->cont()) {
-						my $n = $note->value();
-						my @c = $note->cont();
-						my $c = shift @c;
-						while($c = shift @c) {
-							if((!ref($c)) && length($c)) {
-								$c =~ s/\.$//;
-								$n .= ". $c";
-							}
-						}
-						$note = $n;
-					} else {
-						$note = $note->value();
-					}
-				}
-				$note =~ s/\r//g;
-				$note =~ s/\.$//;
 				if($paragraph) {
 					$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
 				} else {
@@ -2665,6 +2653,42 @@ sub notes
 					$rc .= HTML::Entities::encode($note);
 				}
 			}
+				if(ref($note) eq 'Gedcom::Record') {
+					if($note->cont()) {
+						my $n = $note->value();
+						$n =~ s/\r//g;
+						$n =~ s/\.$//;
+						foreach my $c($note->cont()) {
+							if((!ref($c)) && length($c)) {
+								$c =~ s/\s\s+/ /g;
+								$c =~ s/\.$//;
+								$n .= ". $c";
+							}
+						}
+						$note = $n;
+					} elsif($note->conc()) {
+						my $n = $note->value();
+						$n =~ s/\r//g;
+						$n =~ s/\.$//;
+						foreach my $c($note->conc()) {
+							if((!ref($c)) && length($c)) {
+								$c =~ s/\s\s+/ /g;
+								$n .= $c;
+							}
+						}
+						$note = $n;
+					} else {
+						$note = $note->value();
+					}
+				}
+				$note =~ s/\r//g;
+				$note =~ tr/\n/ /;
+				$note =~ s/\.$//;
+				if($paragraph) {
+					$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
+				} else {
+					$rc .= HTML::Entities::encode($note) . '. ';
+				}
 		}
 	}
 	if(defined($rc)) {
