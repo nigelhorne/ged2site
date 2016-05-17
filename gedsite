@@ -1195,31 +1195,65 @@ sub print_person
 				}
 				# substr($names, rindex($names, ', '), 2, ' and ');
 				print $html ", to$names";
-
 				print $html "[$marriagecitation]" if($marriagecitation);
-				# TODO: print $html the date and places of the marriages
+
+				# Determine if all the children are from one marriage, since that's
+				# easier to print.
+				# FIXME:  handle where offspring are from more than one marriage
+				my %childrenbyspouse;
 				if($numberofchildren) {
-					print $html ". $pronoun ",
+					foreach my $family ($person->fams()) {
+						if($family->number_of_children()) {
+							my $spouse = ($sex eq 'M') ? $family->wife() : $family->husband();
+							foreach my $child($person->children()) {
+								foreach my $spouseschild($spouse->children()) {
+									if($spouseschild eq $child) {
+										$childrenbyspouse{$spouse}++;
+										last;
+									}
+								}
+							}
+						}
+					}
+					my $parentofall;
+					foreach my $spouse(@spouses) {
+						if($parentofall && $childrenbyspouse{$spouse}) {
+							$parentofall = undef;
+							last;
+						}
+						if($childrenbyspouse{$spouse}) {
+							$parentofall = $spouse;
+						}
+					}
+					print $html ".  $pronoun ",
 						$all_children_are_alive ? 'has ' : 'had ';
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
-							print $html '1 surviving child, ';
+							print '1 surviving child';
 						} else {
-							print $html '1 child, ';
+							print '1 child';
 						}
-						print $html $children[0]->given_names();
+						if($parentofall) {
+							print $html ' with ', $parentofall->as_string();
+						}
+						# TODO: make hyperlink to the persons record, unless surviving
+						print $html ', ', $children[0]->given_names();
 					} else {
 						if($all_children_are_alive) {
-							print $html "$numberofchildren surviving children: ";
+							print $html "$numberofchildren surviving children";
 						} else {
-							print $html "$numberofchildren children: ";
+							print $html "$numberofchildren children";
 						}
+						if($parentofall) {
+							print $html ', all with ', $parentofall->as_string();
+						}
+						# TODO: only add hyperlink to dead children
 						my $childnames = join(', ', map {
 							'<a href="' . make_filename_from_person(person => $_) . '">' .
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
-						print $html $childnames;
+						print $html ": $childnames";
 					}
 				}
 			}
