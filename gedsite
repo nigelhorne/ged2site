@@ -464,8 +464,12 @@ sub print_person
 	}
 
 	open(my $html, '>', 'html/' . make_filename_from_person(person => $person));
-	print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	if($opts{'m'}) {
+		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
+	} else {
+		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
+	}
+	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	if($gedcal) {
 		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
@@ -1225,7 +1229,7 @@ sub print_person
 							$parentofall = $spouse;
 						}
 					}
-					print $html ".  $pronoun ",
+					print $html ". $pronoun ",
 						$all_children_are_alive ? 'has ' : 'had ';
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
@@ -1764,8 +1768,7 @@ sub print_person
 					next;
 				}
 				print $html '<li>';
-				my $file = $citations{$citation}->file();
-				if($file) {
+				if(my $file = $citations{$citation}->file()) {
 					print $html "<a href=\"$file\">", HTML::Entities::encode($title), '</a>';
 				} else {
 					print $html HTML::Entities::encode($title);
@@ -1777,9 +1780,10 @@ sub print_person
 					}
 				}
 				if(defined(my $publication = $citations{$citation}->publication())) {
-					print $html " $publication";
+					print $html ' ',
+						HTML::Entities::encode($publication);
 					if(defined(my $continuation = $citations{$citation}->cont())) {
-						print $html $continuation;
+						print $html HTML::Entities::encode($continuation);
 					}
 				}
 				if(defined(my $page = $citations{$citation}->page())) {
@@ -2644,15 +2648,6 @@ sub notes
 	if(scalar(@notes)) {
 		foreach my $note(@notes) {
 			if($note) {
-				if($paragraph) {
-					$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
-				} else {
-					if($rc) {
-						$rc .= '. ';
-					}
-					$rc .= HTML::Entities::encode($note);
-				}
-			}
 				if(ref($note) eq 'Gedcom::Record') {
 					if($note->cont()) {
 						my $n = $note->value();
@@ -2689,6 +2684,7 @@ sub notes
 				} else {
 					$rc .= HTML::Entities::encode($note) . '. ';
 				}
+			}
 		}
 	}
 	if(defined($rc)) {
