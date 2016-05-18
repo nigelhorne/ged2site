@@ -2054,8 +2054,9 @@ sub print_person
 				if($record->date()) {
 					$text .= ' ' . year({ person => $person, record => $record });
 				}
-				if($record->note()) {
-					$text .= '<br>' . $record->note();
+				if(my $note = $record->note()) {
+					$note =~ s/\n/<br>/g;
+					$text .= "<br>$note";
 				}
 				$map->add_marker(point => $place, html => "$text<br>$place");
 			}
