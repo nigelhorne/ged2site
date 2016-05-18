@@ -1229,9 +1229,9 @@ sub print_person
 						$all_children_are_alive ? 'has ' : 'had ';
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
-							print '1 surviving child';
+							print $html '1 surviving child';
 						} else {
-							print '1 child';
+							print $html '1 child';
 						}
 						if($parentofall) {
 							print $html ' with ', $parentofall->as_string();
