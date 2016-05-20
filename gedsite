@@ -1634,8 +1634,9 @@ sub print_person
 			}
 		}
 		$end_of_sentence = 1;
-	} elsif((scalar(@events) == 1)) {
+	} elsif(scalar(@events) == 1) {
 		print '.' if(!$end_of_sentence);
+		$end_of_sentence = 1;
 
 		my $event = $person->event();
 		if(ref($event) eq 'Gedcom::Record') {
@@ -1657,11 +1658,7 @@ sub print_person
 				$end_of_sentence = 1;
 			}
 		} else {
-			if($end_of_sentence) {
-				print $html ' ', ucfirst($event), '.';
-			} else {
-				print $html "$event.";
-			}
+			print $html ' ', ucfirst($event), '.';
 			$end_of_sentence = 1;
 		}
 	}
@@ -2658,7 +2655,11 @@ sub notes
 							if((!ref($c)) && length($c)) {
 								$c =~ s/\s\s+/ /g;
 								$c =~ s/\.$//;
-								$n .= ". $c";
+								if($n =~ /[;:]$/) {
+									$n .= " $c";
+								} else {
+									$n .= ". $c";
+								}
 							}
 						}
 						$note = $n;
