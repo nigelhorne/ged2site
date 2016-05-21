@@ -1078,6 +1078,7 @@ sub print_person
 				} else {
 					print $html ' was married to ';
 				}
+				my $parentheses = 0;
 				if($haveprintedspousename) {
 					$nameparser->parse($spouses[0]->name());
 
@@ -1096,11 +1097,18 @@ sub print_person
 					$haveprintedspousename = 1;
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
 					if($spouse_occupations[0]) {
-						print $html ' (a ', lc($spouse_occupations[0]), ')';
+						print $html ' (a ', lc($spouse_occupations[0]);
+						$parentheses = 1;
 					}
 				}
 				if($numberofchildren) {
-					print $html ', with whom ', lcfirst($pronoun);
+					if($parentheses || ((!$placeofmarriage) && (!$dateofmarriage))) {
+						print $html ', ';
+					} else {
+						print $html ' (';
+						$parentheses = 1;
+					}
+					print $html 'with whom ', lcfirst($pronoun);
 					if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
 						print $html ' had ';
 					} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
@@ -1133,7 +1141,11 @@ sub print_person
 					}
 				}
 				if($opts{'l'} || !$was_alive) {
-					print $html ',' if(($dateofmarriage || $placeofmarriage) && $numberofchildren);
+					if($parentheses) {
+						print $html ')';
+					} elsif(($dateofmarriage || $placeofmarriage) && $numberofchildren) {
+						print $html ',';
+					}
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
 						print $html ' there ',
