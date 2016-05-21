@@ -53,7 +53,6 @@ my $me;
 my @myancestors;
 my %warned;
 my %printed;
-my %place_map;
 my %places;
 my $surnames;
 my %censuses;
