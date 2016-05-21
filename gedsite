@@ -1465,20 +1465,6 @@ sub print_person
 				print $html place({ person => $person, place => $placeofdeath });
 			}
 			print $html "[$_]" foreach(@deathcitations);
-			# Print notes about the death, if any
-			if(defined($death)) {
-				my $notes = notes({ person => $person, record => $death });
-				if($notes) {
-					print $html " ($notes)";
-				}
-			} else {
-				my $d = get_value({ person => $person, value => 'death' });
-				if($d) {
-					$d =~ tr/\r//;
-					$d = HTML::Entities::encode($d);
-					print $html " ($d)";
-				}
-			}
 			if($dateofburial) {
 				print $html ' and was buried';
 				if($placeofburial) {
@@ -1541,19 +1527,16 @@ sub print_person
 			print $html place({ person => $person, place => $placeofdeath });
 		}
 		print $html "[$_]" foreach(@deathcitations);
-			# Print notes about the death, if any
+
+		# Print notes about the death, if any
 		if(defined($death)) {
-			my $notes = notes({ person => $person, record => $death });
-			if($notes) {
+			if(my $notes = notes({ person => $person, record => $death })) {
 				print $html " ($notes)";
 			}
-		} else {
-			my $d = get_value({ person => $person, value => 'death' });
-			if($d) {
-				$d =~ tr/\r//;
-				$d = HTML::Entities::encode($d);
-				print $html " ($d)";
-			}
+		} elsif(my $d = get_value({ person => $person, value => 'death' })) {
+			$d =~ tr/\r//;
+			$d = HTML::Entities::encode($d);
+			print $html " ($d)";
 		}
 		$end_of_sentence = 0;
 	}
