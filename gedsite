@@ -1333,6 +1333,8 @@ sub print_person
 
 	my $printed_residence;
 	my %residencecitations;
+	my %citationnotes;
+
 	if(scalar(@residences)) {
 		# FIXME, handle duplicate locations better
 		my @residencelist;
@@ -1351,18 +1353,28 @@ sub print_person
 					push @residencelist, $residence;
 					if(my $src = $residence->source()) {
 						$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
+						my $note = notes(record => $residence);
 						foreach my $c(@birthcitations) {
 							if($src eq $citations{$c}) {
 								$residencecitations{$residence} = $c;
+								if($note) {
+									$citationnotes{$c} = $note;
+								}
 								last;
 							}
 						}
 						unless($residencecitations{$residence}) {
 							if($deathcitations[0] && ($src eq $citations{$deathcitations[0]})) {
 								$residencecitations{$residence} = $deathcitations[0];
+								if($note) {
+									$citationnotes{$deathcitations[0]} = $note;
+								}
 							} else {
 								$residencecitations{$residence} = ++$citationcount;
 								$citations{$citationcount} = $src;
+								if($note) {
+									$citationnotes{$citationcount} = $note;
+								}
 							}
 						}
 					}
@@ -1834,6 +1846,10 @@ sub print_person
 						print $html " ($note)";
 					}
 				}
+				if($citationnotes{$citation}) {
+					print $html " ($citationnotes{$citation})";
+				}
+
 				print $html '</li>';
 			}
 			print $html '</ol>';
