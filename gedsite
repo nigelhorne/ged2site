@@ -1369,6 +1369,8 @@ sub print_person
 				} elsif(!defined($place)) {
 					red_warning({ person => $person, warning => 'Residence record contains no location' });
 				}
+			} else {
+				red_warning({ person => $person, warning => "Residence record is just description ($residence), infomation has been lost" });
 			}
 		}
 
