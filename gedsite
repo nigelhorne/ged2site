@@ -758,7 +758,6 @@ sub print_person
 	my $pronoun = $person->pronoun();
 	my $sex = $person->sex();
 	my @occupations = $person->get_value('occupation');
-	my @residences = $person->residence();
 
 	my @children;
 	foreach my $f($person->fams()) {
@@ -1334,7 +1333,25 @@ sub print_person
 	my $printed_residence;
 	my %residencecitations;
 	my %citationnotes;
+	my @residences = $person->residence();
+	my @events = $person->event();
 
+	# FMP stores Censuses as events
+	foreach my $event(@events) {
+		if((ref($event) eq 'Gedcom::Record') &&
+		   ($event->type() =~ /^Census U[KS] (\d{4})$/)) {
+			my $newresidence = 0;
+			foreach my $residence(@residences) {
+				if($residence->date() &&
+				  $event->date() &&
+				  $residence->date() eq $event->date()) {
+					$newresidence = 1;
+					last;
+				}
+			}
+			push @residences, $event if(!$newresidence);
+		}
+	}
 	if(scalar(@residences)) {
 		# FIXME, handle duplicate locations better
 		my @residencelist;
@@ -1503,8 +1520,8 @@ sub print_person
 					print $html place({ person => $person, place => $placeofburial });
 				}
 			} else {
-				my $p = place({ person => $person, place => $placeofburial, places_printed => \%places_printed, there => $placeofmarriage });
-				print $html " $pronoun is buried$p";
+				print $html "  $pronoun is buried",
+					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
 			}
 			$end_of_sentence = 0;
 		} elsif($dateofdeath || $placeofdeath) {
@@ -1597,7 +1614,6 @@ sub print_person
 	print $html '.' if(!$end_of_sentence);
 	$end_of_sentence = 1;
 
-	my @events = $person->event();
 	if((scalar(@events) == 2) &&
 	   (ref($events[0]) eq 'Gedcom::Record') &&
 	   (ref($events[1]) eq 'Gedcom::Record') &&
@@ -1709,6 +1725,22 @@ sub print_person
 		} else {
 			print $html ' ', ucfirst($event), '.';
 			$end_of_sentence = 1;
+		}
+	} else {
+		foreach my $event(@events) {
+			if((ref($event) eq 'Gedcom::Record') &&
+			   ($event->type() eq 'Military service')) {
+				print $html '.' if(!$end_of_sentence);
+				print $html " $pronoun served in the miltary";
+
+				if(my $notes = notes(record => $event)) {
+					$notes = lcfirst($notes);
+					$notes =~ s/\.$//;
+					print $html " ($notes)";
+				}
+				print $html '.';
+				$end_of_sentence = 1;
+			}
 		}
 	}
 
