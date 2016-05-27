@@ -1711,7 +1711,6 @@ sub print_person
 					' ',
 					year({ person => $person, record => $events[0] }),
 					'.';
-				$end_of_sentence = 1;
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$place_records{'Traveled to'} = $event;
 				} else {
@@ -1720,11 +1719,9 @@ sub print_person
 			} elsif(my $notes = notes({ record => $event })) {
 				$notes = lcfirst($notes);
 				print $html " ($notes)";
-				$end_of_sentence = 1;
 			}
 		} else {
 			print $html ' ', ucfirst($event), '.';
-			$end_of_sentence = 1;
 		}
 	} else {
 		foreach my $event(@events) {
