@@ -47,7 +47,7 @@ no lib '.';
 
 my %opts;
 getopts('cdfFg:h:lmwv', \%opts);
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google verification ] [ -h home-person-name ] [ -l ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google verification ] [ -h home-person-name ] [ -l ] [ -m ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 my $me;
 my @myancestors;
