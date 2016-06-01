@@ -1310,7 +1310,11 @@ sub print_person
 							print $html "$numberofchildren children";
 						}
 						if($parentofall) {
-							print $html ', all with ', $parentofall->as_string();
+							if($numberofchildren == 2) {
+								print $html ', both with ', $parentofall->as_string();
+							} else {
+								print $html ', all with ', $parentofall->as_string();
+							}
 						}
 						# TODO: only add hyperlink to dead children
 						my $childnames = join(', ', map {
