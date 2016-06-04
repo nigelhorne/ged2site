@@ -1377,7 +1377,16 @@ sub print_person
 			if(ref($residence) eq 'Gedcom::Record') {
 				my $place = $residence->place();
 				if(my $address = $residence->address()) {
-					$place = "$address, $place";
+					if($place) {
+						$place = "$address, $place";
+					} elsif($opts{'f'}) {
+						die $person->string(), ": place set to $place but address is empty";
+					} else {
+						red_warning({
+							person => $person,
+							warning => "place set to $place but address is empty"
+						});
+					}
 				}
 				if(defined($place) &&
 				  ((!$placeofbirth) || ($place ne $placeofbirth)) &&
