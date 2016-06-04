@@ -1710,8 +1710,7 @@ sub print_person
 				' arrived',
 				place({ person => $person, record => $arrival });
 
-			my $notes = notes({ record => $arrival, person => $person });
-			if($notes) {
+			if(my $notes = notes({ record => $arrival, person => $person })) {
 				$notes = lcfirst($notes);
 				print $html " ($notes)";
 			}
@@ -1740,8 +1739,9 @@ sub print_person
 				} else {
 					$place_records{'Travelled to'} = $event;
 				}
-			} elsif(my $notes = notes({ record => $event })) {
-				$notes = lcfirst($notes);
+			} elsif(($event->type() !~ /^Census U[KS] (\d{4})$/) &&
+				(my $notes = notes(record => $event))) {
+				$notes = ucfirst($notes);
 				print $html " ($notes)";
 			}
 		} else {
@@ -2210,7 +2210,7 @@ sub Gedcom::Individual::as_string
 		$surname .= ' ' . $name_components{'surname_2'};
 	}
 	if($name_components{'non_matching'}) {
-		if($name =~ /(\w{2,})\s(\w{2,})\s(\w)\s(\w{2,})/) {
+		if($name =~ /(\w{2,})\s(\w{2,})\s(\w+)\s(\w{2,})/) {
 			# Name parser doesn't parse names like this very well
 			$first_name = $1;
 			$middle_name = "$2 $3";
@@ -2234,8 +2234,7 @@ sub Gedcom::Individual::as_string
 	if($args{'nee'}) {
 		my $sex = get_value({ person => $self, value => 'sex' });
 		if(defined($sex) && ($sex eq 'F')) {
-			my $husband = $self->husband();
-			if(defined($husband)) {
+			if(my $husband = $self->husband()) {
 				$surname = $husband->surname();
 				$has_maiden_name = 1;
 			}
