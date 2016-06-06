@@ -1380,11 +1380,11 @@ sub print_person
 					if($place) {
 						$place = "$address, $place";
 					} elsif($opts{'f'}) {
-						die $person->string(), ": place set to $place but address is empty";
+						die $person->string(), ": address set to $address but place is empty";
 					} else {
 						red_warning({
 							person => $person,
-							warning => "place set to $place but address is empty"
+							warning => "address set to $address but place is empty"
 						});
 					}
 				}
