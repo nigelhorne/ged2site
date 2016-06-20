@@ -86,6 +86,7 @@ my %censusmaps = (
 	'1901 England Census' => '1901 UK Census',
 	'1901 England, Wales & Scotland Census - Findmypast' => '1901 UK Census',
 	'1911 England Census' => '1911 UK Census',
+	'1911 England Census Summary Books' => '1911 UK Census',
 	'1911 Census for England & Wales - Findmypast' => '1911 UK Census',
 
 	'1851 Census of Canada East, Canada West, New Brunswick, and Nova Scotia' => '1851 Canadian Census',
@@ -153,8 +154,8 @@ if($opts{'F'}) {
 			red_warning(warning => 'Graphviz not found, no family trees');
 		}
 	} else {
-		require GD::Thumbnail;
-		GD::Thumbnail->import();
+		require Image::Magick::Thumbnail;
+		Image::Magick::Thumbnail->import();
 		print "Using $dot\n" if($opts{'v'});
 	}
 }
@@ -3059,12 +3060,14 @@ sub print_graphviz
 			$dod = '';
 		}
 		# Create a thumbnail
-		my $thumbnail = GD::Thumbnail->new();
-		my $raw = $thumbnail->create($profile_image, 100);
+		my $image = Image::Magick->new();
+		$image->read($profile_image);
+		my ($thumb, $x, $y) = Image::Magick::Thumbnail::create($image, 100);
 		my @thumbname = File::Basename::fileparse($profile_image);
-		open(my $thumb, '>', "thumbs/$thumbname[0]");
-		print $thumb $raw;
-		close $thumb;
+		# use PNG to try to avoid
+		#	'Warning: No loadimage plugin for "jpeg:cairo"'
+		$thumbname[0] =~ s/\.jpg$/.png/;
+		$thumb->Write("thumbs/$thumbname[0]");
 
 		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>";
 		print $fout ",labelloc=b";
