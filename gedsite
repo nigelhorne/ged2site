@@ -1749,11 +1749,15 @@ sub print_person
 			print $html ' ', ucfirst($event), '.';
 		}
 	} else {
+		my $mentioned_military;
 		foreach my $event(@events) {
 			if((ref($event) eq 'Gedcom::Record') &&
 			   ($event->type() eq 'Military service')) {
-				print $html '.' if(!$end_of_sentence);
-				print $html " $pronoun served in the miltary";
+				if(!$mentioned_military) {
+					print '.' if(!$end_of_sentence);
+					print "  $pronoun served in the miltary";
+					$mentioned_military = 1;
+				}
 
 				if(my $notes = notes(record => $event)) {
 					$notes = lcfirst($notes);
@@ -1764,6 +1768,8 @@ sub print_person
 				$end_of_sentence = 1;
 			}
 		}
+		print '.' if(!$end_of_sentence);
+		$end_of_sentence = 1;
 	}
 
 	if($opts{'l'} || !$was_alive) {
