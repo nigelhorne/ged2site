@@ -1754,8 +1754,8 @@ sub print_person
 			if((ref($event) eq 'Gedcom::Record') &&
 			   ($event->type() eq 'Military service')) {
 				if(!$mentioned_military) {
-					print '.' if(!$end_of_sentence);
-					print "  $pronoun served in the miltary";
+					print $html '.' if(!$end_of_sentence);
+					print $html "  $pronoun served in the miltary";
 					$mentioned_military = 1;
 				}
 
