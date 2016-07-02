@@ -1495,10 +1495,6 @@ sub print_person
 			}
 			$printed_residence = 1;
 		}
-		if($printed_residence) {
-			print $html '.';
-			$end_of_sentence = 1;
-		}
 	}
 
 	if($placeofburial || $dateofburial) {
