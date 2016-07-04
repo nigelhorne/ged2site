@@ -1351,149 +1351,152 @@ sub print_person
 	my @residences = $person->residence();
 	my @events = $person->event();
 
-	# FMP stores Censuses as events
-	foreach my $event(@events) {
-		if((ref($event) eq 'Gedcom::Record') &&
-		   ($event->type() =~ /^Census U[KS] (\d{4})$/)) {
-			my $newresidence = 0;
+	if($opts{'l'} || !$was_alive) {
+		# FMP stores Censuses as events
+		foreach my $event(@events) {
+			if((ref($event) eq 'Gedcom::Record') &&
+			   ($event->type() =~ /^Census U[KS] (\d{4})$/)) {
+				my $newresidence = 0;
+				foreach my $residence(@residences) {
+					if((ref($residence) eq 'Gedcom::Record') &&
+					  $residence->date() &&
+					  $event->date() &&
+					  $residence->date() eq $event->date()) {
+						$newresidence = 1;
+						last;
+					}
+				}
+				push @residences, $event if(!$newresidence);
+			}
+		}
+
+		if(scalar(@residences)) {
+			# FIXME, handle duplicate locations better
+			my @residencelist;
+
+			# This is an attempt to handle
+			# https://github.com/pjcj/Gedcom.pm/issues/13
 			foreach my $residence(@residences) {
-				if((ref($residence) eq 'Gedcom::Record') &&
-				  $residence->date() &&
-				  $event->date() &&
-				  $residence->date() eq $event->date()) {
-					$newresidence = 1;
+				if(ref($residence) eq 'Gedcom::Record') {
+					my $place = $residence->place();
+					if(my $address = $residence->address()) {
+						if($place) {
+							$place = "$address, $place";
+						} elsif($opts{'f'}) {
+							die $person->string(), ": address set to $address but place is empty";
+						} else {
+							red_warning({
+								person => $person,
+								warning => "address set to $address but place is empty"
+							});
+						}
+					}
+					if(defined($place) &&
+					  ((!$placeofbirth) || ($place ne $placeofbirth)) &&
+					  ((!$placeofmarriage) || ($place ne $placeofmarriage))) {
+						push @residencelist, $residence;
+						if(my $src = $residence->source()) {
+							$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
+							my $note = notes(record => $residence);
+							foreach my $c(@birthcitations) {
+								if($src eq $citations{$c}) {
+									$residencecitations{$residence} = $c;
+									if($note) {
+										$citationnotes{$c} = $note;
+									}
+									last;
+								}
+							}
+							unless($residencecitations{$residence}) {
+								if($deathcitations[0] && ($src eq $citations{$deathcitations[0]})) {
+									$residencecitations{$residence} = $deathcitations[0];
+									if($note) {
+										$citationnotes{$deathcitations[0]} = $note;
+									}
+								} else {
+									$residencecitations{$residence} = ++$citationcount;
+									$citations{$citationcount} = $src;
+									if($note) {
+										$citationnotes{$citationcount} = $note;
+									}
+								}
+							}
+						}
+					} elsif(!defined($place)) {
+						red_warning({ person => $person, warning => 'Residence record contains no location' });
+					}
+				} else {
+					red_warning({ person => $person, warning => "Residence record is just description ($residence), infomation has been lost" });
+				}
+			}
+
+			# FIXME: This messes citations
+			# TODO: See RT110333
+
+			# Sort residences chronologically
+			my $all_residences_have_date = 1;
+			foreach my $residence(@residencelist) {
+				if((!$residence->date()) || !$date_parser->parse(date => $residence->date())) {
+					$all_residences_have_date = 0;
+					if($opts{'f'}) {
+						die $person->name(), ': Contains a residence without a date';
+					}
+					red_warning({ person => $person, warning => 'Contains a residence without a date' });
 					last;
 				}
 			}
-			push @residences, $event if(!$newresidence);
-		}
-	}
-	if(scalar(@residences)) {
-		# FIXME, handle duplicate locations better
-		my @residencelist;
-
-		# This is an attempt to handle
-		# https://github.com/pjcj/Gedcom.pm/issues/13
-		foreach my $residence(@residences) {
-			if(ref($residence) eq 'Gedcom::Record') {
-				my $place = $residence->place();
-				if(my $address = $residence->address()) {
-					if($place) {
-						$place = "$address, $place";
-					} elsif($opts{'f'}) {
-						die $person->string(), ": address set to $address but place is empty";
-					} else {
-						red_warning({
-							person => $person,
-							warning => "address set to $address but place is empty"
-						});
+			if($all_residences_have_date) {
+				@residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
+			}
+			my $count = 0;
+			my $have_printed = 0;
+			foreach my $residence(@residencelist) {
+				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
+					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
+						$count++;
+						next;
 					}
+					if(!$have_printed) {
+						print $html '.' unless($end_of_sentence);
+						print $html ' During ',
+							lc($person->possessive()),
+							' life ', lcfirst($pronoun), ' lived';
+						$have_printed = 1;
+					}
+					my $p = place({
+						person => $person,
+						record => $residence,
+						places_printed => \%places_printed
+					});
+					print $html $p;
+					$places_printed{$p} = 1;
+					$place_records{"Residence/$count"} = $residence;
 				}
-				if(defined($place) &&
-				  ((!$placeofbirth) || ($place ne $placeofbirth)) &&
-				  ((!$placeofmarriage) || ($place ne $placeofmarriage))) {
-					push @residencelist, $residence;
-					if(my $src = $residence->source()) {
-						$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
-						my $note = notes(record => $residence);
-						foreach my $c(@birthcitations) {
-							if($src eq $citations{$c}) {
-								$residencecitations{$residence} = $c;
-								if($note) {
-									$citationnotes{$c} = $note;
-								}
-								last;
-							}
-						}
-						unless($residencecitations{$residence}) {
-							if($deathcitations[0] && ($src eq $citations{$deathcitations[0]})) {
-								$residencecitations{$residence} = $deathcitations[0];
-								if($note) {
-									$citationnotes{$deathcitations[0]} = $note;
-								}
-							} else {
-								$residencecitations{$residence} = ++$citationcount;
-								$citations{$citationcount} = $src;
-								if($note) {
-									$citationnotes{$citationcount} = $note;
-								}
-							}
+				my $date = $residence->date();
+				if($date) {
+					print $html ' ', year({ person => $person, date => $date });
+				}
+				if($residencecitations{$residence}) {
+					print $html '[', $residencecitations{$residence}, ']';
+				}
+				if($residence->place() &&
+				  ($count <= (scalar(@residencelist) - 1)) &&
+				  ($residencecitations{$residence})) {
+					my $peek = $residencelist[$count + 1];
+					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+						if($residencecitations{$peek}) {
+							print $html '[', $residencecitations{$peek}, ']';
 						}
 					}
-				} elsif(!defined($place)) {
-					red_warning({ person => $person, warning => 'Residence record contains no location' });
 				}
-			} else {
-				red_warning({ person => $person, warning => "Residence record is just description ($residence), infomation has been lost" });
-			}
-		}
-
-		# FIXME: This messes citations
-		# TODO: See RT110333
-
-		# Sort residences chronologically
-		my $all_residences_have_date = 1;
-		foreach my $residence(@residencelist) {
-			if((!$residence->date()) || !$date_parser->parse(date => $residence->date())) {
-				$all_residences_have_date = 0;
-				if($opts{'f'}) {
-					die $person->name(), ': Contains a residence without a date';
+				$count++;
+				if($count < (scalar(@residencelist) - 1)) {
+					print $html ';';
+				} elsif($count == (scalar(@residencelist) - 1)) {
+					print $html '; and';
 				}
-				red_warning({ person => $person, warning => 'Contains a residence without a date' });
-				last;
+				$printed_residence = 1;
 			}
-		}
-		if($all_residences_have_date) {
-			@residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
-		}
-		my $count = 0;
-		my $have_printed = 0;
-		foreach my $residence(@residencelist) {
-			if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
-				if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
-					$count++;
-					next;
-				}
-				if(!$have_printed) {
-					print $html '.' unless($end_of_sentence);
-					print $html ' During ',
-						lc($person->possessive()),
-						' life ', lcfirst($pronoun), ' lived';
-					$have_printed = 1;
-				}
-				my $p = place({
-					person => $person,
-					record => $residence,
-					places_printed => \%places_printed
-				});
-				print $html $p;
-				$places_printed{$p} = 1;
-				$place_records{"Residence/$count"} = $residence;
-			}
-			my $date = $residence->date();
-			if($date) {
-				print $html ' ', year({ person => $person, date => $date });
-			}
-			if($residencecitations{$residence}) {
-				print $html '[', $residencecitations{$residence}, ']';
-			}
-			if($residence->place() &&
-			  ($count <= (scalar(@residencelist) - 1)) &&
-			  ($residencecitations{$residence})) {
-				my $peek = $residencelist[$count + 1];
-				if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-					if($residencecitations{$peek}) {
-						print $html '[', $residencecitations{$peek}, ']';
-					}
-				}
-			}
-			$count++;
-			if($count < (scalar(@residencelist) - 1)) {
-				print $html ';';
-			} elsif($count == (scalar(@residencelist) - 1)) {
-				print $html '; and';
-			}
-			$printed_residence = 1;
 		}
 	}
 
