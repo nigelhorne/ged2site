@@ -1764,8 +1764,8 @@ sub print_person
 				}
 				print $html '.';
 				$end_of_sentence = 1;
-			} else {
-				red_warning({ person => $person, warning => 'Unhandled event type: ' . ref($event) });
+			} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
+				red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
 			}
 		}
 		print '.' if(!$end_of_sentence);
