@@ -1472,9 +1472,35 @@ sub print_person
 					$places_printed{$p} = 1;
 					$place_records{"Residence/$count"} = $residence;
 				}
-				my $date = $residence->date();
-				if($date) {
+				if(my $notes = notes({ record => $residence })) {
+					$notes =~ s/\.$//;
+					$notes = lcfirst($notes);
+					print $html " ($notes)";
+				}
+				if(my $date = $residence->date()) {
 					print $html ' ', year({ person => $person, date => $date });
+					# Find if they are an adult living with an adult sibling
+					if(scalar(@siblings) && $birth_dt && $residence->address()) {
+						my $d = $dfn->parse_datetime($date);
+						my $diff = $d - $birth_dt;
+						if($diff->in_units('years') >= 40) {
+							# Safe to assume both are adults at this time
+							foreach my $sibling(@siblings) {
+								my @srs = $sibling->residence();
+								foreach my $sr(@srs) {
+									if($sr->date() && ($sr->date() eq $date) &&
+									   places_are_the_same({ first => $residence, second => $sr })) {
+										print $html ' when ',
+											lcfirst($person->pronoun()),
+											' was living with ',
+											lcfirst($person->possessive()),
+											($sibling->sex() eq 'F') ? ' sister, ' : ' brother, ',
+											$sibling->given_names();
+									}
+								}
+							}
+						}
+					}
 				}
 				if($residencecitations{$residence}) {
 					print $html '[', $residencecitations{$residence}, ']';
