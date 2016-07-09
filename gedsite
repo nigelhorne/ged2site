@@ -1525,6 +1525,10 @@ sub print_person
 				}
 				$printed_residence = 1;
 			}
+			if($printed_residence) {
+				print '.';
+				$end_of_sentence = 1;
+			}
 		}
 	}
 
@@ -1572,7 +1576,7 @@ sub print_person
 					print $html place({ person => $person, place => $placeofburial });
 				}
 			} else {
-				print $html "  $pronoun is buried",
+				print $html " $pronoun is buried",
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
 			}
 			$end_of_sentence = 0;
@@ -1784,7 +1788,7 @@ sub print_person
 			   ($event->type() eq 'Military service')) {
 				if(!$mentioned_military) {
 					print $html '.' if(!$end_of_sentence);
-					print $html "  $pronoun served in the miltary";
+					print $html " $pronoun served in the miltary";
 					$mentioned_military = 1;
 				}
 
