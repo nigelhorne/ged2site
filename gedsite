@@ -816,7 +816,7 @@ sub print_person
 		if($occupations[0] =~ /^[aeiou]/i) {
 			print $html 'n';
 		}
-		print $html ' ', lc($occupations[0]);
+		print $html ' ', HTML::Entities::encode(lc($occupations[0]));
 		if(!($father || $mother || $spouserelationship)) {
 			print $html ', ';
 		}
@@ -1468,7 +1468,7 @@ sub print_person
 						record => $residence,
 						places_printed => \%places_printed
 					});
-					print $html $p;
+					print $html HTML::Entities::encode($p);
 					$places_printed{$p} = 1;
 					$place_records{"Residence/$count"} = $residence;
 				}
@@ -1481,21 +1481,23 @@ sub print_person
 					print $html ' ', year({ person => $person, date => $date });
 					# Find if they are an adult living with an adult sibling
 					if(scalar(@siblings) && $birth_dt && $residence->address()) {
-						my $d = $dfn->parse_datetime($date);
-						my $diff = $d - $birth_dt;
+						my $diff = $dfn->parse_datetime($date) - $birth_dt;
 						if($diff->in_units('years') >= 40) {
 							# Safe to assume both are adults at this time
 							foreach my $sibling(@siblings) {
 								my @srs = $sibling->residence();
 								foreach my $sr(@srs) {
-									if($sr->date() && ($sr->date() eq $date) &&
+									if((ref($sr) eq 'Gedcom::Record') &&
+									   $sr->date() && ($sr->date() eq $date) &&
 									   places_are_the_same({ first => $residence, second => $sr })) {
 										print $html ' when ',
 											lcfirst($person->pronoun()),
 											' was living with ',
 											lcfirst($person->possessive()),
 											($sibling->sex() eq 'F') ? ' sister, ' : ' brother, ',
-											$sibling->given_names();
+											'<a href="', make_filename_from_person(person => $sibling), '">',
+												$sibling->given_names(),
+											'</a>';
 									}
 								}
 							}
@@ -2850,6 +2852,7 @@ sub notes
 	if(defined($rc)) {
 		$rc =~ s/\n/<br>/g;
 		$rc =~ s/\s\s+/ /g;
+		$rc =~ s/ $//;
 		$ufinder->find(\$rc);
 	}
 	return($rc);
