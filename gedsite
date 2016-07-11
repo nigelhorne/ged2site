@@ -897,7 +897,7 @@ sub print_person
 					if($occupations[0] =~ /^[aeiou]/i) {
 						print $html 'n';
 					}
-					print $html ' ', lc($occupations[0]), ')';
+					print $html ' ', HTML::Entities::encode(lc($occupations[0])), ')';
 				}
 				if($mother) {
 					print $html ' and';
