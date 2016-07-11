@@ -508,7 +508,9 @@ sub print_person
 	} else {
 		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
 	}
-	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	if(defined($me)) {
+		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
 	if($gedcal) {
 		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
@@ -3186,6 +3188,8 @@ sub make_filename_from_person
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $person = $params{'person'};
+
+die if(!defined($person));
 
 	my $rc = $person->as_string(include_years => 1);
 	$rc =~ tr/ /-/s;
