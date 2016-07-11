@@ -217,14 +217,21 @@ if(!$opts{'w'}) {
 	print "\n$index records processed\n";
 }
 
-my $name = $me->as_string(nee => 1);
+my $name;
+if($me) {
+	$name = 'of ' . $me->as_string(nee => 1);
+} else {
+	$name = 'on this site';
+}
 
 if($opts{'w'}) {
 	open(my $html, '>', 'html/todo.html');
 	print $html "<html><head><title>Errors in the Family Tree of $name</title>",
-		"</head><body><center><h1>Errors in the Family Tree of $name</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		"</head><body><center><h1>Errors in the Family Tree of $name</h1>";
+	if($me) {
+		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
+	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]',
 		' | [ <a href="calendar/index.html">Calendar</a> ]',
 		' | [ <a href="history.html">Family History</a> ]</center><br>';
@@ -250,9 +257,11 @@ foreach my $census(sort keys(%censuses)) {
 	open(my $chtml, '>', "html/$filename.html");
 	print $chtml "<html><head><title>The Family Tree of $name - $census</title>",
 		'</head>',
-		"<body><center><h1>The Family Tree of $name - $census</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]';
+		"<body><center><h1>The Family Tree of $name - $census</h1>";
+	if($me) {
+		print $chtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
+	print $chtml ' | [ <a href="surnames.html">Surnames Index</a> ]';
 	if($opts{'w'}) {
 		print $chtml ' | [ <a href="todo.html">Errors</a> ]';
 	}
@@ -278,9 +287,11 @@ close $html;
 
 open($html, '>', 'html/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree of $name</title>",
-	"</head><body><center><h1>Surnames in the Family Tree of $name</h1>",
-	'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
-	' | [ <a href="surnames.html">Surnames Index</a> ]',
+	"</head><body><center><h1>Surnames in the Family Tree of $name</h1>";
+if($me) {
+	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+}
+print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
 	' | [ <a href="censuses.html">Census Index</a> ]',
 	' | [ <a href="calendar/index.html">Calendar</a> ]';
 if($opts{'w'}) {
@@ -305,8 +316,10 @@ foreach my $surname(sort keys %{$surnames}) {
 	open(my $shtml, '>', "html/$filename.html");
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
-		"<body><center><h1>The Family Tree of $name - $surname</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		"<body><center><h1>The Family Tree of $name - $surname</h1>";
+	if($me) {
+		print $shtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
 	if($gedcal) {
 		print $shtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
@@ -341,9 +354,11 @@ if($opts{'g'}) {
 if($gedcal) {
 	if(open(my $fout, '>', 'html/calendar/index.html')) {
 		print $fout "<html><head><title>Genealogy Calendar for $name</title></head>",
-			"<body><center><h1>Genealogy Calendar for $name</h1>",
-			'[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]',
-			' | [ <a href="../surnames.html">Surnames Index</a> ]',
+			"<body><center><h1>Genealogy Calendar for $name</h1>";
+		if($me) {
+			print $fout '[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]';
+		}
+		print $fout ' | [ <a href="../surnames.html">Surnames Index</a> ]',
 			' | [ <a href="../censuses.html">Census Index</a> ]';
 		if($opts{'w'}) {
 			print $fout ' | [ <a href="todo.html">Errors</a> ]';
@@ -365,9 +380,11 @@ if($gedcal) {
 # TODO - this is a POC which seems to work
 if(open(my $fout, '>', 'html/history.html')) {
 	print $fout "<html><head><title>Family History for $name</title></head>",
-		"<body><center><h1>Family History for $name</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		"<body><center><h1>Family History for $name</h1>";
+	if($me) {
+		print $fout '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
+	print $fout ' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]';
 	if($opts{'w'}) {
 		print $fout ' | [ <a href="todo.html">Errors</a> ]';
@@ -1149,7 +1166,7 @@ sub print_person
 					$haveprintedspousename = 1;
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
 					if($spouse_occupations[0]) {
-						print $html ' (a ', lc($spouse_occupations[0]);
+						print $html ' (a ', HTML::Entities::encode(lc($spouse_occupations[0]));
 						$parentheses = 1;
 					}
 				}
@@ -1347,7 +1364,7 @@ sub print_person
 		}
 	}
 
-	my $printed_residence;
+	my $printed_residence = 0;
 	my %residencecitations;
 	my %citationnotes;
 	my @residences = $person->residence();
@@ -1528,7 +1545,7 @@ sub print_person
 				$printed_residence = 1;
 			}
 			if($printed_residence) {
-				print '.';
+				print $html '.';
 				$end_of_sentence = 1;
 			}
 		}
@@ -1678,6 +1695,7 @@ sub print_person
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	    (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		# Simple case - one journey made
+		print '. ' if(!$end_of_sentence);
 		print $html ' ';
 
 		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
