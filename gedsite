@@ -245,6 +245,7 @@ if($opts{'w'}) {
 	}
 }
 
+print "Creating census index\n";
 open(my $html, '>', 'html/censuses.html');
 print $html "<html><head><title>Censuses in the Family Tree of $name</title>",
 	"</head><body><center><h1>Censuses in the Family Tree of $name</h1></center><br><ul>";
@@ -285,6 +286,7 @@ foreach my $census(sort keys(%censuses)) {
 print $html '</ul></body></html>';
 close $html;
 
+print "Creating surname index\n";
 open($html, '>', 'html/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree of $name</title>",
 	"</head><body><center><h1>Surnames in the Family Tree of $name</h1>";
@@ -352,9 +354,10 @@ if($opts{'g'}) {
 }
 
 if($gedcal) {
+	print "Creating calendar\n";
 	if(open(my $fout, '>', 'html/calendar/index.html')) {
-		print $fout "<html><head><title>Genealogy Calendar for $name</title></head>",
-			"<body><center><h1>Genealogy Calendar for $name</h1>";
+		print $fout "<html><head><title>Genealogy Calendar $name</title></head>",
+			"<body><center><h1>Genealogy Calendar $name</h1>";
 		if($me) {
 			print $fout '[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]';
 		}
@@ -364,8 +367,13 @@ if($gedcal) {
 			print $fout ' | [ <a href="todo.html">Errors</a> ]';
 		}
 		print $fout ' | [ <a href="../history.html">Family History</a> ]</center><br>';
+		my $pr = String::ProgressBar->new(max => 12, length => 60);
 		foreach my $month(1..12) {
 			if(open(my $fin, '-|', "$gedcal -dHLm $month '$ARGV[0]'")) {
+				$| = 1;
+				$pr->update($month);
+				$pr->write();
+				$| = 0;
 				print $fout "<li><a href=\"$month.html\">", @{$dtl->month_format_wide()}[$month - 1], '</a></li>';
 				open(my $mout, '>', "html/calendar/$month.html");
 				while(<$fin>) {
@@ -373,14 +381,16 @@ if($gedcal) {
 				}
 			}
 		}
+		print "\n";
 		print $fout '</ul></body></html>';
 	}
 }
 
 # TODO - this is a POC which seems to work
 if(open(my $fout, '>', 'html/history.html')) {
-	print $fout "<html><head><title>Family History for $name</title></head>",
-		"<body><center><h1>Family History for $name</h1>";
+	print "Creating family history page\n";
+	print $fout "<html><head><title>Family History $name</title></head>",
+		"<body><center><h1>Family History $name</h1>";
 	if($me) {
 		print $fout '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	}
@@ -1601,7 +1611,6 @@ sub print_person
 			$end_of_sentence = 0;
 		} elsif($dateofdeath || $placeofdeath) {
 			print $html '.' if(!$end_of_sentence);
-			print $html " $pronoun died";
 			if($dateofdeath) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath) {
@@ -1609,6 +1618,12 @@ sub print_person
 				}
 			} else {
 				print $html place({ person => $person, place => $placeofdeath });
+			}
+			if(my $d = get_value({ person => $person, value => 'death' })) {
+				$d =~ tr/\r//;
+				$d =~ tr/\n/ /;
+				$d =~ s/\.$//;
+				print $html " ($d)";
 			}
 			print $html "[$_]" foreach(@deathcitations);
 			if($dateofburial) {
@@ -1671,6 +1686,12 @@ sub print_person
 			}
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
 			print $html place({ person => $person, place => $placeofdeath });
+		}
+		if(my $d = get_value({ person => $person, value => 'death' })) {
+			$d =~ tr/\r//;
+			$d =~ tr/\n/ /;
+			$d =~ s/\.$//;
+			print $html " ($d)";
 		}
 		print $html "[$_]" foreach(@deathcitations);
 
