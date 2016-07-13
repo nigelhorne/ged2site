@@ -366,7 +366,7 @@ if($gedcal) {
 		if($opts{'w'}) {
 			print $fout ' | [ <a href="todo.html">Errors</a> ]';
 		}
-		print $fout ' | [ <a href="../history.html">Family History</a> ]</center><br>';
+		print $fout ' | [ <a href="../history.html">Family History</a> ]</center><br><ul>';
 		my $pr = String::ProgressBar->new(max => 12, length => 60);
 		foreach my $month(1..12) {
 			if(open(my $fin, '-|', "$gedcal -dHLm $month '$ARGV[0]'")) {
