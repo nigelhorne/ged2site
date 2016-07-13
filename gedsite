@@ -1623,7 +1623,7 @@ sub print_person
 				$d =~ tr/\r//;
 				$d =~ tr/\n/ /;
 				$d =~ s/\.$//;
-				print $html " ($d)";
+				print $html ' (', HTML::Entities::encode($d), ')';
 			}
 			print $html "[$_]" foreach(@deathcitations);
 			if($dateofburial) {
@@ -1687,23 +1687,13 @@ sub print_person
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
 			print $html place({ person => $person, place => $placeofdeath });
 		}
-		if(my $d = get_value({ person => $person, value => 'death' })) {
-			$d =~ tr/\r//;
-			$d =~ tr/\n/ /;
-			$d =~ s/\.$//;
-			print $html " ($d)";
-		}
 		print $html "[$_]" foreach(@deathcitations);
 
 		# Print notes about the death, if any
-		if(defined($death)) {
-			if(my $notes = notes({ person => $person, record => $death })) {
-				print $html " ($notes)";
-			}
-		} elsif(my $d = get_value({ person => $person, value => 'death' })) {
+		if(defined($death) && (my $d = get_value({ person => $person, value => 'death' }))) {
 			$d =~ tr/\r//;
-			$d = HTML::Entities::encode($d);
-			print $html " ($d)";
+			$d =~ s/\.$//;
+			print $html ' (', HTML::Entities::encode($d), ')';
 		}
 		$end_of_sentence = 0;
 	}
