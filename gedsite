@@ -227,8 +227,8 @@ if($me) {
 
 if($opts{'w'}) {
 	open(my $html, '>', 'html/todo.html');
-	print $html "<html><head><title>Errors in the Family Tree of $name</title>",
-		"</head><body><center><h1>Errors in the Family Tree of $name</h1>";
+	print $html "<html><head><title>Errors in the Family Tree $name</title>",
+		"</head><body><center><h1>Errors in the Family Tree $name</h1>";
 	if($me) {
 		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	}
@@ -240,7 +240,7 @@ if($opts{'w'}) {
 	foreach my $person($ged->individuals()) {
 		if($person->{'warnings'}) {
 			print $html '<h2>',
-				'<a href="', make_filename_from_person(person => $person), '">', $person->as_string, '</a></h2>',
+				'<a href="', make_filename_from_person(person => $person), '">', $person->as_string(include_years => 1), '</a></h2>',
 				map { HTML::Entities::encode($_) . '<br>' } @{$person->{'warnings'}};
 		}
 	}
