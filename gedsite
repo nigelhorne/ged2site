@@ -218,14 +218,21 @@ if(!$opts{'w'}) {
 	print "\n$index records processed\n";
 }
 
-my $name = $me->as_string(nee => 1);
+my $name;
+if($me) {
+	$name = 'of ' . $me->as_string(nee => 1);
+} else {
+	$name = 'on this site';
+}
 
 if($opts{'w'}) {
 	open(my $html, '>', 'html/todo.html');
 	print $html "<html><head><title>Errors in the Family Tree of $name</title>",
-		"</head><body><center><h1>Errors in the Family Tree of $name</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]',
+		"</head><body><center><h1>Errors in the Family Tree of $name</h1>";
+	if($me) {
+		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
+	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]',
 		' | [ <a href="calendar/index.html">Calendar</a> ]',
 		' | [ <a href="history.html">Family History</a> ]</center><br>';
@@ -239,6 +246,7 @@ if($opts{'w'}) {
 	}
 }
 
+print "Creating census index\n";
 open(my $html, '>', 'html/censuses.html');
 print $html "<html><head><title>Censuses in the Family Tree of $name</title>",
 	"</head><body><center><h1>Censuses in the Family Tree of $name</h1></center><br><ul>";
@@ -251,9 +259,11 @@ foreach my $census(sort keys(%censuses)) {
 	open(my $chtml, '>', "html/$filename.html");
 	print $chtml "<html><head><title>The Family Tree of $name - $census</title>",
 		'</head>',
-		"<body><center><h1>The Family Tree of $name - $census</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]';
+		"<body><center><h1>The Family Tree of $name - $census</h1>";
+	if($me) {
+		print $chtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
+	print $chtml ' | [ <a href="surnames.html">Surnames Index</a> ]';
 	if($opts{'w'}) {
 		print $chtml ' | [ <a href="todo.html">Errors</a> ]';
 	}
@@ -277,11 +287,14 @@ foreach my $census(sort keys(%censuses)) {
 print $html '</ul></body></html>';
 close $html;
 
+print "Creating surname index\n";
 open($html, '>', 'html/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree of $name</title>",
-	"</head><body><center><h1>Surnames in the Family Tree of $name</h1>",
-	'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
-	' | [ <a href="surnames.html">Surnames Index</a> ]',
+	"</head><body><center><h1>Surnames in the Family Tree of $name</h1>";
+if($me) {
+	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+}
+print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
 	' | [ <a href="censuses.html">Census Index</a> ]',
 	' | [ <a href="calendar/index.html">Calendar</a> ]';
 if($opts{'w'}) {
@@ -306,8 +319,10 @@ foreach my $surname(sort keys %{$surnames}) {
 	open(my $shtml, '>', "html/$filename.html");
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
-		"<body><center><h1>The Family Tree of $name - $surname</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		"<body><center><h1>The Family Tree of $name - $surname</h1>";
+	if($me) {
+		print $shtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
 	if($gedcal) {
 		print $shtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
@@ -340,18 +355,26 @@ if($opts{'g'}) {
 }
 
 if($gedcal) {
+	print "Creating calendar\n";
 	if(open(my $fout, '>', 'html/calendar/index.html')) {
-		print $fout "<html><head><title>Genealogy Calendar for $name</title></head>",
-			"<body><center><h1>Genealogy Calendar for $name</h1>",
-			'[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]',
-			' | [ <a href="../surnames.html">Surnames Index</a> ]',
+		print $fout "<html><head><title>Genealogy Calendar $name</title></head>",
+			"<body><center><h1>Genealogy Calendar $name</h1>";
+		if($me) {
+			print $fout '[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]';
+		}
+		print $fout ' | [ <a href="../surnames.html">Surnames Index</a> ]',
 			' | [ <a href="../censuses.html">Census Index</a> ]';
 		if($opts{'w'}) {
 			print $fout ' | [ <a href="todo.html">Errors</a> ]';
 		}
-		print $fout ' | [ <a href="../history.html">Family History</a> ]</center><br>';
+		print $fout ' | [ <a href="../history.html">Family History</a> ]</center><br><ul>';
+		my $pr = String::ProgressBar->new(max => 12, length => 60);
 		foreach my $month(1..12) {
 			if(open(my $fin, '-|', "$gedcal -dHLm $month '$ARGV[0]'")) {
+				$| = 1;
+				$pr->update($month);
+				$pr->write();
+				$| = 0;
 				print $fout "<li><a href=\"$month.html\">", @{$dtl->month_format_wide()}[$month - 1], '</a></li>';
 				open(my $mout, '>', "html/calendar/$month.html");
 				while(<$fin>) {
@@ -359,16 +382,20 @@ if($gedcal) {
 				}
 			}
 		}
+		print "\n";
 		print $fout '</ul></body></html>';
 	}
 }
 
 # TODO - this is a POC which seems to work
 if(open(my $fout, '>', 'html/history.html')) {
-	print $fout "<html><head><title>Family History for $name</title></head>",
-		"<body><center><h1>Family History for $name</h1>",
-		'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]',
-		' | [ <a href="surnames.html">Surnames Index</a> ]',
+	print "Creating family history page\n";
+	print $fout "<html><head><title>Family History $name</title></head>",
+		"<body><center><h1>Family History $name</h1>";
+	if($me) {
+		print $fout '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
+	print $fout ' | [ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]';
 	if($opts{'w'}) {
 		print $fout ' | [ <a href="todo.html">Errors</a> ]';
@@ -509,7 +536,9 @@ sub print_person
 	} else {
 		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
 	}
-	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	if(defined($me)) {
+		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
 	if($gedcal) {
 		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
@@ -899,7 +928,7 @@ sub print_person
 					if($occupations[0] =~ /^[aeiou]/i) {
 						print $html 'n';
 					}
-					print $html ' ', lc($occupations[0]), ')';
+					print $html ' ', HTML::Entities::encode(lc($occupations[0])), ')';
 				}
 				if($mother) {
 					print $html ' and';
@@ -1149,7 +1178,7 @@ sub print_person
 					$haveprintedspousename = 1;
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
 					if($spouse_occupations[0]) {
-						print $html ' (a ', lc($spouse_occupations[0]);
+						print $html ' (a ', HTML::Entities::encode(lc($spouse_occupations[0]));
 						$parentheses = 1;
 					}
 				}
@@ -1347,7 +1376,7 @@ sub print_person
 		}
 	}
 
-	my $printed_residence;
+	my $printed_residence = 0;
 	my %residencecitations;
 	my %citationnotes;
 	my @residences = $person->residence();
@@ -1528,7 +1557,7 @@ sub print_person
 				$printed_residence = 1;
 			}
 			if($printed_residence) {
-				print '.';
+				print $html '.';
 				$end_of_sentence = 1;
 			}
 		}
@@ -1584,7 +1613,6 @@ sub print_person
 			$end_of_sentence = 0;
 		} elsif($dateofdeath || $placeofdeath) {
 			print $html '.' if(!$end_of_sentence);
-			print $html " $pronoun died";
 			if($dateofdeath) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath) {
@@ -1592,6 +1620,12 @@ sub print_person
 				}
 			} else {
 				print $html place({ person => $person, place => $placeofdeath });
+			}
+			if(my $d = get_value({ person => $person, value => 'death' })) {
+				$d =~ tr/\r//;
+				$d =~ tr/\n/ /;
+				$d =~ s/\.$//;
+				print $html ' (', HTML::Entities::encode($d), ')';
 			}
 			print $html "[$_]" foreach(@deathcitations);
 			if($dateofburial) {
@@ -1658,14 +1692,10 @@ sub print_person
 		print $html "[$_]" foreach(@deathcitations);
 
 		# Print notes about the death, if any
-		if(defined($death)) {
-			if(my $notes = notes({ person => $person, record => $death })) {
-				print $html " ($notes)";
-			}
-		} elsif(my $d = get_value({ person => $person, value => 'death' })) {
+		if(defined($death) && (my $d = get_value({ person => $person, value => 'death' }))) {
 			$d =~ tr/\r//;
-			$d = HTML::Entities::encode($d);
-			print $html " ($d)";
+			$d =~ s/\.$//;
+			print $html ' (', HTML::Entities::encode($d), ')';
 		}
 		$end_of_sentence = 0;
 	}
@@ -1678,6 +1708,7 @@ sub print_person
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	    (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		# Simple case - one journey made
+		print '. ' if(!$end_of_sentence);
 		print $html ' ';
 
 		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
@@ -2180,8 +2211,20 @@ sub print_person
 	}
 
 	if($person->{'warnings'}) {
-		print $html "<h2>Warnings</h2>",
-			map { "<p>$_</p>" } @{$person->{'warnings'}};
+		my $ufinder = URI::Find::Schemeless->new(sub {
+			my($uri, $orig_uri) = @_;
+
+			my $u = URI->new($orig_uri);
+			if($u && (ref($u) ne 'URI::_generic')) {
+				$uri =~ s/:$//;
+				return "<a href=\"$uri\">" .
+					$u->host() .
+					'</a>';
+			}
+			return $orig_uri;
+		});
+		print $html "<h2>Known Issues</h2>",
+			map { $ufinder->find(\$_); "<p>$_</p>" } @{$person->{'warnings'}};
 	}
 
 	my @place_events = keys %place_records;
@@ -3188,6 +3231,8 @@ sub make_filename_from_person
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $person = $params{'person'};
+
+die if(!defined($person));
 
 	my $rc = $person->as_string(include_years => 1);
 	$rc =~ tr/ /-/s;
