@@ -43,6 +43,7 @@ use LWP::UserAgent;
 use HTML::GoogleMaps::V3;
 use Sort::Key::DateTime;
 use String::ProgressBar;
+use Text::Names;
 no lib '.';
 
 my %opts;
@@ -784,7 +785,8 @@ sub print_person
 	if($dateofbirth && $opts{'w'} && scalar(@siblings)) {
 		foreach my $sibling(@siblings) {
 			my $siblingbirth = get_value({ person => $sibling, value => 'birth date' });
-			if($siblingbirth && ($siblingbirth eq $dateofbirth) && ($sibling->name() eq $person->name())) {
+			if($siblingbirth && ($siblingbirth eq $dateofbirth) &&
+			  (($sibling->name() eq $person->name()) || Text::Names::samePerson($sibling->name(), $person->name()))) {
 				if($opts{'f'}) {
 					die $person->name(), ': Possible duplicate person';
 				}
