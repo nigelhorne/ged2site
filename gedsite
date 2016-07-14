@@ -2209,8 +2209,20 @@ sub print_person
 	}
 
 	if($person->{'warnings'}) {
-		print $html "<h2>Warnings</h2>",
-			map { "<p>$_</p>" } @{$person->{'warnings'}};
+		my $ufinder = URI::Find::Schemeless->new(sub {
+			my($uri, $orig_uri) = @_;
+
+			my $u = URI->new($orig_uri);
+			if($u && (ref($u) ne 'URI::_generic')) {
+				$uri =~ s/:$//;
+				return "<a href=\"$uri\">" .
+					$u->host() .
+					'</a>';
+			}
+			return $orig_uri;
+		});
+		print $html "<h2>Known Issues</h2>",
+			map { $ufinder->find(\$_); "<p>$_</p>" } @{$person->{'warnings'}};
 	}
 
 	my @place_events = keys %place_records;
