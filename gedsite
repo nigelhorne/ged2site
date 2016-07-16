@@ -2227,7 +2227,7 @@ sub print_person
 			return $orig_uri;
 		});
 		print $html "<h2>Known Issues</h2>",
-			map { $ufinder->find(\$_); "<p>$_</p>" } @{$person->{'warnings'}};
+			map { $ufinder->find(\$_); '<p>' . HTML::Entitites::encode($_) . '</p>' } @{$person->{'warnings'}};
 	}
 
 	my @place_events = keys %place_records;
