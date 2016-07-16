@@ -31,5 +31,5 @@ The options are:
 If gedcal is installed, gedsite will also create a calendar of births and
 deaths, one page for each month in the current year.
 
-An example genealogy website that was produced by is available at
+An example genealogy website that was produced Gedsite by is available at
 https://genealogy.nigelhorne.com.
