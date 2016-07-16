@@ -80,6 +80,7 @@ my %censusmaps = (
 	'1861 England Census' => '1861 UK Census',
 	'1861 England, Wales & Scotland Census - Findmypast' => '1861 UK Census',
 	'1871 England Census' => '1871 UK Census',
+	'1871 England, Wales & Scotland Census - Findmypast' => '1871 UK Census',
 	'1881 England Census' => '1881 UK Census',
 	'1881 England, Wales & Scotland Census - Findmypast' => '1881 UK Census',
 	'1891 England Census' => '1891 UK Census',
