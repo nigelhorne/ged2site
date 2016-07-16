@@ -967,25 +967,27 @@ sub print_person
 	}
 
 	if($firstname) {
-		if($father || $mother || $occupations[0]) {
-			print $html ', ';
-		}
-		if($opts{'l'} || $was_alive) {
-			print $html "<b>$firstname</b>";
-			if($relationship) {
-				if(($dob || $marriage) && (!($was_alive || $opts{'l'}))) {
-					print $html ',';
-				} elsif($was_alive) {
-					print $html ' is';
-				} else {
-					print $html ' was';
-				}
+		if((!$was_alive) || $opts{'l'} || ($person ne $me)) {
+			if($father || $mother || $occupations[0]) {
+				print $html ', ';
 			}
-		} else {
-			print $html "<b>$firstname ",
-				$name_components{'surname_1'},
-				'</b>';
-			print $html ',' if($relationship);
+			if($opts{'l'} || $was_alive) {
+				print $html "<b>$firstname</b>";
+				if($relationship) {
+					if(($dob || $marriage) && (!($was_alive || $opts{'l'}))) {
+						print $html ',';
+					} elsif($was_alive) {
+						print $html ' is';
+					} else {
+						print $html ' was';
+					}
+				}
+			} else {
+				print $html "<b>$firstname ",
+					$name_components{'surname_1'},
+					'</b>';
+				print $html ',' if($relationship);
+			}
 		}
 	} else {
 		print $html $pronoun;
