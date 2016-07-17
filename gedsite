@@ -1046,6 +1046,63 @@ sub print_person
 				}
 				$end_of_sentence = 0;
 			}
+			if($opts{'w'}) {
+				if($mother && (my $mumdateofbirth = get_value({ person => $mother, value => 'birth date' }))) {
+					if($mumdateofbirth =~ /.*?(\d{3,4})/) {
+						$mumdateofbirth = $1;
+						if(($mumdateofbirth - $yob) <= 13) {
+							if($opts{'f'}) {
+								die "something is wrong with the date of birth which is less than 13 years after the mother was born ($mumdateofbirth)";
+							}
+							red_warning({
+								person => $person,
+								warning => "something is wrong with the date of birth which is less than 13 years after the mother was born ($mumdateofbirth)"
+							});
+						}
+					}
+				}
+				if($father && (my $daddateofbirth = get_value({ person => $father, value => 'birth date' }))) {
+					if($daddateofbirth =~ /.*?(\d{3,4})/) {
+						$daddateofbirth = $1;
+						if(($daddateofbirth - $yob) <= 13) {
+							if($opts{'f'}) {
+								die "something is wrong with the date of birth which is less than 13 years after the father was born ($daddateofbirth)";
+							}
+							red_warning({
+								person => $person,
+								warning => "something is wrong with the date of birth which is less than 13 years after the father was born ($daddateofbirth)"
+							});
+						}
+					}
+				}
+				if($death_dt || ($dateofdeath && ($dateofdeath =~ /^\d{3,4}$/))) {
+					# TODO: Add more checking
+					my $yod;
+					if($death_dt) {
+						$yod = $death_dt->year();
+					} elsif($dateofdeath =~ /^(\d{3,4})$/) {
+						$yod = $1;
+					} else {
+						die "BUG: Impossible case";
+					}
+					foreach my $bc(@birthcitations) {
+						my $citation = $citations{$bc};
+						my $title = $citation->title();
+						if($title =~ /^(\d{3,4})\s/) {
+							if($1 > $yod) {
+								if($opts{'f'}) {
+									die $person->as_string(),
+										": Year of citation of $title is after the death year of $yod"
+								}
+								red_warning({
+									person => $person,
+									warning => "Year of citation of $title is after the death year of $yod"
+								});
+							}
+						}
+					}
+				}
+			}
 			if($dateofbaptism || $placeofbaptism) {
 				print $html ' ';
 				unless($dateofbirth || $placeofbirth) {
@@ -2227,7 +2284,7 @@ sub print_person
 			return $orig_uri;
 		});
 		print $html "<h2>Known Issues</h2>",
-			map { $ufinder->find(\$_); '<p>' . HTML::Entitites::encode($_) . '</p>' } @{$person->{'warnings'}};
+			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
 	}
 
 	my @place_events = keys %place_records;
@@ -2247,24 +2304,25 @@ sub print_person
 					}
 					if($annotation) {
 						$map->add_marker(point => $current_place, html => "$current_place<br>$annotation");
-						$current_place = undef;
+						$annotation = undef;
 					} else {
 						$map->add_marker(point => $current_place, html => $current_place);
 					}
-					$annotation = undef;
-				} else {
 					$current_place = $place;
-					my $text = $event;
-					$text =~ s/\/.+//;	# Remove count e.g. when more than one residence
-					if($record->date()) {
-						$text .= ' ' . year({ person => $person, record => $record });
-					}
-					if(my $note = $record->note()) {
-						$note =~ s/\n/<br>/g;
-						$text .= "<br>$note";
-					}
-					$annotation .= '<p>$text</p>';
 				}
+				if(!defined($current_place)) {
+					$current_place = $place;
+				}
+				my $text = $event;
+				$text =~ s/\/.+//;	# Remove count e.g. when more than one residence
+				if($record->date()) {
+					$text .= ' ' . year({ person => $person, record => $record });
+				}
+				if(my $note = $record->note()) {
+					$note =~ s/\n/<br>/g;
+					$text .= "<br>$note";
+				}
+				$annotation .= "<p>$text</p>";
 			}
 		}
 		if($current_place) {
@@ -2272,7 +2330,11 @@ sub print_person
 				$map = HTML::GoogleMaps::V3->new();
 				$map->center($current_place);
 			}
-			$map->add_marker(point => $current_place, html => "$current_place<br>$annotation");
+			if($annotation) {
+				$map->add_marker(point => $current_place, html => "$current_place<br>$annotation");
+			} else {
+				$map->add_marker(point => $current_place, html => $current_place);
+			}
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
