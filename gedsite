@@ -1048,7 +1048,7 @@ sub print_person
 				$end_of_sentence = 0;
 			}
 			if($opts{'w'}) {
-				if($mother && (my $mumdateofbirth = get_value({ person => $mother, value => 'birth date' }))) {
+				if($mother && &yob && (my $mumdateofbirth = get_value({ person => $mother, value => 'birth date' }))) {
 					if($mumdateofbirth =~ /.*?(\d{3,4})/) {
 						$mumdateofbirth = $1;
 						if(($yob - $mumdateofbirth) <= 13) {
@@ -1062,7 +1062,7 @@ sub print_person
 						}
 					}
 				}
-				if($father && (my $daddateofbirth = get_value({ person => $father, value => 'birth date' }))) {
+				if($father && &yob && (my $daddateofbirth = get_value({ person => $father, value => 'birth date' }))) {
 					if($daddateofbirth =~ /.*?(\d{3,4})/) {
 						$daddateofbirth = $1;
 						if(($yob - $daddateofbirth) <= 13) {
