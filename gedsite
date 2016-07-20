@@ -77,6 +77,7 @@ my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 my %censusmaps = (
 	'1841 England Census' => '1841 UK Census',
 	'1851 England Census' => '1851 UK Census',
+	'1851 England, Wales & Scotland Census - Findmypast' => '1851 UK Census',
 	'1861 England Census' => '1861 UK Census',
 	'1861 England, Wales & Scotland Census - Findmypast' => '1861 UK Census',
 	'1871 England Census' => '1871 UK Census',
