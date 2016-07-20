@@ -1674,6 +1674,7 @@ sub print_person
 			$end_of_sentence = 0;
 		} elsif($dateofdeath || $placeofdeath) {
 			print $html '.' if(!$end_of_sentence);
+			print $html "  $pronoun died";
 			if($dateofdeath) {
 				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath) {
