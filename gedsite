@@ -180,6 +180,7 @@ if($dot || $opts{'d'}) {
 if($gedcal) {
 	mkdir 'html/calendar';
 }
+mkdir 'site/databases';
 
 if($opts{'d'}) {
 	# Download copies of objects rather than link to them, useful if the
@@ -204,6 +205,9 @@ my $pr;
 if(!$opts{'w'}) {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
+
+open(my $xml, '>', 'site/databases/people.xml');
+print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -213,9 +217,14 @@ foreach my $person($ged->individuals()) {
 		$| = 0;
 	}
 	if(!$printed{$person->{'xref'}}) {
+		print $xml "<person row_id=\"$index\">";
 		print_person({ person => $person });
+		print $xml '</person>';
 	}
 }
+print $xml '</table>';
+close $xml;
+
 if(!$opts{'w'}) {
 	print "\n$index records processed\n";
 }
@@ -517,6 +526,7 @@ sub print_person
 		print $html '</head>',
 			"<body><h1>The Family Tree of $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
 		close $html;
+		print $xml '<home>1</home>';
 	}
 
 	my $name = $person->name();
@@ -533,6 +543,7 @@ sub print_person
 	}
 
 	open(my $html, '>', 'html/' . make_filename_from_person(person => $person));
+	print $xml '<entry>', $person->{'xref'}, "</entry><title>$title</title>";
 	if($opts{'m'}) {
 		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
 	} else {
@@ -553,6 +564,7 @@ sub print_person
 
 	if($was_alive && !$opts{'l'}) {
 		print $html '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
+		print $xml '<alive>1</alive>';
 	} else {
 		$surnames->{$surname}->{$title} = $person;
 	}
@@ -969,7 +981,7 @@ sub print_person
 	}
 
 	if($firstname) {
-		if((!$was_alive) || $opts{'l'} || ($person ne $me)) {
+		if((!$was_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
 			if($father || $mother || $occupations[0]) {
 				print $html ', ';
 			}
@@ -3318,7 +3330,7 @@ sub make_filename_from_person
 
 	my $person = $params{'person'};
 
-die if(!defined($person));
+	die if(!defined($person));
 
 	my $rc = $person->as_string(include_years => 1);
 	$rc =~ tr/ /-/s;
