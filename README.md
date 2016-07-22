@@ -10,7 +10,15 @@ and Ancestry.
 Typical usage:
 
     gedsite -cFdh 'Your Name' gedfile.ged
-    copy files in the html directory to your webserver
+
+You will then have two sites - static-site is static HTML,
+dynamic-sitc is a VWF based website which used templates to support more than one
+language and mobile/web/search-engine clients.
+
+If you decide to use the static site, just copy files in the static-site directory to your webserver.
+If you decide to use the dynamic site first create a $hostname.com file in the conf directory (use
+example.com as a template), then modify the contents of the template tree so that the site looks as
+you want it.  Then upload the dynamic-site directory to your webserver.
 
 The options are:
 
@@ -31,5 +39,5 @@ The options are:
 If gedcal is installed, gedsite will also create a calendar of births and
 deaths, one page for each month in the current year.
 
-An example genealogy website that was produced Gedsite by is available at
+An example static genealogy website that was produced Gedsite by is available at
 https://genealogy.nigelhorne.com.

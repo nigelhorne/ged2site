@@ -22,7 +22,7 @@ sub html {
 
 	my $people = $args{'people'};	# Handle into the database
 
-	# Look in the people.xml for the name given as the CGI argument and
+	# Look in the people.csv for the name given as the CGI argument and
 	# find their details
 	my $person = $people->fetchrow_hashref($params);
 

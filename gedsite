@@ -172,13 +172,13 @@ if(-x '/usr/bin/gedcal') {
 	$gedcal = '../gedcal/gedcal';
 }
 
-mkdir 'html';
+mkdir 'static-site';
 if($dot || $opts{'d'}) {
-	mkdir 'html/img';
+	mkdir 'static-site/img';
 	mkdir 'thumbs';
 }
 if($gedcal) {
-	mkdir 'html/calendar';
+	mkdir 'static-site/calendar';
 }
 mkdir 'site/databases';
 
@@ -206,8 +206,11 @@ if(!$opts{'w'}) {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
 
-open(my $xml, '>', 'site/databases/people.xml');
-print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
+# Would be nice to use XML, but that needs DBD::AnyData which doesn't build
+# open(my $xml, '>', 'dynamic-site/databases/people.xml');
+# print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
+open(my $csv, '>', 'dynamic-site/databases/people.csv');
+print $csv "entry!title!home!alive\n";
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -218,13 +221,15 @@ foreach my $person($ged->individuals()) {
 	}
 	if(!$printed{$person->{'xref'}}) {
 		# FIXME: change &eacute; to e
-		print $xml "<person person_id=\"$index\">";
+		# print $xml "<person person_id=\"$index\">";
 		print_person({ person => $person });
-		print $xml '</person>';
+		# print $xml '</person>';
+		print $csv "\n";
 	}
 }
-print $xml '</table>';
-close $xml;
+# print $xml '</table>';
+# close $xml;
+close $csv;
 
 if(!$opts{'w'}) {
 	print "\n$index records processed\n";
@@ -238,7 +243,7 @@ if($me) {
 }
 
 if($opts{'w'}) {
-	open(my $html, '>', 'html/todo.html');
+	open(my $html, '>', 'static-site/todo.html');
 	print $html "<html><head><title>Errors in the Family Tree $name</title>",
 		"</head><body><center><h1>Errors in the Family Tree $name</h1>";
 	if($me) {
@@ -259,7 +264,7 @@ if($opts{'w'}) {
 }
 
 print "Creating census index\n";
-open(my $html, '>', 'html/censuses.html');
+open(my $html, '>', 'static-site/censuses.html');
 print $html "<html><head><title>Censuses in the Family Tree of $name</title>",
 	"</head><body><center><h1>Censuses in the Family Tree of $name</h1></center><br><ul>";
 
@@ -268,7 +273,7 @@ foreach my $census(sort keys(%censuses)) {
 	$filename =~ tr/ /_/;
 	print $html "<li><a href=\"$filename.html\">$census</a></li>";
 
-	open(my $chtml, '>', "html/$filename.html");
+	open(my $chtml, '>', "static-site/$filename.html");
 	print $chtml "<html><head><title>The Family Tree of $name - $census</title>",
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $census</h1>";
@@ -300,7 +305,7 @@ print $html '</ul></body></html>';
 close $html;
 
 print "Creating surname index\n";
-open($html, '>', 'html/surnames.html');
+open($html, '>', 'static-site/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree of $name</title>",
 	"</head><body><center><h1>Surnames in the Family Tree of $name</h1>";
 if($me) {
@@ -328,7 +333,7 @@ foreach my $surname(sort keys %{$surnames}) {
 	}
 	print $html ')</li>';
 
-	open(my $shtml, '>', "html/$filename.html");
+	open(my $shtml, '>', "static-site/$filename.html");
 	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
 		'</head>',
 		"<body><center><h1>The Family Tree of $name - $surname</h1>";
@@ -361,14 +366,14 @@ print $html '</ul></body></html>';
 close $html;
 
 if($opts{'g'}) {
-	open($html, '>', "html/$opts{g}.html");
+	open($html, '>', "static-site/$opts{g}.html");
 	print $html "google-site-verification: $opts{g}.html";
 	close $html;
 }
 
 if($gedcal) {
 	print "Creating calendar\n";
-	if(open(my $fout, '>', 'html/calendar/index.html')) {
+	if(open(my $fout, '>', 'static-site/calendar/index.html')) {
 		print $fout "<html><head><title>Genealogy Calendar $name</title></head>",
 			"<body><center><h1>Genealogy Calendar $name</h1>";
 		if($me) {
@@ -388,7 +393,7 @@ if($gedcal) {
 				$pr->write();
 				$| = 0;
 				print $fout "<li><a href=\"$month.html\">", @{$dtl->month_format_wide()}[$month - 1], '</a></li>';
-				open(my $mout, '>', "html/calendar/$month.html");
+				open(my $mout, '>', "static-site/calendar/$month.html");
 				while(<$fin>) {
 					print $mout $_;
 				}
@@ -400,7 +405,7 @@ if($gedcal) {
 }
 
 # TODO - this is a POC which seems to work
-if(open(my $fout, '>', 'html/history.html')) {
+if(open(my $fout, '>', 'static-site/history.html')) {
 	print "Creating family history page\n";
 	print $fout "<html><head><title>Family History $name</title></head>",
 		"<body><center><h1>Family History $name</h1>";
@@ -511,25 +516,6 @@ sub print_person
 		title => 1,
 	});
 
-	if($me && ($person eq $me)) {
-		my $name = $person->as_string(nee => 1);
-
-		open(my $html, '>', 'html/index.html');
-		print $html "<html><head><title>The Family Tree of $name</title>",
-			'<meta http-equiv="Refresh" content="1;URL=', make_filename_from_person(person => $person), '">';
-		if($ENV{'LANG'}) {
-			my $lang = $ENV{'LANG'};
-			$lang =~ s/\.UTF-8//;
-			$lang =~ tr/_/-/;
-			$lang = lc($lang);
-			print $html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
-		}
-		print $html '</head>',
-			"<body><h1>The Family Tree of $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
-		close $html;
-		print $xml '<home>1</home>';
-	}
-
 	my $name = $person->name();
 	$name =~ s/\///g;
 	$nameparser->parse($name);
@@ -543,8 +529,32 @@ sub print_person
 		$title = $firstname;
 	}
 
-	open(my $html, '>', 'html/' . make_filename_from_person(person => $person));
-	print $xml '<entry>', $person->{'xref'}, "</entry><title>$title</title>";
+	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
+	# print $xml '<entry>', $person->{'xref'}, "</entry><title>$title</title>";
+	print $csv $person->{'xref'}, "!$title!";
+
+	if($me && ($person eq $me)) {
+		my $name = $person->as_string(nee => 1);
+
+		open(my $html, '>', 'static-site/index.html');
+		print $html "<html><head><title>The Family Tree of $name</title>",
+			'<meta http-equiv="Refresh" content="1;URL=', make_filename_from_person(person => $person), '">';
+		if($ENV{'LANG'}) {
+			my $lang = $ENV{'LANG'};
+			$lang =~ s/\.UTF-8//;
+			$lang =~ tr/_/-/;
+			$lang = lc($lang);
+			print $html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
+		}
+		print $html '</head>',
+			"<body><h1>The Family Tree of $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
+		close $html;
+		# print $xml '<home>1</home>';
+		print $csv '1!';
+	} else {
+		print $csv '0!';
+	}
+
 	if($opts{'m'}) {
 		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
 	} else {
@@ -565,8 +575,10 @@ sub print_person
 
 	if($was_alive && !$opts{'l'}) {
 		print $html '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
-		print $xml '<alive>1</alive>';
+		# print $xml '<alive>1</alive>';
+		print $csv '1!';
 	} else {
+		print $csv '0!';
 		$surnames->{$surname}->{$title} = $person;
 	}
 
@@ -2144,7 +2156,7 @@ sub print_person
 						my $browser = LWP::UserAgent->new();
 						my $resp = $browser->get($file);
 						if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
-							my $localfile = 'html/img/' . make_filename_from_object(object => $obje) . '.jpg';
+							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							my $key = $person->as_string() . ";$localfile";
 							if($images{$key}) {
 								# Flag a person having two images of the same
@@ -2166,12 +2178,12 @@ sub print_person
 						if($opts{'d'}) {
 							# Get and stash a local copy
 							my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
-							if((-r "html/$localfile") ||
-							   is_success(getstore($file, "html/$localfile"))) {
-								my $info = Image::Info::image_info("html/$localfile");
+							if((-r "static-site/$localfile") ||
+							   is_success(getstore($file, "static-site/$localfile"))) {
+								my $info = Image::Info::image_info("static-site/$localfile");
 								my ($w, $h) = Image::Info::dim($info);
 								if(!defined($w)) {
-									die "html/$localfile";
+									die "static-site/$localfile";
 								}
 								$h *= 175 / $w;
 								$h = int($h);
@@ -2180,10 +2192,10 @@ sub print_person
 									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
 									'</a>';
 								if(!defined($profile_image)) {
-									$profile_image = "html/$localfile";
+									$profile_image = "static-site/$localfile";
 								}
 							} else {
-								red_warning({ person => $person, warning => "html/$localfile: $!" });
+								red_warning({ person => $person, warning => "static-site/$localfile: $!" });
 
 								print $html "<a href=\"$file\" target=\"_blank\">",
 									"<img src=\"$file\" alt=\"$title\" width=\"175\">",
@@ -2215,7 +2227,7 @@ sub print_person
 		}
 
 		if(defined($dot)) {
-			my $png = "html/img/" . make_filename_from_object(object => $person) . '.png';
+			my $png = "static-site/img/" . make_filename_from_object(object => $person) . '.png';
 			my $tmp = File::Temp->new();
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
@@ -2269,7 +2281,7 @@ sub print_person
 
 				print $html '<h2>Family Tree</h2>';
 				my $filename = make_filename_from_object(object => $person);
-				my $info = Image::Info::image_info("html/img/$filename.png");
+				my $info = Image::Info::image_info("static-site/img/$filename.png");
 				print $html "<img src=\"img/$filename.png\" ", Image::Info::html_dim($info), ' usemap="#family" alt="Family Tree">';
 				$tmp->seek(0, SEEK_SET);
 				foreach my $line(<$tmp>) {

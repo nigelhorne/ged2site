@@ -102,6 +102,13 @@ sub new {
 				File::Spec->updir(),
 				'conf'
 			);
+		unless(-d $path) {
+			$path = File::Spec->catdir(
+					$info->script_dir(),
+					File::Spec->updir(),
+					'conf'
+				);
+		}
 
 		unless(-d $path) {
 			if($ENV{'DOCUMENT_ROOT'}) {
