@@ -41,3 +41,6 @@ deaths, one page for each month in the current year.
 
 An example static genealogy website that was produced Gedsite by is available at
 https://genealogy.nigelhorne.com.
+
+Note that the dynamic page generation has only just been started, and is
+currently only a proof of concept.  Don't use it.
