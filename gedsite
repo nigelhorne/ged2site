@@ -210,7 +210,7 @@ if(!$opts{'w'}) {
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive\n";
+print $csv "entry!title!home!alive!bio!father!mother!children\n";
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -573,14 +573,17 @@ sub print_person
 	}
 	print $html ' | [ <a href="history.html">Family History</a> ]</center><p>';
 
+	my $bio;
+
 	if($was_alive && !$opts{'l'}) {
-		print $html '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
 		# print $xml '<alive>1</alive>';
 		print $csv '1!';
+		$bio = '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
 	} else {
 		print $csv '0!';
 		$surnames->{$surname}->{$title} = $person;
 	}
+
 
 	my ($birth_dt, $marriage_dt, $death_dt);
 	my $birth = $person->get_record('birth');
@@ -870,21 +873,22 @@ sub print_person
 
 	# TODO: print all occupations
 	if($occupations[0]) {
-		print $html 'A';
+		$bio .= 'A';
 		if($occupations[0] =~ /^[aeiou]/i) {
-			print $html 'n';
+			$bio .= 'n';
 		}
-		print $html ' ', HTML::Entities::encode(lc($occupations[0]));
+		$bio .= ' ' . HTML::Entities::encode(lc($occupations[0]));
 		if(!($father || $mother || $spouserelationship)) {
-			print $html ', ';
+			$bio .= ', ';
 		}
 	}
+
 	my $print_sibling_count = 0;
 	if($father || $mother) {
 		if(scalar(@occupations)) {
-			print $html ' and the ';
+			$bio .= ' and the ';
 		} else {
-			print $html 'The ';
+			$bio .= 'The ';
 		}
 
 		if($birth_dt && ($opts{'l'} || !$was_alive)) {
@@ -925,69 +929,70 @@ sub print_person
 				}
 				if($print_sibling_count) {
 					if((scalar(@siblings)) && ($count == (scalar(@siblings) + 1))) {
-						print $html 'last';
+						$bio .= 'last';
 					} else {
-						print $html ordinate($count);
+						$bio .= ordinate($count);
 					}
-					print $html ' of ', scalar(@siblings) + 1, ' children';
+					$bio .= ' of ' . (scalar(@siblings) + 1) . ' children';
 				} else {
-					print $html 'child';
+					$bio .= 'child';
 				}
 			} else {
-				# print $html ' only child of';
-				print $html 'child';
+				# $bio .= ' only child of';
+				$bio .= 'child';
 			}
 		} else {
-			print $html 'child';
+			$bio .= 'child';
 		}
 
-		print $html ' of';
+		$bio .= ' of';
 
+		# FIXME: CSV links need to go to the dynamic site, but static site
 		if($opts{'l'} || !$was_alive) {
 			if($father) {
-				print $html ' <a href="', make_filename_from_person(person => $father), '">',
-					$father->as_string(),
+				$bio .= ' <a href="' . make_filename_from_person(person => $father) . '">' .
+					$father->as_string() .
 					'</a>';
 				my @occupations = $father->get_value('occupation');
 				# TODO: print $html all occupations
 				if($occupations[0]) {
-					print $html ' (a';
+					$bio .= ' (a';
 					if($occupations[0] =~ /^[aeiou]/i) {
-						print $html 'n';
+						$bio .= 'n';
 					}
-					print $html ' ', HTML::Entities::encode(lc($occupations[0])), ')';
+					$bio .= ' ' . HTML::Entities::encode(lc($occupations[0])) . ')';
 				}
 				if($mother) {
-					print $html ' and';
+					$bio .= ' and';
 				}
 			}
 			if($mother) {
-				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
-					$mother->as_string(give_maidenname => 0),
+				$bio .= ' <a href="' . make_filename_from_person(person => $mother) . '">' .
+					$mother->as_string(give_maidenname => 0) .
 					'</a>';
 
 				my @occupations = $mother->get_value('occupation');
 				# TODO: print $html all occupations
 				if($occupations[0]) {
-					print $html ' (a';
+					$bio .= ' (a';
 					if($occupations[0] =~ /^[aeiou]/i) {
-						print $html 'n';
+						$bio .= 'n';
 					}
-					print $html ' ', lc($occupations[0]), ')';
+					$bio .= ' ' . lc($occupations[0]) . ')';
 				}
 			}
 		} else {
 			if($father) {
-				print $html ' <a href="', make_filename_from_person(person => $father), '">',
-					$father->given_names(),
+				$bio .= ' <a href="' . make_filename_from_person(person => $father) . '">' .
+					$father->given_names() .
 					'</a>';
 				if($mother) {
-					print $html ' and';
+					$bio .= ' and';
 				}
 			}
 			if($mother) {
-				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
-					$mother->given_names(),
+				$bio .= ' <a href="' . make_filename_from_person(person => $mother) . '">' .
+					$mother->given_names() .
 					'</a>';
 			}
 		}
@@ -996,47 +1001,47 @@ sub print_person
 	if($firstname) {
 		if((!$was_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
 			if($father || $mother || $occupations[0]) {
-				print $html ', ';
+				$bio .= ', ';
 			}
 			if($opts{'l'} || $was_alive) {
-				print $html "<b>$firstname</b>";
+				$bio .= "<b>$firstname</b>";
 				if($relationship) {
 					if(($dob || $marriage) && (!($was_alive || $opts{'l'}))) {
-						print $html ',';
+						$bio .= ',';
 					} elsif($was_alive) {
-						print $html ' is';
+						$bio .= ' is';
 					} else {
-						print $html ' was';
+						$bio .= ' was';
 					}
 				}
 			} else {
-				print $html "<b>$firstname ",
-					$name_components{'surname_1'},
+				$bio .= "<b>$firstname " .
+					$name_components{'surname_1'} .
 					'</b>';
-				print $html ',' if($relationship);
+				$bio .= ',' if($relationship);
 			}
 		}
 	} else {
-		print $html $pronoun;
+		$bio .= $pronoun;
 	}
 
 	my $haveprintedspousename;
 	if($relationship) {
-		print $html " the $relationship of ",
-			'<a href="', make_filename_from_person(person => $me), '">',
-			$me->as_string(nee => 1),
+		$bio .= " the $relationship of " .
+			'<a href="' . make_filename_from_person(person => $me) . '">' .
+			$me->as_string(nee => 1) .
 			'</a>';
 	} elsif($spouserelationship) {
 		if($sex eq 'F') {
-			print $html ', the wife of';
+			$bio .= ', the wife of';
 		} else {
-			print $html ', the husband of';
+			$bio .= ', the husband of';
 		}
-		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
-			$spouse->as_string({ middle_names => 1, title => 1 }),
-			"</a>, the $spouserelationship of ",
-			'<a href="', make_filename_from_person(person => $me), '">',
-			$me->as_string(nee => 1),
+		$bio .= ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
+			$spouse->as_string({ middle_names => 1, title => 1 }) .
+			"</a> . the $spouserelationship of " .
+			'<a href="' . make_filename_from_person(person => $me) . '">' .
+			$me->as_string(nee => 1) .
 			'</a>,';
 		$haveprintedspousename = 1;
 	}
@@ -1048,26 +1053,26 @@ sub print_person
 			if($dateofbirth || $placeofbirth) {
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
-				print $html ',' if($relationship);
-				print $html ' was born';
+				$bio .= ',' if($relationship);
+				$bio .= ' was born';
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
-					print $html $p;
+					$bio .= $p;
 					$places_printed{$p} = 1;
 				}
 				if($dateofbirth) {
-					print $html ' ', year({
+					$bio .= ' ' . year({
 						person => $person,
 						date => $dateofbirth,
 						must_predate => $death_dt
 					});
 				}
-				print $html "[$_]" foreach(@birthcitations);
+				$bio .= "[$_]" foreach(@birthcitations);
 				if($dateofbaptism || $placeofbaptism) {
 					if(scalar(@spouses)) {
-						print $html ', was';
+						$bio .= ', was';
 					} else {
-						print $html ' and';
+						$bio .= ' and';
 					}
 				}
 				$end_of_sentence = 0;
@@ -1130,57 +1135,55 @@ sub print_person
 				}
 			}
 			if($dateofbaptism || $placeofbaptism) {
-				print $html ' ';
+				$bio .= ' ';
 				unless($dateofbirth || $placeofbirth) {
-					print $html 'was ';
+					$bio .= 'was ';
 				}
 				if($ENV{'LANG'} =~ /^en_US/) {
-					print $html 'baptized';
+					$bio .= 'baptized';
 				} else {
-					print $html 'baptised';
+					$bio .= 'baptised';
 				}
 				if($placeofbaptism) {
 					if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
-						print $html ' there';
+						$bio .= ' there';
 					} else {
 						my $p = place({ person => $person, place => $placeofbaptism });
-						print $html $p;
+						$bio .= $p;
 						$places_printed{$p} = 1;
 					}
 				}
 				if($dateofbaptism) {
-					print $html ' ', year({
+					$bio .= ' ' . year({
 						person => $person,
 						date => $dateofbaptism,
 						must_postdate => $birth_dt,
 						must_predate => $death_dt
-					});
-					print_sibling_baptism({
+					}) . sibling_baptism_string({
 						person => $person,
 						siblings => \@siblings,
 						date => $dateofbaptism,
 						birthdate => $dateofbirth,
-						fout => $html
 					});
 				}
 			}
 			if(scalar(@spouses)) {
-				print $html ' and';
+				$bio .= ' and';
 			} else {
-				print $html '.';
+				$bio .= '.';
 				$end_of_sentence = 1;
 			}
 		} elsif($dateofbaptism || $placeofbaptism) {
-			print $html " $pronoun was ";
+			$bio .= " $pronoun was ";
 
 			if($ENV{'LANG'} =~ /^en_US/) {
-				print $html 'baptized';
+				$bio .= 'baptized';
 			} else {
-				print $html 'baptised';
+				$bio .= 'baptised';
 			}
 			if($placeofbaptism) {
 				if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
-					print $html ' there';
+					$bio .= ' there';
 				} else {
 					my $opts = {
 						person => $person,
@@ -1192,30 +1195,28 @@ sub print_person
 						$opts{'address'} = $address;
 					}
 					my $p = place($opts);
-					print $html $p;
+					$bio .= $p;
 					$places_printed{$p} = 1;
 				}
 			}
 			if($dateofbaptism) {
-				print $html ' ', year({
+				$bio .= ' ' . year({
 					person => $person,
 					date => $dateofbaptism,
 					must_postdate => $birth_dt,
 					must_predate => $death_dt
-				});
-				print_sibling_baptism({
+				}) . sibling_baptism_string({
 					person => $person,
 					siblings => \@siblings,
 					date => $dateofbaptism,
 					birthdate => $dateofbirth,
-					fout => $html
 				});
 			}
 			if(scalar(@spouses)) {
-				print $html ' and';
+				$bio .= ' and';
 				$end_of_sentence = 0;
 			} else {
-				print $html '.';
+				$bio .= '.';
 				$end_of_sentence = 1;
 			}
 		}
@@ -1237,102 +1238,102 @@ sub print_person
 
 		if(scalar(@spouses) &&
 		   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
-			print $html '<p>', ucfirst($pronoun) if($end_of_sentence);
+			$bio .= '<p>' . ucfirst($pronoun) if($end_of_sentence);
 
 			if(scalar(@spouses) == 1) {
 				if($placeofmarriage || $dateofmarriage) {
-					print $html ' married ';
+					$bio .= ' married ';
 				} else {
-					print $html ' was married to ';
+					$bio .= ' was married to ';
 				}
 				my $parentheses = 0;
 				if($haveprintedspousename) {
 					$nameparser->parse($spouses[0]->name());
 
 					my %name_components = $nameparser->components();
-					print $html $name_components{'given_name_1'};
+					$bio .= $name_components{'given_name_1'};
 				} else {
 					if($opts{'l'} || !$was_alive) {
-						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
-							$spouses[0]->as_string(),
+						$bio .= '<a href="' . make_filename_from_person(person => $spouses[0]) . '">' .
+							$spouses[0]->as_string() .
 							'</a>';
 					} else {
-						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
-							$spouses[0]->given_names(),
+						$bio .= '<a href="' . make_filename_from_person(person => $spouses[0]) . '">' .
+							$spouses[0]->given_names() .
 							'</a>';
 					}
 					$haveprintedspousename = 1;
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
 					if($spouse_occupations[0]) {
-						print $html ' (a ', HTML::Entities::encode(lc($spouse_occupations[0]));
+						$bio .= ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
 						$parentheses = 1;
 					}
 				}
 				if($numberofchildren) {
 					if($parentheses || ((!$placeofmarriage) && (!$dateofmarriage))) {
-						print $html ', ';
+						$bio .= ', ';
 					} else {
-						print $html ' (';
+						$bio .= ' (';
 						$parentheses = 1;
 					}
-					print $html 'with whom ', lcfirst($pronoun);
+					$bio .= 'with whom ' . lcfirst($pronoun);
 					if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
-						print $html ' had ';
+						$bio .= ' had ';
 					} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
-						print $html ' has had ';
+						$bio .= ' has had ';
 					} else {
-						print $html $dateofdeath || $dateofburial ? ' had ' : ' has ';
+						$bio .= $dateofdeath || $dateofburial ? ' had ' : ' has ';
 					}
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
-							print $html '1 surviving child, ';
+							$bio .= '1 surviving child, ';
 						} else {
-							print $html '1 child, ';
+							$bio .= '1 child, ';
 						}
 					} else {
 						if($all_children_are_alive) {
-							print $html "$numberofchildren surviving children: ";
+							$bio .= "$numberofchildren surviving children: ";
 						} else {
-							print $html "$numberofchildren children: ";
+							$bio .= "$numberofchildren children: ";
 						}
 					}
 					if($numberofchildren == 1) {
-						print $html $children[0]->given_names();
+						$bio .= $children[0]->given_names();
 					} elsif($numberofchildren > 1) {
 						my $childnames = join(', ', map {
 							'<a href="' . make_filename_from_person(person => $_) . '">'.
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
-						print $html $childnames;
+						$bio .= $childnames;
 					}
 				}
 				if($opts{'l'} || !$was_alive) {
 					if($parentheses) {
-						print $html ')';
+						$bio .= ')';
 					} elsif(($dateofmarriage || $placeofmarriage) && $numberofchildren) {
-						print $html ',';
+						$bio .= ',';
 					}
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
-						print $html ' there ',
+						$bio .= ' there ' .
 							year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
 					} else {
 						if($placeofmarriage) {
 							my $p = place({ place => $placeofmarriage, person => $person, places_printed => \%places_printed });
-							print $html $p;
+							$bio .= $p;
 							$places_printed{$p} = 1;
 						}
-						print $html ' ', year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
+						$bio .= ' ' . year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
 					}
-					print $html "[$marriagecitation]" if($marriagecitation);
+					$bio .= "[$marriagecitation]" if($marriagecitation);
 				}
 			} elsif($opts{'l'} || !$was_alive) {
-				print $html ' was married ';
+				$bio .= ' was married ';
 				if(scalar(@spouses) == 2) {
-					print $html 'twice';
+					$bio .= 'twice';
 				} else {
-					print $html scalar(@spouses), ' times';
+					$bio .= scalar(@spouses) . ' times';
 				}
 
 				my $names;
@@ -1377,8 +1378,8 @@ sub print_person
 					}
 				}
 				# substr($names, rindex($names, ', '), 2, ' and ');
-				print $html ", to$names";
-				print $html "[$marriagecitation]" if($marriagecitation);
+				$bio .= ", to$names";
+				$bio .= "[$marriagecitation]" if($marriagecitation);
 
 				# Determine if all the children are from one marriage, since that's
 				# easier to print.
@@ -1408,30 +1409,30 @@ sub print_person
 							$parentofall = $spouse;
 						}
 					}
-					print $html ". $pronoun ",
+					$bio .= ". $pronoun " .
 						$all_children_are_alive ? 'has ' : 'had ';
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
-							print $html '1 surviving child';
+							$bio .= '1 surviving child';
 						} else {
-							print $html '1 child';
+							$bio .= '1 child';
 						}
 						if($parentofall) {
-							print $html ' with ', $parentofall->as_string();
+							$bio .= ' with ' . $parentofall->as_string();
 						}
 						# TODO: make hyperlink to the persons record, unless surviving
-						print $html ', ', $children[0]->given_names();
+						$bio .= ', ' . $children[0]->given_names();
 					} else {
 						if($all_children_are_alive) {
-							print $html "$numberofchildren surviving children";
+							$bio .= "$numberofchildren surviving children";
 						} else {
-							print $html "$numberofchildren children";
+							$bio .= "$numberofchildren children";
 						}
 						if($parentofall) {
 							if($numberofchildren == 2) {
-								print $html ', both with ', $parentofall->as_string();
+								$bio .= ', both with ' . $parentofall->as_string();
 							} else {
-								print $html ', all with ', $parentofall->as_string();
+								$bio .= ', all with ' . $parentofall->as_string();
 							}
 						}
 						# TODO: only add hyperlink to dead children
@@ -1440,23 +1441,23 @@ sub print_person
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
-						print $html ": $childnames";
+						$bio .= ": $childnames";
 					}
 				}
 			}
 			$end_of_sentence = 0;
 		} elsif($numberofchildren) {
 			if($end_of_sentence) {
-				print $html " $pronoun";
+				$bio .= " $pronoun";
 			}
-			print $html ' had ',
+			$bio .= ' had ' .
 				($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ";
 			if($numberofchildren == 1) {
-				print $html $children[0]->given_names();
+				$bio .= $children[0]->given_names();
 			} else {
 				my $childnames = join(', ', map { $_->given_names() } @children);
 				substr($childnames, rindex($childnames, ', '), 2, ' and ');
-				print $html $childnames;
+				$bio .= $childnames;
 			}
 			$end_of_sentence = 0;
 		}
@@ -1574,10 +1575,10 @@ sub print_person
 						next;
 					}
 					if(!$have_printed) {
-						print $html '.' unless($end_of_sentence);
-						print $html ' During ',
-							lc($person->possessive()),
-							' life ', lcfirst($pronoun), ' lived';
+						$bio .= '.' unless($end_of_sentence);
+						$bio .= ' During ' .
+							lc($person->possessive()) .
+							' life ' . lcfirst($pronoun) . ' lived';
 						$have_printed = 1;
 					}
 					my $p = place({
@@ -1585,17 +1586,17 @@ sub print_person
 						record => $residence,
 						places_printed => \%places_printed
 					});
-					print $html HTML::Entities::encode($p);
+					$bio .= HTML::Entities::encode($p);
 					$places_printed{$p} = 1;
 					$place_records{"Residence/$count"} = $residence;
 				}
 				if(my $notes = notes({ record => $residence })) {
 					$notes =~ s/\.$//;
 					$notes = lcfirst($notes);
-					print $html " ($notes)";
+					$bio .= " ($notes)";
 				}
 				if(my $date = $residence->date()) {
-					print $html ' ', year({ person => $person, date => $date });
+					$bio .= ' ', year({ person => $person, date => $date });
 					# Find if they are an adult living with an adult sibling
 					if(scalar(@siblings) && $birth_dt && $residence->address()) {
 						my $diff = $dfn->parse_datetime($date) - $birth_dt;
@@ -1607,13 +1608,13 @@ sub print_person
 									if((ref($sr) eq 'Gedcom::Record') &&
 									   $sr->date() && ($sr->date() eq $date) &&
 									   places_are_the_same({ first => $residence, second => $sr })) {
-										print $html ' when ',
-											lcfirst($person->pronoun()),
-											' was living with ',
-											lcfirst($person->possessive()),
-											($sibling->sex() eq 'F') ? ' sister, ' : ' brother, ',
-											'<a href="', make_filename_from_person(person => $sibling), '">',
-												$sibling->given_names(),
+										$bio .= ' when ' .
+											lcfirst($person->pronoun()) .
+											' was living with ' .
+											lcfirst($person->possessive()) .
+											($sibling->sex() eq 'F') ? ' sister, ' : ' brother, ' .
+											'<a href="' . make_filename_from_person(person => $sibling) . '">' .
+												$sibling->given_names() .
 											'</a>';
 									}
 								}
@@ -1622,7 +1623,7 @@ sub print_person
 					}
 				}
 				if($residencecitations{$residence}) {
-					print $html '[', $residencecitations{$residence}, ']';
+					$bio .= '[' . $residencecitations{$residence} . ']';
 				}
 				if($residence->place() &&
 				  ($count <= (scalar(@residencelist) - 1)) &&
@@ -1630,20 +1631,20 @@ sub print_person
 					my $peek = $residencelist[$count + 1];
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						if($residencecitations{$peek}) {
-							print $html '[', $residencecitations{$peek}, ']';
+							$bio .= '[' . $residencecitations{$peek} . ']';
 						}
 					}
 				}
 				$count++;
 				if($count < (scalar(@residencelist) - 1)) {
-					print $html ';';
+					$bio .= ';';
 				} elsif($count == (scalar(@residencelist) - 1)) {
-					print $html '; and';
+					$bio .= '; and';
 				}
 				$printed_residence = 1;
 			}
 			if($printed_residence) {
-				print $html '.';
+				$bio .= '.';
 				$end_of_sentence = 1;
 			}
 		}
@@ -1651,20 +1652,20 @@ sub print_person
 
 	if($placeofburial || $dateofburial) {
 		if((!$dateofdeath) && !$placeofdeath) {
-			print $html '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
+			$bio .= '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
 			if($dateofburial) {
-				print $html " $pronoun was buried ",
+				$bio .= " $pronoun was buried " .
 					year({ person => $person, date => $dateofburial });
 				if($placeofburial) {
 					if($placeofbirth && ($placeofburial eq $placeofbirth)) {
-						print $html ' in ',
-							lcfirst($person->possessive()),
+						$bio .= ' in ' .
+							lcfirst($person->possessive()) .
 							' home town of ';
 						my $city = $placeofburial;
 						if($city =~ /^(.+?),/) {
-							print $html $1;
+							$bio .= $1;
 						} else {
-							print $html place({
+							$bio .= place({
 								person => $person,
 								place => $placeofburial,
 								there => $placeofdeath,
@@ -1674,51 +1675,51 @@ sub print_person
 							});
 						}
 					} else {
-						print $html place({ person => $person, place => $placeofburial, there => $placeofdeath, places_printed => \%places_printed, must_postdate => $birth_dt });
+						$bio .= place({ person => $person, place => $placeofburial, there => $placeofdeath, places_printed => \%places_printed, must_postdate => $birth_dt });
 					}
 				}
 				my $b = get_value({ person => $person, value => 'burial note' });
 				if($b) {
 					$b =~ tr/\r//;
-					print $html " ($b)";
+					$bio .= " ($b)";
 				}
 			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
-				print $html " $pronoun was buried in ",
-					lcfirst($person->possessive()),
+				$bio .= " $pronoun was buried in " .
+					lcfirst($person->possessive()) .
 					' home town of ';
 				my $city = $placeofburial;
 				if($city =~ /^(.+?),/) {
-					print $html $1;
+					$bio .= $1;
 				} else {
-					print $html place({ person => $person, place => $placeofburial });
+					$bio .= place({ person => $person, place => $placeofburial });
 				}
 			} else {
-				print $html " $pronoun is buried",
+				$bio .= " $pronoun is buried",
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
 			}
 			$end_of_sentence = 0;
 		} elsif($dateofdeath || $placeofdeath) {
-			print $html '.' if(!$end_of_sentence);
-			print $html "  $pronoun died";
+			$bio .= '.' if(!$end_of_sentence);
+			$bio .= " $pronoun died";
 			if($dateofdeath) {
-				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath) {
-					print $html place({ person => $person, record => $death, places_printed => \%places_printed });
+					$bio .= place({ person => $person, record => $death, places_printed => \%places_printed });
 				}
 			} else {
-				print $html place({ person => $person, place => $placeofdeath });
+				$bio .= place({ person => $person, place => $placeofdeath });
 			}
 			if(my $d = get_value({ person => $person, value => 'death' })) {
 				$d =~ tr/\r//;
 				$d =~ tr/\n/ /;
 				$d =~ s/\.$//;
-				print $html ' (', HTML::Entities::encode($d), ')';
+				$bio .= ' (' . HTML::Entities::encode($d) . ')';
 			}
-			print $html "[$_]" foreach(@deathcitations);
+			$bio .= "[$_]" foreach(@deathcitations);
 			if($dateofburial) {
-				print $html ' and was buried';
+				$bio .= ' and was buried';
 				if($placeofburial) {
-					print $html place({
+					$bio .= place({
 						person => $person,
 						place => $placeofburial,
 						there => $placeofdeath,
@@ -1727,11 +1728,11 @@ sub print_person
 						address => get_value({ person => $person, value => 'burial address' })
 					});
 				}
-				print $html ' ', year({ person => $person, date => $dateofburial });
+				$bio .= ' ' . year({ person => $person, date => $dateofburial });
 				my $b = get_value({ person => $person, value => 'burial note' });
 				if($b) {
 					$b =~ tr/\r//;
-					print $html " ($b)";
+					$bio .= " ($b)";
 				}
 			} else {
 				my $opts = {
@@ -1742,51 +1743,51 @@ sub print_person
 				if(my $address = $burial->address()) {
 					$opts->{'address'} = $address;
 				}
-				print $html ' and is buried', place($opts);
+				$bio .= ' and is buried' . place($opts);
 			}
 			$end_of_sentence = 0;
 		}
-		print $html "[$_]" foreach(@burialcitations);
+		$bio .= "[$_]" foreach(@burialcitations);
 	} elsif($placeofdeath || $dateofdeath) {
 		# TODO - extract marriage banns information
 		if($person->marb()) {
 			# die 'foo';
 		}
 		if($placeofdeath && (scalar(@spouses) <= 1) && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-			print $html ', which is also where ', lcfirst($pronoun);
+			$bio .= ' . which is also where ' . lcfirst($pronoun);
 		} else {
-			print $html '.' if(!$end_of_sentence);
-			print $html " $pronoun";
+			$bio .= '.' if(!$end_of_sentence);
+			$bio .= " $pronoun";
 		}
-		print $html ' died';
+		$bio .= ' died';
 		if($dateofdeath) {
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
-				print $html ' on the same day';
+				$bio .= ' on the same day';
 			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
-				print $html " in $1 ",
+				$bio .= " in $1 " .
 					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} else {
-				print $html ' ', year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
-					print $html place({ person => $person, record => $death, places_printed => \%places_printed });
+					$bio .= place({ person => $person, record => $death, places_printed => \%places_printed });
 				}
 			}
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
-			print $html place({ person => $person, place => $placeofdeath });
+			$bio .= place({ person => $person, place => $placeofdeath });
 		}
-		print $html "[$_]" foreach(@deathcitations);
+		$bio .= "[$_]" foreach(@deathcitations);
 
 		# Print notes about the death, if any
 		if(defined($death) && (my $d = get_value({ person => $person, value => 'death' }))) {
 			$d =~ tr/\r//;
 			$d =~ s/\.$//;
-			print $html ' (', HTML::Entities::encode($d), ')';
+			$bio .= ' (' . HTML::Entities::encode($d) . ')';
 		}
 		$end_of_sentence = 0;
 	}
-	print $html '.' if(!$end_of_sentence);
+	$bio .= '.' if(!$end_of_sentence);
 	$end_of_sentence = 1;
 
 	if((scalar(@events) == 2) &&
@@ -1795,8 +1796,8 @@ sub print_person
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	    (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		# Simple case - one journey made
-		print '. ' if(!$end_of_sentence);
-		print $html ' ';
+		$bio .= '. ' if(!$end_of_sentence);
+		$bio .= ' ';
 
 		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
 		my $departure = ($events[0]->type() eq 'Departure') ? $events[0] : $events[1];
@@ -1824,30 +1825,30 @@ sub print_person
 		}
 		if($departure || !$doa) {
 			if($yod && $yoa && ($yod == $yoa)) {
-				print $html "During $yod ", lc($person->pronoun());
+				$bio .= "During $yod " . lc($person->pronoun());
 			} else {
-				print $html $person->pronoun();
+				$bio .= $person->pronoun();
 
 				# $yod = year({ person => $person, record => $departure });
 				# $yoa = year({ person => $person, record => $arrival });
 			}
 
 			if($ENV{'LANG'} =~ /^en_US/) {
-				print $html ' traveled';
+				$bio .= ' traveled';
 			} else {
-				print $html ' travelled';
+				$bio .= ' travelled';
 			}
 
-			print $html ' from ',
-				$departure->place(),
-				' to ',
+			$bio .= ' from ' .
+				$departure->place() .
+				' to ' .
 				$arrival->place();
 
 			if(defined($dod)) {
-				print $html ", departing $dod and";
+				$bio .= ", departing $dod and";
 			}
 
-			print $html " arriving $doa. ";
+			$bio .= " arriving $doa. ";
 
 			if($ENV{'LANG'} =~ /^en_US/) {
 				$place_records{'Traveled from'} = $departure;
@@ -1857,14 +1858,14 @@ sub print_person
 				$place_records{'Travelled to'} = $arrival;
 			}
 		} else {
-			print $html ucfirst(year({ person => $person, record => $arrival })),
-				' ', lcfirst($person->pronoun()),
-				' arrived',
+			$bio .= ucfirst(year({ person => $person, record => $arrival })) .
+				' ' . lcfirst($person->pronoun()) .
+				' arrived' .
 				place({ person => $person, record => $arrival });
 
 			if(my $notes = notes({ record => $arrival, person => $person })) {
 				$notes = lcfirst($notes);
-				print $html " ($notes)";
+				$bio .= " ($notes)";
 			}
 			print '.';
 			if($ENV{'LANG'} =~ /^en_US/) {
@@ -1875,16 +1876,16 @@ sub print_person
 		}
 		$end_of_sentence = 1;
 	} elsif(scalar(@events) == 1) {
-		print '.' if(!$end_of_sentence);
+		$bio .= '.' if(!$end_of_sentence);
 		$end_of_sentence = 1;
 
 		my $event = $person->event();
 		if(ref($event) eq 'Gedcom::Record') {
 			if($event->type() eq 'Arrival') {
-				print $html ' ', $person->pronoun(), ' arrived',
-					place({ person => $person, record => $events[0] }),
-					' ',
-					year({ person => $person, record => $events[0] }),
+				$bio .= ' ' . $person->pronoun() . ' arrived' .
+					place({ person => $person, record => $events[0] }) .
+					' ' .
+					year({ person => $person, record => $events[0] }) .
 					'.';
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$place_records{'Traveled to'} = $event;
@@ -1894,10 +1895,10 @@ sub print_person
 			} elsif(($event->type() !~ /^Census U[KS] (\d{4})$/) &&
 				(my $notes = notes(record => $event))) {
 				$notes = ucfirst($notes);
-				print $html " ($notes)";
+				$bio .= " ($notes)";
 			}
 		} else {
-			print $html ' ', ucfirst($event), '.';
+			$bio .= ' ' . ucfirst($event) . '.';
 		}
 	} else {
 		my $mentioned_military;
@@ -1907,42 +1908,60 @@ sub print_person
 			} elsif((ref($event) eq 'Gedcom::Record') &&
 			   ($event->type() eq 'Military service')) {
 				if(!$mentioned_military) {
-					print $html '.' if(!$end_of_sentence);
-					print $html " $pronoun served in the miltary";
+					$bio .= '.' if(!$end_of_sentence);
+					$bio .= " $pronoun served in the miltary";
 					$mentioned_military = 1;
 				}
 
 				if(my $notes = notes(record => $event)) {
 					$notes = lcfirst($notes);
 					$notes =~ s/\.$//;
-					print $html " ($notes)";
+					$bio .= " ($notes)";
 				}
-				print $html '.';
+				$bio .= '.';
 				$end_of_sentence = 1;
 			} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
 				red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
 			}
 		}
-		print '.' if(!$end_of_sentence);
+		$bio .= '.' if(!$end_of_sentence);
 		$end_of_sentence = 1;
+	}
+
+	if(defined($bio)) {
+		print $html $bio;
+		print $csv "$bio!";
+	} else {
+		print $csv '!';
 	}
 
 	if($opts{'l'} || !$was_alive) {
 		print $html '</p>';
 		if($mother || $father) {
 			print $html "<h2>Parents</h2><ol>";
-			if($father) {
-				output_person_line({ fout => $html, person => $father, year => $year });
+			if($father && (my $f = person_line_html({ person => $father, year => $year }))) {
+				print $html "<li>$f</li>";
+				print $csv person_line_csv({ person => $father, year => $year });
 			}
-			if($mother) {
-				output_person_line({ fout => $html, person => $mother, year => $year });
+			print $csv '!';
+			if($mother && (my $m = person_line_html({ person => $mother, year => $year }))) {
+				print $html "<li>$m</li>";
+				print $csv person_line_csv({ person => $mother, year => $year });
 			}
+			print $csv '!';
 			print $html '</ol>';
 		}
-		print $html "<h2>Children</h2><ol>" if(@children);
+		print $html '<h2>Children</h2><ol>' if(@children);
 
+		my $c = '';
 		foreach my $child(@children) {
-			output_person_line({ fout => $html, person => $child, year => $year });
+			my $line = person_line_html({ person => $child, year => $year });
+			print $html "<li>$line</li>";
+			if($c) {
+				$c .= ';' . person_line_csv({ person => $child, year => $year });
+			} else {
+				$c = $line;
+			}
 			if($opts{'w'} && ($birth_dt || $death_dt)) {
 				my $dob = get_value({ person => $child, value => 'birth date' });
 				if($dob && ($dob !~ /^\d{3,4}$/) && ($dob =~ /^\d/)) {
@@ -1981,6 +2000,7 @@ sub print_person
 			}
 		}
 		print $html '</ol>' if(@children);
+		print $csv "$c!";
 	}
 
 	if($opts{'l'} || !$was_alive) {
@@ -3062,33 +3082,56 @@ sub validate_place
 	return 1;
 }
 
-sub output_person_line
+sub person_line_html
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $person = $params{'person'};
-	my $fout = $params{'fout'};
 
 	if($opts{'l'} || !was_alive(%params)) {
 		my $dob = get_value({ person => $person, value => 'birth date' });
 		if($dob) {
-			print $fout '<li><a href="', make_filename_from_person(person => $person), '">',
-				$person->given_names(),
-				'</a> was born ',
-				year({ person => $person, date => $dob }),
-				'</li>';
+			return '<a href="' . make_filename_from_person(person => $person) . '">' .
+				$person->given_names() .
+				'</a> was born ' .
+				year({ person => $person, date => $dob });
 		} elsif(get_value({ person => $person, value => 'baptism date' })) {
-			print $fout '<li><a href="', make_filename_from_person(person => $person), '">',
-				$person->given_names(),
-				'</a> was born c. ',
-				get_value({ person => $person, value => 'baptism date' }),
-				'</li>';
+			return '<a href="' . make_filename_from_person(person => $person) . '">' .
+				$person->given_names() .
+				'</a> was born c. ' .
+				get_value({ person => $person, value => 'baptism date' });
 		}
-	} else {
-		print $fout '<li><a href="', make_filename_from_person(person => $person), '">',
-			$person->given_names(),
-			'</a></li>';
+		return '';
 	}
+	return '<a href="' . make_filename_from_person(person => $person) . '">' .
+		$person->given_names() .
+		'</a>';
+}
+
+sub person_line_csv
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+
+	if($opts{'l'} || !was_alive(%params)) {
+		my $dob = get_value({ person => $person, value => 'birth date' });
+		if($dob) {
+			return '<a href="?' . $person->{'xref'} . '">' .
+				$person->given_names() .
+				'</a> was born ' .
+				year({ person => $person, date => $dob });
+		} elsif(get_value({ person => $person, value => 'baptism date' })) {
+			return '<a href="?' . $person->{'xref'} . '">' .
+				$person->given_names() .
+				'</a> was born c. ' .
+				get_value({ person => $person, value => 'baptism date' });
+		}
+		return '';
+	}
+	return '<a href="?' . $person->{'xref'} . '">' .
+		$person->given_names() .
+		'</a>';
 }
 
 sub places_are_the_same
@@ -3120,15 +3163,15 @@ sub places_are_the_same
 	return $place1 eq $place2;
 }
 
-sub print_sibling_baptism
+sub sibling_baptism_string
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $fout = $params{'fout'};
 	my $person = $params{'person'};
 	my $siblings = $params{'siblings'};
 	my $date = $params{'date'};
 	my $birthdate = $params{'birthdate'};
+	my $rc = '';
 
 	my @onsameday;
 	foreach my $sibling(@{$siblings}) {
@@ -3140,21 +3183,23 @@ sub print_sibling_baptism
 	my $count = 0;
 	foreach my $sibling(@onsameday) {
 		if($count == 0) {
-			print $fout ', the same day as ';
+			$rc = ', the same day as ';
 		} elsif($count < (scalar(@onsameday) - 1)) {
-			print $fout ', ';
+			$rc .= ', ';
 		} elsif($count == (scalar(@onsameday) - 1)) {
-			print $fout ' and ';
+			$rc .= ' and ';
 		}
-		print $fout lcfirst($person->possessive()), ' ';
+		$rc .= lcfirst($person->possessive()) . ' ';
 		my $dateofsiblingbirth = get_value({ person => $sibling, value => 'birth date' });
 		if($dateofsiblingbirth && $birthdate && ($dateofsiblingbirth eq $birthdate)) {
-			print $fout 'twin ';
+			$rc .= 'twin ';
 		}
-		print $fout $sibling->sex() eq 'M' ? 'brother ' : 'sister ',
+		$rc .= ($sibling->sex() eq 'M' ? 'brother ' : 'sister ') .
 			$sibling->given_names();
 		$count++;
 	}
+
+	return $rc;
 }
 
 sub red_warning
