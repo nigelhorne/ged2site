@@ -163,6 +163,13 @@ if($opts{'F'}) {
 	}
 }
 
+mkdir 'static-site';
+if($dot || $opts{'d'}) {
+	mkdir 'static-site/img';
+	mkdir 'thumbs';
+}
+mkdir 'dynamic-site/databases';
+
 my $gedcal;
 if(-x '/usr/bin/gedcal') {
 	$gedcal = '/usr/bin/gedcal';
@@ -172,15 +179,9 @@ if(-x '/usr/bin/gedcal') {
 	$gedcal = '../gedcal/gedcal';
 }
 
-mkdir 'static-site';
-if($dot || $opts{'d'}) {
-	mkdir 'static-site/img';
-	mkdir 'thumbs';
-}
 if($gedcal) {
 	mkdir 'static-site/calendar';
 }
-mkdir 'site/databases';
 
 if($opts{'d'}) {
 	# Download copies of objects rather than link to them, useful if the
@@ -947,57 +948,82 @@ sub print_person
 
 		$bio .= ' of';
 
-		# FIXME: CSV links need to go to the dynamic site, but static site
+		print $html $bio;
+		print $csv $bio;
+
 		if($opts{'l'} || !$was_alive) {
 			if($father) {
-				$bio .= ' <a href="' . make_filename_from_person(person => $father) . '">' .
-					$father->as_string() .
+				print $html ' <a href="', make_filename_from_person(person => $father), '">',
+					$father->as_string(),
 					'</a>';
+				print $csv ' <a href="?', $father->{'xref'}, '">'.
+					$father->as_string(),
+					'</a>';
+
 				my @occupations = $father->get_value('occupation');
 				# TODO: print $html all occupations
 				if($occupations[0]) {
-					$bio .= ' (a';
+					print $html ' (a';
+					print $csv ' (a';
 					if($occupations[0] =~ /^[aeiou]/i) {
-						$bio .= 'n';
+						print $html 'n';
+						print $csv 'n';
 					}
-					$bio .= ' ' . HTML::Entities::encode(lc($occupations[0])) . ')';
+					print $html ' ', HTML::Entities::encode(lc($occupations[0])), ')';
+					print $csv ' ', HTML::Entities::encode(lc($occupations[0])), ')';
 				}
 				if($mother) {
-					$bio .= ' and';
+					print $html ' and';
+					print $csv ' and';
 				}
 			}
 			if($mother) {
-				$bio .= ' <a href="' . make_filename_from_person(person => $mother) . '">' .
-					$mother->as_string(give_maidenname => 0) .
+				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
+					$mother->as_string(give_maidenname => 0),
+					'</a>';
+				print $csv ' <a href="?', $mother->{'xref'}, '">'.
+					$mother->as_string(),
 					'</a>';
 
 				my @occupations = $mother->get_value('occupation');
 				# TODO: print $html all occupations
 				if($occupations[0]) {
-					$bio .= ' (a';
+					print $html ' (a';
+					print $csv ' (a';
 					if($occupations[0] =~ /^[aeiou]/i) {
-						$bio .= 'n';
+						print $html 'n';
+						print $csv 'n';
 					}
-					$bio .= ' ' . lc($occupations[0]) . ')';
+					print $html ' ', lc($occupations[0]), ')';
+					print $csv ' ', lc($occupations[0]), ')';
 				}
 			}
 		} else {
 			if($father) {
-				$bio .= ' <a href="' . make_filename_from_person(person => $father) . '">' .
-					$father->given_names() .
+				print $html ' <a href="' . make_filename_from_person(person => $father) . '">',
+					$father->given_names(),
+					'</a>';
+				print $csv ' <a href="' . $father->{'xref'} . '">',
+					$father->given_names(),
 					'</a>';
 				if($mother) {
-					$bio .= ' and';
+					print $html ' and';
+					print $csv ' and';
 				}
 			}
 			if($mother) {
-				$bio .= ' <a href="' . make_filename_from_person(person => $mother) . '">' .
-					$mother->given_names() .
+				print $html ' <a href="' . make_filename_from_person(person => $mother) . '">',
+					$mother->given_names(),
+					'</a>';
+				print $csv ' <a href="' . $mother->{'xref'} . '">',
+					$mother->given_names(),
 					'</a>';
 			}
 		}
 	}
 
+	# FIXME: CSV links need to go to the dynamic site, but static site
+	$bio = '';
 	if($firstname) {
 		if((!$was_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
 			if($father || $mother || $occupations[0]) {
@@ -1025,17 +1051,21 @@ sub print_person
 		$bio .= $pronoun;
 	}
 
+	print $html $bio;
+	print $csv $bio;
+	$bio = '';
+
 	my $haveprintedspousename;
 	if($relationship) {
-		$bio .= " the $relationship of " .
+		$bio = " the $relationship of " .
 			'<a href="' . make_filename_from_person(person => $me) . '">' .
 			$me->as_string(nee => 1) .
 			'</a>';
 	} elsif($spouserelationship) {
 		if($sex eq 'F') {
-			$bio .= ', the wife of';
+			$bio = ', the wife of';
 		} else {
-			$bio .= ', the husband of';
+			$bio = ', the husband of';
 		}
 		$bio .= ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
 			$spouse->as_string({ middle_names => 1, title => 1 }) .
@@ -1928,12 +1958,8 @@ sub print_person
 		$end_of_sentence = 1;
 	}
 
-	if(defined($bio)) {
-		print $html $bio;
-		print $csv "$bio!";
-	} else {
-		print $csv '!';
-	}
+	print $html $bio;
+	print $csv "$bio!";
 
 	if($opts{'l'} || !$was_alive) {
 		print $html '</p>';
@@ -1960,7 +1986,7 @@ sub print_person
 			if($c) {
 				$c .= ';' . person_line_csv({ person => $child, year => $year });
 			} else {
-				$c = $line;
+				$c = person_line_csv({ person => $child, year => $year });
 			}
 			if($opts{'w'} && ($birth_dt || $death_dt)) {
 				my $dob = get_value({ person => $child, value => 'birth date' });
