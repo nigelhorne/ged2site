@@ -59,7 +59,13 @@ sub _open {
 	} else {
 		$slurp_file = "$directory/$table.xml";
 		if(-r $slurp_file) {
-			$dbh = DBI->connect('dbi:AnyData:');
+			# You'll need to install XML::Twig and
+			# AnyData::Format::XML
+			$dbh = DBI->connect('dbi:AnyData(RaiseError=>1):');
+			$dbh->{'RaiseError'} = 1;
+			if($self->{'logger'}) {
+				$self->{'logger'}->debug("read in $table from $slurp_file");
+			}
 			$dbh->func($table, 'XML', $slurp_file, 'ad_import');
 		} else {
 			throw Error::Simple("Can't open $slurp_file");

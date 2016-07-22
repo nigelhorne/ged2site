@@ -217,7 +217,8 @@ foreach my $person($ged->individuals()) {
 		$| = 0;
 	}
 	if(!$printed{$person->{'xref'}}) {
-		print $xml "<person row_id=\"$index\">";
+		# FIXME: change &eacute; to e
+		print $xml "<person person_id=\"$index\">";
 		print_person({ person => $person });
 		print $xml '</person>';
 	}
