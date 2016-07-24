@@ -1054,29 +1054,41 @@ sub print_person
 
 	print $html $bio;
 	print $csv $bio;
-	$bio = '';
 
 	my $haveprintedspousename;
 	if($relationship) {
-		$bio = " the $relationship of " .
-			'<a href="' . make_filename_from_person(person => $me) . '">' .
-			$me->as_string(nee => 1) .
+		print $html " the $relationship of ",
+			'<a href="', make_filename_from_person(person => $me), '">',
+			$me->as_string(nee => 1),
+			'</a>';
+		print $csv " the $relationship of ",
+			'<a href="?home=1">',
+			$me->as_string(nee => 1),
 			'</a>';
 	} elsif($spouserelationship) {
 		if($sex eq 'F') {
-			$bio = ', the wife of';
+			print $html ', the wife of';
+			print $csv ', the wife of';
 		} else {
-			$bio = ', the husband of';
+			print $html ', the husband of';
+			print $csv ', the husband of';
 		}
-		$bio .= ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
-			$spouse->as_string({ middle_names => 1, title => 1 }) .
-			"</a> . the $spouserelationship of " .
-			'<a href="' . make_filename_from_person(person => $me) . '">' .
-			$me->as_string(nee => 1) .
+		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
+			$spouse->as_string({ middle_names => 1, title => 1 }),
+			"</a>, the $spouserelationship of ",
+			'<a href="', make_filename_from_person(person => $me), '">',
+			$me->as_string(nee => 1),
+			'</a>,';
+		print $csv ' <a href="?entry=', $spouse->{'xref'}, '">',
+			$spouse->as_string({ middle_names => 1, title => 1 }),
+			"</a>, the $spouserelationship of ",
+			'<a href="?home=1">',
+			$me->as_string(nee => 1),
 			'</a>,';
 		$haveprintedspousename = 1;
 	}
 
+	$bio = '';
 	my $end_of_sentence = 0;
 
 	if($opts{'l'} || !$was_alive) {
@@ -1627,7 +1639,7 @@ sub print_person
 					$bio .= " ($notes)";
 				}
 				if(my $date = $residence->date()) {
-					$bio .= ' ', year({ person => $person, date => $date });
+					$bio .= ' ' . year({ person => $person, date => $date });
 					# Find if they are an adult living with an adult sibling
 					if(scalar(@siblings) && $birth_dt && $residence->address()) {
 						my $diff = $dfn->parse_datetime($date) - $birth_dt;
