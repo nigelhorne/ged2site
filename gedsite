@@ -1296,19 +1296,28 @@ sub print_person
 					my %name_components = $nameparser->components();
 					$bio .= $name_components{'given_name_1'};
 				} else {
+					print $html $bio;
+					print $csv $bio;
+					$bio = '';
 					if($opts{'l'} || !$was_alive) {
-						$bio .= '<a href="' . make_filename_from_person(person => $spouses[0]) . '">' .
-							$spouses[0]->as_string() .
+						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
+							$spouses[0]->as_string(),
+							'</a>';
+						print $csv '<a href="?entry=', $spouses[0]->{'xref'}, '">',
+							$spouses[0]->as_string(),
 							'</a>';
 					} else {
-						$bio .= '<a href="' . make_filename_from_person(person => $spouses[0]) . '">' .
-							$spouses[0]->given_names() .
+						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
+							$spouses[0]->given_names(),
+							'</a>';
+						print $csv '<a href="?entry=', $spouses[0]->{'xref'}, '">',
+							$spouses[0]->as_string(),
 							'</a>';
 					}
 					$haveprintedspousename = 1;
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
 					if($spouse_occupations[0]) {
-						$bio .= ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
+						$bio = ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
 						$parentheses = 1;
 					}
 				}
@@ -1343,12 +1352,21 @@ sub print_person
 					if($numberofchildren == 1) {
 						$bio .= $children[0]->given_names();
 					} elsif($numberofchildren > 1) {
+						print $html $bio;
+						print $csv $bio;
+						$bio = '';
 						my $childnames = join(', ', map {
 							'<a href="' . make_filename_from_person(person => $_) . '">'.
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
-						$bio .= $childnames;
+						print $html $childnames;
+						$childnames = join(', ', map {
+							'<a href="?entry=' . $_->{'xref'} . '">'.
+								$_->given_names() . '</a>'
+						} @children);
+						substr($childnames, rindex($childnames, ', '), 2, ' and ');
+						print $csv $childnames;
 					}
 				}
 				if($opts{'l'} || !$was_alive) {
