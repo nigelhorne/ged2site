@@ -212,7 +212,7 @@ if(!$opts{'w'}) {
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations\n";
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -1698,7 +1698,7 @@ sub print_person
 				}
 				$count++;
 				if($count < (scalar(@residencelist) - 1)) {
-					$bio .= ';';
+					$bio .= '----';
 				} elsif($count == (scalar(@residencelist) - 1)) {
 					$bio .= '; and';
 				}
@@ -2015,7 +2015,7 @@ sub print_person
 			my $line = person_line_html({ person => $child, year => $year });
 			print $html "<li>$line</li>";
 			if($c) {
-				$c .= ';' . person_line_csv({ person => $child, year => $year });
+				$c .= '----' . person_line_csv({ person => $child, year => $year });
 			} else {
 				$c = person_line_csv({ person => $child, year => $year });
 			}
@@ -2105,11 +2105,11 @@ sub print_person
 					});
 					next;
 				}
-				print $html '<li>';
+				my $c;
 				if(my $file = $citations{$citation}->file()) {
-					print $html "<a href=\"$file\">", HTML::Entities::encode($title), '</a>';
+					$c = "<a href=\"$file\">" . HTML::Entities::encode($title) . '</a>';
 				} else {
-					print $html HTML::Entities::encode($title);
+					$c = HTML::Entities::encode($title);
 					if($title =~ /Census/) {
 						my $census = $censusmaps{$title};
 						die "Add $title to censusmaps" unless($census);
@@ -2118,14 +2118,13 @@ sub print_person
 					}
 				}
 				if(defined(my $publication = $citations{$citation}->publication())) {
-					print $html ' ',
-						HTML::Entities::encode($publication);
+					$c .= ' ' . HTML::Entities::encode($publication);
 					if(defined(my $continuation = $citations{$citation}->cont())) {
-						print $html HTML::Entities::encode($continuation);
+						$c .= ' ' . HTML::Entities::encode($continuation);
 					}
 				}
 				if(defined(my $page = $citations{$citation}->page())) {
-					print $html " $page";
+					$c .= " $page";
 				}
 				my @notes = $citations{$citation}->note();
 				foreach my $note(@notes) {
@@ -2135,18 +2134,22 @@ sub print_person
 
 					if($note && ($note !~ /^This information comes from/)) {
 						$ufinder->find(\$note);
-						print $html " ($note)";
+						$c .= " ($note)";
 					}
 				}
 				if($citationnotes{$citation}) {
 					$citationnotes{$citation} =~ s/\.$//;
-					print $html " ($citationnotes{$citation})";
+					$c .= " ($citationnotes{$citation})";
 				}
 
-				print $html '</li>';
+				print $html "<li>$c</li>";
+				print $csv '----' if($citation > 1);
+				print $csv $c;
 			}
 			print $html '</ol>';
 		}
+
+		print $csv '!';
 
 		my $printed_notes;
 		if($death && (my $notes = notes({ person => $person, record => $death, paragraph => 1 }))) {

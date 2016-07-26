@@ -38,10 +38,19 @@
 			[% IF person.children %]
 				<h2>Children</h2>
 				<ol>
-				[% children = person.children.split(';') %]
-				[% FOREACH child IN children %]
-					<li>[% child %]</li>
-				[% END %]
+					[% children = person.children.split('----') %]
+					[% FOREACH child IN children %]
+						<li>[% child %]</li>
+					[% END %]
+				</ol>
+			[% END %]
+			[% IF person.citations %]
+				<h2>Citations</h2>
+				<ol>
+					[% citations = person.citations.split('----') %]
+					[% FOREACH citation IN citations %]
+						<li>[% citation %]</li>
+					[% END %]
 				</ol>
 			[% END %]
 		[% ELSE %]
