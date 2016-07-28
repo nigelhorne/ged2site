@@ -57,6 +57,19 @@
 					<p>[% note %]</p>
 				[% END %]
 			[% END %]
+			[% IF person.media %]
+				<h2>Media</h2>
+				[% FOREACH object IN person.media.split('----') %]
+					<p>
+						<a href="[% object.split('---').0 %]" target="_blank">
+							<img src="[% object.split('---').0 %]" alt="[% object.split('---').1 %]"
+								width="175"
+								[% IF object.split('---').2 %] height="[% object.split('---').2 %]" [% END %]
+							>
+						</a>
+					<p>
+				[% END %]
+			[% END %]
 		[% ELSE %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
 			Loading, please wait

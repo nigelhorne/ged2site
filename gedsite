@@ -44,6 +44,7 @@ use HTML::GoogleMaps::V3;
 use Sort::Key::DateTime;
 use String::ProgressBar;
 use Text::Names;
+use File::Copy::Recursive;
 no lib '.';
 
 my %opts;
@@ -212,7 +213,7 @@ if(!$opts{'w'}) {
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media\n";
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -441,6 +442,9 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	}
 	print $fout '</ul></body></html>';
 }
+
+print "Copying images to the dynamic site\n";
+File::Copy::Recursive::dircopy('static-site/img', 'dynamic-site/img');
 
 sub print_person
 {
@@ -2276,6 +2280,7 @@ sub print_person
 								print $html "<a href=\"$localfile\" target=\"_blank\">",
 									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
 									'</a>';
+								print $csv "$localfile---$title---$h----";
 								if(!defined($profile_image)) {
 									$profile_image = "static-site/$localfile";
 								}
@@ -2285,6 +2290,7 @@ sub print_person
 								print $html "<a href=\"$file\" target=\"_blank\">",
 									"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 									'</a>';
+								print $csv "$file---$title---0----";
 								if(!defined($profile_image)) {
 									$profile_image = $file;
 								}
@@ -2294,6 +2300,7 @@ sub print_person
 							print $html "<a href=\"$file\" target=\"_blank\">",
 								"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 								'</a>';
+							print $csv "$file---$title---0----";
 							if(!defined($profile_image)) {
 								$profile_image = $file;
 							}
@@ -2302,6 +2309,9 @@ sub print_person
 						print $html "<a href=\"$file\" target=\"_blank\">",
 							$title ? HTML::Entities::encode($title) : 'Media',
 							'</a>';
+						print $csv "$file---",
+							$title ? HTML::Entities::encode($title) : 'Media',
+							'---0----';
 					}
 					# if($obje->date()) {
 						# die $obje->date();
@@ -2310,6 +2320,7 @@ sub print_person
 				}
 			}
 		}
+		print $csv '!';
 
 		if(defined($dot)) {
 			my $png = "static-site/img/" . make_filename_from_object(object => $person) . '.png';
