@@ -213,7 +213,7 @@ if(!$opts{'w'}) {
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!warnings!map_head!map_body\n";
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -2412,7 +2412,10 @@ sub print_person
 		});
 		print $html "<h2>Known Issues</h2>",
 			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
+		print $csv
+			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
 	}
+	print $csv '!';
 
 	my @place_events = keys %place_records;
 	if($opts{'m'} && ($opts{'l'}|| !$was_alive) && scalar(@place_events)) {
@@ -2469,6 +2472,9 @@ sub print_person
 			my ($head, $map_div) = $map->onload_render();
 			$head =~ s/http:/https:/;
 			print $html "$head<h2>Map</h2>$map_div\n";
+			print $csv "$head!$map_div!";
+		} else {
+			print $csv '!!';
 		}
 	}
 

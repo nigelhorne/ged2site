@@ -16,11 +16,18 @@
 			<meta http-equiv="Refresh" content="1;URL=cgi-bin/index.fcgi?home=1">
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
+		[% IF person.map_head %]
+			[% person.map_head %]
+		[% END %]
 		<!--
 		<meta name="msvalidate.01" content="deadbeef" />
 		-->
 	</head>
-	<body onload="html_googlemaps_initialize()">
+	[% IF person.map_head %]
+		<body onload="html_googlemaps_initialize()">
+	[% ELSE %]
+		<body>
+	[% END %]
 		[% IF person %]
 			<center><h1>[% person.title %]</h1></center>
 			<p>[% person.bio %]</p>
@@ -74,6 +81,14 @@
 				<h2>Family Tree</h2>
 				<img src="[% person.family_tree.split('---').0 %]" [% person.family_tree.split('---').1 %] usemap="#family" alt="Family Tree">
 				[% person.family_tree.split('---').2 %]
+			[% END %]
+			[% IF person.map_body %]
+				<h2>Map</h2>
+				[% person.map_body %]
+			[% END %]
+			[% IF person.warnings %]
+				<h2>To be done</h2>
+				[% person.warnings %]
 			[% END %]
 		[% ELSE %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
