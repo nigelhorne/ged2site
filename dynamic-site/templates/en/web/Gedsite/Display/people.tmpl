@@ -71,7 +71,9 @@
 				[% END %]
 			[% END %]
 			[% IF person.family_tree %]
-				<h2>Media</h2>
+				<h2>Family Tree</h2>
+				<img src="[% person.family_tree.split('---').0 %]" [% person.family_tree.split('---').1 %] usemap="#family" alt="Family Tree">
+				[% person.family_tree.split('---').2 %]
 			[% END %]
 		[% ELSE %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
