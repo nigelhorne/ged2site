@@ -46,7 +46,9 @@ sub new {
 
 	my $info = $args{info} || CGI::Info->new();
 
-	unless($info->is_search_engine() || !defined($ENV{'REMOTE_ADDR'})) {
+	# TODO: remove test for localhost
+	# Not scanning Localhost input is bad, but it's in while I'm debugging and writing things
+	unless($info->is_search_engine() || (!defined($ENV{'REMOTE_ADDR'})) || ($ENV{'REMOTE_ADDR'} eq '127.0.0.1')) {
 		require CGI::IDS;
 		CGI::IDS->import();
 

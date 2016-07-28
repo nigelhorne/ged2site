@@ -213,7 +213,7 @@ if(!$opts{'w'}) {
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree\n";
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -2377,11 +2377,14 @@ sub print_person
 
 				print $html '<h2>Family Tree</h2>';
 				my $filename = make_filename_from_object(object => $person);
-				my $info = Image::Info::image_info("static-site/img/$filename.png");
-				print $html "<img src=\"img/$filename.png\" ", Image::Info::html_dim($info), ' usemap="#family" alt="Family Tree">';
+				my $dim = Image::Info::html_dim(Image::Info::image_info($png));
+				print $html "<img src=\"img/$filename.png\" $dim", ' usemap="#family" alt="Family Tree">';
+				print $csv "img/$filename.png---$dim---";
 				$tmp->seek(0, SEEK_SET);
 				foreach my $line(<$tmp>) {
+					chomp $line;
 					print $html $line;
+					print $csv $line;
 				}
 			}
 		} elsif(defined($dot)) {
@@ -2392,6 +2395,7 @@ sub print_person
 			}
 		}
 	}
+	print $csv '!';
 
 	if($person->{'warnings'}) {
 		my $ufinder = URI::Find::Schemeless->new(sub {
