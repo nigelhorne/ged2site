@@ -194,7 +194,7 @@ if($opts{'d'}) {
 	}
 	HTTP::Cache::Transparent::init({
 		BasePath => $cachedir,
-		# Verbose => 1,
+		Verbose => $opts{'v'} ? 1 : 0,
 		NoUpdate => 24 * 60 * 60,
 	});
 }
@@ -268,8 +268,11 @@ if($opts{'w'}) {
 
 print "Creating census index\n";
 open(my $html, '>', 'static-site/censuses.html');
-print $html "<html><head><title>Censuses in the Family Tree of $name</title>",
-	"</head><body><center><h1>Censuses in the Family Tree of $name</h1></center><br><ul>";
+print $html "<html><head><title>Censuses in the Family Tree $name</title>",
+	"</head><body><center><h1>Censuses in the Family Tree $name</h1></center><br><ul>";
+
+open($csv, '>', 'dynamic-site/databases/censuses.csv');
+print $csv "entry!person\n";
 
 foreach my $census(sort keys(%censuses)) {
 	my $filename = $census;
@@ -277,9 +280,9 @@ foreach my $census(sort keys(%censuses)) {
 	print $html "<li><a href=\"$filename.html\">$census</a></li>";
 
 	open(my $chtml, '>', "static-site/$filename.html");
-	print $chtml "<html><head><title>The Family Tree of $name - $census</title>",
+	print $chtml "<html><head><title>The Family Tree $name - $census</title>",
 		'</head>',
-		"<body><center><h1>The Family Tree of $name - $census</h1>";
+		"<body><center><h1>The Family Tree $name - $census</h1>";
 	if($me) {
 		print $chtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	}
@@ -299,6 +302,7 @@ foreach my $census(sort keys(%censuses)) {
 			'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
 			$name,
 			'</a></li>';
+		print $csv "$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
 	}
 
 	print $chtml '</ul></body></html>';
@@ -306,11 +310,12 @@ foreach my $census(sort keys(%censuses)) {
 }
 print $html '</ul></body></html>';
 close $html;
+close $csv;
 
 print "Creating surname index\n";
 open($html, '>', 'static-site/surnames.html');
-print $html "<html><head><title>Surnames in the Family Tree of $name</title>",
-	"</head><body><center><h1>Surnames in the Family Tree of $name</h1>";
+print $html "<html><head><title>Surnames in the Family Tree $name</title>",
+	"</head><body><center><h1>Surnames in the Family Tree $name</h1>";
 if($me) {
 	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 }
@@ -337,9 +342,9 @@ foreach my $surname(sort keys %{$surnames}) {
 	print $html ')</li>';
 
 	open(my $shtml, '>', "static-site/$filename.html");
-	print $shtml "<html><head><title>The Family Tree of $name - $surname</title>",
+	print $shtml "<html><head><title>The Family Tree $name - $surname</title>",
 		'</head>',
-		"<body><center><h1>The Family Tree of $name - $surname</h1>";
+		"<body><center><h1>The Family Tree $name - $surname</h1>";
 	if($me) {
 		print $shtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	}
@@ -370,6 +375,9 @@ close $html;
 
 if($opts{'g'}) {
 	open($html, '>', "static-site/$opts{g}.html");
+	print $html "google-site-verification: $opts{g}.html";
+	close $html;
+	open($html, '>', "dynamic-site/$opts{g}.html");
 	print $html "google-site-verification: $opts{g}.html";
 	close $html;
 }
@@ -543,7 +551,7 @@ sub print_person
 		my $name = $person->as_string(nee => 1);
 
 		open(my $html, '>', 'static-site/index.html');
-		print $html "<html><head><title>The Family Tree of $name</title>",
+		print $html "<html><head><title>The Family Tree $name</title>",
 			'<meta http-equiv="Refresh" content="1;URL=', make_filename_from_person(person => $person), '">';
 		if($ENV{'LANG'}) {
 			my $lang = $ENV{'LANG'};
@@ -553,7 +561,7 @@ sub print_person
 			print $html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
 		}
 		print $html '</head>',
-			"<body><h1>The Family Tree of $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
+			"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
 		close $html;
 		# print $xml '<home>1</home>';
 		print $csv '1!';
@@ -961,7 +969,7 @@ sub print_person
 				print $html ' <a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
-				print $csv ' <a href="?entry=', $father->{'xref'}, '">'.
+				print $csv ' <a href="?page=people&entry=', $father->{'xref'}, '">'.
 					$father->as_string(),
 					'</a>';
 
@@ -986,7 +994,7 @@ sub print_person
 				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
 					$mother->as_string(give_maidenname => 0),
 					'</a>';
-				print $csv ' <a href="?entry=', $mother->{'xref'}, '">'.
+				print $csv ' <a href="?page=people&entry=', $mother->{'xref'}, '">'.
 					$mother->as_string(),
 					'</a>';
 
@@ -1008,7 +1016,7 @@ sub print_person
 				print $html ' <a href="' . make_filename_from_person(person => $father) . '">',
 					$father->given_names(),
 					'</a>';
-				print $csv ' <a href="?entry=' . $father->{'xref'} . '">',
+				print $csv ' <a href="?page=people&entry=' . $father->{'xref'} . '">',
 					$father->given_names(),
 					'</a>';
 				if($mother) {
@@ -1020,7 +1028,7 @@ sub print_person
 				print $html ' <a href="' . make_filename_from_person(person => $mother) . '">',
 					$mother->given_names(),
 					'</a>';
-				print $csv ' <a href="?entry=' . $mother->{'xref'} . '">',
+				print $csv ' <a href="?page=people&entry=' . $mother->{'xref'} . '">',
 					$mother->given_names(),
 					'</a>';
 			}
@@ -1066,7 +1074,7 @@ sub print_person
 			$me->as_string(nee => 1),
 			'</a>';
 		print $csv " the $relationship of ",
-			'<a href="?home=1">',
+			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>';
 	} elsif($spouserelationship) {
@@ -1083,10 +1091,10 @@ sub print_person
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>,';
-		print $csv ' <a href="?entry=', $spouse->{'xref'}, '">',
+		print $csv ' <a href="?page=people&entry=', $spouse->{'xref'}, '">',
 			$spouse->as_string({ middle_names => 1, title => 1 }),
 			"</a>, the $spouserelationship of ",
-			'<a href="?home=1">',
+			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>,';
 		$haveprintedspousename = 1;
@@ -1307,14 +1315,14 @@ sub print_person
 						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->as_string(),
 							'</a>';
-						print $csv '<a href="?entry=', $spouses[0]->{'xref'}, '">',
+						print $csv '<a href="?page=people&entry=', $spouses[0]->{'xref'}, '">',
 							$spouses[0]->as_string(),
 							'</a>';
 					} else {
 						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->given_names(),
 							'</a>';
-						print $csv '<a href="?entry=', $spouses[0]->{'xref'}, '">',
+						print $csv '<a href="?page=people&entry=', $spouses[0]->{'xref'}, '">',
 							$spouses[0]->as_string(),
 							'</a>';
 					}
@@ -1366,7 +1374,7 @@ sub print_person
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						print $html $childnames;
 						$childnames = join(', ', map {
-							'<a href="?entry=' . $_->{'xref'} . '">'.
+							'<a href="?page=people&entry=' . $_->{'xref'} . '">'.
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
@@ -3203,19 +3211,19 @@ sub person_line_csv
 	if($opts{'l'} || !was_alive(%params)) {
 		my $dob = get_value({ person => $person, value => 'birth date' });
 		if($dob) {
-			return '<a href="?entry=' . $person->{'xref'} . '">' .
+			return '<a href="?page=people&entry=' . $person->{'xref'} . '">' .
 				$person->given_names() .
 				'</a> was born ' .
 				year({ person => $person, date => $dob });
 		} elsif(get_value({ person => $person, value => 'baptism date' })) {
-			return '<a href="?entry=' . $person->{'xref'} . '">' .
+			return '<a href="?page=people&entry=' . $person->{'xref'} . '">' .
 				$person->given_names() .
 				'</a> was born c. ' .
 				get_value({ person => $person, value => 'baptism date' });
 		}
 		return '';
 	}
-	return '<a href="?entry=' . $person->{'xref'} . '">' .
+	return '<a href="?page=people&entry=' . $person->{'xref'} . '">' .
 		$person->given_names() .
 		'</a>';
 }
@@ -3407,6 +3415,7 @@ sub print_graphviz
 		$thumbname[0] =~ s/\.jpg$/.png/;
 		$thumb->Write("thumbs/$thumbname[0]");
 
+		# FIXME: TABLE isn't supported by Graphviz
 		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>";
 		print $fout ",labelloc=b";
 

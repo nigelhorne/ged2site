@@ -52,8 +52,10 @@ my $logger = Log::Log4perl->get_logger($script_name);
 # my $pagename = "Gedsite::Display::$script_name";
 # eval "require $pagename";
 use Gedsite::Display::people;
+use Gedsite::Display::censuses;
 
 use Gedsite::DB::people;
+use Gedsite::DB::censuses;
 
 my $database_dir = "$script_dir/../databases";
 Gedsite::DB::init({ directory => $database_dir, logger => $logger });
@@ -63,6 +65,7 @@ if($@) {
 	$logger->error($@);
 	die $@;
 }
+my $censuses = Gedsite::DB::censuses->new();
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
@@ -131,6 +134,12 @@ sub doit
 	CGI::Info->reset();
 	my $info = CGI::Info->new({ cache => $infocache });
 
+	if(!defined($info->param('page'))) {
+		print "Location: /index.htm\n\n";
+		$logger->info('Called with no page to display');
+		return;
+	}
+
 	my $fb = FCGI::Buffer->new();
 	$fb->init({ info => $info, optimise_content => 1, lint_content => 0, logger => $logger });
 	if(!$ENV{'REMOTE_ADDR'}) {
@@ -154,12 +163,20 @@ sub doit
 	});
 
 	my $display;
+	my $invalidpage;
+	my $args = {
+		info => $info,
+		logger => $logger,
+		lingua => $lingua,
+	};
 	eval {
-		$display = Gedsite::Display::people->new({
-			info => $info,
-			lingua => $lingua,
-			logger => $logger,
-		});
+		if($info->param('page') eq 'people') {
+			$display = Gedsite::Display::people->new($args);
+		} elsif($info->param('page') eq 'censuses') {
+			$display = Gedsite::Display::censuses->new($args);
+		} else {
+			$invalidpage = 1;
+		}
 	};
 
 	my $error = $@;
@@ -169,17 +186,36 @@ sub doit
 		print $display->as_string({
 			people => $people, cachedir => $cachedir
 		});
-	} else {
-		# No permission to show this page
-		print "Status: 403 Forbidden\n",
-			"Content-type: text/plain\n",
-			"Pragma: no-cache\n\n";
-
-		warn $error if $error;
-
+	} elsif($invalidpage) {
+		print "Status: 300 Multiple Choices\n",
+			"Content-type: text/plain\n\n";
 		unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-			print "There is a problem with your connection. Please contact your ISP.\n";
-			print $error if $error;
+			print "/cgi-bin/page.fcgi?page=people\n",
+				"/cgi-bin/page.fcgi?page=censuses\n",
 		}
+	} else {
+		$logger->debug('disabling cache');
+		$fb->init(
+			cache => undef,
+		);
+		if($error eq 'Unknown page to display') {
+			print "Status: 400 Bad Request\n",
+				"Content-type: text/plain\n",
+				"Pragma: no-cache\n\n";
+
+			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
+				print "I don't know what you want me to display.\n";
+			}
+		} else {
+			# No permission to show this page
+			print "Status: 403 Forbidden\n",
+				"Content-type: text/plain\n",
+				"Pragma: no-cache\n\n";
+
+			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
+				print "There is a problem with your connection. Please contact your ISP.\n";
+			}
+		}
+		throw Error::Simple($error ? $error : $info->as_string());
 	}
 }

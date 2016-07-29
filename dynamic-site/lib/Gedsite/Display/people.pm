@@ -12,10 +12,14 @@ sub html {
 
 	my $info = $self->{_info};
 	my $allowed = {
+		'page' => 'people',
 		'entry' => undef,	# TODO: regex of allowable name formats
 	};
 	my $params = $info->params({ allowed => $allowed });
-	if(!defined($params)) {
+	if($params && $params->{'page'}) {
+		delete $params->{'page'};
+	}
+	unless($params && scalar(keys %{$params})) {
 		# Display the main index page
 		return $self->SUPER::html();
 	}
