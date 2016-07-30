@@ -272,8 +272,9 @@ print $html "<html><head><title>Censuses in the Family Tree $name</title>",
 	"</head><body><center><h1>Censuses in the Family Tree $name</h1></center><br><ul>";
 
 open($csv, '>', 'dynamic-site/databases/censuses.csv');
-print $csv "entry!person\n";
+print $csv "entry!census!person\n";
 
+$index = 1;
 foreach my $census(sort keys(%censuses)) {
 	my $filename = $census;
 	$filename =~ tr/ /_/;
@@ -302,11 +303,12 @@ foreach my $census(sort keys(%censuses)) {
 			'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
 			$name,
 			'</a></li>';
-		print $csv "$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
+		print $csv "$index!$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
 	}
 
 	print $chtml '</ul></body></html>';
 	close $chtml;
+	$index++;
 }
 print $html '</ul></body></html>';
 close $html;
