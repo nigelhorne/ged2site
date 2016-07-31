@@ -304,11 +304,11 @@ foreach my $census(sort keys(%censuses)) {
 			$name,
 			'</a></li>';
 		print $csv "$index!$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
+		$index++;
 	}
 
 	print $chtml '</ul></body></html>';
 	close $chtml;
-	$index++;
 }
 print $html '</ul></body></html>';
 close $html;
