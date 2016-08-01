@@ -20,6 +20,11 @@
 				<h1>Censuses for [% SiteTitle.join(' ') %]</h1>
 			[% END %]
 			[ <a href="?page=people&home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ]
+			[% IF censuses %]
+				[% FOREACH census IN censuses %]
+					<a href="?page=censuses?census=[%- census | uri -%]">[% census %]</a>
+				[% END %]
+			[% END %]
 		</center>
 		<p align="right">
 			<i>

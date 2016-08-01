@@ -184,7 +184,7 @@ sub doit
 	if(defined($display)) {
 		# Pass in a handle to the database
 		print $display->as_string({
-			people => $people, cachedir => $cachedir
+			people => $people, censuses => $censuses, cachedir => $cachedir
 		});
 	} elsif($invalidpage) {
 		print "Status: 300 Multiple Choices\n",

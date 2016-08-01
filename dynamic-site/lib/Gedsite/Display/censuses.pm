@@ -19,12 +19,14 @@ sub html {
 	if($params && $params->{'page'}) {
 		delete $params->{'page'};
 	}
-	unless($params && scalar(keys %{$params})) {
-		# Display the main index page
-		return $self->SUPER::html();
-	}
 
-	my $censuses = $args{'census'};	# Handle into the database
+	my $censuses = $args{'censuses'};	# Handle into the database
+
+	unless($params && scalar(keys %{$params})) {
+		my @c = $censuses->census();
+		# Display the main index page
+		return $self->SUPER::html({ censuses => \@c });
+	}
 
 	# Look in the censuses.csv for the name given as the CGI argument and
 	# find their details
