@@ -19,6 +19,9 @@
 			[% ELSE %]
 				<h1>Surnames for [% SiteTitle.join(' ') %]</h1>
 			[% END %]
+			[% IF error %]
+				<p><font color="red" size="+2">[% error %]</font></p>
+			[% END %]
 			[ <a href="?page=people&home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ] | [ <a href="?page=surnames">Surname Index</a>
 			[% IF surnames %]
 				[% FOREACH surname IN surnames %]

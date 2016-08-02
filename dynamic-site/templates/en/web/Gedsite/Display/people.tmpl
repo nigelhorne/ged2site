@@ -33,6 +33,9 @@
 				<h1>[% person.title %]</h1>
 				[ <a href="?page=people&home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ] | [ <a href="?page=surnames">Surname Index</a>
 			</center>
+			[% IF error %]
+				<p><font color="red" size="+2">[% error %]</font></p>
+			[% END %]
 			<p>[% person.bio %]</p>
 			[% IF person.father || person.mother %]
 				<h2>Parents</h2>

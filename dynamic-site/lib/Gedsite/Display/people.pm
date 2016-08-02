@@ -15,7 +15,7 @@ sub html {
 		'page' => 'people',
 		'entry' => undef,	# TODO: regex of allowable name formats
 	};
-	my $params = $info->params({ allowed => $allowed });
+	my $params = $info->params({ allow => $allowed });
 	if($params && $params->{'page'}) {
 		delete $params->{'page'};
 	}
