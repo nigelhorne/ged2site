@@ -3,7 +3,7 @@
 <html lang="en">
 	<head>
 		[% IF census %]
-			<title>[% census.entry %]</title>
+			<title>[% census.0.census %] entries in [% SiteTitle.join(' ') %]</title>
 		[% ELSE %]
 			<title>Censuses for [% SiteTitle.join(' ') %]</title>
 		[% END %]
@@ -15,15 +15,23 @@
 	<body>
 		<center>
 			[% IF census %]
-				<h1>[% census.entry %]</h1>
+				<h1>[% census.0.census %] entries in [% SiteTitle.join(' ') %]</h1>
 			[% ELSE %]
 				<h1>Censuses for [% SiteTitle.join(' ') %]</h1>
 			[% END %]
 			[ <a href="?page=people&home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ]
 			[% IF censuses %]
 				[% FOREACH census IN censuses %]
-					<a href="?page=censuses?census=[%- census | uri -%]">[% census %]</a>
+					<a href="?page=censuses&census=[%- census | uri -%]">[% census %]</a>
 				[% END %]
+			[% ELSIF people %]
+				<ol>
+					[% FOREACH person IN people %]
+						<li>
+							<a href="?page=people&entry=[%- person.entry %]">[% person.title %]</a>
+						</li>
+					[% END %]
+				</ol>
 			[% END %]
 		</center>
 		<p align="right">

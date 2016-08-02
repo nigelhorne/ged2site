@@ -20,7 +20,9 @@ sub html {
 		delete $params->{'page'};
 	}
 
-	my $censuses = $args{'censuses'};	# Handle into the database
+	# Handles into the databases
+	my $censuses = $args{'censuses'};
+	my $people = $args{'people'};
 
 	unless($params && scalar(keys %{$params})) {
 		my @c = $censuses->census();
@@ -30,11 +32,15 @@ sub html {
 
 	# Look in the censuses.csv for the name given as the CGI argument and
 	# find their details
-	my $census = $censuses->fetchrow_hashref($params);
+	my $census = $censuses->selectall_hashref($params);
+	my @people;
+
+	foreach my $person(@{$census}) {
+		push @people, $people->fetchrow_hashref({ entry => $person->{'person'} });
+	}
 
 	# TODO: handle situation where look up fails
-
-	return $self->SUPER::html({ census => $census });
+	return $self->SUPER::html({ census => $census, people => \@people });
 }
 
 1;
