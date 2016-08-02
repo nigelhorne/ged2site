@@ -1,6 +1,6 @@
-package Gedsite::Display::censuses;
+package Gedsite::Display::surnames;
 
-# Display the censuses page
+# Display the surnames page
 
 use Gedsite::Display::page;
 
@@ -12,8 +12,8 @@ sub html {
 
 	my $info = $self->{_info};
 	my $allowed = {
-		'page' => 'censuses',
-		'census' => undef,	# TODO: regex of allowable name formats
+		'page' => 'surnames',
+		'surname' => undef,	# TODO: regex of allowable name formats
 	};
 	my $params = $info->params({ allowed => $allowed });
 	if($params && $params->{'page'}) {
@@ -21,26 +21,26 @@ sub html {
 	}
 
 	# Handles into the databases
-	my $censuses = $args{'censuses'};
+	my $surnames = $args{'surnames'};
 	my $people = $args{'people'};
 
 	unless($params && scalar(keys %{$params})) {
 		# Display the main index page
-		my @c = $censuses->census();
-		return $self->SUPER::html({ censuses => \@c });
+		my @s = $surnames->surname();
+		return $self->SUPER::html({ surnames => \@s });
 	}
 
-	# Look in the censuses.csv for the name given as the CGI argument and
+	# Look in the surnames.csv for the name given as the CGI argument and
 	# find their details
-	my $census = $censuses->selectall_hashref($params);
+	my $surname = $surnames->selectall_hashref($params);
 	my @people;
 
-	foreach my $person(@{$census}) {
+	foreach my $person(@{$surname}) {
 		push @people, $people->fetchrow_hashref({ entry => $person->{'person'} });
 	}
 
 	# TODO: handle situation where look up fails
-	return $self->SUPER::html({ census => $census, people => \@people });
+	return $self->SUPER::html({ surname => $surname, people => \@people });
 }
 
 1;

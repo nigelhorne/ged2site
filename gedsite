@@ -45,6 +45,7 @@ use Sort::Key::DateTime;
 use String::ProgressBar;
 use Text::Names;
 use File::Copy::Recursive;
+use autodie qw(:all);
 no lib '.';
 
 my %opts;
@@ -165,12 +166,11 @@ if($opts{'F'}) {
 	}
 }
 
-mkdir 'static-site';
+my @dirlist = ('static-site', 'dynamic-site/databases');
 if($dot || $opts{'d'}) {
-	mkdir 'static-site/img';
-	mkdir 'thumbs';
+	push @dirlist, 'static-site/img';
+	push @dirlist, 'thumbs';
 }
-mkdir 'dynamic-site/databases';
 
 my $gedcal;
 if(-x '/usr/bin/gedcal') {
@@ -182,7 +182,11 @@ if(-x '/usr/bin/gedcal') {
 }
 
 if($gedcal) {
-	mkdir 'static-site/calendar';
+	push @dirlist, 'static-site/calendar';
+}
+
+foreach my $dir(@dirlist) {
+	mkdir $dir if(!-d $dir);
 }
 
 if($opts{'d'}) {
@@ -329,6 +333,10 @@ if($opts{'w'}) {
 }
 print $html ' | [ <a href="history.html">Family History</a> ]</center><br><ul>';
 
+open($csv, '>', 'dynamic-site/databases/surnames.csv');
+print $csv "entry!surname!person\n";
+$index = 1;
+
 foreach my $surname(sort keys %{$surnames}) {
 	my $filename = $surname;
 	if($filename eq '') {
@@ -366,6 +374,8 @@ foreach my $surname(sort keys %{$surnames}) {
 		print $shtml '<li>',
 			'<a href="', make_filename_from_person(person => $surnames->{$surname}->{$person}), "\">$person</a>",
 			'</li>';
+		print $csv "$index!$filename!", $surnames->{$surname}->{$person}->{'xref'}, "\n";
+		$index++;
 	}
 
 	print $shtml '</ul></body></html>';
@@ -374,6 +384,7 @@ foreach my $surname(sort keys %{$surnames}) {
 
 print $html '</ul></body></html>';
 close $html;
+close $csv;
 
 if($opts{'g'}) {
 	open($html, '>', "static-site/$opts{g}.html");

@@ -53,9 +53,11 @@ my $logger = Log::Log4perl->get_logger($script_name);
 # eval "require $pagename";
 use Gedsite::Display::people;
 use Gedsite::Display::censuses;
+use Gedsite::Display::surnames;
 
 use Gedsite::DB::people;
 use Gedsite::DB::censuses;
+use Gedsite::DB::surnames;
 
 my $database_dir = "$script_dir/../databases";
 Gedsite::DB::init({ directory => $database_dir, logger => $logger });
@@ -66,6 +68,7 @@ if($@) {
 	die $@;
 }
 my $censuses = Gedsite::DB::censuses->new();
+my $surnames = Gedsite::DB::surnames->new();
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
@@ -174,6 +177,8 @@ sub doit
 			$display = Gedsite::Display::people->new($args);
 		} elsif($info->param('page') eq 'censuses') {
 			$display = Gedsite::Display::censuses->new($args);
+		} elsif($info->param('page') eq 'surnames') {
+			$display = Gedsite::Display::surnames->new($args);
 		} else {
 			$invalidpage = 1;
 		}
@@ -184,7 +189,7 @@ sub doit
 	if(defined($display)) {
 		# Pass in a handle to the database
 		print $display->as_string({
-			people => $people, censuses => $censuses, cachedir => $cachedir
+			people => $people, censuses => $censuses, surnames => $surnames, cachedir => $cachedir
 		});
 	} elsif($invalidpage) {
 		print "Status: 300 Multiple Choices\n",
@@ -192,6 +197,7 @@ sub doit
 		unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 			print "/cgi-bin/page.fcgi?page=people\n",
 				"/cgi-bin/page.fcgi?page=censuses\n",
+				"/cgi-bin/page.fcgi?page=surnames\n",
 		}
 	} else {
 		$logger->debug('disabling cache');

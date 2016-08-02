@@ -2,10 +2,10 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
-		[% IF census %]
-			<title>[% census.0.census %] entries in [% SiteTitle.join(' ') %]</title>
+		[% IF surname %]
+			<title>Entries for the surname [% surname.0.surname %] in [% SiteTitle.join(' ') %]</title>
 		[% ELSE %]
-			<title>Censuses for [% SiteTitle.join(' ') %]</title>
+			<title>Surnames for [% SiteTitle.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
@@ -14,15 +14,15 @@
 	</head>
 	<body>
 		<center>
-			[% IF census %]
-				<h1>[% census.0.census %] entries in [% SiteTitle.join(' ') %]</h1>
+			[% IF surname %]
+				<h1>Entries for the surname [% surname.0.surname %] in [% SiteTitle.join(' ') %]</h1>
 			[% ELSE %]
-				<h1>Censuses for [% SiteTitle.join(' ') %]</h1>
+				<h1>Surnames for [% SiteTitle.join(' ') %]</h1>
 			[% END %]
 			[ <a href="?page=people&home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ] | [ <a href="?page=surnames">Surname Index</a>
-			[% IF censuses %]
-				[% FOREACH census IN censuses %]
-					<a href="?page=censuses&census=[%- census | uri -%]">[% census %]</a>
+			[% IF surnames %]
+				[% FOREACH surname IN surnames %]
+					<a href="?page=surnames&surname=[%- surname | uri -%]">[% surname %]</a>
 				[% END %]
 			[% ELSIF people %]
 				<ol>
