@@ -9,21 +9,21 @@
 			<script language="JavaScript">
 				<!--HIDE
 				function time() {
-					setTimeout("window.location.replace('cgi-bin/page.fcgi?page=people&home=1')", 100)
+					setTimeout("window.location.replace('page.fcgi?page=people&home=1')", 100)
 				}
 				//STOP HIDING-->
 			</script>
-			<meta http-equiv="Refresh" content="1;URL=cgi-bin/page.fcgi?page=people&home=1">
+			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=people&home=1">
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		[% IF person.map_head %]
-			[% person.map_head %]
+			[% decode_base64url(person.map_head) %]
 		[% END %]
 		<!--
 		<meta name="msvalidate.01" content="deadbeef" />
 		-->
 	</head>
-	[% IF person.map_head %]
+	[% IF person.map_body %]
 		<body onload="html_googlemaps_initialize()">
 	[% ELSE %]
 		<body>
@@ -90,7 +90,7 @@
 			[% END %]
 			[% IF person.map_body %]
 				<h2>Map</h2>
-				[% person.map_body %]
+				[% decode_base64url(person.map_body) %]
 			[% END %]
 			[% IF person.warnings %]
 				<h2>To be done</h2>

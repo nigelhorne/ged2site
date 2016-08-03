@@ -3,6 +3,7 @@ package Gedsite::Display::people;
 # Display the people page
 
 use Gedsite::Display::page;
+use MIME::Base64;
 
 our @ISA = ('Gedsite::Display::page');
 
@@ -32,7 +33,12 @@ sub html {
 
 	# TODO: handle situation where look up fails
 
-	return $self->SUPER::html({ person => $person });
+	return $self->SUPER::html({
+		person => $person,
+		decode_base64url => sub {
+			MIME::Base64::decode_base64url($_[0])
+		}
+	});
 }
 
 1;
