@@ -2302,7 +2302,7 @@ sub print_person
 								print $html "<a href=\"$localfile\" target=\"_blank\">",
 									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
 									'</a>';
-								print $csv "$localfile---$title---$h----";
+								print $csv "/$localfile---$title---$h----";
 								if(!defined($profile_image)) {
 									$profile_image = "static-site/$localfile";
 								}
@@ -2401,7 +2401,7 @@ sub print_person
 				my $filename = make_filename_from_object(object => $person);
 				my $dim = Image::Info::html_dim(Image::Info::image_info($png));
 				print $html "<img src=\"img/$filename.png\" $dim", ' usemap="#family" alt="Family Tree">';
-				print $csv "img/$filename.png---$dim---";
+				print $csv "/img/$filename.png---$dim---";
 				$tmp->seek(0, SEEK_SET);
 				foreach my $line(<$tmp>) {
 					chomp $line;
