@@ -55,10 +55,12 @@ my $logger = Log::Log4perl->get_logger($script_name);
 use Gedsite::Display::people;
 use Gedsite::Display::censuses;
 use Gedsite::Display::surnames;
+use Gedsite::Display::history;
 
 use Gedsite::DB::people;
 use Gedsite::DB::censuses;
 use Gedsite::DB::surnames;
+use Gedsite::DB::history;
 
 my $database_dir = "$script_dir/../databases";
 Gedsite::DB::init({ directory => $database_dir, logger => $logger });
@@ -70,6 +72,7 @@ if($@) {
 }
 my $censuses = Gedsite::DB::censuses->new();
 my $surnames = Gedsite::DB::surnames->new();
+my $history = Gedsite::DB::history->new();
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
@@ -180,6 +183,8 @@ sub doit
 			$display = Gedsite::Display::censuses->new($args);
 		} elsif($info->param('page') eq 'surnames') {
 			$display = Gedsite::Display::surnames->new($args);
+		} elsif($info->param('page') eq 'history') {
+			$display = Gedsite::Display::history->new($args);
 		} else {
 			$invalidpage = 1;
 		}
@@ -190,7 +195,11 @@ sub doit
 	if(defined($display)) {
 		# Pass in a handle to the database
 		print $display->as_string({
-			people => $people, censuses => $censuses, surnames => $surnames, cachedir => $cachedir
+			people => $people,
+			censuses => $censuses,
+			surnames => $surnames,
+			history => $history,
+			cachedir => $cachedir
 		});
 	} elsif($invalidpage) {
 		print "Status: 300 Multiple Choices\n",
@@ -199,6 +208,7 @@ sub doit
 			print "/cgi-bin/page.fcgi?page=people\n",
 				"/cgi-bin/page.fcgi?page=censuses\n",
 				"/cgi-bin/page.fcgi?page=surnames\n",
+				"/cgi-bin/page.fcgi?page=history\n",
 		}
 	} else {
 		$logger->debug('disabling cache');

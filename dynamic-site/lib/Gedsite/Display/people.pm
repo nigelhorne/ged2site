@@ -15,6 +15,7 @@ sub html {
 	my $allowed = {
 		'page' => 'people',
 		'entry' => undef,	# TODO: regex of allowable name formats
+		'home' => 1,
 	};
 	my $params = $info->params({ allow => $allowed });
 	if($params && $params->{'page'}) {
