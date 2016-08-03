@@ -12,7 +12,7 @@ Typical usage:
     gedsite -cFdh 'Your Name' gedfile.ged
 
 You will then have two sites - static-site is static HTML,
-dynamic-sitc is a VWF based website which used templates to support more than one
+dynamic-site is a VWF based website which uses templates to support more than one
 language and mobile/web/search-engine clients.
 
 If you decide to use the static site, just copy files in the static-site directory to your webserver.
@@ -39,8 +39,8 @@ The options are:
 If gedcal is installed, gedsite will also create a calendar of births and
 deaths, one page for each month in the current year.
 
-An example static genealogy website that was produced Gedsite by is available at
+An example static genealogy website that was produced by Gedsite is available at
 https://genealogy.nigelhorne.com.
 
-Note that the dynamic page generation has only just been started, and is
-currently only a proof of concept.  Don't use it.
+Note that the dynamic page generation is in its early stages of development so
+not all of the data is available yet.
