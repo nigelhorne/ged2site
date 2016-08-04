@@ -262,13 +262,26 @@ if($opts{'w'}) {
 		' | [ <a href="calendar/index.html">Calendar</a> ]',
 		' | [ <a href="history.html">Family History</a> ]</center><br>';
 
+	open(my $csv, '>', 'dynamic-site/databases/todo.csv');
+	print $csv "entry!person!title!error\n";
+	my $index = 1;
+
 	foreach my $person($ged->individuals()) {
 		if($person->{'warnings'}) {
 			print $html '<h2>',
 				'<a href="', make_filename_from_person(person => $person), '">', $person->as_string(include_years => 1), '</a></h2>',
 				map { HTML::Entities::encode($_) . '<br>' } @{$person->{'warnings'}};
+			foreach my $warning(@{$person->{'warnings'}}) {
+				print $csv "$index!",
+					$person->{'xref'}, '!',
+					$person->as_string(include_years => 1), '!',
+					HTML::Entities::encode($warning), "\n";
+				$index++;
+			}
 		}
 	}
+	close $csv;
+	close $html;
 }
 
 print "Creating census index\n";

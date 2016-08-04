@@ -56,11 +56,13 @@ use Gedsite::Display::people;
 use Gedsite::Display::censuses;
 use Gedsite::Display::surnames;
 use Gedsite::Display::history;
+use Gedsite::Display::todo;
 
 use Gedsite::DB::people;
 use Gedsite::DB::censuses;
 use Gedsite::DB::surnames;
 use Gedsite::DB::history;
+use Gedsite::DB::todo;
 
 my $database_dir = "$script_dir/../databases";
 Gedsite::DB::init({ directory => $database_dir, logger => $logger });
@@ -73,6 +75,7 @@ if($@) {
 my $censuses = Gedsite::DB::censuses->new();
 my $surnames = Gedsite::DB::surnames->new();
 my $history = Gedsite::DB::history->new();
+my $todo = Gedsite::DB::todo->new();
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
@@ -185,6 +188,8 @@ sub doit
 			$display = Gedsite::Display::surnames->new($args);
 		} elsif($info->param('page') eq 'history') {
 			$display = Gedsite::Display::history->new($args);
+		} elsif($info->param('page') eq 'todo') {
+			$display = Gedsite::Display::todo->new($args);
 		} else {
 			$invalidpage = 1;
 		}
@@ -199,6 +204,7 @@ sub doit
 			censuses => $censuses,
 			surnames => $surnames,
 			history => $history,
+			todo => $todo,
 			cachedir => $cachedir
 		});
 	} elsif($invalidpage) {
@@ -209,6 +215,7 @@ sub doit
 				"/cgi-bin/page.fcgi?page=censuses\n",
 				"/cgi-bin/page.fcgi?page=surnames\n",
 				"/cgi-bin/page.fcgi?page=history\n",
+				"/cgi-bin/page.fcgi?page=todo\n",
 		}
 	} else {
 		$logger->debug('disabling cache');

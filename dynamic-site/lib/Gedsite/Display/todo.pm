@@ -1,0 +1,33 @@
+package Gedsite::Display::todo;
+
+# Display the todo page
+
+use Gedsite::Display::page;
+
+our @ISA = ('Gedsite::Display::page');
+
+sub html {
+	my $self = shift;
+	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $todohash;	# hash of person's name to array of todos for that person, each todo is a hash of the todo's details
+
+	my $todo = $args{'todo'};	# Handle into the database
+	my $people = $args{'people'};
+
+	# TODO: handle situation where look up fails
+
+	my $todos = $todo->selectall_hashref();
+	foreach my $t(@{$todos}) {
+		push @{$todohash->{$t->{'title'}}}, $t;
+	}
+
+		# use Data::Dumper;
+		# my $d = Data::Dumper->new([$todohash]);
+		# print $d->Dump();
+	# return $self->SUPER::html();
+
+	return $self->SUPER::html({ todos => $todohash });
+}
+
+1;
