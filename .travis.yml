@@ -10,7 +10,7 @@ perl:
   - "5.16"
   - "5.14"
 install:
-  - cpanm --skip-satisfied --installdeps -q -n Gedcom Genealogy::Gedcom::Date Date::Parse Getopt::Std Geo::Coder::OSM Term::ANSIColor Lingua::EN::NameParse Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Tie::Static DateTime::Format::Natural HTML::Entities B::Lint HTTP::Cache::Transparent Image::Info URI::Find::Schemeless URI LWP::Simple LWP::UserAgent HTML::GoogleMaps::V3 Sort::Key::DateTime String::ProgressBar Text::Names IPC::System::Simple autodie
-  - cpanm --skip-satisfied -n -q Gedcom Genealogy::Gedcom::Date Date::Parse Getopt::Std Geo::Coder::OSM Term::ANSIColor Lingua::EN::NameParse Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Tie::Static DateTime::Format::Natural HTML::Entities B::Lint HTTP::Cache::Transparent Image::Info URI::Find::Schemeless URI LWP::Simple LWP::UserAgent HTML::GoogleMaps::V3 Sort::Key::DateTime String::ProgressBar Text::Names IPC::System::Simple autodie
+  - cpanm --skip-satisfied --installdeps -q -n Gedcom Genealogy::Gedcom::Date Date::Parse Getopt::Std Geo::Coder::OSM Term::ANSIColor Lingua::EN::NameParse Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Tie::Static DateTime::Format::Natural HTML::Entities B::Lint HTTP::Cache::Transparent Image::Info URI::Find::Schemeless URI LWP::Simple LWP::UserAgent HTML::GoogleMaps::V3 Sort::Key::DateTime String::ProgressBar Text::Names IPC::System::Simple autodie Memoize
+  - cpanm --skip-satisfied -n -q Gedcom Genealogy::Gedcom::Date Date::Parse Getopt::Std Geo::Coder::OSM Term::ANSIColor Lingua::EN::NameParse Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Tie::Static DateTime::Format::Natural HTML::Entities B::Lint HTTP::Cache::Transparent Image::Info URI::Find::Schemeless URI LWP::Simple LWP::UserAgent HTML::GoogleMaps::V3 Sort::Key::DateTime String::ProgressBar Text::Names IPC::System::Simple autodie Memoize
 script:
   - perl -c -MO=Lint ./gedsite

@@ -12,6 +12,7 @@
 
 use strict;
 use warnings;
+use autodie qw(:all);
 # use warnings::unused;
 
 # BEGIN {
@@ -46,7 +47,7 @@ use String::ProgressBar;
 use Text::Names;
 use File::Copy::Recursive;
 use MIME::Base64;
-use autodie qw(:all);
+use Memoize;
 no lib '.';
 
 my %opts;
@@ -213,6 +214,9 @@ my $pr;
 if(!$opts{'w'}) {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
+
+memoize('Gedcom::Individual::as_string');
+memoize('stepsabove');
 
 # Would be nice to use XML, but that needs DBD::AnyData which doesn't build
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
