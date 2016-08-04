@@ -933,11 +933,44 @@ sub print_person
 
 		if($birth_dt && ($opts{'l'} || !$was_alive)) {
 			if(scalar(@siblings)) {
+				# If possible, sort siblings by date of birth
+				my $all_siblings_have_dob = 1;
+				foreach my $sibling(@siblings) {
+					my $dob = get_value({ person => $sibling, value => 'birth date' });
+					if((!$dob) || ($dob =~ /[\/\-]/) || !$date_parser->parse(date => $dob)) {
+						$all_siblings_have_dob = 0;
+						last;
+					}
+					my $d;
+					eval {
+						$d = $date_parser->parse(date => $dob);
+					};
+					if($d) {
+						$d = @{$d}[0];
+					}
+					if($@ || !defined($d)) {
+						if($opts{'f'}) {
+							die $sibling->as_string(),
+								" has an invalid date of birth: $dob";
+						}
+						if($opts{'w'}) {
+							red_warning({
+								person => $sibling,
+								warning => "has an invalid date of birth: $dob"
+							});
+						}
+						$all_siblings_have_dob = 0;
+						last;
+					}
+				}
+				if($all_siblings_have_dob) {
+					@siblings = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => get_value({ person => $_, value => 'birth date'}))}[0]->{'canonical'}) } @siblings;
+				}
 				my $count = 1;
 				$print_sibling_count = 1;
 				foreach my $sibling(@siblings) {
 					my $dob = get_value({ person => $sibling, value => 'birth date' });
-					if($dob && ($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
+					if($dob) {
 						my $d;
 						eval {
 							$d = $date_parser->parse(date => $dob);
@@ -948,6 +981,7 @@ sub print_person
 						if($d) {
 							$d = $dfn->parse_datetime($d->{'canonical'});
 							if($opts{'w'} &&
+							  ($dob =~ /^\d/) && ($dob !~ /[a-z]$/i) &&
 							  ($d < $birth_dt) &&
 							  ($d > ($birth_dt - $ninemonths))) {
 								if($opts{'f'}) {
