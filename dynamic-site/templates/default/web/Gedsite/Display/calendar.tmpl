@@ -2,18 +2,10 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
-		[% IF surname %]
-			<title>[% surname.0.surname %]</title>
+		[% IF month %]
+			<title>Events in [% month %] [% year %] in [% SiteTitle.join(' ') %]</title>
 		[% ELSE %]
-			<title>[% SiteTitle.join(' ') %]</title>
-			<script language="JavaScript">
-				<!--HIDE
-				function time() {
-					setTimeout("window.location.replace('cgi-bin/index.fcgi?home=1')", 100)
-				}
-				//STOP HIDING-->
-			</script>
-			<meta http-equiv="Refresh" content="1;URL=cgi-bin/index.fcgi?home=1">
+			<title>Calendar of [% SiteTitle.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--

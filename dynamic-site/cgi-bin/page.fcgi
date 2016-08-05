@@ -57,6 +57,7 @@ use Gedsite::Display::censuses;
 use Gedsite::Display::surnames;
 use Gedsite::Display::history;
 use Gedsite::Display::todo;
+use Gedsite::Display::calendar;
 
 use Gedsite::DB::people;
 use Gedsite::DB::censuses;
@@ -190,6 +191,8 @@ sub doit
 			$display = Gedsite::Display::history->new($args);
 		} elsif($info->param('page') eq 'todo') {
 			$display = Gedsite::Display::todo->new($args);
+		} elsif($info->param('page') eq 'calendar') {
+			$display = Gedsite::Display::calendar->new($args);
 		} else {
 			$invalidpage = 1;
 		}
@@ -216,6 +219,7 @@ sub doit
 				"/cgi-bin/page.fcgi?page=surnames\n",
 				"/cgi-bin/page.fcgi?page=history\n",
 				"/cgi-bin/page.fcgi?page=todo\n",
+				"/cgi-bin/page.fcgi?page=calendar\n",
 		}
 	} else {
 		$logger->debug('disabling cache');

@@ -2565,11 +2565,11 @@ sub print_person
 		print $csv '!!';
 	}
 	if($birth_dt) {
-		print $csv $birth_dt->strftime('%x');
+		print $csv $birth_dt->strftime('%Y/%m/%d');
 	}
 	print $csv '!';
 	if($death_dt) {
-		print $csv $death_dt->strftime('%x');
+		print $csv $death_dt->strftime('%Y/%m/%d');
 	}
 
 	my $dt;
