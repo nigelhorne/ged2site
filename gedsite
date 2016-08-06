@@ -45,7 +45,6 @@ use HTML::GoogleMaps::V3;
 use Sort::Key::DateTime;
 use String::ProgressBar;
 use Text::Names;
-use File::Copy::Recursive;
 use MIME::Base64;
 use Memoize;
 no lib '.';
@@ -171,6 +170,7 @@ if($opts{'F'}) {
 my @dirlist = ('static-site', 'dynamic-site/databases');
 if($dot || $opts{'d'}) {
 	push @dirlist, 'static-site/img';
+	push @dirlist, 'dynamic-site/img';
 	push @dirlist, 'thumbs';
 }
 
@@ -493,9 +493,6 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	print $fout '</ul></body></html>';
 	close $fout;
 }
-
-print "Copying images to the dynamic site\n";
-File::Copy::Recursive::dircopy('static-site/img', 'dynamic-site/img');
 
 sub print_person
 {
@@ -2338,24 +2335,28 @@ sub print_person
 					if($opts{'d'} && ($file =~ /^https?:\/\//) && ($file !~ /\.jpe?g$/)) {
 						$file =~ s/%2f/\//gi;
 
-						my $browser = LWP::UserAgent->new();
-						my $resp = $browser->get($file);
-						if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
-							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
-							my $key = $person->as_string() . ";$localfile";
-							if($images{$key}) {
-								# Flag a person having two images of the same
-								# name
-								if($opts{'f'}) {
-									die $person->as_string(), ': ', $localfile, ' duplicate filename';
+						my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+						# FIXME: It should check if the remote image is newer than the local image
+						if(!-r $localfile) {
+							my $browser = LWP::UserAgent->new();
+							my $resp = $browser->get($file);
+							if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
+								my $key = $person->as_string() . ";$localfile";
+								if($images{$key}) {
+									# Flag a person having two images of the same
+									# name
+									if($opts{'f'}) {
+										die $person->as_string(), ': ', $localfile, ' duplicate filename';
+									}
+									red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
 								}
-								red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
+								open(my $tmp, '>', $localfile);
+								print $tmp $resp->decoded_content();
+								close $tmp;
+								$form = 'JPG';
+								$images{$key} = 1;
+								link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							}
-							open(my $tmp, '>', $localfile);
-							print $tmp $resp->decoded_content();
-							close $tmp;
-							$form = 'JPG';
-							$images{$key} = 1;
 						}
 					}
 					if($form && ($form eq 'JPG')) {
@@ -2379,6 +2380,9 @@ sub print_person
 								print $csv "/$localfile---$title---$h----";
 								if(!defined($profile_image)) {
 									$profile_image = "static-site/$localfile";
+								}
+								unless(-r "dynamic-site/$localfile") {
+									link "static-site/$localfile", "dynamic-site/$localfile";
 								}
 							} else {
 								red_warning({ person => $person, warning => "static-site/$localfile: $!" });
@@ -2428,20 +2432,20 @@ sub print_person
 				print $fout 'digraph family {',
 					' subgraph parents { rank="min"; ';
 				if($father) {
-					print_graphviz({ person => $father, fout => $fout });
+					print_graphviz({ person => $father, fout => $fout, format => 'static' });
 				}
 				if($mother) {
-					print_graphviz({ person => $mother, fout => $fout });
+					print_graphviz({ person => $mother, fout => $fout, format => 'static' });
 				}
 				print $fout '} subgraph main { rank="same"; ';
-				print_graphviz({ person => $person, fout => $fout, profile_image => $profile_image });
+				print_graphviz({ person => $person, fout => $fout, profile_image => $profile_image, format => 'static' });
 				foreach my $spouse(@spouses) {
-					print_graphviz({ person => $spouse, fout => $fout });
+					print_graphviz({ person => $spouse, fout => $fout, format => 'static' });
 				}
 				print $fout '} subgraph children { rank="max"; ';
 				# TODO: sort by date of birth
 				foreach my $child(@children) {
-					print_graphviz({ person => $child, fout => $fout });
+					print_graphviz({ person => $child, fout => $fout, format => 'static' });
 				}
 				print $fout '} ';
 
@@ -2475,11 +2479,74 @@ sub print_person
 				my $filename = make_filename_from_object(object => $person);
 				my $dim = Image::Info::html_dim(Image::Info::image_info($png));
 				print $html "<img src=\"img/$filename.png\" $dim", ' usemap="#family" alt="Family Tree">';
-				print $csv "/img/$filename.png---$dim---";
 				$tmp->seek(0, SEEK_SET);
 				foreach my $line(<$tmp>) {
 					chomp $line;
 					print $html $line;
+				}
+			}
+			$png = "dynamic-site/img/" . make_filename_from_object(object => $person) . '.png';
+			$tmp = File::Temp->new();
+			$filename = $tmp->filename();
+			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
+			# if(open(my $fout, '|-', '/bin/cat')) {
+				# print $fout 'digraph family { graph [rankdir=LR];';
+				print $fout 'digraph family {',
+					' subgraph parents { rank="min"; ';
+				if($father) {
+					print_graphviz({ person => $father, fout => $fout, format => 'dynamic' });
+				}
+				if($mother) {
+					print_graphviz({ person => $mother, fout => $fout, format => 'dynamic' });
+				}
+				print $fout '} subgraph main { rank="same"; ';
+				my $d_profile = $profile_image;
+				if(defined($d_profile)) {
+					$d_profile =~ s/static/dynamic/;
+				}
+				print_graphviz({ person => $person, fout => $fout, profile_image => $d_profile, format => 'dynamic' });
+				foreach my $spouse(@spouses) {
+					print_graphviz({ person => $spouse, fout => $fout, format => 'dynamic' });
+				}
+				print $fout '} subgraph children { rank="max"; ';
+				# TODO: sort by date of birth
+				foreach my $child(@children) {
+					print_graphviz({ person => $child, fout => $fout, format => 'dynamic' });
+				}
+				print $fout '} ';
+
+				if($mother) {
+					print $fout $mother->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+				}
+				if($father) {
+					print $fout $father->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+				}
+				if(scalar(@spouses) == 2) {
+					# Married twice, put the person in the middle,
+					# it looks better
+					# print $fout $person->{'xref'}, ' -> ', $spouses[0]->{'xref'}, " [dir=none];\n";
+					print $fout $spouses[0]->{'xref'}, ' -> ',
+						$person->{'xref'}, ' -> ',
+						$spouses[1]->{'xref'}, " [dir=none];\n";
+				} else {
+					foreach my $spouse(@spouses) {
+						print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
+						# print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
+					}
+				}
+				foreach my $child(@children) {
+					print $fout $person->{'xref'}, ' -> ', $child->{'xref'}, ";\n";
+				}
+
+				print $fout '}';
+				close $fout;
+
+				my $filename = make_filename_from_object(object => $person);
+				my $dim = Image::Info::html_dim(Image::Info::image_info($png));
+				print $csv "/img/$filename.png---$dim---";
+				$tmp->seek(0, SEEK_SET);
+				foreach my $line(<$tmp>) {
+					chomp $line;
 					print $csv $line;
 				}
 			}
@@ -3481,8 +3548,13 @@ sub print_graphviz
 	}
 
 	print $fout $person->{'xref'}, ' [shape=box,fontsize="10",',
-		"color=\"$colour\",",
-		'href="', make_filename_from_person(person => $person), '",';
+		"color=\"$colour\",";
+
+	if($params{'format'} eq 'dynamic') {
+		print $fout 'href="?page=people&person=', $person->{'xref'}, '",';
+	} else {
+		print $fout 'href="', make_filename_from_person(person => $person), '",';
+	}
 
 	my $label = $person->as_string();
 	my $dob = get_value({ person => $person, value => 'birth date' });
