@@ -61,6 +61,8 @@ sub _open {
 		if(-r $slurp_file) {
 			# You'll need to install XML::Twig and
 			# AnyData::Format::XML
+			# The DBD::AnyData in CPAN doesn't work - grab a
+			# patched version from https://github.com/nigelhorne/DBD-AnyData.git
 			$dbh = DBI->connect('dbi:AnyData(RaiseError=>1):');
 			$dbh->{'RaiseError'} = 1;
 			if($self->{'logger'}) {
