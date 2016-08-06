@@ -3551,7 +3551,7 @@ sub print_graphviz
 		"color=\"$colour\",";
 
 	if($params{'format'} eq 'dynamic') {
-		print $fout 'href="?page=people&person=', $person->{'xref'}, '",';
+		print $fout 'href="?page=people&entry=', $person->{'xref'}, '",';
 	} else {
 		print $fout 'href="', make_filename_from_person(person => $person), '",';
 	}
