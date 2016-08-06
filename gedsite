@@ -1799,7 +1799,7 @@ sub print_person
 			}
 		}
 	} else {
-		print $csv '!!!!!!';
+		print $csv '!!!';
 	}
 
 	if($placeofburial || $dateofburial) {
@@ -2081,7 +2081,10 @@ sub print_person
 	}
 
 	print $html $bio;
-	print $csv "$bio!";
+	if($opts{'l'} || !$was_alive) {
+		print $csv $bio;
+	}
+	print $csv '!';
 
 	if($opts{'l'} || !$was_alive) {
 		print $html '</p>';
@@ -2096,9 +2099,11 @@ sub print_person
 				print $html "<li>$m</li>";
 				print $csv person_line_csv({ person => $mother, year => $year });
 			}
-			print $csv '!';
 			print $html '</ol>';
+		} else {
+			print $csv '!';
 		}
+		print $csv '!';
 		print $html '<h2>Children</h2><ol>' if(@children);
 
 		my $c = '';
@@ -2148,8 +2153,12 @@ sub print_person
 			}
 		}
 		print $html '</ol>' if(@children);
-		print $csv "$c!";
+		print $csv $c;
+	} else {
+		print $csv '!!';
 	}
+
+	print $csv '!';
 
 	if($opts{'l'} || !$was_alive) {
 		my $ufinder = URI::Find::Schemeless->new(sub {
