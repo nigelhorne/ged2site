@@ -1798,6 +1798,8 @@ sub print_person
 				$end_of_sentence = 1;
 			}
 		}
+	} else {
+		print $csv '!!!!!!';
 	}
 
 	if($placeofburial || $dateofburial) {
