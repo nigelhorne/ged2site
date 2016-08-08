@@ -1017,7 +1017,7 @@ sub print_person
 				}
 				if($print_sibling_count) {
 					if((scalar(@siblings)) && ($count == (scalar(@siblings) + 1))) {
-						$bio .= 'last';
+						$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
 					} else {
 						$bio .= ordinate($count);
 					}
