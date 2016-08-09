@@ -926,6 +926,10 @@ sub print_person
 	}
 
 	# TODO: print all occupations
+	while($occupations[0] && (lc($occupations[0]) eq 'school')) {
+		shift @occupations;
+	}
+
 	if($occupations[0]) {
 		$bio .= 'A';
 		if($occupations[0] =~ /^[aeiou]/i) {
