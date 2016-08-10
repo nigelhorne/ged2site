@@ -21,12 +21,13 @@ sub html {
 	if($params && $params->{'page'}) {
 		delete $params->{'page'};
 	}
-	unless($params && scalar(keys %{$params})) {
-		# Display the main index page
-		return $self->SUPER::html();
-	}
 
 	my $people = $args{'people'};	# Handle into the database
+
+	unless($params && scalar(keys %{$params})) {
+		# Display the main index page
+		return $self->SUPER::html(updated => $people->updated());
+	}
 
 	# Look in the people.csv for the name given as the CGI argument and
 	# find their details
@@ -38,7 +39,8 @@ sub html {
 		person => $person,
 		decode_base64url => sub {
 			MIME::Base64::decode_base64url($_[0])
-		}
+		},
+		updated => $people->updated()
 	});
 }
 

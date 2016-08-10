@@ -16,7 +16,7 @@
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
-		[% USE day = date(format => '%e %B', locale => lingua.language_code_alpha2) %]
+		[% USE day = date(format = '%e %B', locale = lingua.language_code_alpha2) %]
 		[% FOREACH year IN events.keys.sort %]
 			<h2>[% year %]</h2>
 			<ul>
