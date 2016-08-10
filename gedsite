@@ -1788,7 +1788,7 @@ sub print_person
 				}
 				$count++;
 				if($count < (scalar(@residencelist) - 1)) {
-					$bio .= '----';
+					$bio .= ';';
 				} elsif($count == (scalar(@residencelist) - 1)) {
 					$bio .= '; and';
 				}
