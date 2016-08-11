@@ -22,7 +22,7 @@ use FCGI;
 use FCGI::Buffer;
 use File::HomeDir;
 use Log::Any::Adapter;
-use Error::Simple;
+use Error qw(:try);
 use autodie qw(:all);
 
 # use lib '/usr/lib';	# This needs to point to the Gedsite directory lives,
@@ -30,10 +30,13 @@ use autodie qw(:all);
 			# distribution
 use lib '../lib';
 
+use Gedsite::Config;
+
 my $info = CGI::Info->new();
 my $tmpdir = $info->tmpdir();
 my $cachedir = "$tmpdir/cache";
 my $script_dir = $info->script_dir();
+my $config;
 
 my @suffixlist = ('.pl', '.fcgi');
 my $script_name = basename($info->script_name(), @suffixlist);
@@ -114,14 +117,17 @@ while($handling_request = ($request->Accept() >= 0)) {
 
 	$Error::Debug = 1;
 
-	eval {
+	try {
 		doit();
-	};
-	if($@) {
-		my $msg = $@;
-		warn $msg unless(defined($ENV{'REMOTE_ADDR'}));
+	} catch Error with {
+		my $msg = shift;
+		warn "$msg\n", $msg->stacktrace unless(defined($ENV{'REMOTE_ADDR'}));
 		$logger->error($msg);
-	}
+		if($buffercache) {
+			$buffercache->clear();
+		}
+	};
+
 	$request->Finish();
 	$handling_request = 0;
 	if($exit_requested) {
@@ -143,6 +149,7 @@ CHI->stats->flush();
 sub doit
 {
 	CGI::Info->reset();
+	$config ||= Gedsite::Config->new({ logger => $logger, info => $info });
 	my $info = CGI::Info->new({ cache => $infocache });
 
 	if(!defined($info->param('page'))) {
@@ -179,6 +186,7 @@ sub doit
 		info => $info,
 		logger => $logger,
 		lingua => $lingua,
+		config => $config,
 	};
 	eval {
 		if($info->param('page') eq 'people') {
@@ -201,7 +209,7 @@ sub doit
 	my $error = $@;
 
 	if(defined($display)) {
-		# Pass in a handle to the database
+		# Pass in handles to the databases
 		print $display->as_string({
 			people => $people,
 			censuses => $censuses,

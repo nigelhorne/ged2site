@@ -7,6 +7,8 @@ use Config::Auto;
 use CGI::Info;
 use File::Spec;
 use Template::Filters;
+use Gedsite::Config;
+use Gedsite::Allow;
 
 my %blacklist = (
 	'MD' => 1,
@@ -26,7 +28,7 @@ my %blacklist = (
 	'PK' => 1,
 );
 
-sub new {
+sub old {
 	my $proto = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -48,7 +50,8 @@ sub new {
 
 	# TODO: remove test for localhost
 	# Not scanning Localhost input is bad, but it's in while I'm debugging and writing things
-	unless($info->is_search_engine() || (!defined($ENV{'REMOTE_ADDR'})) || ($ENV{'REMOTE_ADDR'} eq '127.0.0.1')) {
+	# unless($info->is_search_engine() || (!defined($ENV{'REMOTE_ADDR'})) || ($ENV{'REMOTE_ADDR'} eq '127.0.0.1')) {
+	unless($info->is_search_engine() || !defined($ENV{'REMOTE_ADDR'})) {
 		require CGI::IDS;
 		CGI::IDS->import();
 
@@ -147,6 +150,42 @@ sub new {
 	}, $class;
 }
 
+sub new {
+	my $proto = shift;
+	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $class = ref($proto) || $proto;
+
+	my $info = $args{info} || CGI::Info->new();
+	my $config = $args{config} || Gedsite::Config->new({ logger => $args{logger}, info => $info, lingua => $args{lingua} });
+
+	unless($info->is_search_engine() || !defined($ENV{'REMOTE_ADDR'})) {
+		my %allowargs = (
+			info => $info,
+			config => $config,
+			lingua => $args{lingua},
+			logger => $args{logger},
+			cachedir => $args{cachedir},
+			cache => $args{cache}
+		);
+		unless(Gedsite::Allow::allow(%allowargs)) {
+			throw Error::Simple("Not allowing connexion from $ENV{'REMOTE_ADDR'}", 1);
+		}
+	}
+
+	Template::Filters->use_html_entities();
+
+	return bless {
+		_config => $config,
+		_info => $info,
+		_lingua => $args{lingua},
+		_logger => $args{logger},
+		_cachedir => $args{cachedir},
+		_page => $info->param('page'),
+		_key => $info->param('key'),
+	}, $class;
+}
+
 sub get_template_path {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -204,7 +243,7 @@ sub get_template_path {
 
 	my $filename = $self->_pfopen($prefix, $modulepath, 'tmpl:html:htm:txt');
 	if((!defined($filename)) || (!-f $filename) || (!-r $filename)) {
-		die "Can't find suitable $modulepath html or tmpl file in $prefix in $dir or a subdir";
+		throw Error::Simple("Can't find suitable $modulepath html or tmpl file in $prefix in $dir or a subdir");
 	}
 	$self->_log({ message => "using $filename" });
 	$self->{_filename} = $filename;
@@ -299,7 +338,7 @@ sub html {
 		$vals->{lingua} = $self->{_lingua};
 
 		$template->process($filename, $vals, \$rc) ||
-			die $template->error();
+			throw Error::Simple($template->error());
 	} elsif($filename =~ /\.(html?|txt)$/) {
 		open(my $fin, '<', $filename) || die "$filename: $!";
 
