@@ -2407,12 +2407,6 @@ sub print_person
 							print $html "<a href=\"$file\" target=\"_blank\">",
 								"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 								'</a>';
-							# FIXME: the static page lists a URL whereas the dynamic page loads the image
-							# contents - which may not work on Ancestry though should be OK for FMP
-							# The static page is correct
-							# FIXME: the dynamic site could do this properly and only use HTTPS
-							# when needed
-							$file =~ s/^http:/https:/;
 							print $csv "$file---$title---0----";
 							if(!defined($profile_image)) {
 								$profile_image = $file;
