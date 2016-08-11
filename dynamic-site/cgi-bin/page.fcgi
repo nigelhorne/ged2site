@@ -14,7 +14,6 @@ use warnings;
 
 use Log::Log4perl qw(:levels);	# Put first to cleanup last
 use CGI::Carp qw(fatalsToBrowser);
-use CHI;
 use CGI::Info;
 use CGI::Lingua;
 use File::Basename;
@@ -45,10 +44,9 @@ my $script_name = basename($info->script_name(), @suffixlist);
 close STDERR;
 open(STDERR, '>>', "$tmpdir/$script_name.stderr");
 
-my $infocache = CHI->new(driver => 'Memcached', servers => [ '127.0.0.1:11211' ], namespace => 'CGI::Info');
-my $linguacache = CHI->new(driver => 'Memcached', servers => [ '127.0.0.1:11211' ], namespace => 'CGI::Lingua');
-# my $buffercache = CHI->new(driver => 'Redis', root_dir => $cachedir, namespace => $script_name);
-my $buffercache = CHI->new(driver => 'File', root_dir => $cachedir, namespace => $script_name);
+my $infocache;
+my $linguacache;
+my $buffercache;
 
 Log::Log4perl->init("$script_dir/../conf/$script_name.l4pconf");
 my $logger = Log::Log4perl->get_logger($script_name);
@@ -150,7 +148,8 @@ sub doit
 {
 	CGI::Info->reset();
 	$config ||= Gedsite::Config->new({ logger => $logger, info => $info });
-	my $info = CGI::Info->new({ cache => $infocache });
+	$infocache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
+	my $info = CGI::Info->new({ cache => $infocache, logger => $logger });
 
 	if(!defined($info->param('page'))) {
 		print "Location: /index.htm\n\n";
@@ -164,6 +163,7 @@ sub doit
 		$fb->init(lint_content => 1);
 	}
 	if($fb->can_cache()) {
+		$buffercache ||= create_disc_cache(config => $config, logger => $logger, namespace => $script_name, root_dir => $cachedir);
 		$fb->init(
 			cache => $buffercache,
 			# generate_304 => 0,
@@ -173,6 +173,7 @@ sub doit
 		}
 	}
 
+	$linguacache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Lingua');
 	my $lingua = CGI::Lingua->new({
 		supported => [ 'en-gb' ],
 		cache => $linguacache,
