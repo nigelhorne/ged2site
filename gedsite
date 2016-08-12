@@ -2054,6 +2054,7 @@ sub print_person
 				$bio .= " ($notes)";
 			}
 		} else {
+			red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
 			$bio .= ' ' . ucfirst($event) . '.';
 		}
 	} else {
@@ -2295,6 +2296,7 @@ sub print_person
 			warn $person->{"_PRIM"}, "\n" if($person->{'_PRIM'});
 			# warn $person->tag_records("PRIM"), "\n" if($person->tag_records('PRIM'));
 			# warn $person->tag_records("_PRIM"), "\n" if($person->tag_records('_PRIM'));
+			warn $person->tag_record("_PROF"), "\n" if($person->tag_record('_PROF'));
 			# warn $person->get_value("_prof"), "\n" if($person->get_value('_prof'));
 			# warn $person->get_value("prof"), "\n" if($person->get_value('prof'));
 			# warn $person->get_value("_PROF"), "\n" if($person->get_value('_PROF'));
