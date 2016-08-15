@@ -2036,6 +2036,15 @@ sub print_person
 		$end_of_sentence = 1;
 
 		my $event = $person->event();
+		if(!ref($event)) {
+			my $e = $person->tag_record('EVEN');
+			if(ref($e) eq 'Gedcom::Record') {
+				$event = $e;
+			} else {
+				red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
+				$bio .= ' ' . ucfirst($event) . '.';
+			}
+		}
 		if(ref($event) eq 'Gedcom::Record') {
 			if($event->type() eq 'Arrival') {
 				$bio .= ' ' . $person->pronoun() . ' arrived' .
@@ -2052,10 +2061,8 @@ sub print_person
 				(my $notes = notes(record => $event))) {
 				$notes = ucfirst($notes);
 				$bio .= " ($notes)";
-			}
-		} else {
-			red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
-			$bio .= ' ' . ucfirst($event) . '.';
+			} else {
+				red_warning({ person => $person, warning => "Unsupported event type " . $event->type() });
 		}
 	} else {
 		my $mentioned_military;
@@ -2296,7 +2303,6 @@ sub print_person
 			warn $person->{"_PRIM"}, "\n" if($person->{'_PRIM'});
 			# warn $person->tag_records("PRIM"), "\n" if($person->tag_records('PRIM'));
 			# warn $person->tag_records("_PRIM"), "\n" if($person->tag_records('_PRIM'));
-			warn $person->tag_record("_PROF"), "\n" if($person->tag_record('_PROF'));
 			# warn $person->get_value("_prof"), "\n" if($person->get_value('_prof'));
 			# warn $person->get_value("prof"), "\n" if($person->get_value('prof'));
 			# warn $person->get_value("_PROF"), "\n" if($person->get_value('_PROF'));
@@ -2304,6 +2310,10 @@ sub print_person
 			# warn $person->get_value("_prim"), "\n" if($person->get_value('_prim'));
 			# warn $person->get_value("prim"), "\n" if($person->get_value('prim'));
 			# warn $person->get_value("_PRIM"), "\n" if($person->get_value('_PRIM'));
+			my $profile_object = $person->tag_record('_PROF');
+			if($profile_object) {
+				$profile_object = $person->resolve_xref($profile_object->value());
+			}
 			my $printed_media_header = 0;
 			foreach my $o($person->obje()) {
 				my $obje = $ged->resolve_xref($o);
@@ -2387,7 +2397,7 @@ sub print_person
 									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
 									'</a>';
 								print $csv "/$localfile---$title---$h----";
-								if(!defined($profile_image)) {
+								if(defined($profile_object) && ($obje eq $profile_object)) {
 									$profile_image = "static-site/$localfile";
 								}
 								unless(-r "dynamic-site/$localfile") {
@@ -2400,7 +2410,7 @@ sub print_person
 									"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 									'</a>';
 								print $csv "$file---$title---0----";
-								if(!defined($profile_image)) {
+								if(defined($profile_object) && ($obje eq $profile_object)) {
 									$profile_image = $file;
 								}
 							}
@@ -2410,7 +2420,7 @@ sub print_person
 								"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 								'</a>';
 							print $csv "$file---$title---0----";
-							if(!defined($profile_image)) {
+							if(defined($profile_object) && ($obje eq $profile_object)) {
 								$profile_image = $file;
 							}
 						}
