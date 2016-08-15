@@ -2063,6 +2063,7 @@ sub print_person
 				$bio .= " ($notes)";
 			} else {
 				red_warning({ person => $person, warning => "Unsupported event type " . $event->type() });
+			}
 		}
 	} else {
 		my $mentioned_military;
