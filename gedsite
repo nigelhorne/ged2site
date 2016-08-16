@@ -1741,7 +1741,8 @@ sub print_person
 					$places_printed{$p} = 1;
 					$place_records{"Residence/$count"} = $residence;
 				}
-				if(my $notes = notes({ record => $residence })) {
+				# Citation residence notes print later
+				if((!$opts{'c'}) && (my $notes = notes({ record => $residence }))) {
 					$notes =~ s/\.$//;
 					$notes = lcfirst($notes);
 					$bio .= " ($notes)";
@@ -2067,14 +2068,25 @@ sub print_person
 		}
 	} else {
 		my $mentioned_military;
+		my $index = 0;
 		foreach my $event(@events) {
+			$index++;
 			if(!ref($event)) {
-				red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
-			} elsif((ref($event) eq 'Gedcom::Record') &&
-			   ($event->type() eq 'Military service')) {
+				my $e = $person->tag_record('EVEN', $index);
+				if(ref($e) eq 'Gedcom::Record') {
+					$event = $e;
+				} else {
+					red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
+					$bio .= ' ' . ucfirst($event) . '.';
+				}
+			}
+			if(ref($event) eq 'Gedcom::Record') {
 				if(!$mentioned_military) {
 					$bio .= '.' if(!$end_of_sentence);
-					$bio .= " $pronoun served in the miltary";
+					$bio .= " $pronoun served in the military";
+					if(my $date = year(record => $event)) {
+						$bio .= " date";
+					}
 					$mentioned_military = 1;
 				}
 
@@ -3268,7 +3280,7 @@ sub notes
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
 	# my @deathnotes = $person, value => 'death note' });
 	my @notes = $record->get_record('note');
-	my $rc;
+	my $rc = $record->get_value();
 	if(scalar(@notes)) {
 		foreach my $note(@notes) {
 			if($note) {
