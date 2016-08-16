@@ -145,6 +145,7 @@ if($opts{h}) {
 
 my $dot;
 my $jpegtran;
+my $jpegoptim;
 if($opts{'F'}) {
 	if(-x '/usr/bin/dot') {
 		$dot = '/usr/bin/dot';
@@ -180,6 +181,13 @@ if($dot || $opts{'d'}) {
 		$jpegtran = '/usr/local/bin/jpegtran';
 	} elsif(-x '/sw/bin/jpegtran') {
 		$jpegtran = '/sw/bin/jpegtran';
+	}
+	if(-x '/usr/bin/jpegoptim') {
+		$jpegoptim = '/usr/bin/jpegoptim';
+	} elsif(-x '/usr/local/bin/jpegoptim') {
+		$jpegoptim = '/usr/local/bin/jpegoptim';
+	} elsif(-x '/sw/bin/jpegoptim') {
+		$jpegoptim = '/sw/bin/jpegoptim';
 	}
 }
 
@@ -2397,6 +2405,10 @@ sub print_person
 								}
 								if($jpegtran) {
 									open(my $tmp, '|-', "$jpegtran -progressive -outfile $localfile");
+									print $tmp $resp->decoded_content();
+									close $tmp;
+								} elsif($jpegoptim) {
+									open(my $tmp, '|-', "$jpegoptim -q --all-progressive -outfile > $localfile");
 									print $tmp $resp->decoded_content();
 									close $tmp;
 								} else {
