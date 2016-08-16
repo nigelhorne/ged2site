@@ -179,6 +179,8 @@ if($dot || $opts{'d'}) {
 		$jpegtran = '/usr/bin/jpegtran';
 	} elsif(-x '/usr/local/bin/jpegtran') {
 		$jpegtran = '/usr/local/bin/jpegtran';
+	} elsif(-x '/opt/local/bin/jpegtran') {
+		$jpegtran = '/opt/local/bin/jpegtran';
 	} elsif(-x '/sw/bin/jpegtran') {
 		$jpegtran = '/sw/bin/jpegtran';
 	}
