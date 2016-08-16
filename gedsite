@@ -144,6 +144,7 @@ if($opts{h}) {
 }
 
 my $dot;
+my $jpegtran;
 if($opts{'F'}) {
 	if(-x '/usr/bin/dot') {
 		$dot = '/usr/bin/dot';
@@ -172,6 +173,14 @@ if($dot || $opts{'d'}) {
 	push @dirlist, 'static-site/img';
 	push @dirlist, 'dynamic-site/img';
 	push @dirlist, 'thumbs';
+
+	if(-x '/usr/bin/jpegtran') {
+		$jpegtran = '/usr/bin/jpegtran';
+	} elsif(-x '/usr/local/bin/jpegtran') {
+		$jpegtran = '/usr/local/bin/jpegtran';
+	} elsif(-x '/sw/bin/jpegtran') {
+		$jpegtran = '/sw/bin/jpegtran';
+	}
 }
 
 my $gedcal;
@@ -2374,6 +2383,7 @@ sub print_person
 						# FIXME: It should check if the remote image is newer than the local image
 						if(!-r $localfile) {
 							my $browser = LWP::UserAgent->new();
+							$browser->env_proxy(1);
 							my $resp = $browser->get($file);
 							if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
 								my $key = $person->as_string() . ";$localfile";
@@ -2385,9 +2395,15 @@ sub print_person
 									}
 									red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
 								}
-								open(my $tmp, '>', $localfile);
-								print $tmp $resp->decoded_content();
-								close $tmp;
+								if($jpegtran) {
+									open(my $tmp, '|-', "$jpegtran -progressive -outfile $localfile");
+									print $tmp $resp->decoded_content();
+									close $tmp;
+								} else {
+									open(my $tmp, '>', $localfile);
+									print $tmp $resp->decoded_content();
+									close $tmp;
+								}
 								$form = 'JPG';
 								$images{$key} = 1;
 								link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
