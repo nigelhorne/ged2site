@@ -2097,7 +2097,7 @@ sub print_person
 						$bio .= $place;
 					}
 					if(my $date = year(record => $event)) {
-						$bio .= " date";
+						$bio .= " $date";
 					}
 					$mentioned_military = 1;
 				}
