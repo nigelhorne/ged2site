@@ -2084,6 +2084,9 @@ sub print_person
 				if(!$mentioned_military) {
 					$bio .= '.' if(!$end_of_sentence);
 					$bio .= " $pronoun served in the military";
+					if(my $place = place({ person => $person, record => $event })) {
+						$bio .= $place;
+					}
 					if(my $date = year(record => $event)) {
 						$bio .= " date";
 					}
