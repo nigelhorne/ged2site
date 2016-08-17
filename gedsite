@@ -2316,11 +2316,11 @@ sub print_person
 		print $csv '!';
 
 		my $printed_notes;
-		if($death && (my $notes = notes({ person => $person, record => $death, paragraph => 1 }))) {
-			print $html "<h2>Notes</h2>$notes";
-			$printed_notes = 1;
-			print $csv notes({ person => $person, record => $death });
-		}
+		# if($death && (my $notes = notes({ person => $person, record => $death, paragraph => 1 }))) {
+			# print $html "<h2>Notes</h2>$notes";
+			# $printed_notes = 1;
+			# print $csv notes({ person => $person, record => $death });
+		# }
 
 		if($person->get_value('note')) {
 			print $html "<h2>Notes</h2>" unless($printed_notes);
