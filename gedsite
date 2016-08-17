@@ -2410,7 +2410,7 @@ sub print_person
 									print $tmp $resp->decoded_content();
 									close $tmp;
 								} elsif($jpegoptim) {
-									open(my $tmp, '|-', "$jpegoptim -q --all-progressive -outfile > $localfile");
+									open(my $tmp, '|-', "$jpegoptim -q --all-progressive --stdin > $localfile");
 									print $tmp $resp->decoded_content();
 									close $tmp;
 								} else {
