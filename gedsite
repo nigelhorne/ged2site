@@ -2067,12 +2067,12 @@ sub print_person
 				} else {
 					$place_records{'Travelled to'} = $event;
 				}
-			} elsif(($event->type() !~ /^Census U[KS] (\d{4})$/) &&
-				(my $notes = notes(record => $event))) {
-				$notes = ucfirst($notes);
-				$bio .= " ($notes)";
-			} else {
-				red_warning({ person => $person, warning => "Unsupported event type " . $event->type() });
+			} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
+				red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
+				if(my $notes = notes(record => $event)) {
+					$notes = ucfirst($notes);
+					$bio .= " ($notes)";
+				}
 			}
 		}
 	} else {
