@@ -2077,6 +2077,22 @@ sub print_person
 				} else {
 					$place_records{'Travelled to'} = $event;
 				}
+			} elsif($event->type() eq 'Military service') {
+				$bio .= '.' if(!$end_of_sentence);
+				$bio .= " $pronoun served in the military";
+				if(my $place = place({ person => $person, record => $event })) {
+					$bio .= $place;
+				}
+				if(my $date = year(record => $event)) {
+					$bio .= " $date";
+				}
+
+				if(my $notes = notes(record => $event)) {
+					$notes = lcfirst($notes);
+					$notes =~ s/\.$//;
+					$bio .= " ($notes)";
+				}
+				$end_of_sentence = 0;
 			} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
 				red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
 				if(my $notes = notes(record => $event)) {
@@ -2100,25 +2116,26 @@ sub print_person
 				}
 			}
 			if(ref($event) eq 'Gedcom::Record') {
-				if(!$mentioned_military) {
-					$bio .= '.' if(!$end_of_sentence);
-					$bio .= " $pronoun served in the military";
-					if(my $place = place({ person => $person, record => $event })) {
-						$bio .= $place;
+				if($event->type() eq 'Military service') {
+					if(!$mentioned_military) {
+						$bio .= '.' if(!$end_of_sentence);
+						$bio .= " $pronoun served in the military";
+						if(my $place = place({ person => $person, record => $event })) {
+							$bio .= $place;
+						}
+						if(my $date = year(record => $event)) {
+							$bio .= " $date";
+						}
+						$mentioned_military = 1;
 					}
-					if(my $date = year(record => $event)) {
-						$bio .= " $date";
-					}
-					$mentioned_military = 1;
-				}
 
-				if(my $notes = notes(record => $event)) {
-					$notes = lcfirst($notes);
-					$notes =~ s/\.$//;
-					$bio .= " ($notes)";
+					if(my $notes = notes(record => $event)) {
+						$notes = lcfirst($notes);
+						$notes =~ s/\.$//;
+						$bio .= " ($notes)";
+					}
+					$end_of_sentence = 0;
 				}
-				$bio .= '.';
-				$end_of_sentence = 1;
 			} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
 				red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
 			}
@@ -3548,7 +3565,7 @@ sub red_warning
 		}
 		# my $i = 0;
 		# while((my @call_details = (caller($i++)))) {
-			# print STDERR "\t", colored($call_details[1] . ':' . $call_details[2] . ' calling function ' . $call_details[0] . ':' . $call_details[3], 'red'), "\n";
+			# print STDERR "\t", colored($call_details[1] . ':' . $call_details[2] . ' calling function ' . $call_details[3], 'red'), "\n";
 		# }
 	}
 }
