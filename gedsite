@@ -2687,8 +2687,8 @@ sub print_person
 				if(defined($current_place) && ($place ne $current_place)) {
 					if(!defined($map)) {
 						$map = HTML::GoogleMaps::V3->new();
-						$map->center($current_place);
-						Time::HiRes::usleep(250000);
+						# $map->center($current_place);
+						# Time::HiRes::usleep(100000);
 					}
 					if($annotation) {
 						$map->add_marker(point => $current_place, html => "$current_place<br>$annotation");
@@ -2698,7 +2698,7 @@ sub print_person
 						$map->add_marker(point => $current_place, html => $current_place);
 					}
 					$current_place = $place;
-					Time::HiRes::usleep(250000);
+					Time::HiRes::usleep(100000);
 				}
 				if(!defined($current_place)) {
 					$current_place = $place;
@@ -2718,15 +2718,15 @@ sub print_person
 		if($current_place) {
 			if(!defined($map)) {
 				$map = HTML::GoogleMaps::V3->new();
-				$map->center($current_place);
-				Time::HiRes::usleep(250000);
+				# $map->center($current_place);
+				# Time::HiRes::usleep(100000);
 			}
 			if($annotation) {
 				$map->add_marker(point => $current_place, html => "$current_place<br>$annotation");
 			} else {
 				$map->add_marker(point => $current_place, html => $current_place);
 			}
-			Time::HiRes::usleep(250000);
+			Time::HiRes::usleep(100000);
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
