@@ -51,7 +51,7 @@ use Time::HiRes;
 no lib '.';
 
 my %opts;
-getopts('cdfFg:h:lmwv', \%opts);
+getopts('cdfFg:h:lmM:wv', \%opts);
 die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google verification ] [ -h home-person-name ] [ -l ] [ -m ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 my $me;
@@ -632,6 +632,9 @@ sub print_person
 	if($opts{'m'}) {
 		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
 	} else {
+		if($opts{'M'}) {
+			die "$0: -M makes no sense without -m";
+		}
 		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
 	}
 	if(defined($me)) {
@@ -2686,7 +2689,11 @@ sub print_person
 				$place =~ s/^\s(at|in)\s//;
 				if(defined($current_place) && ($place ne $current_place)) {
 					if(!defined($map)) {
-						$map = HTML::GoogleMaps::V3->new();
+						my %args;
+						if($opts{'M'}) {
+							$args{'api_key'} = $opts{'M'};
+						}
+						$map = HTML::GoogleMaps::V3->new(%args);
 						# $map->center($current_place);
 						# Time::HiRes::usleep(100000);
 					}
@@ -2717,7 +2724,11 @@ sub print_person
 		}
 		if($current_place) {
 			if(!defined($map)) {
-				$map = HTML::GoogleMaps::V3->new();
+				my %args;
+				if($opts{'M'}) {
+					$args{'api_key'} = $opts{'M'};
+				}
+				$map = HTML::GoogleMaps::V3->new(%args);
 				# $map->center($current_place);
 				# Time::HiRes::usleep(100000);
 			}

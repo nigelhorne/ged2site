@@ -33,6 +33,7 @@ The options are:
     -h: set the home person
     -l: include living people
     -m: Generate a Google map on each page showing events
+    -M: Google maps API key
     -w: print warning about inconsistent data - a sort of lint for Gedcom files,
 	may not do as many as gedcal(1)
 
