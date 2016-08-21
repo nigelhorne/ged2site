@@ -47,6 +47,7 @@ use String::ProgressBar;
 use Text::Names;
 use MIME::Base64;
 use Memoize;
+use Time::HiRes;
 no lib '.';
 
 my %opts;
@@ -1641,6 +1642,7 @@ sub print_person
 
 	if($opts{'l'} || !$was_alive) {
 		# FMP stores Censuses as events
+		my $index = 0;
 		foreach my $event(@events) {
 			$index++;
 			if(!ref($event)) {
@@ -2695,6 +2697,7 @@ sub print_person
 						$map->add_marker(point => $current_place, html => $current_place);
 					}
 					$current_place = $place;
+					Time::HiRes::usleep(100000);
 				}
 				if(!defined($current_place)) {
 					$current_place = $place;
@@ -2721,6 +2724,7 @@ sub print_person
 			} else {
 				$map->add_marker(point => $current_place, html => $current_place);
 			}
+			Time::HiRes::usleep(100000);
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
