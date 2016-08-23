@@ -2167,6 +2167,7 @@ sub print_person
 			$bio = Lingua::EN::ABC::a2b($bio);
 		}
 	}
+
 	print $html $bio;
 	if($opts{'l'} || !$was_alive) {
 		print $csv $bio;
@@ -3417,6 +3418,14 @@ sub notes
 		$rc =~ s/\s\s+/ /g;
 		$rc =~ s/ $//;
 		$ufinder->find(\$rc);
+
+		if(defined($ENV{'LANG'})) {
+			if($ENV{'LANG'} =~ /^en_US/) {
+				return Lingua::EN::ABC::b2a($rc);
+			} elsif($ENV{'LANG'} =~ /^en_GB/) {
+				return Lingua::EN::ABC::a2b($rc);
+			}
+		}
 	}
 	return($rc);
 }
