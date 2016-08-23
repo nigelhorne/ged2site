@@ -25,6 +25,7 @@ use Gedcom;
 use Lingua::EN::NameCase;
 use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;
+use Lingua::EN::ABC;
 use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
@@ -2159,6 +2160,13 @@ sub print_person
 		$end_of_sentence = 1;
 	}
 
+	if(defined($ENV{'LANG'})) {
+		if($ENV{'LANG'} =~ /^en_US/) {
+			$bio = Lingua::EN::ABC::b2a($bio);
+		} elsif($ENV{'LANG'} =~ /^en_GB/) {
+			$bio = Lingua::EN::ABC::a2b($bio);
+		}
+	}
 	print $html $bio;
 	if($opts{'l'} || !$was_alive) {
 		print $csv $bio;
