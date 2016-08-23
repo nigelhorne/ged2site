@@ -2438,11 +2438,11 @@ sub print_person
 									red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
 								}
 								if($jpegtran) {
-									open(my $tmp, '|-', "$jpegtran -progressive -outfile $localfile");
+									open(my $tmp, '|-', "$jpegtran -progressive -outfile '$localfile'");
 									print $tmp $resp->decoded_content();
 									close $tmp;
 								} elsif($jpegoptim) {
-									open(my $tmp, '|-', "$jpegoptim -q --all-progressive --stdin > $localfile");
+									open(my $tmp, '|-', "$jpegoptim -q --all-progressive --stdin > '$localfile'");
 									print $tmp $resp->decoded_content();
 									close $tmp;
 								} else {
@@ -3791,6 +3791,7 @@ sub make_filename_from_object
 		return $object->{'xref'};
 	}
 	$rc =~ tr/ /-/s;
+	$rc =~ tr/'/-/s;
 	$rc =~ s/--+/-/g;
 	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;
