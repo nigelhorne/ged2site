@@ -160,6 +160,7 @@ sub allow {
 				throw Error::Simple("$ENV{REMOTE_ADDR}: Blocked shellshocker for $ENV{HTTP_REFERER}");
 			}
 			if(($ENV{'HTTP_REFERER'} =~ /^http:\/\/keywords-monitoring-your-success.com\/try.php/) ||
+			   ($ENV{'HTTP_REFERER'} =~ /^http:\/\/www.tcsindustry\.com\//) ||
 			   ($ENV{'HTTP_REFERER'} =~ /^http:\/\/free-video-tool.com\//)) {
 				if($logger) {
 					$logger->warn("$ENV{REMOTE_ADDR}: Blocked trawler");
