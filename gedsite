@@ -2127,6 +2127,7 @@ sub print_person
 	} else {
 		my $mentioned_military;
 		my $index = 0;
+		my $previous;
 		foreach my $event(@events) {
 			$index++;
 			if(!ref($event)) {
@@ -2158,9 +2159,57 @@ sub print_person
 						$bio .= " ($notes)";
 					}
 					$end_of_sentence = 0;
+				} elsif($event->type() eq 'Arrival') {
+					if($events[$index] && ($events[$index]->type() eq 'Arrival') && $event->date()) {
+						if($events[$index]->date()) {
+							$previous = $event;
+							next;
+						}
+					}
+					if($previous) {
+						my $date1 = year({ record => $previous });
+						my $date2 = year({ record => $event });
+						my $year1;
+						my $year2;
+						if($date1 =~ /(.*)\s?(\d{4})$/) {
+							$date1 = $1;
+							$year1 = $2;
+							$date1 =~ s/,\s//;
+						}
+						if($date2 =~ /(.*)\s?(\d{4})$/) {
+							$date2 = $1;
+							$year2 = $2;
+							$date2 =~ s/,\s//;
+						}
+						$bio .= '.  ' if(!$end_of_sentence);
+						if(defined($year1) && defined($year2) && ($year1 == $year2)) {
+							$bio .= "During $year1 " . lcfirst($pronoun) . ' arrived' .
+								place({ person => $person, record => $previous, nopreposition => 1 }) .
+								" $date1 and" .
+								place({ person => $person, record => $event, nopreposition => 1 }) .
+								" $date2.";
+						} else {
+							$bio .= ucfirst(year({ person => $person, record => $previous })) .
+								' ' . lcfirst($person->pronoun()) .
+								' arrived' .
+								place({ person => $person, record => $previous }) .
+								' and ' .
+								year({ person => $person, record => $event }) .
+								' ' . lcfirst($person->pronoun()) .
+								' arrived' .
+								place({ person => $person, record => $event }) . '.';
+						}
+						$previous = undef;
+					} else {
+						$bio .= ucfirst(year({ person => $person, record => $event })) .
+							' ' . lcfirst($person->pronoun()) .
+							' arrived' .
+							place({ person => $person, record => $event }) . '.';
+					}
+					$end_of_sentence = 1;
+				} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
+					red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
 				}
-			} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
-				red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
 			}
 		}
 		$bio .= '.' if(!$end_of_sentence);
