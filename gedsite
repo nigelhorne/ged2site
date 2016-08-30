@@ -1443,6 +1443,13 @@ sub print_person
 						$bio .= ' (';
 						$parentheses = 1;
 					}
+					if(my $soccupation = $spouses[0]->occupation()) {
+						$bio .= 'a';
+						if($soccupation =~ /^[aeiou]/i) {
+							$bio .= 'n';
+						}
+						$bio .= ' ' . lc($soccupation) . ', ';
+					}
 					$bio .= 'with whom ' . lcfirst($pronoun);
 					if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
 						$bio .= ' had ';
