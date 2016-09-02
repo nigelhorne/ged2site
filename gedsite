@@ -955,8 +955,10 @@ sub print_person
 		shift @occupations;
 	}
 
+	$bio = '';
+
 	if($occupations[0]) {
-		$bio .= 'A';
+		$bio = 'A';
 		if($occupations[0] =~ /^[aeiou]/i) {
 			$bio .= 'n';
 		}
@@ -1138,8 +1140,6 @@ sub print_person
 		}
 	}
 
-	# FIXME: CSV links need to go to the dynamic site, but static site
-	$bio = '';
 	if($firstname) {
 		if((!$was_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
 			if($father || $mother || $occupations[0]) {
