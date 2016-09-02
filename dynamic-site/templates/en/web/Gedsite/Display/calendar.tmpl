@@ -48,8 +48,8 @@
 			body {
 				margin: 40px 10px;
 				padding: 0;
-				# font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-				# font-size: 14px;
+				// font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+				// font-size: 14px;
 			}
 
 			#calendar {
@@ -62,7 +62,11 @@
 		<center>
 			<h1>Calendar of [% SiteTitle.join(' ') %]</h1>
 			<p>
-				[ <a href="?page=people&home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ] | [ <a href="?page=surnames">Surname Index</a> ] | <a href=?page=history">Family History</a> ]
+				[ <a href="?page=people&home=1">Home</a> ] |
+				[ <a href="?page=censuses">Census Index</a> ] |
+				[ <a href="?page=surnames">Surname Index</a> ] |
+				[ <a href=?page=history">Family History</a> ] |
+				[ <a href="?page=todo">To Do</a> ]
 				[% IF error %]
 					<p><font color="red" size="+2">[% error %]</font></p>
 				[% END %]
