@@ -49,12 +49,7 @@ sub html {
 		});
 	} else {
 		my $history = $args{'history'};
-		my @events;
-
-		foreach my $event(@{$history->selectall_hashref()}) {
-			push @events, $event;
-		}
-		return $self->SUPER::html({ events => \@events });
+		return $self->SUPER::html({ events => $history->selectall_hashref() });
 	}
 
 	return $self->SUPER::html();
