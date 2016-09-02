@@ -2760,8 +2760,8 @@ sub print_person
 							$args{'api_key'} = $opts{'M'};
 						}
 						$map = HTML::GoogleMaps::V3->new(%args);
-						# $map->center($current_place);
-						# Time::HiRes::usleep(100000);
+						$map->center($current_place);
+						Time::HiRes::usleep(100000);
 					}
 					if($annotation) {
 						$map->add_marker(point => $current_place, html => "$current_place<br>$annotation");
@@ -2795,8 +2795,8 @@ sub print_person
 					$args{'api_key'} = $opts{'M'};
 				}
 				$map = HTML::GoogleMaps::V3->new(%args);
-				# $map->center($current_place);
-				# Time::HiRes::usleep(100000);
+				$map->center($current_place);
+				Time::HiRes::usleep(100000);
 			}
 			if($annotation) {
 				$map->add_marker(point => $current_place, html => "$current_place<br>$annotation");
