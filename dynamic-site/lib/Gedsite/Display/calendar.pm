@@ -25,11 +25,11 @@ sub html {
 		delete $params->{'page'};
 	}
 
-	unless($params && scalar(keys %{$params})) {
-		# Display the main calendar page
-		# TODO: use the current month as the default
-		return $self->SUPER::html({ months => DateTime::Locale->load($self->{_lingua}->language())->month_format_wide() });
-	}
+	# unless($params && scalar(keys %{$params})) {
+		# # Display the main calendar page
+		# # TODO: use the current month as the default
+		# return $self->SUPER::html({ months => DateTime::Locale->load($self->{_lingua}->language())->month_format_wide() });
+	# }
 
 	if(my $month = $params->{'month'}) {
 		# Handles into the databases
@@ -47,6 +47,14 @@ sub html {
 			month => @{DateTime::Locale->load($self->{_lingua}->language())->month_format_wide()}[$month - 1],
 			year => DateTime->today()->year()
 		});
+	} else {
+		my $history = $args{'history'};
+		my @events;
+
+		foreach my $event(@{$history->selectall_hashref()}) {
+			push @events, $event;
+		}
+		return $self->SUPER::html({ events => \@events });
 	}
 
 	return $self->SUPER::html();
