@@ -15,27 +15,29 @@
 			https://fullcalendar.io/js/fullcalendar-2.9.1/demos/agenda-views.html
 			<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
 		-->
-		<link rel="stlysheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.css" />
-		<link rel="stlysheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.print.css" media="print" />
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.css" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.print.css" media="print" />
+
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.min.js"></script>
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.print.js"></script>
 
 		<script>
-			$(document).ready(function() {
-				$('#calendar').fullCalendar({
+			\$(document).ready(function() {
+				\$('#calendar').fullCalendar({
 					header: {
-						left: 'prev,next today',
-						center: 'Calendar of [% SiteTitle.join(" ") %]'
+						left: 'prev,next',
+						// center: 'Calendar of [% SiteTitle.join(" ") %]'
+						center: 'title',
+						right: '',
 					},
 					eventLimit: true, // allow "more" link when too many events
 					events: [
 						[% FOREACH event IN events %]
 							{
-								title: '[% event.title %]: [% event.year %] [% event.event %],
-								start: '2016-[% event.month %]-[% event.day %]',
-								url: '?page=people&entry=[% event.title | uri %]'
+								title: '[% event.title %]: [% event.year %] [% event.event %]',
+								start: '2016-[% event.month | format('%02d') %]-[% event.day | format('%02d') %]',
+								url: '?page=people&entry=[% event.person %]'
 							},
 						[% END %]
 					]
@@ -46,18 +48,27 @@
 			body {
 				margin: 40px 10px;
 				padding: 0;
-				font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-				font-size: 14px;
+				# font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+				# font-size: 14px;
 			}
 
 			#calendar {
-				max-width: 900px;
+				max-width: 1500px;
 				margin: 0 auto;
 			}
 		</style>
 	</head>
 	<body>
-		<div id='calendar'></div>
+		<center>
+			<h1>Calendar of [% SiteTitle.join(' ') %]</h1>
+			<p>
+				[ <a href="?page=people&home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ] | [ <a href="?page=surnames">Surname Index</a> ] | <a href=?page=history">Family History</a> ]
+				[% IF error %]
+					<p><font color="red" size="+2">[% error %]</font></p>
+				[% END %]
+			</p>
+			<div id='calendar'></div>
+		</center>
 		
 		<!--
 		<center>
