@@ -663,7 +663,6 @@ sub print_person
 		$surnames->{$surname}->{$title} = $person;
 	}
 
-
 	my ($birth_dt, $marriage_dt, $death_dt);
 	my $birth = $person->get_record('birth');
 	my $dateofbirth = get_value({ person => $person, value => 'birth date' });
@@ -955,8 +954,6 @@ sub print_person
 		shift @occupations;
 	}
 
-	$bio = '';
-
 	if($occupations[0]) {
 		$bio = 'A';
 		if($occupations[0] =~ /^[aeiou]/i) {
@@ -1069,6 +1066,8 @@ sub print_person
 		print $html $bio;
 		print $csv $bio;
 
+		$bio = '';
+
 		if($opts{'l'} || !$was_alive) {
 			if($father) {
 				print $html ' <a href="', make_filename_from_person(person => $father), '">',
@@ -1118,10 +1117,10 @@ sub print_person
 			}
 		} else {
 			if($father) {
-				print $html ' <a href="' . make_filename_from_person(person => $father) . '">',
+				print $html ' <a href="', make_filename_from_person(person => $father), '">',
 					$father->given_names(),
 					'</a>';
-				print $csv ' <a href="?page=people&entry=' . $father->{'xref'} . '">',
+				print $csv ' <a href="?page=people&entry=', $father->{'xref'}, '">',
 					$father->given_names(),
 					'</a>';
 				if($mother) {
@@ -1130,13 +1129,15 @@ sub print_person
 				}
 			}
 			if($mother) {
-				print $html ' <a href="' . make_filename_from_person(person => $mother) . '">',
+				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
-				print $csv ' <a href="?page=people&entry=' . $mother->{'xref'} . '">',
+				print $csv ' <a href="?page=people&entry=', $mother->{'xref'}, '">',
 					$mother->given_names(),
 					'</a>';
 			}
+			print $csv '.';
+			print $html '.';
 		}
 	}
 
@@ -1169,6 +1170,8 @@ sub print_person
 
 	print $html $bio;
 	print $csv $bio;
+
+	$bio = '';
 
 	my $haveprintedspousename;
 	if($relationship) {
@@ -1203,7 +1206,6 @@ sub print_person
 		$haveprintedspousename = 1;
 	}
 
-	$bio = '';
 	my $end_of_sentence = 0;
 
 	if($opts{'l'} || !$was_alive) {
@@ -1211,7 +1213,7 @@ sub print_person
 			if($dateofbirth || $placeofbirth) {
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
-				$bio .= ',' if($relationship);
+				$bio = ',' if($relationship);
 				$bio .= ' was born';
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
@@ -2585,7 +2587,7 @@ sub print_person
 		print $csv '!';
 
 		if(defined($dot)) {
-			my $png = "static-site/img/" . make_filename_from_object(object => $person) . '.png';
+			my $png = 'static-site/img/' . make_filename_from_object(object => $person) . '.png';
 			my $tmp = File::Temp->new();
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
