@@ -40,8 +40,8 @@ The options are:
 If gedcal is installed, gedsite will also create a calendar of births and
 deaths, one page for each month in the current year.
 
-An example static genealogy website that was produced by Gedsite is available at
-https://genealogy.nigelhorne.com.
+An example dynamic genealogy website that was produced by Gedsite is available
+at https://genealogy.nigelhorne.com.
 
 Note that the dynamic page generation is in its early stages of development so
 not all of the data is available yet.
