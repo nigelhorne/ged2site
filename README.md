@@ -48,7 +48,9 @@ not all of the data is available yet.
 
 Acknowledgements:
 
-fullcalendar.io for the calendar view
+http://fullcalendar.io for the calendar view
+
+https://github.com/weichie/animated-Timeline for the family history view
 
 Google for the map page
 
@@ -56,4 +58,4 @@ Graphviz for the family tree and Tree::Family from CPAN for the inspiration
 	and code to use as a template
 
 So many CPAN modules that if I list them all I'll miss one, but special mention
-goes to the Gedcom module.
+	goes to the Gedcom module.
