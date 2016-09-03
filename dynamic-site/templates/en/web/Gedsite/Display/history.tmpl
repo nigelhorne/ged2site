@@ -11,13 +11,34 @@
 		<!--
 		<meta name="msvalidate.01" content="deadbeef" />
 		-->
+                <style>
+                        body {
+                                margin: 40px 10px;
+                                padding: 0;
+                                font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+                                font-size: 14px;
+                                background: #fff;
+                        }
+                        .ss-row p{
+                                background: #e7e7e7;
+                        }
+                </style>
 	</head>
 	<body class="page">
 		<center>
-			[ <a href="?page=people&home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ] | [ <a href="?page=surnames">Surname Index</a> ]
+			<h1">History of [% SiteTitle.join(' ') %]</h1>
+			<p>
+				[ <a href="?page=people&home=1">Home</a> ] |
+				[ <a href="?page=censuses">Census Index</a> ] |
+				[ <a href="?page=surnames">Surname Index</a> ] |
+				[ <a href="?page=calendar">Calendar</a> ] |
+				[ <a href="?page=todo">To Do</a> ]
+				[% IF error %]
+					<p><font color="red" size="+2">[% error %]</font></p>
+				[% END %]
+			</p>
 		</center>
 		<div id="start" class="timeline container">
-			<h2 class="module">History of [% SiteTitle.join(' ') %]</h2>
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
