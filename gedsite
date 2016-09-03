@@ -10,6 +10,9 @@
 #	must apply in writing for a licence for use from Nigel Horne at the
 #	above e-mail.
 
+# TODO: Add https://github.com/weichie/animated-Timeline
+# TODO: Move from CSV to XML
+
 use strict;
 use warnings;
 use autodie qw(:all);
