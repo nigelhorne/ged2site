@@ -45,3 +45,15 @@ https://genealogy.nigelhorne.com.
 
 Note that the dynamic page generation is in its early stages of development so
 not all of the data is available yet.
+
+Acknowledgements:
+
+fullcalendar.io for the calendar view
+
+Google for the map page
+
+Graphviz for the family tree and Tree::Family from CPAN for the inspiration
+	and code to use as a template
+
+So many CPAN modules that if I list them all I'll miss one, but special mention
+goes to the Gedcom module.
