@@ -12,7 +12,6 @@
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
-		<meta name="viewport" content="width=device-width, initial-scale=1">
 	</head>
 	<body>
 		[% IF person %]
@@ -28,12 +27,12 @@
 					<p>[% note %]</p>
 				[% END %]
 			[% END %]
-			[ <a href="?page=people&home=1">Home</a> ]<br>
-			[ <a href="?page=censuses">Census Index</a> ]<br>
-			[ <a href="?page=surnames">Surname Index</a> ]<br>
-			[ <a href="?page=history">Family History</a> ]<br>
-			[ <a href="?page=todo">To Do</a> ]<br>
-			[ <a href="?page=calendar">Calendar</a> ]
+			<a href="?page=people&home=1">Home</a><br>
+			<a href="?page=censuses">Census Index</a><br>
+			<a href="?page=surnames">Surname Index</a><br>
+			<a href="?page=history">Family History</a><br>
+			<a href="?page=todo">To Do</a><br>
+			<a href="?page=calendar">Calendar</a>
 		[% ELSE %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
 			Loading, please wait
