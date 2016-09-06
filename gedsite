@@ -1691,7 +1691,17 @@ sub print_person
 
 			# This is an attempt to handle
 			# https://github.com/pjcj/Gedcom.pm/issues/13
+			my $index = 0;
 			foreach my $residence(@residences) {
+				$index++;
+				if(!ref($residence)) {
+					my $r = $person->tag_record('EVEN', $index);
+					if(ref($r) eq 'Gedcom::Record') {
+						$residence = $r;
+					} else {
+						red_warning({ person => $person, warning => "Residence record is just description ($residence), infomation has been lost" });
+					}
+				}
 				if(ref($residence) eq 'Gedcom::Record') {
 					my $place = $residence->place();
 					if(my $address = $residence->address()) {
@@ -1740,8 +1750,6 @@ sub print_person
 					} elsif(!defined($place)) {
 						red_warning({ person => $person, warning => 'Residence record contains no location' });
 					}
-				} else {
-					red_warning({ person => $person, warning => "Residence record is just description ($residence), infomation has been lost" });
 				}
 			}
 
@@ -1794,7 +1802,15 @@ sub print_person
 					$bio .= " ($notes)";
 				}
 				if(my $date = $residence->date()) {
-					$bio .= ' ' . year({ person => $person, date => $date });
+					my $this_date = year({ person => $person, date => $date });
+					if($prev_date && ($prev_date eq $this_date)) {
+						if($opts{'f'}) {
+							die $person->name(), "Two residence records for $date";
+						}
+						red_warning({ person => $person, warning => "two residence records for $date" });
+					}
+					$bio .= " $this_date";
+					$prev_date = $this_date;
 					# Find if they are an adult living with an adult sibling
 					if(scalar(@siblings) && $birth_dt && $residence->address()) {
 						my $diff = $dfn->parse_datetime($date) - $birth_dt;
