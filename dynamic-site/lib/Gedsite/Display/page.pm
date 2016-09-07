@@ -183,7 +183,11 @@ sub html {
 		# the values in info, then the values in params
 		my $vals;
 		if(defined($self->{_config})) {
-			$vals = { %{$self->{_config}}, %{$info->params()} };
+                        if($info->params()) {
+                                $vals = { %{$self->{_config}}, %{$info->params()} };
+                        } else {
+                                $vals = $self->{_config};
+                        }
 			if(defined($params)) {
 				$vals = { %{$vals}, %{$params} };
 			}
