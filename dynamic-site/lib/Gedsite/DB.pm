@@ -5,6 +5,7 @@ use warnings;
 use File::Glob;
 use File::Basename;
 use DBI;
+use File::Spec;
 
 our @databases;
 our $directory;
@@ -17,7 +18,7 @@ sub new {
 
 	init(\%args);
 
-	return bless { logger => $args{'logger'} }, $class;
+	return bless { logger => $args{'logger'}, directory => $args{'directory'} || $directory }, $class;
 }
 
 # Can also be run as a class level Gedsite::DB::init(directory => '../databases')
@@ -30,6 +31,10 @@ sub init {
 
 sub _open {
 	my $self = shift;
+	my %args = (
+		sep_char => '!',
+		((ref($_[0]) eq 'HASH') ? %{$_[0]} : @_)
+	);
 
 	my $table = ref($self);
 	$table =~ s/.*:://;
@@ -39,9 +44,11 @@ sub _open {
 	# Read in the database
 	my $dbh;
 
-	my $slurp_file = "$directory/$table.csv";
+	my $directory = $self->{'directory'} || $directory;
+	my $slurp_file = File::Spec->catfile($directory, "$table.csv");
 	if(-r $slurp_file) {
-		$dbh = DBI->connect('dbi:CSV:csv_sep_char=!');
+		my $sep_char = $args{'sep_char'};
+		$dbh = DBI->connect("dbi:CSV:csv_sep_char=$sep_char");
 		$dbh->{'RaiseError'} = 1;
 
 		if($self->{'logger'}) {
@@ -54,9 +61,10 @@ sub _open {
 			empty_is_undef => 1,
 			binary => 1,
 			f_file => $slurp_file,
+			escape_char => '\\',
 		};
 	} else {
-		$slurp_file = "$directory/$table.xml";
+		$slurp_file = File::Spec->catfile($directory, "$table.xml");
 		if(-r $slurp_file) {
 			# You'll need to install XML::Twig and
 			# AnyData::Format::XML
