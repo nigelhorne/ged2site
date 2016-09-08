@@ -69,10 +69,8 @@ sub new {
 			}
 		}
 
-		my $lingua = $args{'lingua'};
-		if($lingua) {
-			my $language = $lingua->language_code_alpha2();
-			if(-d "$path/$language") {
+		if(my $lingua = $args{'lingua'}) {
+			if((my $language = $lingua->language_code_alpha2()) && (-d "$path/$language")) {
 				$path .= "/$language";
 			} elsif(-d "$path/default") {
 				$path .= '/default';
