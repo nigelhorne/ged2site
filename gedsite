@@ -1434,11 +1434,6 @@ sub print_person
 							'</a>';
 					}
 					$haveprintedspousename = 1;
-					my @spouse_occupations = $spouses[0]->get_value('occupation');
-					if($spouse_occupations[0]) {
-						$bio = ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
-						$parentheses = 1;
-					}
 				}
 				if($numberofchildren) {
 					if($parentheses || ((!$placeofmarriage) && (!$dateofmarriage))) {
@@ -1493,6 +1488,12 @@ sub print_person
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						print $csv $childnames;
+					}
+				} else {
+					my @spouse_occupations = $spouses[0]->get_value('occupation');
+					if($spouse_occupations[0]) {
+						$bio = ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
+						$parentheses = 1;
 					}
 				}
 				if($opts{'l'} || !$was_alive) {
