@@ -952,7 +952,7 @@ sub print_person
 	}
 
 	# TODO: print all occupations
-	while($occupations[0] && (lc($occupations[0]) eq 'school')) {
+	while($occupations[0] && (lc($occupations[0]) =~ /^school/i)) {
 		shift @occupations;
 	}
 
@@ -1773,6 +1773,7 @@ sub print_person
 			}
 			my $count = 0;
 			my $have_printed = 0;
+			my $prev_date;
 			foreach my $residence(@residencelist) {
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
 					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
@@ -1922,11 +1923,11 @@ sub print_person
 			$bio .= " $pronoun died";
 			if($dateofdeath) {
 				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($placeofdeath) {
-					$bio .= place({ person => $person, record => $death, places_printed => \%places_printed });
-				}
-			} else {
-				$bio .= place({ person => $person, place => $placeofdeath });
+			}
+			if($placeofdeath) {
+				my $p = place({ person => $person, record => $death, places_printed => \%places_printed });
+				$bio .= $p;
+				$places_printed{$p} = 1;
 			}
 			if(my $d = get_value({ person => $person, value => 'death' })) {
 				$d =~ tr/\r//;
@@ -1935,33 +1936,28 @@ sub print_person
 				$bio .= ' (' . HTML::Entities::encode($d) . ')';
 			}
 			$bio .= "[$_]" foreach(@deathcitations);
+			my $opts = {
+				person => $person,
+				place => $placeofburial,
+				there => $placeofdeath,
+				places_printed => \%places_printed,
+				must_postdate => $birth_dt,
+			};
+			# if(my $address = $burial->address()) {
+			if(my $address = get_value({ person => $person, value => 'burial address' })) {
+				$opts->{'address'} = $address;
+			}
 			if($dateofburial) {
 				$bio .= ' and was buried';
 				if($placeofburial) {
-					$bio .= place({
-						person => $person,
-						place => $placeofburial,
-						there => $placeofdeath,
-						places_printed => \%places_printed,
-						must_postdate => $birth_dt,
-						address => get_value({ person => $person, value => 'burial address' })
-					});
+					$bio .= place($opts);
 				}
 				$bio .= ' ' . year({ person => $person, date => $dateofburial });
-				my $b = get_value({ person => $person, value => 'burial note' });
-				if($b) {
+				if(my $b = get_value({ person => $person, value => 'burial note' })) {
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
 			} else {
-				my $opts = {
-					person => $person,
-					place => $placeofburial,
-					there => $placeofdeath
-				};
-				if(my $address = $burial->address()) {
-					$opts->{'address'} = $address;
-				}
 				$bio .= ' and is buried' . place($opts);
 			}
 			$end_of_sentence = 0;
@@ -2131,7 +2127,7 @@ sub print_person
 				}
 
 				if(my $notes = notes(record => $event)) {
-					$notes = lcfirst($notes);
+					$notes = lcfirst($notes) unless($notes eq 'RAF');
 					$notes =~ s/\.$//;
 					$bio .= " ($notes)";
 				}
@@ -2234,6 +2230,15 @@ sub print_person
 		}
 		$bio .= '.' if(!$end_of_sentence);
 		$end_of_sentence = 1;
+	}
+
+	if(my $profile_object = $person->tag_record('_MILT')) {
+		# $person->resolve_xref($profile_object->value());
+		if(my $value = $profile_object->get_value()) {
+			$bio .= '.' if(!$end_of_sentence);
+			$bio .= "  $pronoun served in the military ($value).";
+			$end_of_sentence = 1;
+		}
 	}
 
 	if(defined($ENV{'LANG'})) {
@@ -3360,8 +3365,21 @@ sub place
 	}
 
 	if($place =~ /^\d/) {
+		if(my $places_printed = $params{'places_printed'}) {
+			$places_printed->{" at$place"} = 1;
+			if($place =~ /(.+),(.+?),(.+?),(.+?),(.+?)$/) {
+				if($places_printed->{" in$3,$4,$5"}) {
+					$places_printed->{"at $1,$2,$3"} = 1;
+					return " at $1,$2,$3";
+				}
+			}
+			if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
+				$places_printed->{" in$2,$3,$4"} = 1;
+			}
+		}
 		return " at $place";
 	}
+
 	if($place eq 'USA') {
 		return ' in the USA';
 	}
@@ -3375,8 +3393,7 @@ sub place
 	}
 
 	# Only print the town if the location has already been printed
-	my $places_printed = $params{'places_printed'};
-	if($places_printed) {
+	if(my $places_printed = $params{'places_printed'}) {
 		if($places_printed->{$place} && $place =~ /^(.+?),/) {
 			return $1;
 		}
@@ -3386,7 +3403,7 @@ sub place
 				validate_place({ person => $params{'person'}, place => $str });
 			}
 			if($places_printed->{" in$str"}) {
-				return "$1,$2";
+				return $address ? "$1,$2" : "$1 in$2";
 			}
 			if($places_printed->{" at$str"}) {
 				return "$1,$2";
