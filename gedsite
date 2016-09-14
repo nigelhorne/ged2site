@@ -2535,19 +2535,16 @@ sub print_person
 									}
 									red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
 								}
+								my $tmp;
 								if($jpegtran) {
-									open(my $tmp, '|-', "$jpegtran -progressive -outfile '$localfile'");
-									print $tmp $resp->decoded_content();
-									close $tmp;
+									open($tmp, '|-', "$jpegtran -progressive -outfile '$localfile'");
 								} elsif($jpegoptim) {
-									open(my $tmp, '|-', "$jpegoptim -q --all-progressive --stdin > '$localfile'");
-									print $tmp $resp->decoded_content();
-									close $tmp;
+									open($tmp, '|-', "$jpegoptim -q --all-progressive --stdin > '$localfile'");
 								} else {
-									open(my $tmp, '>', $localfile);
-									print $tmp $resp->decoded_content();
-									close $tmp;
+									open($tmp, '>', $localfile);
 								}
+								print $tmp $resp->decoded_content();
+								close $tmp;
 								$form = 'JPG';
 								$images{$key} = 1;
 								link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
