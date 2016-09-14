@@ -2000,7 +2000,7 @@ sub print_person
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
 			$bio .= place({ person => $person, place => $placeofdeath });
 		}
-		$bio .= "[$_]" foreach(@deathcitations);
+		$bio .= "[$_]" foreach(sort @deathcitations);
 
 		# Print notes about the death, if any
 		if(defined($death) && (my $d = get_value({ person => $person, value => 'death' }))) {
