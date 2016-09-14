@@ -1760,12 +1760,19 @@ sub print_person
 			# Sort residences chronologically
 			my $all_residences_have_date = 1;
 			foreach my $residence(@residencelist) {
-				if((!$residence->date()) || !$date_parser->parse(date => $residence->date())) {
-					$all_residences_have_date = 0;
+				my $date = $residence->date();
+				if((!$date) || !defined($date_parser->parse(date => $date))) {
 					if($opts{'f'}) {
 						die $person->name(), ': Contains a residence without a date';
 					}
 					red_warning({ person => $person, warning => 'Contains a residence without a date' });
+					$all_residences_have_date = 0;
+					last;
+				}
+				$date = $date_parser->parse(date => $date);
+				if(scalar(@{$date}) == 0) {
+					# e.g. "Apr/May/Jun 2016"
+					$all_residences_have_date = 0;
 					last;
 				}
 			}
