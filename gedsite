@@ -3408,6 +3408,9 @@ sub place
 				validate_place({ person => $params{'person'}, place => $str });
 			}
 			if($places_printed->{" in$str"}) {
+				if(($4 eq ' USA') || ($4 eq ' Canada')) {
+					return "$1,$3";
+				}
 				return $address ? "$1,$2" : "$1 in$2";
 			}
 			if($places_printed->{" at$str"}) {
