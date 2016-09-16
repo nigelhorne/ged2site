@@ -40,10 +40,6 @@ my $config;
 my @suffixlist = ('.pl', '.fcgi');
 my $script_name = basename($info->script_name(), @suffixlist);
 
-# open STDERR, ">&STDOUT";
-close STDERR;
-open(STDERR, '>>', "$tmpdir/$script_name.stderr");
-
 my $infocache;
 my $linguacache;
 my $buffercache;
@@ -94,7 +90,7 @@ unless($ENV{'REMOTE_ADDR'}) {
 		doit();
 	} catch Error with {
 		my $msg = shift;
-		warn "$msg\n", $msg->stacktrace unless(defined($ENV{'REMOTE_ADDR'}));
+		warn "$msg\n", $msg->stacktrace;
 		$logger->error($msg);
 		if($buffercache) {
 			$buffercache->clear();
@@ -102,6 +98,10 @@ unless($ENV{'REMOTE_ADDR'}) {
 	};
 	exit;
 }
+
+# open STDERR, ">&STDOUT";
+close STDERR;
+open(STDERR, '>>', "$tmpdir/$script_name.stderr");
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
@@ -131,7 +131,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 	$requestcount++;
 	Log::Any::Adapter->set( { category => $script_name }, 'Log4perl');
 	$logger = Log::Any->get_logger(category => $script_name);
-	$logger->info("Request $requestcount", $ENV{'REMOTE_ADDR'} ? " $ENV{'REMOTE_ADDR'}" : '');
+	$logger->info("Request $requestcount: ", $ENV{'REMOTE_ADDR'});
 
 	$Error::Debug = 1;
 
@@ -139,7 +139,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		doit();
 	} catch Error with {
 		my $msg = shift;
-		warn "$msg\n", $msg->stacktrace unless(defined($ENV{'REMOTE_ADDR'}));
+		warn "$msg\n";
 		$logger->error($msg);
 		if($buffercache) {
 			$buffercache->clear();
