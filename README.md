@@ -1,5 +1,5 @@
-gedsite
-=======
+ged2site
+========
 
 Converts a Gedcom file to HTML to create family tree website.
 
@@ -9,7 +9,7 @@ and Ancestry.
 
 Typical usage:
 
-    gedsite -cFdh 'Your Name' gedfile.ged
+    ged2site -cFdh 'Your Name' gedfile.ged
 
 You will then have two sites - static-site is static HTML,
 dynamic-site is a VWF based website which uses templates to support more than one
@@ -37,7 +37,7 @@ The options are:
     -w: print warning about inconsistent data - a sort of lint for Gedcom files,
 	may not do as many as gedcal(1)
 
-If gedcal is installed, gedsite will also create a calendar of births and
+If gedcal is installed, ged2site will also create a calendar of births and
 deaths, one page for each month in the current year.
 
 An example dynamic genealogy website that was produced by Gedsite is available

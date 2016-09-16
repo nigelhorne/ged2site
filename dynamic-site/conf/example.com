@@ -1,4 +1,4 @@
-rootdir: /home/you/gedsite/dynamic-site
+rootdir: /home/you/ged2site/dynamic-site
 SiteTitle: The Family Tree of Nigel Horne
 Files: a=b
 Files: c=d
