@@ -92,9 +92,6 @@ unless($ENV{'REMOTE_ADDR'}) {
 		my $msg = shift;
 		warn "$msg\n", $msg->stacktrace;
 		$logger->error($msg);
-		if($buffercache) {
-			$buffercache->clear();
-		}
 	};
 	exit;
 }
@@ -139,7 +136,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		doit();
 	} catch Error with {
 		my $msg = shift;
-		warn "$msg\n";
+		warn $msg;
 		$logger->error($msg);
 		if($buffercache) {
 			$buffercache->clear();

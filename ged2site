@@ -1700,7 +1700,12 @@ sub print_person
 					if(ref($r) eq 'Gedcom::Record') {
 						$residence = $r;
 					} else {
-						red_warning({ person => $person, warning => "Residence record is just description ($residence), infomation has been lost" });
+						$r = $person->record(['residence', $index]);
+						if(ref($r) eq 'Gedcom::Record') {
+							$residence = $r;
+						} else {
+							red_warning({ person => $person, warning => "Residence record is just description ($residence), infomation has been lost" });
+						}
 					}
 				}
 				if(ref($residence) eq 'Gedcom::Record') {
@@ -1754,10 +1759,10 @@ sub print_person
 				}
 			}
 
-			# FIXME: This messes citations
 			# TODO: See RT110333
 
 			# Sort residences chronologically
+			# FIXME: This messes citations
 			my $all_residences_have_date = 1;
 			foreach my $residence(@residencelist) {
 				my $date = $residence->date();
