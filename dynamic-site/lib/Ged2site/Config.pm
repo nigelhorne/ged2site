@@ -1,6 +1,6 @@
-package Gedsite::Config;
+package Ged2site::Config;
 
-# Gedsite is licensed under GPL2.0 for personal use only
+# Ged2site is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
 # Site independant configuration file

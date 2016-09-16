@@ -1,10 +1,10 @@
-package Gedsite::Display::surnames;
+package Ged2site::Display::surnames;
 
 # Display the surnames page
 
-use Gedsite::Display::page;
+use Ged2site::Display::page;
 
-our @ISA = ('Gedsite::Display::page');
+our @ISA = ('Ged2site::Display::page');
 
 sub html {
 	my $self = shift;

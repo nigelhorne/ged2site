@@ -1,4 +1,4 @@
-package Gedsite::Display::page;
+package Ged2site::Display::page;
 
 # Display a page. Certain variables are available to all templates, such as
 # the stuff in the configuration file
@@ -7,8 +7,8 @@ use Config::Auto;
 use CGI::Info;
 use File::Spec;
 use Template::Filters;
-use Gedsite::Config;
-use Gedsite::Allow;
+use Ged2site::Config;
+use Ged2site::Allow;
 
 sub new {
 	my $proto = shift;
@@ -17,7 +17,7 @@ sub new {
 	my $class = ref($proto) || $proto;
 
 	my $info = $args{info} || CGI::Info->new();
-	my $config = $args{config} || Gedsite::Config->new({ logger => $args{logger}, info => $info, lingua => $args{lingua} });
+	my $config = $args{config} || Ged2site::Config->new({ logger => $args{logger}, info => $info, lingua => $args{lingua} });
 
 	unless($info->is_search_engine() || !defined($ENV{'REMOTE_ADDR'})) {
 		my %allowargs = (
@@ -28,7 +28,7 @@ sub new {
 			cachedir => $args{cachedir},
 			cache => $args{cache}
 		);
-		unless(Gedsite::Allow::allow(%allowargs)) {
+		unless(Ged2site::Allow::allow(%allowargs)) {
 			throw Error::Simple("Not allowing connexion from $ENV{'REMOTE_ADDR'}", 1);
 		}
 	}

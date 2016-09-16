@@ -1,11 +1,11 @@
-package Gedsite::Display::people;
+package Ged2site::Display::people;
 
 # Display the people page
 
-use Gedsite::Display::page;
+use Ged2site::Display::page;
 use MIME::Base64;
 
-our @ISA = ('Gedsite::Display::page');
+our @ISA = ('Ged2site::Display::page');
 
 sub html {
 	my $self = shift;

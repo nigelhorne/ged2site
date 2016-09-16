@@ -1,4 +1,4 @@
-package Gedsite::DB;
+package Ged2site::DB;
 
 use warnings;
 
@@ -21,7 +21,7 @@ sub new {
 	return bless { logger => $args{'logger'}, directory => $args{'directory'} || $directory }, $class;
 }
 
-# Can also be run as a class level Gedsite::DB::init(directory => '../databases')
+# Can also be run as a class level Ged2site::DB::init(directory => '../databases')
 sub init {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 

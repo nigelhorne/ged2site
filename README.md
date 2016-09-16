@@ -40,7 +40,7 @@ The options are:
 If gedcal is installed, ged2site will also create a calendar of births and
 deaths, one page for each month in the current year.
 
-An example dynamic genealogy website that was produced by Gedsite is available
+An example dynamic genealogy website that was produced by Ged2site is available
 at https://genealogy.nigelhorne.com.
 
 Note that the dynamic page generation is in its early stages of development so

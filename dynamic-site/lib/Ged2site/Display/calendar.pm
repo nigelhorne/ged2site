@@ -1,15 +1,15 @@
-package Gedsite::Display::calendar;
+package Ged2site::Display::calendar;
 
 use strict;
 use warnings;
 
 # Display the calendar page
 
-use Gedsite::Display::page;
+use Ged2site::Display::page;
 use DateTime;
 use DateTime::Locale;
 
-our @ISA = ('Gedsite::Display::page');
+our @ISA = ('Ged2site::Display::page');
 
 sub html {
 	my $self = shift;

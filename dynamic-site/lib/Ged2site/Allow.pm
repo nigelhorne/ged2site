@@ -1,10 +1,10 @@
-use Gedsite::Utils;
+use Ged2site::Utils;
 
 # See https://github.com/nigelhorne/CGI-Allow
 
-package Gedsite::Allow;
+package Ged2site::Allow;
 
-# Gedsite is licensed under GPL2.0 for personal use only
+# Ged2site is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
 use strict;

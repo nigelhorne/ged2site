@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Gedsite is licensed under GPL2.0 for personal use only
+# Ged2site is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
 # Based on VWF - https://github.com/nigelhorne/vwf
@@ -24,12 +24,12 @@ use Log::Any::Adapter;
 use Error qw(:try);
 use autodie qw(:all);
 
-# use lib '/usr/lib';	# This needs to point to the Gedsite directory lives,
+# use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
 			# i.e. the contents of the lib directory in the
 			# distribution
 use lib '../lib';
 
-use Gedsite::Config;
+use Ged2site::Config;
 
 my $info = CGI::Info->new();
 my $tmpdir = $info->tmpdir();
@@ -51,33 +51,33 @@ my $buffercache;
 Log::Log4perl->init("$script_dir/../conf/$script_name.l4pconf");
 my $logger = Log::Log4perl->get_logger($script_name);
 
-# my $pagename = "Gedsite::Display::$script_name";
+# my $pagename = "Ged2site::Display::$script_name";
 # eval "require $pagename";
-use Gedsite::Display::people;
-use Gedsite::Display::censuses;
-use Gedsite::Display::surnames;
-use Gedsite::Display::history;
-use Gedsite::Display::todo;
-use Gedsite::Display::calendar;
+use Ged2site::Display::people;
+use Ged2site::Display::censuses;
+use Ged2site::Display::surnames;
+use Ged2site::Display::history;
+use Ged2site::Display::todo;
+use Ged2site::Display::calendar;
 
-use Gedsite::DB::people;
-use Gedsite::DB::censuses;
-use Gedsite::DB::surnames;
-use Gedsite::DB::history;
-use Gedsite::DB::todo;
+use Ged2site::DB::people;
+use Ged2site::DB::censuses;
+use Ged2site::DB::surnames;
+use Ged2site::DB::history;
+use Ged2site::DB::todo;
 
 my $database_dir = "$script_dir/../databases";
-Gedsite::DB::init({ directory => $database_dir, logger => $logger });
+Ged2site::DB::init({ directory => $database_dir, logger => $logger });
 
-my $people = Gedsite::DB::people->new();
+my $people = Ged2site::DB::people->new();
 if($@) {
 	$logger->error($@);
 	die $@;
 }
-my $censuses = Gedsite::DB::censuses->new();
-my $surnames = Gedsite::DB::surnames->new();
-my $history = Gedsite::DB::history->new();
-my $todo = Gedsite::DB::todo->new();
+my $censuses = Ged2site::DB::censuses->new();
+my $surnames = Ged2site::DB::surnames->new();
+my $history = Ged2site::DB::history->new();
+my $todo = Ged2site::DB::todo->new();
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
@@ -147,7 +147,7 @@ CHI->stats->flush();
 sub doit
 {
 	CGI::Info->reset();
-	$config ||= Gedsite::Config->new({ logger => $logger, info => $info });
+	$config ||= Ged2site::Config->new({ logger => $logger, info => $info });
 	$infocache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
 	my $info = CGI::Info->new({ cache => $infocache, logger => $logger });
 
@@ -191,17 +191,17 @@ sub doit
 	};
 	eval {
 		if($info->param('page') eq 'people') {
-			$display = Gedsite::Display::people->new($args);
+			$display = Ged2site::Display::people->new($args);
 		} elsif($info->param('page') eq 'censuses') {
-			$display = Gedsite::Display::censuses->new($args);
+			$display = Ged2site::Display::censuses->new($args);
 		} elsif($info->param('page') eq 'surnames') {
-			$display = Gedsite::Display::surnames->new($args);
+			$display = Ged2site::Display::surnames->new($args);
 		} elsif($info->param('page') eq 'history') {
-			$display = Gedsite::Display::history->new($args);
+			$display = Ged2site::Display::history->new($args);
 		} elsif($info->param('page') eq 'todo') {
-			$display = Gedsite::Display::todo->new($args);
+			$display = Ged2site::Display::todo->new($args);
 		} elsif($info->param('page') eq 'calendar') {
-			$display = Gedsite::Display::calendar->new($args);
+			$display = Ged2site::Display::calendar->new($args);
 		} else {
 			$invalidpage = 1;
 		}
