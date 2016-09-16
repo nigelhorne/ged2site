@@ -13,12 +13,15 @@ Typical usage:
 
 You will then have two sites - static-site is static HTML,
 dynamic-site is a VWF based website which uses templates to support more than one
-language and mobile/web/search-engine clients.
+language and present different content to mobile/web/search-engine clients.
 
 If you decide to use the static site, just copy files in the static-site directory to your webserver.
-If you decide to use the dynamic site first create a $hostname.com file in the conf directory (use
-example.com as a template), then modify the contents of the template tree so that the site looks as
-you want it.  Then upload the dynamic-site directory to your webserver.
+If you decide to use the dynamic site first create a $hostname.com file in the
+conf directory (use example.com as a template),
+then modify the contents of the template tree so that the site looks as you
+want it.
+The configration file can be in any number of formats including INI and XML.
+Then upload the dynamic-site directory to your webserver.
 
 The options are:
 
