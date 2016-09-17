@@ -75,27 +75,6 @@ my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::DB::history->new();
 my $todo = Ged2site::DB::todo->new();
 
-# unless($ENV{'REMOTE_ADDR'}) {
-	# # debugging from the command line
-	# $ENV{'NO_CACHE'} = 1;
-	# if((!defined($ENV{'HTTP_ACCEPT_LANGUAGE'})) && defined($ENV{'LANG'})) {
-		# my $lang = $ENV{'LANG'};
-		# $lang =~ s/\..*$//;
-		# $lang =~ tr/_/-/;
-		# $ENV{'HTTP_ACCEPT_LANGUAGE'} = lc($lang);
-	# }
-	# Log::Any::Adapter->set('Stdout');
-	# $logger = Log::Any->get_logger(category => $script_name);
-	# try {
-		# doit();
-	# } catch Error with {
-		# my $msg = shift;
-		# warn "$msg\n", $msg->stacktrace;
-		# $logger->error($msg);
-	# };
-	# exit;
-# }
-
 # open STDERR, ">&STDOUT";
 close STDERR;
 open(STDERR, '>>', "$tmpdir/$script_name.stderr");
@@ -125,6 +104,27 @@ $SIG{PIPE} = 'IGNORE';
 my $request = FCGI::Request();
 
 while($handling_request = ($request->Accept() >= 0)) {
+	unless($ENV{'REMOTE_ADDR'}) {
+		# debugging from the command line
+		$ENV{'NO_CACHE'} = 1;
+		if((!defined($ENV{'HTTP_ACCEPT_LANGUAGE'})) && defined($ENV{'LANG'})) {
+			my $lang = $ENV{'LANG'};
+			$lang =~ s/\..*$//;
+			$lang =~ tr/_/-/;
+			$ENV{'HTTP_ACCEPT_LANGUAGE'} = lc($lang);
+		}
+		Log::Any::Adapter->set('Stdout');
+		$logger = Log::Any->get_logger(category => $script_name);
+		try {
+			doit();
+		} catch Error with {
+			my $msg = shift;
+			warn "$msg\n", $msg->stacktrace;
+			$logger->error($msg);
+		};
+		exit;
+	}
+
 	$requestcount++;
 	Log::Any::Adapter->set( { category => $script_name }, 'Log4perl');
 	$logger = Log::Any->get_logger(category => $script_name);
