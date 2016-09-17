@@ -122,7 +122,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 			warn "$msg\n", $msg->stacktrace;
 			$logger->error($msg);
 		};
-		exit;
+		last;
 	}
 
 	$requestcount++;
