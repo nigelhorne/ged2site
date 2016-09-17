@@ -1652,7 +1652,6 @@ sub print_person
 	}
 
 	my $printed_residence = 0;
-	my %residencecitations;
 	my %citationnotes;
 	my @residences = $person->residence();
 	my @events = $person->event();
@@ -1689,6 +1688,7 @@ sub print_person
 		if(scalar(@residences)) {
 			# FIXME, handle duplicate locations better
 			my @residencelist;
+			my %residencecitations;
 
 			# This is an attempt to handle
 			# https://github.com/pjcj/Gedcom.pm/issues/13
@@ -1854,6 +1854,7 @@ sub print_person
 					$bio .= '[' . $residencecitations{$residence} . ']';
 				}
 				if($residence->place() &&
+				  (!$residence->date()) &&
 				  ($count <= (scalar(@residencelist) - 1)) &&
 				  ($residencecitations{$residence})) {
 					my $peek = $residencelist[$count + 1];
@@ -3471,51 +3472,54 @@ sub notes
 
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
 	# my @deathnotes = $person, value => 'death note' });
-	my @notes = $record->get_record('note');
 	my $rc = $record->get_value();
-	if(scalar(@notes)) {
-		foreach my $note(@notes) {
-			if($note) {
-				if(ref($note) eq 'Gedcom::Record') {
-					if($note->cont()) {
-						my $n = $note->value();
-						$n =~ s/\r//g;
-						$n =~ s/\.$//;
-						foreach my $c($note->cont()) {
-							if((!ref($c)) && length($c)) {
-								$c =~ s/\s\s+/ /g;
-								$c =~ s/\.$//;
-								if($n =~ /[;:]$/) {
-									$n .= " $c";
-								} else {
-									$n .= ". $c";
-								}
+	$rc .= '.' if($rc);
+
+	my @notes = $record->get_record('note');
+	foreach my $note(@notes) {
+		if($note) {
+			if(ref($note) eq 'Gedcom::Record') {
+				if($note->cont()) {
+					my $n = $note->value();
+					$n =~ s/\r//g;
+					$n =~ s/\.$//;
+					foreach my $c($note->cont()) {
+						if((!ref($c)) && length($c)) {
+							$c =~ s/\s\s+/ /g;
+							$c =~ s/\.$//;
+							if($n =~ /[;:]$/) {
+								$n .= " $c";
+							} else {
+								$n .= ". $c";
 							}
 						}
-						$note = $n;
-					} elsif($note->conc()) {
-						my $n = $note->value();
-						$n =~ s/\r//g;
-						$n =~ s/\.$//;
-						foreach my $c($note->conc()) {
-							if((!ref($c)) && length($c)) {
-								$c =~ s/\s\s+/ /g;
-								$n .= $c;
-							}
-						}
-						$note = $n;
-					} else {
-						$note = $note->value();
 					}
-				}
-				$note =~ s/\r//g;
-				$note =~ tr/\n/ /;
-				$note =~ s/\.$//;
-				if($paragraph) {
-					$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
+					$note = $n;
+				} elsif($note->conc()) {
+					my $n = $note->value();
+					$n =~ s/\r//g;
+					$n =~ s/\.$//;
+					foreach my $c($note->conc()) {
+						if((!ref($c)) && length($c)) {
+							$c =~ s/\s\s+/ /g;
+							$n .= $c;
+						}
+					}
+					$note = $n;
 				} else {
-					$rc .= HTML::Entities::encode($note) . '. ';
+					$note = $note->value();
 				}
+			}
+			$note =~ s/\r//g;
+			$note =~ tr/\n/ /;
+			$note =~ s/\.$//;
+			if($paragraph) {
+				$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
+			} else {
+				if($rc) {
+					$rc .= ' ';
+				}
+				$rc .= HTML::Entities::encode($note) . '.';
 			}
 		}
 	}
