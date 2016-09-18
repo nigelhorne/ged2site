@@ -965,6 +965,17 @@ sub print_person
 		if(!($father || $mother || $spouserelationship)) {
 			$bio .= ', ';
 		}
+	} elsif(scalar(@occupations)) {
+		if($opts{'w'}) {
+			if($opts{'f'}) {
+				die $person->as_string, ': occupation is empty';
+			}
+			red_warning({
+				person => $person,
+				warning => 'occupation is empty'
+			});
+		}
+		shift @occupations;
 	}
 
 	my $print_sibling_count = 0;
