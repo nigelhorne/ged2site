@@ -1990,7 +1990,7 @@ sub print_person
 		$bio .= "[$_]" foreach(@burialcitations);
 	} elsif($placeofdeath || $dateofdeath) {
 		# TODO - extract marriage banns information
-		if($person->marb()) {
+		if($person->marriage_bann()) {
 			# die 'foo';
 		}
 		if($placeofdeath && (scalar(@spouses) <= 1) && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
