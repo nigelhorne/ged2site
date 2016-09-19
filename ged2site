@@ -3154,6 +3154,7 @@ sub Gedcom::Individual::relationship
 		foreach my $person2(@ancestors2) {
 			# print $person1->as_string(), '->', $person2->as_string(), "\n";
 			# G::C is noisy
+			# TODO - apparently fixed in Github, awaiting new version on CPAN
 			# my $c = Gedcom::Comparison->new($person1, $person2);
 			# if($c->identical($person2)) {
 				# die 'match found';
