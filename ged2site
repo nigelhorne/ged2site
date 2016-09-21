@@ -2500,8 +2500,7 @@ sub print_person
 			foreach my $o($person->obje()) {
 				my $obje = $ged->resolve_xref($o);
 				next if(!defined($obje));
-				my $file = $obje->file();
-				if($file) {
+				if(my $file = $obje->file()) {
 					if(ref($file) eq 'Gedcom::Record') {
 						# warn $file->tag(), "\n" if($file->tag());
 						$file = $file->{'file'};
@@ -3467,13 +3466,16 @@ sub notes
 	my $ufinder = URI::Find::Schemeless->new(sub {
 		my($uri, $orig_uri) = @_;
 
+		if($orig_uri =~ /(.+):$/) {
+			$orig_uri = $1;
+		}
 		my $u = URI->new($orig_uri);
 		if($u && (ref($u) ne 'URI::_generic')) {
 			if(!head($orig_uri)) {
 				if($opts{'f'}) {
-					die $person->as_string, ": $orig_uri: not found";
+					die $person->as_string, ": $orig_uri: in notes is not found";
 				}
-				red_warning({ person => $person, warning => "$orig_uri: not found" });
+				red_warning({ person => $person, warning => "$orig_uri: in notes is not found" });
 			}
 			return "<a HREF=\"$uri\">" .
 				$u->host() .
