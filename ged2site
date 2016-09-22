@@ -28,10 +28,12 @@ use Lingua::EN::NameCase;
 use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;
 use Lingua::EN::ABC;
+use Lingua::EN::AddressParse;
 use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::OSM;
+use Geo::Coder::Canada;
 use Tie::Static;
 use Term::ANSIColor;
 use HTML::Entities;
@@ -3423,7 +3425,7 @@ sub place
 		if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
 			my $str = "$2,$3,$4";
 			if($params{'person'}) {
-				validate_place({ person => $params{'person'}, place => $str });
+				validate_place({ person => $params{'person'}, place => $place });
 			}
 			if($places_printed->{" in$str"}) {
 				if(($4 eq ' USA') || ($4 eq ' Canada')) {
@@ -3579,21 +3581,45 @@ sub validate_place
 		if($place =~ /(.*),\s*Independent Cities\s*(.*)/i) {
 			$place = "$1$2";
 		}
+		$place =~ s/^(in|at)\s//;
+		my $town = $place;
 		if($place =~ /,\s*(.+,.+,.+,.+)$/) {
 			# Use only the town part
-			$place = $1;
+			$town = $1;
 		}
-		if(!$geocoder->geocode($place)) {
+		my $found = 0;
+		if($place =~ /, Canada$/) {
+			my $g = Geo::Coder::Canada->new();
+			if(my $ap = Lingua::EN::AddressParse->new(country => 'CA', auto_clean => 1, force_case => 1, force_post_code => 0)) {
+				$place =~ s/\é/e/g;
+				my $error = $ap->parse($place);
+				# print $ap->report();
+				my %nc = $ap->components();
+				$g->addresst($nc{street_name});
+				$g->city($nc{suburb});
+				$g->prov($nc{subcountry});
+				if($g->geocode()) {
+					$found = 1;
+				} else {
+					# die $g->error->description;
+				}
+			}
+		}
+		if((!$found) && !$geocoder->geocode($town)) {
 			# Don't die because there are many
 			# false positives as locations
 			# may no longer exist
-			red_warning({
-				person => $params{'person'},
-				warning => "unknown location $place"
-			});
+			my $person = $params{'person'};
+			if($person) {
+				warn colored($person->as_string({ include_dates => 1 }) . ": unknown location $place", 'red');
+			} else {
+				warn colored("Unknown location $place", 'red');
+			}
 			$places{$place} = 0;
+			$places{$town} = 0;
 			return 0;
 		}
+		$places{$town} = 1;
 	}
 	$places{$place} = 1;
 	return 1;
