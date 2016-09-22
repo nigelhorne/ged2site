@@ -1583,10 +1583,11 @@ sub print_person
 				# Determine if all the children are from one marriage, since that's
 				# easier to print.
 				# FIXME:  handle where offspring are from more than one marriage
-				my %childrenbyspouse;
 				if($numberofchildren) {
+					my %childrenbyspouse;
 					foreach my $family ($person->fams()) {
-						if($family->number_of_children()) {
+						if($family->number_of_children() &&
+						   ($spouse = ($sex eq 'M') ? $family->wife() : $family->husband())) {
 							my $spouse = ($sex eq 'M') ? $family->wife() : $family->husband();
 							foreach my $child($person->children()) {
 								foreach my $spouseschild($spouse->children()) {
