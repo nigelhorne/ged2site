@@ -1151,8 +1151,9 @@ sub print_person
 					$mother->given_names(),
 					'</a>';
 			}
-			print $csv '.';
-			print $html '.';
+			if(!$person ne $me) {
+				print $csv '.';
+				print $html '.';
 		}
 	}
 
@@ -1395,9 +1396,7 @@ sub print_person
 				$end_of_sentence = 1;
 			}
 		}
-	}
 
-	if($opts{'a'} || !$was_alive) {
 		my $all_children_are_alive = 1;
 
 		if($yob && ($year >= $yob + 150)) {
@@ -1892,6 +1891,7 @@ sub print_person
 			}
 		}
 	} else {
+		$bio .= '.';
 		print $csv '!!!';
 	}
 
