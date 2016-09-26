@@ -1154,6 +1154,7 @@ sub print_person
 			if(!$person ne $me) {
 				print $csv '.';
 				print $html '.';
+			}
 		}
 	}
 
