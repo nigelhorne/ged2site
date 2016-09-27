@@ -1151,10 +1151,6 @@ sub print_person
 					$mother->given_names(),
 					'</a>';
 			}
-			if(!$person ne $me) {
-				print $csv '.';
-				print $html '.';
-			}
 		}
 	}
 
@@ -1892,8 +1888,7 @@ sub print_person
 			}
 		}
 	} else {
-		$bio .= '.';
-		print $csv '!!!';
+		print $csv '.!!!';
 	}
 
 	if($placeofburial || $dateofburial) {
@@ -1998,7 +1993,12 @@ sub print_person
 			# die 'foo';
 		}
 		if($placeofdeath && (scalar(@spouses) <= 1) && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-			$bio .= ' . which is also where ' . lcfirst($pronoun);
+			if($end_of_sentence) {
+				$bio .= 'That';
+			} else {
+				$bio .= ', which';
+			}
+			$bio .= ' is also where ' . lcfirst($pronoun);
 		} else {
 			$bio .= '.' if(!$end_of_sentence);
 			$bio .= " $pronoun";
@@ -3033,10 +3033,10 @@ sub Gedcom::Individual::as_string
 		$rc .= ' ' if($yob || $yod);
 
 		if($yob) {
-			$rc .= $yob;
+			$rc .= "$yob ";
 		}
 
-		$rc .= ' -' if($yob || $yod);
+		$rc .= '-' if($yob || $yod);
 
 		if($yod) {
 			return "$rc $yod";
@@ -3618,7 +3618,7 @@ sub validate_place
 				# may no longer exist
 				my $person = $params{'person'};
 				if($person) {
-					warn colored($person->as_string({ include_dates => 1 }) . ": unknown location $place", 'red');
+					warn colored($person->as_string({ include_years => 1 }) . ": unknown location $place", 'red');
 				} else {
 					warn colored("Unknown location $place", 'red');
 				}
