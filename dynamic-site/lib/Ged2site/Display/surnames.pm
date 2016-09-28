@@ -27,7 +27,7 @@ sub html {
 	unless($params && scalar(keys %{$params})) {
 		# Display the main index page
 		my @s = $surnames->surname();
-		return $self->SUPER::html({ surnames => \@s, updated => $surnames=>updated() });
+		return $self->SUPER::html({ surnames => \@s, updated => $surnames->updated() });
 	}
 
 	# Look in the surnames.csv for the name given as the CGI argument and
@@ -40,7 +40,7 @@ sub html {
 	}
 
 	# TODO: handle situation where look up fails
-	return $self->SUPER::html({ surname => $surname, people => \@people, updated => $surnames=>updated() });
+	return $self->SUPER::html({ surname => $surname, people => \@people, updated => $surnames->updated() });
 }
 
 1;
