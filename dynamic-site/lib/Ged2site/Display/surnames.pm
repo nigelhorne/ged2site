@@ -33,14 +33,10 @@ sub html {
 	# Look in the surnames.csv for the name given as the CGI argument and
 	# find their details
 	my $surname = $surnames->selectall_hashref($params);
-	my @people;
-
-	foreach my $person(@{$surname}) {
-		push @people, $people->fetchrow_hashref({ entry => $person->{'person'} });
-	}
+	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$surname};
 
 	# TODO: handle situation where look up fails
-	return $self->SUPER::html({ surname => $surname, people => \@people, updated => $surnames->updated() });
+	return $self->SUPER::html({ people => \@people, updated => $surnames->updated() });
 }
 
 1;

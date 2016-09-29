@@ -31,12 +31,10 @@ sub html {
 
 	# Look in the people.csv for the name given as the CGI argument and
 	# find their details
-	my $person = $people->fetchrow_hashref($params);
-
 	# TODO: handle situation where look up fails
 
 	return $self->SUPER::html({
-		person => $person,
+		person => $people->fetchrow_hashref($params),
 		decode_base64url => sub {
 			MIME::Base64::decode_base64url($_[0])
 		},
