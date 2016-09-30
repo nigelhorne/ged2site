@@ -2134,7 +2134,8 @@ sub print_person
 			}
 		}
 		if(ref($event) eq 'Gedcom::Record') {
-			if($event->type() eq 'Arrival') {
+			my $type = $event->type();
+			if($type eq 'Arrival') {
 				$bio .= ' ' . $person->pronoun() . ' arrived' .
 					place({ person => $person, record => $events[0] }) .
 					' ' .
@@ -2145,7 +2146,7 @@ sub print_person
 				} else {
 					$place_records{'Travelled to'} = $event;
 				}
-			} elsif($event->type() eq 'Military service') {
+			} elsif($type eq 'Military service') {
 				$bio .= '.' if(!$end_of_sentence);
 				$bio .= " $pronoun served in the military";
 				if(my $place = place({ person => $person, record => $event })) {
@@ -2161,11 +2162,12 @@ sub print_person
 					$bio .= " ($notes)";
 				}
 				$end_of_sentence = 0;
-			} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
-				red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
+			} elsif(($type !~ /^Census U[KS] (\d{4})$/) && ($type ne 'Race')) {
+				red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				if(my $notes = notes(record => $event)) {
 					$notes = ucfirst($notes);
 					$bio .= " ($notes)";
+					$end_of_sentence = 0;
 				}
 			}
 		}
