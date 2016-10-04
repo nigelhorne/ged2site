@@ -21,7 +21,7 @@ sub html {
 		push @{$eventshash->{$event->{'year'}}}, $event;
 	}
 
-	return $self->SUPER::html({ events => $eventshash });
+	return $self->SUPER::html({ events => $eventshash, updated => $history->updated() });
 }
 
 1;
