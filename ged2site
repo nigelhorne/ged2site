@@ -594,7 +594,6 @@ sub print_person
 		nee => 1,
 		middle_names => 1,
 		title => 1,
-		include_aka => 1,
 	});
 
 	my $name = $person->name();
@@ -1218,6 +1217,11 @@ sub print_person
 			$me->as_string(nee => 1),
 			'</a>,';
 		$haveprintedspousename = 1;
+	}
+
+	if(my $aka = $person->as_string({ use_aka => 1 })) {
+		print $html " (also known as $aka)";
+		print $csv " (also known as $aka)";
 	}
 
 	my $end_of_sentence = 0;
@@ -2903,7 +2907,16 @@ sub Gedcom::Individual::as_string
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $name = $self->name();
+	my $name;
+
+	if($args{'use_aka'} && (my $n2 = $self->tag_record('NAME', 2))) {
+		if((ref($n2) eq 'Gedcom::Record') && defined($n2->type()) && ($n2->type() eq 'AlsoKnownAs')) {
+			$name = $n2->value();
+		}
+		return unless($name);
+	} else {
+		$name = $self->name();
+	}
 
 	$name =~ s/\///g;
 	$nameparser->parse($name);
@@ -3001,24 +3014,6 @@ sub Gedcom::Individual::as_string
 			red_warning({ warning => "Can't determine name of this person" });
 			$args{'include_years'} = 1;
 			$rc = 'Unknown person ';
-		}
-	}
-
-	if($args{'include_aka'} && (my $n2 = $self->tag_record('NAME', 2))) {
-		if((ref($n2) eq 'Gedcom::Record') && defined($n2->type()) && ($n2->type() eq 'AlsoKnownAs')) {
-			$name = $n2->value();
-			$name =~ s/\///g;
-
-			$nameparser->parse($name);
-
-			my %name_components = $nameparser->components();
-			my $first_name = $name_components{'given_name_1'};
-			my $middle_name = $name_components{'middle_name'};
-			my $surname = $name_components{'surname_1'};
-			if($name_components{'surname_2'}) {
-				$surname .= ' ' . $name_components{'surname_2'};
-			}
-			$rc .= " (also known as $first_name $surname)";
 		}
 	}
 
