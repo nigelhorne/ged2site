@@ -594,6 +594,7 @@ sub print_person
 		nee => 1,
 		middle_names => 1,
 		title => 1,
+		include_aka => 1,
 	});
 
 	my $name = $person->name();
@@ -3002,6 +3003,25 @@ sub Gedcom::Individual::as_string
 			$rc = 'Unknown person ';
 		}
 	}
+
+	if($args{'include_aka'} && (my $n2 = $self->tag_record('NAME', 2))) {
+		if((ref($n2) eq 'Gedcom::Record') && defined($n2->type()) && ($n2->type() eq 'AlsoKnownAs')) {
+			$name = $n2->value();
+			$name =~ s/\///g;
+
+			$nameparser->parse($name);
+
+			my %name_components = $nameparser->components();
+			my $first_name = $name_components{'given_name_1'};
+			my $middle_name = $name_components{'middle_name'};
+			my $surname = $name_components{'surname_1'};
+			if($name_components{'surname_2'}) {
+				$surname .= ' ' . $name_components{'surname_2'};
+			}
+			$rc .= " (also known as $first_name $surname)";
+		}
+	}
+
 	if($args{'include_years'}) {
 		my $dob = get_value({ person => $self, value => 'birth date' });
 
