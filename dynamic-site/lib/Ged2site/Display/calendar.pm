@@ -25,10 +25,10 @@ sub html {
 		delete $params->{'page'};
 	}
 
-	if(my $month = $params->{'month'}) {
-		# Handles into the databases
-		my $history = $args{'history'};
+	# Handle into the database
+	my $history = $args{'history'};
 
+	if(my $month = $params->{'month'}) {
 		my @events;
 
 		foreach my $event(@{$history->selectall_hashref({ month => $month })}) {
@@ -40,15 +40,11 @@ sub html {
 			month => @{DateTime::Locale->load($self->{_lingua}->language())->month_format_wide()}[$month - 1],
 			year => DateTime->today()->year()
 		});
-	} else {
-		my $history = $args{'history'};
-		return $self->SUPER::html({
-			events => $history->selectall_hashref(),
-			updated => $history->updated()
-		});
 	}
-
-	return $self->SUPER::html();
+	return $self->SUPER::html({
+		events => $history->selectall_hashref(),
+		updated => $history->updated()
+	});
 }
 
 1;

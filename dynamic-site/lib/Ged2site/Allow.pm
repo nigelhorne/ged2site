@@ -229,15 +229,13 @@ sub allow {
 		}
 	}
 
-	foreach my $ip (@ips) {
-		# FIXME: Doesn't realise 1.2.3.4 is the same as 001.002.003.004
-		if($ip eq $ENV{'REMOTE_ADDR'}) {
-			if($logger) {
-				$logger->warn("Dshield blocked connexion from $ENV{REMOTE_ADDR}");
-			}
-			$status = 0;
-			throw Error::Simple("Dshield blocked connexion from $ENV{REMOTE_ADDR}");
+	# FIXME: Doesn't realise 1.2.3.4 is the same as 001.002.003.004
+	if(grep($_ eq $ENV{'REMOTE_ADDR'}, @ips)) {
+		if($logger) {
+			$logger->warn("Dshield blocked connexion from $ENV{REMOTE_ADDR}");
 		}
+		$status = 0;
+		throw Error::Simple("Dshield blocked connexion from $ENV{REMOTE_ADDR}");
 	}
 
 	if($info->get_cookie(cookie_name => 'mycustomtrackid')) {

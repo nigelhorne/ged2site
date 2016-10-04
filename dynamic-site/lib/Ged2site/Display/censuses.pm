@@ -33,11 +33,8 @@ sub html {
 	# Look in the censuses.csv for the name given as the CGI argument and
 	# find their details
 	my $census = $censuses->selectall_hashref($params);
-	my @people;
 
-	foreach my $person(@{$census}) {
-		push @people, $people->fetchrow_hashref({ entry => $person->{'person'} });
-	}
+	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$census};
 
 	# TODO: handle situation where look up fails
 	return $self->SUPER::html({ census => $census, people => \@people });
