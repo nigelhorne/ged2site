@@ -13,7 +13,6 @@ sub html {
 	my $eventshash;	# hash of year to array of events in that year, each event is a hash of the event's details
 
 	my $history = $args{'history'};	# Handle into the database
-	my $people = $args{'people'};
 
 	# TODO: handle situation where look up fails
 
