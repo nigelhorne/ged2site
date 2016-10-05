@@ -41,7 +41,7 @@ sub new {
 		_lingua => $args{lingua},
 		_logger => $args{logger},
 		_cachedir => $args{cachedir},
-		_page => $info->param('page'),
+		# _page => $info->param('page'),
 	}, $class;
 }
 
