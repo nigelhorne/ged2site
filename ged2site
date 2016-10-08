@@ -1686,17 +1686,17 @@ sub print_person
 			}
 			if((ref($event) eq 'Gedcom::Record') &&
 			   ($event->type() =~ /^Census U[KS] (\d{4})$/)) {
-				my $newresidence = 0;
+			   	my $newresidence = 1;
 				foreach my $residence(@residences) {
 					if((ref($residence) eq 'Gedcom::Record') &&
 					  $residence->date() &&
 					  $event->date() &&
 					  $residence->date() eq $event->date()) {
-						$newresidence = 1;
+						$newresidence = 0;
 						last;
 					}
 				}
-				push @residences, $event if(!$newresidence);
+				push @residences, $event if($newresidence);
 			}
 		}
 
@@ -1737,9 +1737,13 @@ sub print_person
 							});
 						}
 					}
-					if(defined($place) &&
-					  ((!$placeofbirth) || ($place ne $placeofbirth)) &&
-					  ((!$placeofmarriage) || ($place ne $placeofmarriage))) {
+					if(defined($place)) {
+						if($placeofbirth && $dob && ($residence->date() eq $dob)) {
+							next;
+						}
+						if($placeofmarriage && $dateofmarriage && ($residence->date() eq $dateofmarriage)) {
+							next;
+						}
 						push @residencelist, $residence;
 						if(my $src = $residence->source()) {
 							$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
@@ -1804,7 +1808,10 @@ sub print_person
 			my $prev_date;
 			foreach my $residence(@residencelist) {
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
-					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
+					if($birth && $dob && ($residence->date() eq $dob) &&
+					   places_are_the_same({ person => $person, first => $birth, second => $residence})) {
+						# This residence record is for the place of birth, which is
+						# printed elsewhere
 						$count++;
 						next;
 					}
@@ -1815,14 +1822,20 @@ sub print_person
 							' life ' . lcfirst($pronoun) . ' lived';
 						$have_printed = 1;
 					}
-					my $p = place({
-						person => $person,
-						record => $residence,
-						places_printed => \%places_printed
-					});
-					$bio .= HTML::Entities::encode($p);
-					$places_printed{$p} = 1;
-					$place_records{"Residence/$count"} = $residence;
+					if(places_are_the_same({ person => $person, first => $birth, second => $residence})) {
+						$bio .= ' at ' . $person->pronoun() eq 'She' ? 'her' : 'his' . ' birthplace';
+					} else {
+						my $p = place({
+							person => $person,
+							record => $residence,
+							places_printed => \%places_printed
+						});
+						$bio .= $p;
+						$places_printed{$p} = 1;
+						$bio .= HTML::Entities::encode($p);
+						$places_printed{$p} = 1;
+						$place_records{"Residence/$count"} = $residence;
+					}
 				}
 				# Citation residence notes print later
 				if((!$opts{'c'}) && (my $notes = notes({ record => $residence }))) {
