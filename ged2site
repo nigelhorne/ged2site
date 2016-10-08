@@ -2377,6 +2377,7 @@ sub print_person
 					}
 					red_warning({ person => $person, warning => "$orig_uri: not found" });
 				}
+				$uri =~ s/:$//;
 				return "<a HREF=\"$uri\">" .
 					$u->host() .
 					'</a>';
@@ -3499,6 +3500,7 @@ sub notes
 				}
 				red_warning({ person => $person, warning => "$orig_uri: in notes is not found" });
 			}
+			$uri =~ s/:$//;
 			return "<a HREF=\"$uri\">" .
 				$u->host() .
 				'</a>';
