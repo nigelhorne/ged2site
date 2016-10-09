@@ -2600,7 +2600,7 @@ sub print_person
 						my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 						if(!-r $localfile) {
 							if($jpegtran) {
-								system("$jpegtran -progressive -outfile '$localfile' -infile '$srcfile'");
+								system("$jpegtran -progressive -outfile '$localfile' '$srcfile'");
 							} elsif($jpegoptim) {
 								copy($srcfile, $localfile);
 								system("$jpegoptim -q --all-progressive '$localfile'");
