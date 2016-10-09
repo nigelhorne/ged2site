@@ -94,6 +94,7 @@ my %censusmaps = (
 	'1871 England, Wales & Scotland Census - Findmypast' => '1871 UK Census',
 	'1881 England Census' => '1881 UK Census',
 	'1881 England, Wales & Scotland Census - Findmypast' => '1881 UK Census',
+	'1881 Isle of Man Census' => '1881 Isle of Man Census',
 	'1891 England Census' => '1891 UK Census',
 	'1891 England, Wales & Scotland Census - Findmypast' => '1891 UK Census',
 	'1901 England Census' => '1901 UK Census',
@@ -1824,7 +1825,7 @@ sub print_person
 							' life ' . lcfirst($pronoun) . ' lived';
 						$have_printed = 1;
 					}
-					if(places_are_the_same({ person => $person, first => $birth, second => $residence})) {
+					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 						$bio .= ' at ' . $person->pronoun() eq 'She' ? 'her' : 'his' . ' birthplace';
 					} else {
 						my $p = place({
