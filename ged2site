@@ -53,6 +53,7 @@ use Text::Names;
 use MIME::Base64;
 use Memoize;
 use Time::HiRes;
+use File::Copy;
 no lib '.';
 
 my %opts;
@@ -2593,6 +2594,26 @@ sub print_person
 								$images{$key} = 1;
 								link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							}
+						}
+					} elsif($file =~ /^([A-Z]:[\/\\].+)/) {
+						my $srcfile = $1;
+						my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+						if(!-r $localfile) {
+							if($jpegtran) {
+								system("$jpegtran -progressive -outfile '$localfile' -infile '$srcfile'");
+							} elsif($jpegoptim) {
+								copy($srcfile, $localfile);
+								system("$jpegoptim -q --all-progressive '$localfile'");
+							} else {
+								copy($srcfile, $localfile);
+							}
+							$form = 'JPG';
+							my $key = $person->as_string() . ";$localfile";
+							$images{$key} = 1;
+							link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+						}
+						if(!$title) {
+							$title = $srcfile;
 						}
 					}
 					if($form && ($form eq 'JPG')) {
