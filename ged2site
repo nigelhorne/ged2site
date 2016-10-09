@@ -1738,11 +1738,13 @@ sub print_person
 						}
 					}
 					if(defined($place)) {
-						if($placeofbirth && $dob && ($residence->date() eq $dob)) {
-							next;
-						}
-						if($placeofmarriage && $dateofmarriage && ($residence->date() eq $dateofmarriage)) {
-							next;
+						if(my $dor = $residence->date()) {
+							if($placeofbirth && $dob && ($dor eq $dob)) {
+								next;
+							}
+							if($placeofmarriage && $dateofmarriage && ($dor eq $dateofmarriage)) {
+								next;
+							}
 						}
 						push @residencelist, $residence;
 						if(my $src = $residence->source()) {
@@ -1808,7 +1810,7 @@ sub print_person
 			my $prev_date;
 			foreach my $residence(@residencelist) {
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
-					if($birth && $dob && ($residence->date() eq $dob) &&
+					if($birth && $dob && $residence->date() && ($residence->date() eq $dob) &&
 					   places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 						# This residence record is for the place of birth, which is
 						# printed elsewhere
