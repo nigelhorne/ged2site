@@ -116,13 +116,31 @@ my %censusmaps = (
 	'1916 Canada Census of Manitoba, Saskatchewan, and Alberta' => '1916 Canadian Census',
 	'1921 Census of Canada' => '1921 Canadian Census',
 
+	'1850 United States Federal Census' => '1850 US Census',
+	'US Census 1850 - Findmypast' => '1850 US Census',
+
+	'1860 United States Federal Census' => '1860 US Census',
 	'US Census 1860 - Findmypast' => '1860 US Census',
+
 	'US Census 1870 - Findmypast' => '1870 US Census',
+	'1870 United States Federal Census' => '1870 US Census',
+
+	'1880 United States Federal Census' => '1880 US Census',
+
 	'US Census 1900 - Findmypast' => '1900 US Census',
+	'1900 United States Federal Census' => '1900 US Census',
+
+	'1910 United States Federal Census' => '1910 US Census',
 	'US Census 1910 - Findmypast' => '1910 US Census',
+
+	'1920 United States Federal Census' => '1920 US Census',
 	'US Census 1920 - Findmypast' => '1920 US Census',
+
 	'US Census 1930 - Findmypast' => '1930 US Census',
+	'1930 United States Federal Census' => '1930 US Census',
+
 	'US Census 1940 - Findmypast' => '1940 US Census',
+	'1940 United States Federal Census' => '1940 US Census',
 );
 
 # sub realdie
@@ -1827,7 +1845,7 @@ sub print_person
 						$have_printed = 1;
 					}
 					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
-						$bio .= ' at ' . $person->pronoun() eq 'She' ? 'her' : 'his' . ' birthplace';
+						$bio .= ' at ' . ($person->pronoun() eq 'She' ? 'her' : 'his') . ' birthplace';
 					} else {
 						my $p = place({
 							person => $person,
@@ -2595,7 +2613,7 @@ sub print_person
 								link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							}
 						}
-					} elsif($file =~ /^([A-Z]:[\/\\].+)/) {
+					} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
 						my $srcfile = $1;
 						my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 						if(!-r $localfile) {
@@ -2607,17 +2625,18 @@ sub print_person
 							} else {
 								copy($srcfile, $localfile);
 							}
-							$form = 'JPG';
-							my $key = $person->as_string() . ";$localfile";
-							$images{$key} = 1;
 							link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 						}
-						if(!$title) {
-							$title = $srcfile;
-						}
+						$form = 'JPG';
+						my $key = $person->as_string() . ";$localfile";
+						$images{$key} = 1;
 					}
 					if($form && ($form eq 'JPG')) {
-						print $html "<h3>$title</h3>";
+						if($title) {
+							print $html "<h3>$title</h3>";
+						} else {
+							print $html '<br>';
+						}
 						if($opts{'d'}) {
 							# Get and stash a local copy
 							my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
@@ -2631,10 +2650,17 @@ sub print_person
 								$h *= 175 / $w;
 								$h = int($h);
 								# print $html "<a href=\"$file\" target=\"_blank\">",
-								print $html "<a href=\"$localfile\" target=\"_blank\">",
-									'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
-									'</a>';
-								print $csv "/$localfile---$title---$h----";
+								if($title) {
+									print $html "<a href=\"$localfile\" target=\"_blank\">",
+										'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
+										'</a>';
+									print $csv "/$localfile---$title---$h----";
+								} else {
+									print $html "<a href=\"$localfile\" target=\"_blank\">",
+										'<img src="', $localfile, "\" width=\"175\" height=\"$h\">",
+										'</a>';
+									print $csv "/$localfile--- ---$h----";
+								}
 								if(defined($profile_object) && ($obje eq $profile_object)) {
 									$profile_image = "static-site/$localfile";
 								}
@@ -3162,7 +3188,7 @@ sub Gedcom::Individual::relationship
 	}
 	return unless @myancestors;
 
-	my $sex = get_value({ person => $other, value => 'sex' });
+	my $sex = get_value({ person => $other, value => 'sex' }) || $other->sex();
 	if((!defined($sex)) || ($sex !~ /[MF]/)) {
 		if($opts{'f'}) {
 			die "\n", $other->as_string(), ": unknown sex\n";
@@ -3882,7 +3908,7 @@ sub print_graphviz
 	my $profile_image = $params{'profile_image'};
 
 	if(!defined($colour)) {
-		my $gender = get_value({ person => $person, value => 'sex' });
+		my $gender = get_value({ person => $person, value => 'sex' }) || $person->sex();
 		if(defined($gender)) {
 			$gender = $gender;
 		} else {
