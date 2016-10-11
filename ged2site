@@ -3818,7 +3818,8 @@ sub red_warning
 		die "What do you want to say?" unless($params{'warning'});
 
 		if($params{'person'}) {
-			warn colored($params{'person'}->as_string() . ': ' . $params{'warning'}, 'red');
+			my @call_details = caller(0);
+			warn colored(['red'], $params{'person'}->as_string(), ': ', $params{'warning'}, ' at line ', $call_details[2]);
 			push @{$params{'person'}->{'warnings'}}, $params{'warning'};
 		} else {
 			warn colored(lcfirst($params{'warning'}), 'red');
