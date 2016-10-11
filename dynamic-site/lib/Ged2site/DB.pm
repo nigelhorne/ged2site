@@ -146,6 +146,7 @@ sub updated {
 
 # Returns an array of the matches
 sub AUTOLOAD {
+	our $AUTOLOAD;
 	my $column = $AUTOLOAD;
 
 	$column =~ s/.*:://;
