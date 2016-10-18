@@ -169,8 +169,7 @@ sub doit
 	my $info = CGI::Info->new({ cache => $infocache, logger => $logger });
 
 	if(!defined($info->param('page'))) {
-		print "Location: /index.htm\n\n";
-		$logger->info('Called with no page to display');
+		choose();
 		return;
 	}
 
@@ -237,16 +236,8 @@ sub doit
 			cachedir => $cachedir
 		});
 	} elsif($invalidpage) {
-		print "Status: 300 Multiple Choices\n",
-			"Content-type: text/plain\n\n";
-		unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-			print "/cgi-bin/page.fcgi?page=people\n",
-				"/cgi-bin/page.fcgi?page=censuses\n",
-				"/cgi-bin/page.fcgi?page=surnames\n",
-				"/cgi-bin/page.fcgi?page=history\n",
-				"/cgi-bin/page.fcgi?page=todo\n",
-				"/cgi-bin/page.fcgi?page=calendar\n",
-		}
+		choose();
+		return;
 	} else {
 		$logger->debug('disabling cache');
 		$fb->init(
@@ -271,5 +262,22 @@ sub doit
 			}
 		}
 		throw Error::Simple($error ? $error : $info->as_string());
+	}
+}
+
+sub choose
+{
+	$logger->info('Called with no page to display');
+
+	print "Status: 300 Multiple Choices\n",
+		"Content-type: text/plain\n\n";
+
+	unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
+		print "/cgi-bin/page.fcgi?page=people\n",
+			"/cgi-bin/page.fcgi?page=censuses\n",
+			"/cgi-bin/page.fcgi?page=surnames\n",
+			"/cgi-bin/page.fcgi?page=history\n",
+			"/cgi-bin/page.fcgi?page=todo\n",
+			"/cgi-bin/page.fcgi?page=calendar\n",
 	}
 }
