@@ -1524,7 +1524,15 @@ sub print_person
 							year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
 					} else {
 						if($placeofmarriage) {
-							my $p = place({ place => $placeofmarriage, person => $person, places_printed => \%places_printed });
+							my $args = {
+								place => $placeofmarriage,
+								person => $person,
+								places_printed => \%places_printed
+							};
+							if($marriage && (my $address = $marriage->address())) {
+								$args->{'address'} = $address;
+							}
+							my $p = place($args);
 							$bio .= $p;
 							$places_printed{$p} = 1;
 						}

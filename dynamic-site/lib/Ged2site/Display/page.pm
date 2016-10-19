@@ -9,6 +9,7 @@ use File::Spec;
 use Template::Filters;
 use Ged2site::Config;
 use Ged2site::Allow;
+use HTML::SocialMedia;
 
 sub new {
 	my $proto = shift;
@@ -35,14 +36,21 @@ sub new {
 
 	Template::Filters->use_html_entities();
 
-	return bless {
+	my $self = {
 		_config => $config,
 		_info => $info,
 		_lingua => $args{lingua},
 		_logger => $args{logger},
 		_cachedir => $args{cachedir},
 		# _page => $info->param('page'),
-	}, $class;
+	};
+
+	if(my $twitter = $config->{'twitter'}) {
+		$self->{'_social_media'} = HTML::SocialMedia->new(twitter => $twitter)->as_string(
+			twitter_tweet_button => 1
+		);
+	}
+	return bless $self, $class;
 }
 
 sub get_template_path {
@@ -200,6 +208,7 @@ sub html {
 
 		$vals->{cart} = $info->get_cookie(cookie_name => 'cart');
 		$vals->{lingua} = $self->{_lingua};
+		$vals->{social_media} = $self->{_social_media};
 
 		$template->process($filename, $vals, \$rc) ||
 			throw Error::Simple($template->error());
