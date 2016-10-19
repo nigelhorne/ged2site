@@ -71,14 +71,6 @@
 					[% END %]
 				</ol>
 			[% END %]
-			[% IF person.citations %]
-				<h2>Citations</h2>
-				<ol>
-					[% FOREACH citation IN person.citations.split('----') %]
-						<li>[% citation %]</li>
-					[% END %]
-				</ol>
-			[% END %]
 			[% IF person.notes %]
 				<h2>Notes</h2>
 				[% FOREACH note IN person.notes.split('----') %]
@@ -110,6 +102,14 @@
 			[% IF person.map_body %]
 				<h2>Map</h2>
 				[% decode_base64url(person.map_body) %]
+			[% END %]
+			[% IF person.citations %]
+				<h2>Citations</h2>
+				<ol>
+					[% FOREACH citation IN person.citations.split('----') %]
+						<li>[% citation %]</li>
+					[% END %]
+				</ol>
 			[% END %]
 			[% IF person.warnings %]
 				<h2>To be done</h2>
