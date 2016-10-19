@@ -153,7 +153,7 @@ sub AUTOLOAD {
 
 	return if($column eq 'DESTROY');
 
-	my $self = shift;
+	my $self = shift or return undef;
 
 	if(!defined(wantarray)) {
 		throw Error::Simple("$self->$column called in scalar context");
