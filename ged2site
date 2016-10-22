@@ -2286,7 +2286,8 @@ sub print_person
 							place({ person => $person, record => $event }) . '.';
 					}
 					$end_of_sentence = 1;
-				} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
+				} elsif(($event->type() !~ /^Census U[KS] (\d{4})$/) &&
+					($event->type() ne 'Race')) {
 					red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
 				}
 			}
