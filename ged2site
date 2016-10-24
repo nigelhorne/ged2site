@@ -2219,7 +2219,8 @@ sub print_person
 				}
 			}
 			if(ref($event) eq 'Gedcom::Record') {
-				if($event->type() eq 'Military service') {
+				my $type = $event->type();
+				if($type eq 'Military service') {
 					if(!$mentioned_military) {
 						$bio .= '.' if(!$end_of_sentence);
 						$bio .= " $pronoun served in the military";
@@ -2238,7 +2239,7 @@ sub print_person
 						$bio .= " ($notes)";
 					}
 					$end_of_sentence = 0;
-				} elsif($event->type() eq 'Arrival') {
+				} elsif($type eq 'Arrival') {
 					if($events[$index] && ($events[$index]->type() eq 'Arrival') && $event->date()) {
 						if($events[$index]->date()) {
 							$previous = $event;
@@ -2286,9 +2287,9 @@ sub print_person
 							place({ person => $person, record => $event }) . '.';
 					}
 					$end_of_sentence = 1;
-				} elsif(($event->type() !~ /^Census U[KS] (\d{4})$/) &&
-					($event->type() ne 'Race')) {
-					red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
+				} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
+					($type ne 'Race')) {
+					red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				}
 			}
 		}
