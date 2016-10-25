@@ -51,7 +51,8 @@
 				[ <a href="?page=todo">To Do</a> ] |
 				[ <a href="?page=calendar">Calendar</a> ]
 			</center>
-			<p align="right">
+			<!-- FIXME: align="right" doesn't work on FB button -->
+			<p>
 				[% IF social_media.twitter_tweet_button %]
 					[% social_media.twitter_tweet_button %]
 				[% END %]
