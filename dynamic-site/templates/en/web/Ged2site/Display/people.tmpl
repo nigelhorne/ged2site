@@ -51,11 +51,12 @@
 				[ <a href="?page=todo">To Do</a> ] |
 				[ <a href="?page=calendar">Calendar</a> ]
 			</center>
-			[% IF social_media.twitter_tweet_button %]
-				<p align="right">
+			<p align="right">
+				[% IF social_media.twitter_tweet_button %]
 					[% social_media.twitter_tweet_button %]
-				</p>
-			[% END %]
+				[% END %]
+				[% social_media.facebook_like_button %]
+			</p>
 			<p>[% person.bio %]</p>
 			[% IF person.father || person.mother %]
 				<h2>Parents</h2>
