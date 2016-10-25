@@ -46,7 +46,7 @@ sub new {
 	};
 
 	if(my $twitter = $config->{'twitter'}) {
-		$self->{'_social_media'}->{'tweet_tweet_button'} = HTML::SocialMedia->new(twitter => $twitter)->as_string(
+		$self->{'_social_media'}->{'twitter_tweet_button'} = HTML::SocialMedia->new(twitter => $twitter)->as_string(
 			twitter_tweet_button => 1
 		);
 	}
