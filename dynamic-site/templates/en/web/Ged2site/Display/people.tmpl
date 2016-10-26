@@ -22,14 +22,7 @@
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
-		<style>
-			body {
-				margin: 40px 10px;
-				padding: 0;
-				font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-				font-size: 14px;
-			}
-		</style>
+		<link rel="stylesheet" href="/css/web.css">
 	</head>
 	[% IF person.map_body %]
 		<body onload="html_googlemaps_initialize()">
@@ -37,6 +30,12 @@
 		<body>
 	[% END %]
 		[% IF person %]
+			<div class="social_media">
+				[% IF social_media.twitter_tweet_button %]
+					[% social_media.twitter_tweet_button %]
+				[% END %]
+				[% social_media.facebook_share_button %]
+			</div>
 			<center>
 				<h1>[% person.title %]</h1>
 				[% IF error %]
@@ -51,13 +50,6 @@
 				[ <a href="?page=todo">To Do</a> ] |
 				[ <a href="?page=calendar">Calendar</a> ]
 			</center>
-			<!-- FIXME: align="right" doesn't work on FB button -->
-			<p>
-				[% IF social_media.twitter_tweet_button %]
-					[% social_media.twitter_tweet_button %]
-				[% END %]
-				[% social_media.facebook_share_button %]
-			</p>
 			<p>[% person.bio %]</p>
 			[% IF person.father || person.mother %]
 				<h2>Parents</h2>
