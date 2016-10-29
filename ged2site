@@ -3257,6 +3257,7 @@ sub Gedcom::Individual::relationship
 					6 << 8 | 3 => 'second cousin three-times-removed',
 					6 << 8 | 4 => 'third cousin twice-removed',
 					6 << 8 | 5 => 'fourth cousin once-removed',
+					7 << 8 | 3 => 'second cousin four-times-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
 				);
 				my %female_relationships = (
@@ -3278,6 +3279,7 @@ sub Gedcom::Individual::relationship
 					6 << 8 | 3 => 'second cousin three-times-removed',
 					6 << 8 | 4 => 'third cousin twice-removed',
 					6 << 8 | 5 => 'fourth cousin once-removed',
+					7 << 8 | 3 => 'second cousin four-times-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
 				);
 
