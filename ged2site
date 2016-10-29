@@ -1623,7 +1623,7 @@ sub print_person
 						}
 					}
 					$bio .= ". $pronoun " .
-						$all_children_are_alive ? 'has ' : 'had ';
+						($all_children_are_alive ? 'has ' : 'had ');
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
 							$bio .= '1 surviving child';
@@ -1632,6 +1632,8 @@ sub print_person
 						}
 						if($parentofall) {
 							$bio .= ' with ' . $parentofall->as_string();
+						} else {
+							die "BUG: parentofall not set when only one child";
 						}
 						# TODO: make hyperlink to the persons record, unless surviving
 						$bio .= ', ' . $children[0]->given_names();
@@ -1641,18 +1643,39 @@ sub print_person
 						} else {
 							$bio .= "$numberofchildren children";
 						}
+						my $childnames;
 						if($parentofall) {
 							if($numberofchildren == 2) {
 								$bio .= ', both with ' . $parentofall->as_string();
 							} else {
 								$bio .= ', all with ' . $parentofall->as_string();
 							}
+							# TODO: only add hyperlink to dead children
+							$childnames = join(', ', map {
+								'<a href="' . make_filename_from_person(person => $_) . '">' .
+									$_->given_names() . '</a>'
+							} @children);
+						} elsif($sex eq 'M') {
+							$childnames = join(', ', map {
+								my $mother = $_->mother();
+								'<a href="' . make_filename_from_person(person => $_) . '">' .
+									$_->given_names() . '</a>' .
+								' (with ' . 
+								'<a href="' . make_filename_from_person(person => $mother) . '">' .
+									$mother->given_names() . '</a>' .
+								')'
+							} @children);
+						} else {
+							$childnames = join(', ', map {
+								my $father = $_->father();
+								'<a href="' . make_filename_from_person(person => $_) . '">' .
+									$_->given_names() . '</a>' .
+								' (with ' . 
+								'<a href="' . make_filename_from_person(person => $father) . '">' .
+									$father->given_names() . '</a>' .
+								')'
+							} @children);
 						}
-						# TODO: only add hyperlink to dead children
-						my $childnames = join(', ', map {
-							'<a href="' . make_filename_from_person(person => $_) . '">' .
-								$_->given_names() . '</a>'
-						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						$bio .= ": $childnames";
 					}
