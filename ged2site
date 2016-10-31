@@ -884,8 +884,8 @@ sub print_person
 						}
 						red_warning({ person => $person, warning => "marriage citation can't find source $src" });
 					}
-				} elsif($birthcitations[0] && ($citations{$birthcitations[0]} eq $src)) {
-					$marriagecitation = $birthcitations[0];
+				} elsif($birthcitations[0] && (grep($src, @birthcitations))) {
+					$marriagecitation = grep($src, @birthcitations);
 				} elsif($deathcitations[0] && ($citations{$deathcitations[0]} eq $src)) {
 					$marriagecitation = $deathcitations[0];
 				} else {
