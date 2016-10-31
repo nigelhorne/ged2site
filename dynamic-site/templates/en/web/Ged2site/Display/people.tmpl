@@ -22,14 +22,7 @@
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
-		<style>
-			body {
-				margin: 40px 10px;
-				padding: 0;
-				font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-				font-size: 14px;
-			}
-		</style>
+		<link rel="stylesheet" href="/css/web.css">
 	</head>
 	[% IF person.map_body %]
 		<body onload="html_googlemaps_initialize()">
@@ -37,6 +30,14 @@
 		<body>
 	[% END %]
 		[% IF person %]
+			<div class="social_media">
+				[% IF social_media.twitter_tweet_button %]
+					[% social_media.twitter_tweet_button %]
+				[% END %]
+				[% social_media.facebook_share_button %]
+				<br>
+				[% social_media.google_plusone %]
+			</div>
 			<center>
 				<h1>[% person.title %]</h1>
 				[% IF error %]
@@ -71,14 +72,6 @@
 					[% END %]
 				</ol>
 			[% END %]
-			[% IF person.citations %]
-				<h2>Citations</h2>
-				<ol>
-					[% FOREACH citation IN person.citations.split('----') %]
-						<li>[% citation %]</li>
-					[% END %]
-				</ol>
-			[% END %]
 			[% IF person.notes %]
 				<h2>Notes</h2>
 				[% FOREACH note IN person.notes.split('----') %]
@@ -110,6 +103,14 @@
 			[% IF person.map_body %]
 				<h2>Map</h2>
 				[% decode_base64url(person.map_body) %]
+			[% END %]
+			[% IF person.citations %]
+				<h2>Citations</h2>
+				<ol>
+					[% FOREACH citation IN person.citations.split('----') %]
+						<li>[% citation %]</li>
+					[% END %]
+				</ol>
 			[% END %]
 			[% IF person.warnings %]
 				<h2>To be done</h2>

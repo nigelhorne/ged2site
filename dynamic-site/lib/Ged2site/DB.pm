@@ -146,13 +146,14 @@ sub updated {
 
 # Returns an array of the matches
 sub AUTOLOAD {
+	our $AUTOLOAD;
 	my $column = $AUTOLOAD;
 
 	$column =~ s/.*:://;
 
 	return if($column eq 'DESTROY');
 
-	my $self = shift;
+	my $self = shift or return undef;
 
 	if(!defined(wantarray)) {
 		throw Error::Simple("$self->$column called in scalar context");

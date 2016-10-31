@@ -1542,7 +1542,15 @@ sub print_person
 							year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
 					} else {
 						if($placeofmarriage) {
-							my $p = place({ place => $placeofmarriage, person => $person, places_printed => \%places_printed });
+							my $args = {
+								place => $placeofmarriage,
+								person => $person,
+								places_printed => \%places_printed
+							};
+							if($marriage && (my $address = $marriage->address())) {
+								$args->{'address'} = $address;
+							}
+							my $p = place($args);
 							$bio .= $p;
 							$places_printed{$p} = 1;
 						}
@@ -1633,7 +1641,7 @@ sub print_person
 						}
 					}
 					$bio .= ". $pronoun " .
-						$all_children_are_alive ? 'has ' : 'had ';
+						($all_children_are_alive ? 'has ' : 'had ');
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
 							$bio .= '1 surviving child';
@@ -1642,6 +1650,8 @@ sub print_person
 						}
 						if($parentofall) {
 							$bio .= ' with ' . $parentofall->as_string();
+						} else {
+							die "BUG: parentofall not set when only one child";
 						}
 						# TODO: make hyperlink to the persons record, unless surviving
 						$bio .= ', ' . $children[0]->given_names();
@@ -1651,18 +1661,39 @@ sub print_person
 						} else {
 							$bio .= "$numberofchildren children";
 						}
+						my $childnames;
 						if($parentofall) {
 							if($numberofchildren == 2) {
 								$bio .= ', both with ' . $parentofall->as_string();
 							} else {
 								$bio .= ', all with ' . $parentofall->as_string();
 							}
+							# TODO: only add hyperlink to dead children
+							$childnames = join(', ', map {
+								'<a href="' . make_filename_from_person(person => $_) . '">' .
+									$_->given_names() . '</a>'
+							} @children);
+						} elsif($sex eq 'M') {
+							$childnames = join(', ', map {
+								my $mother = $_->mother();
+								'<a href="' . make_filename_from_person(person => $_) . '">' .
+									$_->given_names() . '</a>' .
+								' (with ' . 
+								'<a href="' . make_filename_from_person(person => $mother) . '">' .
+									$mother->given_names() . '</a>' .
+								')'
+							} @children);
+						} else {
+							$childnames = join(', ', map {
+								my $father = $_->father();
+								'<a href="' . make_filename_from_person(person => $_) . '">' .
+									$_->given_names() . '</a>' .
+								' (with ' . 
+								'<a href="' . make_filename_from_person(person => $father) . '">' .
+									$father->given_names() . '</a>' .
+								')'
+							} @children);
 						}
-						# TODO: only add hyperlink to dead children
-						my $childnames = join(', ', map {
-							'<a href="' . make_filename_from_person(person => $_) . '">' .
-								$_->given_names() . '</a>'
-						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						$bio .= ": $childnames";
 					}
@@ -1852,7 +1883,6 @@ sub print_person
 							record => $residence,
 							places_printed => \%places_printed
 						});
-						$bio .= $p;
 						$places_printed{$p} = 1;
 						$bio .= HTML::Entities::encode($p);
 						$places_printed{$p} = 1;
@@ -1918,7 +1948,10 @@ sub print_person
 				if($count < (scalar(@residencelist) - 1)) {
 					$bio .= ';';
 				} elsif($count == (scalar(@residencelist) - 1)) {
-					$bio .= '; and';
+					if($count > 1) {
+						$bio .= ';';
+					}
+					$bio .= ' and';
 				}
 				$printed_residence = 1;
 			}
@@ -2227,7 +2260,8 @@ sub print_person
 				}
 			}
 			if(ref($event) eq 'Gedcom::Record') {
-				if($event->type() eq 'Military service') {
+				my $type = $event->type();
+				if($type eq 'Military service') {
 					if(!$mentioned_military) {
 						$bio .= '.' if(!$end_of_sentence);
 						$bio .= " $pronoun served in the military";
@@ -2246,7 +2280,7 @@ sub print_person
 						$bio .= " ($notes)";
 					}
 					$end_of_sentence = 0;
-				} elsif($event->type() eq 'Arrival') {
+				} elsif($type eq 'Arrival') {
 					if($events[$index] && ($events[$index]->type() eq 'Arrival') && $event->date()) {
 						if($events[$index]->date()) {
 							$previous = $event;
@@ -2294,8 +2328,9 @@ sub print_person
 							place({ person => $person, record => $event }) . '.';
 					}
 					$end_of_sentence = 1;
-				} elsif($event->type() !~ /^Census U[KS] (\d{4})$/) {
-					red_warning({ person => $person, warning => 'Unhandled event type: ' . $event->type() });
+				} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
+					($type ne 'Race')) {
+					red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				}
 			}
 		}
@@ -2618,7 +2653,7 @@ sub print_person
 						my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 						if(!-r $localfile) {
 							if($jpegtran) {
-								system("$jpegtran -progressive -outfile '$localfile' -infile '$srcfile'");
+								system("$jpegtran -progressive -outfile '$localfile' '$srcfile'");
 							} elsif($jpegoptim) {
 								copy($srcfile, $localfile);
 								system("$jpegoptim -q --all-progressive '$localfile'");
@@ -3271,6 +3306,7 @@ sub Gedcom::Individual::relationship
 					6 << 8 | 3 => 'second cousin three-times-removed',
 					6 << 8 | 4 => 'third cousin twice-removed',
 					6 << 8 | 5 => 'fourth cousin once-removed',
+					7 << 8 | 3 => 'second cousin four-times-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
 				);
 				my %female_relationships = (
@@ -3292,6 +3328,7 @@ sub Gedcom::Individual::relationship
 					6 << 8 | 3 => 'second cousin three-times-removed',
 					6 << 8 | 4 => 'third cousin twice-removed',
 					6 << 8 | 5 => 'fourth cousin once-removed',
+					7 << 8 | 3 => 'second cousin four-times-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
 				);
 
@@ -3844,7 +3881,8 @@ sub red_warning
 		die "What do you want to say?" unless($params{'warning'});
 
 		if($params{'person'}) {
-			warn colored($params{'person'}->as_string() . ': ' . $params{'warning'}, 'red');
+			my @call_details = caller(0);
+			warn colored(['red'], $params{'person'}->as_string(), ': ', $params{'warning'}, ' at line ', $call_details[2]);
 			push @{$params{'person'}->{'warnings'}}, $params{'warning'};
 		} else {
 			warn colored(lcfirst($params{'warning'}), 'red');

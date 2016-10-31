@@ -36,6 +36,12 @@
 				[% END %]
 			</center>
 			<p>[% person.bio %]</p>
+			[% IF person.notes %]
+				<h2>Notes</h2>
+				[% FOREACH note IN person.notes.split('----') %]
+					<p>[% note %]</p>
+				[% END %]
+			[% END %]
 			[% IF person.citations %]
 				<h2>Citations</h2>
 				<ol>
@@ -43,12 +49,6 @@
 						<li>[% citation %]</li>
 					[% END %]
 				</ol>
-			[% END %]
-			[% IF person.notes %]
-				<h2>Notes</h2>
-				[% FOREACH note IN person.notes.split('----') %]
-					<p>[% note %]</p>
-				[% END %]
 			[% END %]
 			<!-- TODO: for mobile just display primary, at the top
 			[% IF person.media %]

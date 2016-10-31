@@ -33,6 +33,9 @@ sub new {
 				File::Spec->updir(),
 				'conf'
 			);
+		if($args{logger}) {
+			$args{logger}->debug("Looking for configuration $path/", $info->domain_name());
+		}
 
 		if(!-d $path) {
 			$path = File::Spec->catdir(
@@ -40,6 +43,9 @@ sub new {
 					File::Spec->updir(),
 					'conf'
 				);
+			if($args{logger}) {
+				$args{logger}->debug("Looking for configuration $path/", $info->domain_name());
+			}
 		}
 
 		if(!-d $path) {
@@ -56,6 +62,9 @@ sub new {
 					'lib',
 					'conf'
 				);
+			}
+			if($args{logger}) {
+				$args{logger}->debug("Looking for configuration $path/", $info->domain_name());
 			}
 		}
 
@@ -96,6 +105,7 @@ sub new {
 		$config = { %{$config}, %{$args{'config'}} };
 	}
 
+	# Allow variables to be overriden by the environment
 	foreach my $key(keys %{$config}) {
 		if($ENV{$key}) {
 			$config->{$key} = $ENV{$key};
