@@ -6,8 +6,8 @@ An example dynamic genealogy website that was produced by Ged2site is available
 at https://genealogy.nigelhorne.com.
 
 It's been tested more extensively with GedComs exported and downloaded from
-FindMyPast, though it should work fine with other systems such as GenesReunited
-and Ancestry.
+FindMyPast, Family Tree Maker, though it should work fine with other systems
+such as GenesReunited and Ancestry.
 
 Typical usage:
 
