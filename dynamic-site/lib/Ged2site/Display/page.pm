@@ -12,6 +12,7 @@ use Ged2site::Allow;
 use HTML::SocialMedia;
 
 our $sm;
+our $smcache;
 
 sub new {
 	my $proto = shift;
@@ -48,10 +49,12 @@ sub new {
 	};
 
 	if(my $twitter = $config->{'twitter'}) {
-		$sm ||= HTML::SocialMedia->new(twitter => twitter);
+		$smcache ||= ::create_memory_cache(config => $config, logger => $args{'logger'}, namespace => 'HTML::SocialMedia');
+		$sm ||= HTML::SocialMedia->new({ twitter => $twitter, cache => $smcache });
 		$self->{'_social_media'}->{'twitter_tweet_button'} = $sm->as_string(twitter_tweet_button => 1);
 	} elsif(!defined($sm)) {
-		$sm = HTML::SocialMedia->new();
+		$smcache = ::create_memory_cache(config => $config, logger => $args{'logger'}, namespace => 'HTML::SocialMedia');
+		$sm = HTML::SocialMedia->new($cache => $smcache);
 	}
 	$self->{'_social_media'}->{'facebook_share_button'} = $sm->as_string(facebook_share_button => 1);
 	$self->{'_social_media'}->{'google_plusone'} = $sm->as_string(google_plusone => 1);
