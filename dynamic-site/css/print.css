@@ -1,0 +1,15 @@
+p,h2,.non-printable {
+	display: none;
+}
+.printable p {
+	display: inline;
+	font-family: Times, "Times New Roman", Garamond, serif;
+	visibility: visible;
+	background-color: white;
+	color: black;
+}
+a {
+	font-weight: bold;
+	color: black;
+	text-decoration: none;
+}
