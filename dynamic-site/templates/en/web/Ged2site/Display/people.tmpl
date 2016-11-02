@@ -65,23 +65,27 @@
 				<p>[% person.bio %]</p>
 			</div>
 			[% IF person.father || person.mother %]
-				<h2>Parents</h2>
-				<ol>
-				[% IF person.father %]
-					<li>[% person.father %]</li>
-				[% END %]
-				[% IF person.mother %]
-					<li>[% person.mother %]</li>
-				[% END %]
-				</ol>
+				<div class="non-printable">
+					<h2>Parents</h2>
+					<ol>
+					[% IF person.father %]
+						<li>[% person.father %]</li>
+					[% END %]
+					[% IF person.mother %]
+						<li>[% person.mother %]</li>
+					[% END %]
+					</ol>
+				</div>
 			[% END %]
 			[% IF person.children %]
-				<h2>Children</h2>
-				<ol>
-					[% FOREACH child IN person.children.split('----') %]
-						<li>[% child %]</li>
-					[% END %]
-				</ol>
+				<div class="non-printable">
+					<h2>Children</h2>
+					<ol>
+						[% FOREACH child IN person.children.split('----') %]
+							<li>[% child %]</li>
+						[% END %]
+					</ol>
+				</div>
 			[% END %]
 			[% IF person.notes %]
 				<h2>Notes</h2>
