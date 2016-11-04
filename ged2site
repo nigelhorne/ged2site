@@ -3489,8 +3489,20 @@ sub place
 		return unless($place);
 
 		$address = $place->address();
+
 		$place = $place->place();
 		return unless($place);
+	}
+
+	# Google maps (and possibly others) sometimes works better with full names
+	if($address) {
+		if($address =~ /(.+)\sSt\.?$/) {
+			$address = "$1 Street";
+		} elsif($address =~ /(.+)\sAve\.?$/) {
+			$address = "$1 Avenue";
+		} elsif($address =~ /(.+)\sRd\.?$/) {
+			$address = "$1 Road";
+		}
 	}
 
 	my $there = $params{'there'};
