@@ -24,6 +24,11 @@
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
+		<style>
+			table {
+				border: 0
+			}
+		</style>
 	</head>
 	[% IF person.map_body %]
 		<body onload="html_googlemaps_initialize()">
@@ -33,16 +38,16 @@
 		[% IF person %]
 			<div class="non-printable">
 				<div class="social_media">
-					[% IF social_media.twitter_tweet_button %]
-						[% social_media.twitter_tweet_button %]
-					[% END %]
-					[% social_media.facebook_share_button %]
-					<br>
-					[% social_media.google_plusone %]
-					<br>
-					<a href="#" onclick="window.print(); return false;">
-						<img src="/images/printer.png" alt="Print Button" height="32" width="32">
-					</a>
+					<table><tr>
+						[% IF social_media.twitter_tweet_button %]
+							<th>[% social_media.twitter_tweet_button %]</th>
+						[% END %]
+						<th>[% social_media.facebook_share_button %]</th>
+						<th>[% social_media.google_plusone %]</th>
+						<th><a href="#" onclick="window.print(); return false;">
+							<img src="/images/printer.png" alt="Print Button" height="32" width="32">
+						</a></th>
+					</tr></table>
 				</div>
 			</div>
 			<center>
@@ -61,7 +66,7 @@
 					[ <a href="?page=calendar">Calendar</a> ]
 				</div>
 			</center>
-			<div class="printable"
+			<div class="printable">
 				<p>[% person.bio %]</p>
 			</div>
 			[% IF person.father || person.mother %]
