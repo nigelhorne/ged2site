@@ -24,11 +24,6 @@
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
-		<style>
-			table {
-				border: 0
-			}
-		</style>
 	</head>
 	[% IF person.map_body %]
 		<body onload="html_googlemaps_initialize()">
@@ -94,7 +89,7 @@
 			[% END %]
 			[% IF person.notes %]
 				<h2>Notes</h2>
-				<div class="printable"
+				<div class="printable">
 					[% FOREACH note IN person.notes.split('----') %]
 						<p>[% note %]</p>
 					[% END %]

@@ -4,8 +4,57 @@ body {
         font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
         font-size: 14px
 }
+
+table {
+	border: 0
+}
+
 .social_media {
-        position: relative;
+        position: fixed;
         width: 10%;
         left: 70%;
+}
+
+#header_container {
+	background:#378de5;
+	color:white;
+	border:1px solid #666;
+	height:90px;
+	left:0;
+	position:fixed;
+	width:100%;
+	top:0;
+	padding: 10px
+}
+
+#header {
+	line-height:100px;
+	margin:0 auto;
+	width:940px;
+	text-align:center;
+}
+ 
+#container {
+	margin:0 auto;
+	overflow:auto;
+	padding:80px 0;
+	width:940px;
+}
+#content{}
+
+#footer_container {
+	background:#eee;
+	border:1px solid #666;
+	bottom:0;
+	height:60px;
+	left:0;
+	position:fixed;
+	width:100%;
+}
+
+#footer {
+	line-height:60px;
+	margin:0 auto;
+	width:940px;
+	text-align:center;
 }
