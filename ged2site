@@ -2230,9 +2230,9 @@ sub print_person
 				}
 
 				if(my $notes = notes(record => $event)) {
-					$notes = lcfirst($notes) unless($notes eq 'RAF');
+					$notes = lcfirst($notes) unless($notes =~ /^RAF/);
 					$notes =~ s/\.$//;
-					$bio .= " ($notes)";
+					$bio .= " (<em>$notes</em>)";
 				}
 				$end_of_sentence = 0;
 			} elsif(($type !~ /^Census U[KS] (\d{4})$/) && ($type ne 'Race')) {
@@ -2275,9 +2275,9 @@ sub print_person
 					}
 
 					if(my $notes = notes(record => $event)) {
-						$notes = lcfirst($notes);
+						$notes = lcfirst($notes) unless($notes =~ /^RAF/);
 						$notes =~ s/\.$//;
-						$bio .= " ($notes)";
+						$bio .= " (<em>$notes</em>)";
 					}
 					$end_of_sentence = 0;
 				} elsif($type eq 'Arrival') {
