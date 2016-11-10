@@ -3318,7 +3318,9 @@ sub Gedcom::Individual::relationship
 					6 << 8 | 4 => 'third cousin twice-removed',
 					6 << 8 | 5 => 'fourth cousin once-removed',
 					7 << 8 | 3 => 'second cousin four-times-removed',
+					7 << 8 | 4 => 'third cousin three-times-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
+					7 << 8 | 6 => 'fifth cousin once-removed',
 				);
 				my %female_relationships = (
 					1 << 8 | 1 => 'sister',
@@ -3340,13 +3342,14 @@ sub Gedcom::Individual::relationship
 					6 << 8 | 4 => 'third cousin twice-removed',
 					6 << 8 | 5 => 'fourth cousin once-removed',
 					7 << 8 | 3 => 'second cousin four-times-removed',
+					7 << 8 | 4 => 'third cousin three-times-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
+					7 << 8 | 6 => 'fifth cousin once-removed',
 				);
 
 				my $rc = ($sex eq 'M') ?
 					$male_relationships{($steps1 << 8) | $steps2} :
 					$female_relationships{($steps1 << 8) | $steps2};
-				# print "$steps1, $steps2\n" unless($rc);
 				if(defined($rc) && ($rc =~ /cousin/)) {
 					my $myfather = $self->father();
 					my $mymother = $self->mother();
@@ -3356,6 +3359,7 @@ sub Gedcom::Individual::relationship
 						$rc .= ' on the mother\'s side';
 					}
 				}
+				# print "$steps1, $steps2\n" if(!defined($rc));
 
 				return $rc;
 			}
