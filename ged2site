@@ -1995,8 +1995,7 @@ sub print_person
 						$bio .= place({ person => $person, place => $placeofburial, there => $placeofdeath, places_printed => \%places_printed, must_postdate => $birth_dt });
 					}
 				}
-				my $b = get_value({ person => $person, value => 'burial note' });
-				if($b) {
+				if(my $b = notes({ person => $person, record => $burial, paragraph => 0 })) {
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
@@ -2921,7 +2920,7 @@ sub print_person
 						}
 						$map = HTML::GoogleMaps::V3->new(%args);
 						$map->center($current_place);
-						Time::HiRes::usleep(100000);
+						Time::HiRes::usleep(100000) unless($opts{'M'});
 					}
 					if($annotation) {
 						if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
@@ -2970,7 +2969,7 @@ sub print_person
 			} else {
 				$map->add_marker(point => $current_place, html => $current_place);
 			}
-			Time::HiRes::usleep(100000);
+			Time::HiRes::usleep(100000) unless($opts{'M'});
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
