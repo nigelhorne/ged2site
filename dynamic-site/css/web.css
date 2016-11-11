@@ -12,7 +12,7 @@ table {
 .social_media {
         position: fixed;
         width: 10%;
-        left: 80%;
+        left: 85%;
 }
 
 #header_container {
@@ -37,8 +37,9 @@ table {
 #container {
 	margin:0 auto;
 	overflow:auto;
-	padding:80px 0;
-	width:940px;
+	/*padding:80px 0;
+	width:940px;*/
+	margin: 25px 25% 0 5%;
 }
 #content{}
 
