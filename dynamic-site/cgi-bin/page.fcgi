@@ -173,8 +173,16 @@ sub doit
 		return;
 	}
 
+	$linguacache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Lingua');
+	my $lingua = CGI::Lingua->new({
+		supported => [ 'en-gb' ],
+		cache => $linguacache,
+		info => $info,
+		logger => $logger,
+	});
+
 	my $fb = FCGI::Buffer->new();
-	$fb->init({ info => $info, optimise_content => 1, lint_content => 0, logger => $logger });
+	$fb->init({ info => $info, optimise_content => 1, lint_content => 0, logger => $logger, lingua => $lingua });
 	if(!$ENV{'REMOTE_ADDR'}) {
 		$fb->init(lint_content => 1);
 	}
@@ -188,14 +196,6 @@ sub doit
 			return;
 		}
 	}
-
-	$linguacache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Lingua');
-	my $lingua = CGI::Lingua->new({
-		supported => [ 'en-gb' ],
-		cache => $linguacache,
-		info => $info,
-		logger => $logger,
-	});
 
 	my $display;
 	my $invalidpage;
