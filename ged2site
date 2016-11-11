@@ -2214,6 +2214,10 @@ sub print_person
 					' ' .
 					year({ person => $person, record => $events[0] }) .
 					'.';
+				if(my $notes = notes({ record => $event })) {
+					$notes = lcfirst($notes);
+					$bio .= " ($notes)";
+				}
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$place_records{'Traveled to'} = $event;
 				} else {
