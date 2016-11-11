@@ -2049,7 +2049,7 @@ sub print_person
 					$bio .= place($opts);
 				}
 				$bio .= ' ' . year({ person => $person, date => $dateofburial });
-				if(my $b = get_value({ person => $person, value => 'burial note' })) {
+				if(my $b = notes({ person => $person, record => $burial, paragraph => 0 })) {
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
@@ -2914,7 +2914,7 @@ sub print_person
 				$place =~ s/^\s(at|in)\s//;
 				if(defined($current_place) && ($place ne $current_place)) {
 					if(!defined($map)) {
-						my %args;
+						my %args = (z_axis => -1);
 						if($opts{'M'}) {
 							$args{'api_key'} = $opts{'M'};
 						}
@@ -2978,7 +2978,7 @@ sub print_person
 			$head =~ s/http:/https:/;
 			if($opts{'M'}) {
 				# Don't include the key in the webpage.
-				$head =~ s/\?key="\w+?"/;
+				$head =~ s/\?key="\w+?"//;
 			}
 			print $html "$head<h2>Map</h2>$map_div\n";
 			print $csv MIME::Base64::encode_base64url($head), '!', MIME::Base64::encode_base64url($map_div), '!';
