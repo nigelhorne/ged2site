@@ -24,7 +24,8 @@ table {
 	position:fixed;
 	width:100%;
 	top:0;
-	padding: 10px
+	padding: 10px;
+	z-index: 999
 }
 
 #header {
