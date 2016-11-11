@@ -2978,7 +2978,7 @@ sub print_person
 			$head =~ s/http:/https:/;
 			if($opts{'M'}) {
 				# Don't include the key in the webpage.
-				$head =~ s/\?key="/"/;
+				$head =~ s/\?key="\w+?"/;
 			}
 			print $html "$head<h2>Map</h2>$map_div\n";
 			print $csv MIME::Base64::encode_base64url($head), '!', MIME::Base64::encode_base64url($map_div), '!';
