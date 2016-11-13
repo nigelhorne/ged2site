@@ -268,7 +268,7 @@ memoize('stepsabove');
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!warnings!map_head!map_body!dob!dod\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod\n";
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -2881,26 +2881,6 @@ sub print_person
 	}
 	print $csv '!';
 
-	if($person->{'warnings'}) {
-		my $ufinder = URI::Find::Schemeless->new(sub {
-			my($uri, $orig_uri) = @_;
-
-			my $u = URI->new($orig_uri);
-			if($u && (ref($u) ne 'URI::_generic')) {
-				$uri =~ s/:$//;
-				return "<a href=\"$uri\">" .
-					$u->host() .
-					'</a>';
-			}
-			return $orig_uri;
-		});
-		print $html "<h2>Known Issues</h2>",
-			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
-		print $csv
-			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
-	}
-	print $csv '!';
-
 	my @place_events = keys %place_records;
 	if($opts{'m'} && ($opts{'l'}|| !$was_alive) && scalar(@place_events)) {
 		my $map;
@@ -2988,6 +2968,26 @@ sub print_person
 	} else {
 		print $csv '!!';
 	}
+	if($person->{'warnings'}) {
+		my $ufinder = URI::Find::Schemeless->new(sub {
+			my($uri, $orig_uri) = @_;
+
+			my $u = URI->new($orig_uri);
+			if($u && (ref($u) ne 'URI::_generic')) {
+				$uri =~ s/:$//;
+				return "<a href=\"$uri\">" .
+					$u->host() .
+					'</a>';
+			}
+			return $orig_uri;
+		});
+		print $html "<h2>Known Issues</h2>",
+			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
+		print $csv
+			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
+	}
+	print $csv '!';
+
 	if($birth_dt) {
 		print $csv $birth_dt->strftime('%Y/%m/%d');
 	}
