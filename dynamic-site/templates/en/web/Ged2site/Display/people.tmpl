@@ -34,24 +34,26 @@
 			<div id="header_container">
 				<center>
 					<h1>[% person.title %]</h1>
-					<!-- pop-up code from http://www.quackit.com/html/codes/html_popup_window_code.cfm -->
-					<script type="text/javascript">
-						// Popup window code
-						var popupWindow = null;
-						function centeredPopup(url,winName,w,h,scroll) {
-							LeftPosition = (screen.width) ? (screen.width-w)/2 : 0;
-							TopPosition = (screen.height) ? (screen.height-h)/2 : 0;
-							settings = 'height='+h+',width='+w+',top='+TopPosition+',left='+LeftPosition+',scrollbars='+scroll+',resizable'
-							popupWindow = window.open(url,winName,settings)
-						}
-					</script>
-					<!-- images from http://www.socicon.com/generator.php -->
-					<!-- code from https://simplesharebuttons.com/html-share-buttons/ -->
-					[% USE env = EnvHash %]
-					<!-- Facebook -->
-					<a href="https://www.facebook.com/sharer.php?u=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
-						<img src="/images/socicon.com/facebook.png" alt="Facebook" height="50" width="50">
-					</a>
+					<div class="social_media">
+						<!-- pop-up code from http://www.quackit.com/html/codes/html_popup_window_code.cfm -->
+						<script type="text/javascript">
+							// Popup window code
+							var popupWindow = null;
+							function centeredPopup(url,winName,w,h,scroll) {
+								LeftPosition = (screen.width) ? (screen.width-w)/2 : 0;
+								TopPosition = (screen.height) ? (screen.height-h)/2 : 0;
+								settings = 'height='+h+',width='+w+',top='+TopPosition+',left='+LeftPosition+',scrollbars='+scroll+',resizable'
+								popupWindow = window.open(url,winName,settings)
+							}
+						</script>
+						<!-- images from http://www.socicon.com/generator.php -->
+						<!-- code from https://simplesharebuttons.com/html-share-buttons/ -->
+						[% USE env = EnvHash %]
+						<!-- Facebook -->
+						<a href="https://www.facebook.com/sharer.php?u=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+							<img src="/images/socicon.com/facebook.png" alt="Facebook" height="50" width="50">
+						</a>
+					</div>
 					[% IF error %]
 						<p><font color="red" size="+2">[% error %]</font></p>
 					[% END %]
