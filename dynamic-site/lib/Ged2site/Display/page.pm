@@ -7,6 +7,7 @@ use Config::Auto;
 use CGI::Info;
 use File::Spec;
 use Template::Filters;
+use Template::Plugin::Envhash;
 use Ged2site::Config;
 use Ged2site::Allow;
 use HTML::SocialMedia;
@@ -218,6 +219,8 @@ sub html {
 		$vals->{cart} = $info->get_cookie(cookie_name => 'cart');
 		$vals->{lingua} = $self->{_lingua};
 		$vals->{social_media} = $self->{_social_media};
+		$vals->{info} = $info;
+		$vals->{as_string} = $info->as_string();
 
 		$template->process($filename, $vals, \$rc) ||
 			throw Error::Simple($template->error());
