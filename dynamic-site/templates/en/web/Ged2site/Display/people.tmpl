@@ -53,8 +53,18 @@
 						<a href="https://www.facebook.com/sharer.php?u=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 							<img src="/images/socicon.com/facebook.png" alt="Facebook" height="50" width="50">
 						</a>
+						<!-- Twitter -->
 						<a href="https://twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 							<img src="https://simplesharebuttons.com/images/somacro/twitter.png" alt="Twitter" height="50" width="50">
+							<img src="/images/socicon.com/twitter.png" alt="Twitter" height="50" width="50">
+						</a>
+						<!-- Google Plus -->
+						<a href="https://plus.google.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+							<img src="/images/socicon.com/googleplus.png" alt="Google Plus" width="50" height="50">
+                                                </a>
+						<!-- Print this page -->
+						<a href="#" onclick="window.print(); return false;">
+							<img src="/images/printer.png" alt="Print Button" height="32" width="32">
 						</a>
 					</div>
 					[% IF error %]
@@ -74,30 +84,6 @@
 						[ <a href="?page=todo">To Do</a> ] |
 						[ <a href="?page=calendar">Calendar</a> ]
 					</center>
-					<div class="social_media">
-						<!--
-						<table><tr>
-							[% IF social_media.twitter_tweet_button %]
-								<th>[% social_media.twitter_tweet_button %]</th>
-							[% END %]
-							<th>[% social_media.facebook_share_button %]</th>
-							<th>[% social_media.google_plusone %]</th>
-							<th><a href="#" onclick="window.print(); return false;">
-								<img src="/images/printer.png" alt="Print Button" height="32" width="32">
-							</a></th>
-						</tr></table>
-						-->
-						[% IF social_media.twitter_tweet_button %]
-							[% social_media.twitter_tweet_button %]
-						[% END %]
-						[% social_media.facebook_share_button %]
-						<br>
-						[% social_media.google_plusone %]
-						<br>
-						<a href="#" onclick="window.print(); return false;">
-							<img src="/images/printer.png" alt="Print Button" height="32" width="32">
-						</a>
-					</div>
 				</div>
 				<div class="printable">
 					<p>[% person.bio %]</p>
