@@ -54,7 +54,12 @@
 							<img src="/images/socicon.com/facebook.png" alt="Facebook" height="50" width="50">
 						</a>
 						<!-- Twitter -->
-						<a href="https://twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+						[% IF twitter %]
+							<-- use the twitter value from the configuration file -->
+							<a href="https://twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+						[% ELSE %]
+							<a href="https://twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+						[% END %]
 							<img src="https://simplesharebuttons.com/images/somacro/twitter.png" alt="Twitter" height="50" width="50">
 							<img src="/images/socicon.com/twitter.png" alt="Twitter" height="50" width="50">
 						</a>
