@@ -7,7 +7,7 @@ use Config::Auto;
 use CGI::Info;
 use File::Spec;
 use Template::Filters;
-use Template::Plugin::Envhash;
+use Template::Plugin::EnvHash;
 use Ged2site::Config;
 use Ged2site::Allow;
 use HTML::SocialMedia;
