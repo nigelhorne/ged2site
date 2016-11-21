@@ -34,7 +34,6 @@ use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::OSM;
 # use Geo::Coder::Canada;
-use Tie::Static;
 use Term::ANSIColor;
 use HTML::Entities;
 use HTTP::Cache::Transparent;
@@ -54,6 +53,7 @@ use MIME::Base64;
 use Memoize;
 use Time::HiRes;
 use File::Copy;
+use Data::Fetch;
 no lib '.';
 
 my %opts;
@@ -81,6 +81,7 @@ my $geocoder = Geo::Coder::OSM->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $ninemonths = DateTime::Duration->new(months => 9);
 my $sixteenyears = DateTime::Duration->new(years => 16);
+my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
 # FIXME: Do this properly
@@ -546,6 +547,9 @@ sub print_person
 
 	# Gather the information on this person
 	my $person = $params{'person'};
+
+	$fetcher = Data::Fetch->new();	# Throw away old values from the cache
+
 	my $dob = get_value({ person => $person, value => 'birth date' });
 
 	print 'Checking ', $person->as_string({ include_years => 1 }), "\n" if($opts{'v'});
@@ -745,6 +749,8 @@ sub print_person
 		}
 	}
 
+	# $fetcher->prime(object => $person, message => 'sex')->prime(object => $person, message => 'pronoun');  
+
 	my %place_records;
 
 	my $placeofbirth = get_value({ person => $person, value => 'birth place' });
@@ -928,8 +934,9 @@ sub print_person
 		}
 	}
 
-	my $pronoun = $person->pronoun();
-	my $sex = $person->sex();
+	my $pronoun = $fetcher->get(object => $person, message => 'pronoun');  
+	my $sex = $fetcher->get(object => $person, message => 'sex');  
+
 	my @occupations = $person->get_value('occupation');
 
 	my @children;
@@ -1920,7 +1927,7 @@ sub print_person
 											lcfirst($person->pronoun()) .
 											' was living with ' .
 											lcfirst($person->possessive()) .
-											($sibling->sex() eq 'F') ? ' sister, ' : ' brother, ' .
+											(($sibling->sex() eq 'F') ? ' sister, ' : ' brother, ') .
 											'<a href="' . make_filename_from_person(person => $sibling) . '">' .
 												$sibling->given_names() .
 											'</a>';
@@ -3929,39 +3936,30 @@ sub get_value
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $person = $params{'person'};
-	my $value = $params{'value'};
+	my $args = {
+		object => $params{'person'},
+		message => 'get_value',
+		arg => $params{'value'}
+	};
 
-	my $xref = $person->{'xref'};
-	tie (my %values, 'Tie::Static');
-
-	if(defined($values{$xref}{$value})) {
-		return $values{$xref}{$value};
-	}
-
-	my $rc = $person->get_value($value);
-	$values{$xref}{$value} = $rc;
-	return $rc;
+	# Doesn't use the prefetching feature, but will automatically cache which is nice
+	# $fetcher->prime($args);
+	return $fetcher->get($args);
 }
 
 sub get_source
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $gedcom = $params{'gedcom'};
-	my $person = $params{'person'};
-	my $source = $params{'source'};
+	my $args = {
+		object => $params{'gedcom'},
+		message => 'get_source',
+		arg => $params{'source'}
+	};
 
-	my $xref = $person->{'xref'};
-	tie (my %sources, 'Tie::Static');
-
-	if(defined($sources{$xref}{$source})) {
-		return $sources{$xref}{$source};
-	}
-
-	my $rc = $gedcom->get_source($source);
-	$sources{$xref}{$source} = $rc;
-	return $rc;
+	# Doesn't use the prefetching feature, but will automatically cache which is nice
+	# $fetcher->prime($args);
+	return $fetcher->get($args);
 }
 
 # Inspired by Tree::Family.  That module doesn't quite do what I want, so
