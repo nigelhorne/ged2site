@@ -35,41 +35,43 @@
 				<center>
 					<h1>[% person.title %]</h1>
 					<div class="social_media">
-						<!-- pop-up code from http://www.quackit.com/html/codes/html_popup_window_code.cfm -->
-						<script type="text/javascript">
-							// Popup window code
-							var popupWindow = null;
-							function centeredPopup(url,winName,w,h,scroll) {
-								LeftPosition = (screen.width) ? (screen.width-w)/2 : 0;
-								TopPosition = (screen.height) ? (screen.height-h)/2 : 0;
-								settings = 'height='+h+',width='+w+',top='+TopPosition+',left='+LeftPosition+',scrollbars='+scroll+',resizable'
-								popupWindow = window.open(url,winName,settings)
-							}
-						</script>
-						<!-- images from http://www.socicon.com/generator.php -->
-						<!-- code from https://simplesharebuttons.com/html-share-buttons/ -->
-						[% USE env = EnvHash %]
-						<!-- Facebook -->
-						<a href="https://www.facebook.com/sharer.php?u=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
-							<img src="/images/socicon.com/facebook.png" alt="Facebook" height="50" width="50">
-						</a>
-						<!-- Twitter -->
-						[% IF twitter %]
-							<!-- use the twitter value from the configuration file -->
-							<a href="https://twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
-						[% ELSE %]
-							<a href="https://twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
-						[% END %]
-							<img src="/images/socicon.com/twitter.png" alt="Twitter" height="50" width="50">
-						</a>
-						<!-- Google Plus -->
-						<a href="https://plus.google.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
-							<img src="/images/socicon.com/googleplus.png" alt="Google Plus" width="50" height="50">
-                                                </a>
-						<!-- Print this page -->
-						<a href="#" onclick="window.print(); return false;">
-							<img src="/images/printer.png" alt="Print Button" height="32" width="32">
-						</a>
+						<div class="non-printable">
+							<!-- pop-up code from http://www.quackit.com/html/codes/html_popup_window_code.cfm -->
+							<script type="text/javascript">
+								// Popup window code
+								var popupWindow = null;
+								function centeredPopup(url,winName,w,h,scroll) {
+									LeftPosition = (screen.width) ? (screen.width-w)/2 : 0;
+									TopPosition = (screen.height) ? (screen.height-h)/2 : 0;
+									settings = 'height='+h+',width='+w+',top='+TopPosition+',left='+LeftPosition+',scrollbars='+scroll+',resizable'
+									popupWindow = window.open(url,winName,settings)
+								}
+							</script>
+							<!-- images from http://www.socicon.com/generator.php -->
+							<!-- code from https://simplesharebuttons.com/html-share-buttons/ -->
+							[% USE env = EnvHash %]
+							<!-- Facebook -->
+							<a href="https://www.facebook.com/sharer.php?u=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<img src="/images/socicon.com/facebook.png" alt="Facebook" height="50" width="50">
+							</a>
+							<!-- Twitter -->
+							[% IF twitter %]
+								<!-- use the twitter value from the configuration file -->
+								<a href="https://twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+							[% ELSE %]
+								<a href="https://twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+							[% END %]
+								<img src="/images/socicon.com/twitter.png" alt="Twitter" height="50" width="50">
+							</a>
+							<!-- Google Plus -->
+							<a href="https://plus.google.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<img src="/images/socicon.com/googleplus.png" alt="Google Plus" width="50" height="50">
+							</a>
+							<!-- Print this page -->
+							<a href="#" onclick="window.print(); return false;">
+								<img src="/images/printer.png" alt="Print Button" height="32" width="32">
+							</a>
+						</div>
 					</div>
 					[% IF error %]
 						<p><font color="red" size="+2">[% error %]</font></p>
