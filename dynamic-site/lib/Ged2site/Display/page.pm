@@ -354,12 +354,13 @@ sub _append_browser_type {
 	my $rc;
 
 	if(-d $directory) {
-		if($self->{_info}->is_search_engine()) {
-			$rc = "$directory/search:$directory/web:$directory/robot:";
-		} elsif($self->{_info}->is_robot()) {
-			$rc = "$directory/robot:";
-		} elsif($self->{_info}->is_mobile()) {
-			$rc = "$directory/mobile:";
+                if($self->{_info}->is_mobile()) {
+                        $rc = "$directory/mobile:";
+                } elsif($self->{_info}->is_search_engine()) {
+                        $rc = "$directory/search:$directory/web:$directory/robot
+:";
+                } elsif($self->{_info}->is_robot()) {
+                        $rc = "$directory/robot:";
 		}
 		$rc .= "$directory/web:";
 
