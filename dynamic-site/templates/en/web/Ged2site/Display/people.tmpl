@@ -144,8 +144,10 @@
 				[% END %]
 				[% IF person.family_tree %]
 					<h2>Family Tree</h2>
-					<img src="[% person.family_tree.split('---').0 %]" [% person.family_tree.split('---').1 %] usemap="#family" alt="Family Tree">
-					[% person.family_tree.split('---').2 %]
+					<center>
+						<img src="[% person.family_tree.split('---').0 %]" [% person.family_tree.split('---').1 %] usemap="#family" alt="Family Tree">
+						[% person.family_tree.split('---').2 %]
+					</center>
 				[% END %]
 				[% IF person.map_body %]
 					<div class="non-printable">
