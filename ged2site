@@ -2589,6 +2589,7 @@ sub print_person
 				$profile_object = $person->resolve_xref($profile_object->value());
 			}
 			my $printed_media_header = 0;
+			# TODO: two passes, the first one where the links are pictures, the second where they are not
 			foreach my $o($person->obje()) {
 				my $obje = $ged->resolve_xref($o);
 				next if(!defined($obje));
