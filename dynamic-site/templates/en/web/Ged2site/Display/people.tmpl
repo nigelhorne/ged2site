@@ -127,19 +127,37 @@
 				[% END %]
 				[% IF person.media %]
 					<h2>Media</h2>
+					[% offset = 0 %]
 					[% FOREACH object IN person.media.split('----') %]
-						<p>
-							[% IF object.split('---').2 %]
-								<a href="[% object.split('---').0 %]" target="_blank">
-									<img src="[% object.split('---').0 %]" alt="[% object.split('---').1 %]"
-										width="175"
-										height="[% object.split('---').2 %]"
-									>
-								</a>
-							[% ELSE %]
-								<a href="[% object.split('---').0 %]" target="_blank">[% object.split('---').0 %]</a>
+						[% IF (offset % 4) == 0 %]
+							<p>
+						[% END %]
+						[% IF object.split('---').2 %]
+							[% IF (offset % 4) == 0 %]
+								<center>
 							[% END %]
-						<p>
+							<a href="[% object.split('---').0 %]" target="_blank">
+								<img src="[% object.split('---').0 %]" alt="[% object.split('---').1 %]"
+									width="175"
+									height="[% object.split('---').2 %]"
+								>
+							</a>
+							[% offset = offset + 1 %]
+							[% IF (offset % 4) == 0 %]
+								</center>
+							[% END %]
+						[% ELSE %]
+							[% IF offset != 0 %]
+								</center>
+							[% END %]
+							<p>
+								<a href="[% object.split('---').0 %]" target="_blank">[% object.split('---').0 %]</a>
+							</p>
+							[% offset = 0 %]
+						[% END %]
+					[% END %]
+					[% IF offset != 0 %]
+						</center>
 					[% END %]
 				[% END %]
 				[% IF person.family_tree %]
