@@ -2,7 +2,7 @@ body {
         margin: 40px 10px;
         padding: 0;
         font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-	background: #d6d6d6;
+	background: #d6d6d6;	/* Best to agree with the colour that ged2site uses for Graphviz's background */
         font-size: 14px
 }
 

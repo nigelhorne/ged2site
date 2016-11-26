@@ -2589,133 +2589,148 @@ sub print_person
 				$profile_object = $person->resolve_xref($profile_object->value());
 			}
 			my $printed_media_header = 0;
-			# TODO: two passes, the first one where the links are pictures, the second where they are not
-			foreach my $o($person->obje()) {
-				my $obje = $ged->resolve_xref($o);
-				next if(!defined($obje));
-				if(my $file = $obje->file()) {
-					if(ref($file) eq 'Gedcom::Record') {
-						# warn $file->tag(), "\n" if($file->tag());
-						$file = $file->{'file'};
-						next if($file eq '*');
-					}
-					if(!$printed_media_header) {
-						print $html '<h2>Media</h2>';
-						$printed_media_header = 1;
-					}
 
-					warn $obje->{"_prim"}, "\n" if($obje->{'_prim'});
-					warn $obje->{"prim"}, "\n" if($obje->{'prim'});
-					warn $obje->{"_PRIM"}, "\n" if($obje->{'_PRIM'});
-					warn $obje->{"PRIM"}, "\n" if($obje->{'PRIM'});
-					warn $obje->{"_prof"}, "\n" if($obje->{'_prof'});
-					warn $obje->{"prof"}, "\n" if($obje->{'prof'});
-					warn $obje->{"_PROF"}, "\n" if($obje->{'_PROF'});
-					warn $obje->{"PROF"}, "\n" if($obje->{'PROF'});
-					warn $obje->{"_DATE"}, "\n" if($obje->{'_DATE'});
-					warn $obje->{"_date"}, "\n" if($obje->{'_date'});
-					# warn $obje->tag(), "\n" if($obje->tag());
-					my $title = $obje->title();
-					my $form = $obje->form();
-					if((!$form) && $obje->items()) {
-						# Family Tree Maker does this
-						my @items = $obje->items();
-						$file = $items[0]->{'value'};
-						# TODO: Find the title
-					}
-					$file =~ s/\{0\}//g;
-					$file =~ s/\r//g;
-					if($opts{'d'} && ($file =~ /^https?:\/\//) && ($file !~ /\.jpe?g$/)) {
-						$file =~ s/%2f/\//gi;
+			# Two passes, the first one where the links are pictures, the second where they are not
+			for(my $pass = 1; $pass <= 2; $pass++) {
+				foreach my $o($person->obje()) {
+					my $obje = $ged->resolve_xref($o);
+					next if(!defined($obje));
+					if(my $file = $obje->file()) {
+						if(ref($file) eq 'Gedcom::Record') {
+							# warn $file->tag(), "\n" if($file->tag());
+							$file = $file->{'file'};
+							next if($file eq '*');
+						}
+						if(!$printed_media_header) {
+							print $html '<h2>Media</h2>';
+							$printed_media_header = 1;
+						}
 
-						my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
-						# FIXME: It should check if the remote image is newer than the local image
-						if(!-r $localfile) {
-							my $browser = LWP::UserAgent->new();
-							$browser->env_proxy(1);
-							my $resp = $browser->get($file);
-							if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
-								my $key = $person->as_string() . ";$localfile";
-								if($images{$key}) {
-									# Flag a person having two images of the same
-									# name
-									if($opts{'f'}) {
-										die $person->as_string(), ': ', $localfile, ' duplicate filename';
+						warn $obje->{"_prim"}, "\n" if($obje->{'_prim'});
+						warn $obje->{"prim"}, "\n" if($obje->{'prim'});
+						warn $obje->{"_PRIM"}, "\n" if($obje->{'_PRIM'});
+						warn $obje->{"PRIM"}, "\n" if($obje->{'PRIM'});
+						warn $obje->{"_prof"}, "\n" if($obje->{'_prof'});
+						warn $obje->{"prof"}, "\n" if($obje->{'prof'});
+						warn $obje->{"_PROF"}, "\n" if($obje->{'_PROF'});
+						warn $obje->{"PROF"}, "\n" if($obje->{'PROF'});
+						warn $obje->{"_DATE"}, "\n" if($obje->{'_DATE'});
+						warn $obje->{"_date"}, "\n" if($obje->{'_date'});
+						# warn $obje->tag(), "\n" if($obje->tag());
+						my $title = $obje->title();
+						my $form = $obje->form();
+						if((!$form) && $obje->items()) {
+							# Family Tree Maker does this
+							my @items = $obje->items();
+							$file = $items[0]->{'value'};
+							# TODO: Find the title
+						}
+						$file =~ s/\{0\}//g;
+						$file =~ s/\r//g;
+						if($opts{'d'} && ($file =~ /^https?:\/\//) && ($file !~ /\.jpe?g$/)) {
+							$file =~ s/%2f/\//gi;
+
+							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+							# FIXME: It should check if the remote image is newer than the local image
+							if(!-r $localfile) {
+								my $browser = LWP::UserAgent->new();
+								$browser->env_proxy(1);
+								my $resp = $browser->get($file);
+								if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
+									next if($pass == 2);
+									my $key = $person->as_string() . ";$localfile";
+									if($images{$key}) {
+										# Flag a person having two images of the same
+										# name
+										if($opts{'f'}) {
+											die $person->as_string(), ': ', $localfile, ' duplicate filename';
+										}
+										red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
 									}
-									red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
+									my $tmp;
+									if($jpegtran) {
+										open($tmp, '|-', "$jpegtran -progressive -outfile '$localfile'");
+									} elsif($jpegoptim) {
+										open($tmp, '|-', "$jpegoptim -q --all-progressive --stdin > '$localfile'");
+									} else {
+										open($tmp, '>', $localfile);
+									}
+									print $tmp $resp->decoded_content();
+									close $tmp;
+									$form = 'JPG';
+									$images{$key} = 1;
+									link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 								}
-								my $tmp;
+							}
+						} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
+							next if($pass == 2);
+							my $srcfile = $1;
+							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+							if(!-r $localfile) {
 								if($jpegtran) {
-									open($tmp, '|-', "$jpegtran -progressive -outfile '$localfile'");
+									system("$jpegtran -progressive -outfile '$localfile' '$srcfile'");
 								} elsif($jpegoptim) {
-									open($tmp, '|-', "$jpegoptim -q --all-progressive --stdin > '$localfile'");
+									copy($srcfile, $localfile);
+									system("$jpegoptim -q --all-progressive '$localfile'");
 								} else {
-									open($tmp, '>', $localfile);
+									copy($srcfile, $localfile);
 								}
-								print $tmp $resp->decoded_content();
-								close $tmp;
-								$form = 'JPG';
-								$images{$key} = 1;
 								link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							}
+							$form = 'JPG';
+							my $key = $person->as_string() . ";$localfile";
+							$images{$key} = 1;
 						}
-					} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
-						my $srcfile = $1;
-						my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
-						if(!-r $localfile) {
-							if($jpegtran) {
-								system("$jpegtran -progressive -outfile '$localfile' '$srcfile'");
-							} elsif($jpegoptim) {
-								copy($srcfile, $localfile);
-								system("$jpegoptim -q --all-progressive '$localfile'");
+						if($form && ($form eq 'JPG')) {
+							next if($pass == 1);
+							if($title) {
+								print $html "<h3>$title</h3>";
 							} else {
-								copy($srcfile, $localfile);
+								print $html '<br>';
 							}
-							link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
-						}
-						$form = 'JPG';
-						my $key = $person->as_string() . ";$localfile";
-						$images{$key} = 1;
-					}
-					if($form && ($form eq 'JPG')) {
-						if($title) {
-							print $html "<h3>$title</h3>";
-						} else {
-							print $html '<br>';
-						}
-						if($opts{'d'}) {
-							# Get and stash a local copy
-							my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
-							if((-r "static-site/$localfile") ||
-							   is_success(getstore($file, "static-site/$localfile"))) {
-								my $info = Image::Info::image_info("static-site/$localfile");
-								my ($w, $h) = Image::Info::dim($info);
-								if(!defined($w)) {
-									die "static-site/$localfile";
-								}
-								$h *= 175 / $w;
-								$h = int($h);
-								# print $html "<a href=\"$file\" target=\"_blank\">",
-								if($title) {
-									print $html "<a href=\"$localfile\" target=\"_blank\">",
-										'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
-										'</a>';
-									print $csv "/$localfile---$title---$h----";
+							if($opts{'d'}) {
+								# Get and stash a local copy
+								my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
+								if((-r "static-site/$localfile") ||
+								   is_success(getstore($file, "static-site/$localfile"))) {
+									my $info = Image::Info::image_info("static-site/$localfile");
+									my ($w, $h) = Image::Info::dim($info);
+									if(!defined($w)) {
+										die "static-site/$localfile";
+									}
+									$h *= 175 / $w;
+									$h = int($h);
+									# print $html "<a href=\"$file\" target=\"_blank\">",
+									if($title) {
+										print $html "<a href=\"$localfile\" target=\"_blank\">",
+											'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
+											'</a>';
+										print $csv "/$localfile---$title---$h----";
+									} else {
+										print $html "<a href=\"$localfile\" target=\"_blank\">",
+											'<img src="', $localfile, "\" width=\"175\" height=\"$h\">",
+											'</a>';
+										print $csv "/$localfile--- ---$h----";
+									}
+									if(defined($profile_object) && ($obje eq $profile_object)) {
+										$profile_image = "static-site/$localfile";
+									}
+									unless(-r "dynamic-site/$localfile") {
+										link "static-site/$localfile", "dynamic-site/$localfile";
+									}
 								} else {
-									print $html "<a href=\"$localfile\" target=\"_blank\">",
-										'<img src="', $localfile, "\" width=\"175\" height=\"$h\">",
+									red_warning({ person => $person, warning => "static-site/$localfile: $!" });
+
+									print $html "<a href=\"$file\" target=\"_blank\">",
+										"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 										'</a>';
-									print $csv "/$localfile--- ---$h----";
-								}
-								if(defined($profile_object) && ($obje eq $profile_object)) {
-									$profile_image = "static-site/$localfile";
-								}
-								unless(-r "dynamic-site/$localfile") {
-									link "static-site/$localfile", "dynamic-site/$localfile";
+									print $csv "$file---$title---0----";
+									if(defined($profile_object) && ($obje eq $profile_object)) {
+										$profile_image = $file;
+									}
 								}
 							} else {
-								red_warning({ person => $person, warning => "static-site/$localfile: $!" });
-
+								# Use the remote copy
 								print $html "<a href=\"$file\" target=\"_blank\">",
 									"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 									'</a>';
@@ -2725,27 +2740,18 @@ sub print_person
 								}
 							}
 						} else {
-							# Use the remote copy
 							print $html "<a href=\"$file\" target=\"_blank\">",
-								"<img src=\"$file\" alt=\"$title\" width=\"175\">",
+								$title ? HTML::Entities::encode($title) : 'Media',
 								'</a>';
-							print $csv "$file---$title---0----";
-							if(defined($profile_object) && ($obje eq $profile_object)) {
-								$profile_image = $file;
-							}
+							print $csv "$file---",
+								$title ? HTML::Entities::encode($title) : 'Media',
+								'---0----';
 						}
-					} else {
-						print $html "<a href=\"$file\" target=\"_blank\">",
-							$title ? HTML::Entities::encode($title) : 'Media',
-							'</a>';
-						print $csv "$file---",
-							$title ? HTML::Entities::encode($title) : 'Media',
-							'---0----';
+						# if($obje->date()) {
+							# die $obje->date();
+						# }
+						print $html '<br>';
 					}
-					# if($obje->date()) {
-						# die $obje->date();
-					# }
-					print $html '<br>';
 				}
 			}
 		}
@@ -2758,7 +2764,8 @@ sub print_person
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', '/bin/cat')) {
 				# print $fout 'digraph family { graph [rankdir=LR];';
-				print $fout 'digraph family {',
+				# Best to agree with the colour in css/web.css
+				print $fout 'digraph family { bgcolor="#d6d6d6"',
 					' subgraph parents { rank="min"; ';
 				if($father) {
 					print_graphviz({ person => $father, fout => $fout, format => 'static' });
