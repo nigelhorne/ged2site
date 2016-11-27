@@ -1743,7 +1743,7 @@ sub print_person
 				}
 			}
 			if((ref($event) eq 'Gedcom::Record') &&
-			   ($event->type() =~ /^Census U[KS] (\d{4})$/)) {
+			   (($event->type() =~ /^Census U[KS] (\d{4})$/) || ($event->type() eq 'Register UK 1939'))) {
 			   	my $newresidence = 1;
 				foreach my $residence(@residences) {
 					if((ref($residence) eq 'Gedcom::Record') &&
@@ -2245,7 +2245,7 @@ sub print_person
 					$bio .= " (<em>$notes</em>)";
 				}
 				$end_of_sentence = 0;
-			} elsif(($type !~ /^Census U[KS] (\d{4})$/) && ($type ne 'Race')) {
+			} elsif(($type !~ /^Census U[KS] (\d{4})$/) && ($type ne 'Race') && ($type ne 'Register UK 1939')) {
 				red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				if(my $notes = notes(record => $event)) {
 					$notes = ucfirst($notes);
@@ -2339,6 +2339,7 @@ sub print_person
 					}
 					$end_of_sentence = 1;
 				} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
+					($type ne 'Register UK 1939') &&
 					($type ne 'Race')) {
 					red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				}
