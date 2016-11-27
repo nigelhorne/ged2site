@@ -2592,7 +2592,7 @@ sub print_person
 			my $printed_media_header = 0;
 
 			# Two passes, the first one where the links are pictures, the second where they are not
-			for(my $pass = 1; $pass <= 2; $pass++) {
+			PASS: for(my $pass = 1; $pass <= 2; $pass++) {
 				foreach my $o($person->obje()) {
 					my $obje = $ged->resolve_xref($o);
 					next if(!defined($obje));
@@ -2638,7 +2638,7 @@ sub print_person
 								$browser->env_proxy(1);
 								my $resp = $browser->get($file);
 								if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
-									next if($pass == 2);
+									next PASS if($pass == 2);
 									my $key = $person->as_string() . ";$localfile";
 									if($images{$key}) {
 										# Flag a person having two images of the same
@@ -2664,7 +2664,7 @@ sub print_person
 								}
 							}
 						} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
-							next if($pass == 2);
+							next PASS if($pass == 2);
 							my $srcfile = $1;
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							if(!-r $localfile) {
@@ -2683,7 +2683,7 @@ sub print_person
 							$images{$key} = 1;
 						}
 						if($form && ($form eq 'JPG')) {
-							next if($pass == 1);
+							next PASS if($pass == 1);
 							if($title) {
 								print $html "<h3>$title</h3>";
 							} else {
