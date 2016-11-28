@@ -749,7 +749,7 @@ sub print_person
 		}
 	}
 
-	# $fetcher->prime(object => $person, message => 'sex')->prime(object => $person, message => 'pronoun');  
+	# $fetcher->prime(object => $person, message => 'sex')->prime(object => $person, message => 'pronoun');
 
 	my %place_records;
 
@@ -934,8 +934,8 @@ sub print_person
 		}
 	}
 
-	my $pronoun = $fetcher->get(object => $person, message => 'pronoun');  
-	my $sex = $fetcher->get(object => $person, message => 'sex');  
+	my $pronoun = $fetcher->get(object => $person, message => 'pronoun');
+	my $sex = $fetcher->get(object => $person, message => 'sex');
 
 	my @occupations = $person->get_value('occupation');
 
@@ -1685,7 +1685,7 @@ sub print_person
 								my $mother = $_->mother();
 								'<a href="' . make_filename_from_person(person => $_) . '">' .
 									$_->given_names() . '</a>' .
-								' (with ' . 
+								' (with ' .
 								'<a href="' . make_filename_from_person(person => $mother) . '">' .
 									$mother->given_names() . '</a>' .
 								')'
@@ -1695,7 +1695,7 @@ sub print_person
 								my $father = $_->father();
 								'<a href="' . make_filename_from_person(person => $_) . '">' .
 									$_->given_names() . '</a>' .
-								' (with ' . 
+								' (with ' .
 								'<a href="' . make_filename_from_person(person => $father) . '">' .
 									$father->given_names() . '</a>' .
 								')'
