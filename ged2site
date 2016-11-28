@@ -2592,8 +2592,8 @@ sub print_person
 			my $printed_media_header = 0;
 
 			# Two passes, the first one where the links are pictures, the second where they are not
-			PASS: for(my $pass = 1; $pass <= 2; $pass++) {
-				foreach my $o($person->obje()) {
+			for(my $pass = 1; $pass <= 2; $pass++) {
+				OBJE: foreach my $o($person->obje()) {
 					my $obje = $ged->resolve_xref($o);
 					next if(!defined($obje));
 					if(my $file = $obje->file()) {
@@ -2638,7 +2638,7 @@ sub print_person
 								$browser->env_proxy(1);
 								my $resp = $browser->get($file);
 								if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
-									next PASS if($pass == 2);
+									next OBJE if($pass == 2);
 									my $key = $person->as_string() . ";$localfile";
 									if($images{$key}) {
 										# Flag a person having two images of the same
@@ -2664,7 +2664,7 @@ sub print_person
 								}
 							}
 						} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
-							next PASS if($pass == 2);
+							next OBJE if($pass == 2);
 							my $srcfile = $1;
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							if(!-r $localfile) {
@@ -2683,7 +2683,7 @@ sub print_person
 							$images{$key} = 1;
 						}
 						if($form && ($form eq 'JPG')) {
-							next PASS if($pass == 1);
+							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
 							} else {
@@ -2741,6 +2741,7 @@ sub print_person
 								}
 							}
 						} else {
+							next OBJE if($pass == 1);
 							print $html "<a href=\"$file\" target=\"_blank\">",
 								$title ? HTML::Entities::encode($title) : 'Media',
 								'</a>';
@@ -2765,8 +2766,7 @@ sub print_person
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', '/bin/cat')) {
 				# print $fout 'digraph family { graph [rankdir=LR];';
-				# Best to agree with the colour in css/web.css
-				print $fout 'digraph family { bgcolor="#d6d6d6"',
+				print $fout 'digraph family {',
 					' subgraph parents { rank="min"; ';
 				if($father) {
 					print_graphviz({ person => $father, fout => $fout, format => 'static' });

@@ -27,21 +27,26 @@
 		</style>
 	</head>
 	<body>
-		<center>
-			[% IF surname %]
-				<h1>Entries for the Surname [% surname %] in [% SiteTitle.join(' ') %]</h1>
-			[% ELSE %]
-				<h1>Surnames for [% SiteTitle.join(' ') %]</h1>
-			[% END %]
-			[% IF error %]
-				<p><font color="red" size="+2">[% error %]</font></p>
-			[% END %]
-			[ <a href="?page=people&home=1">Home</a> ] |
-				[ <a href="?page=censuses">Census Index</a> ] |
-				[ <a href="?page=history">Family History</a> ] |
-				[ <a href="?page=todo">To Do</a> ] |
-				[ <a href="?page=calendar">Calendar</a> ]
-		</center>
+		<div id="header_container">
+			<center>
+				[% IF surname %]
+					<h1>Entries for the Surname [% surname %] in [% SiteTitle.join(' ') %]</h1>
+				[% ELSE %]
+					<h1>Surnames for [% SiteTitle.join(' ') %]</h1>
+				[% END %]
+				[% IF error %]
+					<p><font color="red" size="+2">[% error %]</font></p>
+				[% END %]
+				[ <a href="?page=people&home=1">Home</a> ] |
+					[ <a href="?page=censuses">Census Index</a> ] |
+					[% IF surname %]
+						[ <a href="?page=surnames">Surname Index</a> ] |
+					[% END %]
+					[ <a href="?page=history">Family History</a> ] |
+					[ <a href="?page=todo">To Do</a> ] |
+					[ <a href="?page=calendar">Calendar</a> ]
+			</center>
+		</div>
 		[% IF surnames %]
 			<dl>
 				[% FOREACH surname IN surnames %]
