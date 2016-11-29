@@ -1873,6 +1873,7 @@ sub print_person
 					   places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 						# This residence record is for the place of birth, which is
 						# printed elsewhere
+						$place_records{"Residence/$count"} = $residence;
 						$count++;
 						next;
 					}
@@ -1899,8 +1900,8 @@ sub print_person
 						$places_printed{$p} = 1;
 						$bio .= HTML::Entities::encode($p);
 						$places_printed{$p} = 1;
-						$place_records{"Residence/$count"} = $residence;
 					}
+					$place_records{"Residence/$count"} = $residence;
 				}
 				# Citation residence notes print later
 				if((!$opts{'c'}) && (my $notes = notes({ record => $residence }))) {
