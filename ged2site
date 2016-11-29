@@ -2040,7 +2040,8 @@ sub print_person
 				$bio .= $p;
 				$places_printed{$p} = 1;
 			}
-			if(my $d = get_value({ person => $person, value => 'death' })) {
+			# Print notes about the death, if any
+			if(my $d = notes({ person => $person, record => $death })) {
 				$d =~ tr/\r//;
 				$d =~ tr/\n/ /;
 				$d =~ s/\.$//;
@@ -2111,7 +2112,7 @@ sub print_person
 		$bio .= "[$_]" foreach(sort @deathcitations);
 
 		# Print notes about the death, if any
-		if(defined($death) && (my $d = get_value({ person => $person, value => 'death' }))) {
+		if(defined($death) && (my $d = notes({ person => $person, record => $death, paragraph => 0 }))) {
 			$d =~ tr/\r//;
 			$d =~ s/\.$//;
 			$bio .= ' (' . HTML::Entities::encode($d) . ')';
