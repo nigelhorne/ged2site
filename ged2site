@@ -1867,8 +1867,9 @@ sub print_person
 			my $have_printed = 0;
 			my $prev_date;
 			foreach my $residence(@residencelist) {
+				my $rdate = $residence->date();
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
-					if($birth && $dob && $residence->date() && ($residence->date() eq $dob) &&
+					if($birth && $dob && $rdate && ($rdate eq $dob) &&
 					   places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 						# This residence record is for the place of birth, which is
 						# printed elsewhere
@@ -1877,9 +1878,14 @@ sub print_person
 					}
 					if(!$have_printed) {
 						$bio .= '.' unless($end_of_sentence);
-						$bio .= ' During ' .
-							lc($person->possessive()) .
-							' life ' . lcfirst($pronoun) . ' lived';
+						if((scalar(@residencelist) == 1) && $rdate) {
+							$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate })) .
+								' ' . lcfirst($pronoun) . ' was living';
+						} else {
+							$bio .= ' During ' .
+								lc($person->possessive()) .
+								' life ' . lcfirst($pronoun) . ' lived';
+						}
 						$have_printed = 1;
 					}
 					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
@@ -1902,26 +1908,28 @@ sub print_person
 					$notes = lcfirst($notes);
 					$bio .= " ($notes)";
 				}
-				if(my $date = $residence->date()) {
-					my $this_date = year({ person => $person, date => $date });
-					if($prev_date && ($prev_date eq $this_date)) {
-						if($opts{'f'}) {
-							die $person->name(), "Two residence records for $date";
+				if($rdate) {
+					if(scalar(@residencelist) > 1) {
+						my $this_date = year({ person => $person, date => $rdate });
+						if($prev_date && ($prev_date eq $this_date)) {
+							if($opts{'f'}) {
+								die $person->name(), "Two residence records for $rdate";
+							}
+							red_warning({ person => $person, warning => "two residence records for $rdate" });
 						}
-						red_warning({ person => $person, warning => "two residence records for $date" });
+						$bio .= " $this_date";
+						$prev_date = $this_date;
 					}
-					$bio .= " $this_date";
-					$prev_date = $this_date;
 					# Find if they are an adult living with an adult sibling
 					if(scalar(@siblings) && $birth_dt && $residence->address()) {
-						my $diff = $dfn->parse_datetime($date) - $birth_dt;
+						my $diff = $dfn->parse_datetime($rdate) - $birth_dt;
 						if($diff->in_units('years') >= 40) {
 							# Safe to assume both are adults at this time
 							foreach my $sibling(@siblings) {
 								my @srs = $sibling->residence();
 								foreach my $sr(@srs) {
 									if((ref($sr) eq 'Gedcom::Record') &&
-									   $sr->date() && ($sr->date() eq $date) &&
+									   $sr->date() && ($sr->date() eq $rdate) &&
 									   places_are_the_same({ first => $residence, second => $sr })) {
 										$bio .= ' when ' .
 											lcfirst($person->pronoun()) .
@@ -1941,7 +1949,7 @@ sub print_person
 					$bio .= '[' . $residencecitations{$residence} . ']';
 				}
 				if($residence->place() &&
-				  (!$residence->date()) &&
+				  (!$rdate) &&
 				  ($count <= (scalar(@residencelist) - 1)) &&
 				  ($residencecitations{$residence})) {
 					my $peek = $residencelist[$count + 1];
