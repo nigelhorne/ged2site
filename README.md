@@ -59,7 +59,7 @@ need to be an advanced Windows user, this is not for the Novice.
 * Firstly install a Perl, either ActiveState or Strawberry will work fine. I
 have also had success using Cygwin's Perl.
 
-* Load in all the CPAN modules that ged2site uses. I
+* Load in all the CPAN modules that ged2site uses.
 
 * Install Family Tree Maker.  Sorry, there's no alternative, you'll just have
 to find a copy and buy it.  Good luck because ACOM is dropping it, and I'm
