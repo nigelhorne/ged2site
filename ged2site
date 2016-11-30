@@ -2104,7 +2104,16 @@ sub print_person
 			} else {
 				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
-					$bio .= place({ person => $person, record => $death, places_printed => \%places_printed });
+					if(my $place = place({ person => $person, record => $death, places_printed => \%places_printed })) {
+						$bio .= $place;
+					} elsif($opts{'f'}) {
+						die $person->as_string(), "Place of death ($placeofdeath) can't be parsed";
+					} elsif($opts{'w'}) {
+						red_warning({
+							person => $person,
+							warning => "Place of death ($placeofdeath) can't be parsed"
+						});
+					}
 				}
 			}
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
@@ -2341,11 +2350,18 @@ sub print_person
 								place({ person => $person, record => $event }) . '.';
 						}
 						$previous = undef;
-					} else {
-						$bio .= ucfirst(year({ person => $person, record => $event })) .
-							' ' . lcfirst($person->pronoun()) .
-							' arrived' .
-							place({ person => $person, record => $event }) . '.';
+					} elsif(my $place = place({ person => $person, record => $event })) {
+						if(my $year = year({ person => $person, record => $event })) {
+							$bio .= "$year " . lcfirst($person->pronoun()) . " arrived $place.";
+						} elsif($opts{'f'}) {
+							die $person->as_string(), "Can't determine $type date";
+						} elsif($opts{'w'}) {
+							red_warning({ person => $person, warning => "Can't determine $type date" });
+						}
+					} elsif($opts{'f'}) {
+						die $person->as_string(), "Can't determine $type location";
+					} elsif($opts{'w'}) {
+						red_warning({ person => $person, warning => "Can't determine $type location" });
 					}
 					$end_of_sentence = 1;
 				} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
@@ -2732,20 +2748,34 @@ sub print_person
 								} else {
 									red_warning({ person => $person, warning => "static-site/$localfile: $!" });
 
-									print $html "<a href=\"$file\" target=\"_blank\">",
-										"<img src=\"$file\" alt=\"$title\" width=\"175\">",
-										'</a>';
-									print $csv "$file---$title---0----";
+									if($title) {
+										print $html "<a href=\"$file\" target=\"_blank\">",
+											"<img src=\"$file\" alt=\"$title\" width=\"175\">",
+											'</a>';
+										print $csv "$file---$title---0----";
+									} else {
+										print $html "<a href=\"$file\" target=\"_blank\">",
+											"<img src=\"$file\" width=\"175\">",
+											'</a>';
+										print $csv "$file--- ---0----";
+									}
 									if(defined($profile_object) && ($obje eq $profile_object)) {
 										$profile_image = $file;
 									}
 								}
 							} else {
 								# Use the remote copy
-								print $html "<a href=\"$file\" target=\"_blank\">",
-									"<img src=\"$file\" alt=\"$title\" width=\"175\">",
-									'</a>';
-								print $csv "$file---$title---0----";
+								if($title) {
+									print $html "<a href=\"$file\" target=\"_blank\">",
+										"<img src=\"$file\" alt=\"$title\" width=\"175\">",
+										'</a>';
+									print $csv "$file---$title---0----";
+								} else {
+									print $html "<a href=\"$file\" target=\"_blank\">",
+										"<img src=\"$file\" width=\"175\">",
+										'</a>';
+									print $csv "$file--- ---0----";
+								}
 								if(defined($profile_object) && ($obje eq $profile_object)) {
 									$profile_image = $file;
 								}

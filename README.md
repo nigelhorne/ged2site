@@ -48,7 +48,38 @@ deaths, one page for each month in the current year.
 Note that the dynamic page generation is in its early stages of development so
 not all of the data is available yet.
 
-Acknowledgements:
+Ancestry on Windows
+===================
+
+I use FindMyPast on Linux, because export of images is better on FMP and
+because Linux.  I recognise that many folks use Ancestry on Windows, so I
+have this rough guide which works for me, but understand that you'll still
+need to be an advanced Windows user, this is not for the Novice.
+
+* Firstly install a Perl, either ActiveState or Strawberry will work fine. I
+have also had success using Cygwin's Perl.
+
+* Load in all the CPAN modules that ged2site uses. I
+
+* Install Family Tree Maker.  Sorry, there's no alternative, you'll just have
+to find a copy and buy it.  Good luck because ACOM is dropping it, and I'm
+yet to play with its successor.
+
+* Sync your ACOM tree to FTM, ensuring you also sync all of the media.
+
+* Create a Gedcom using File->Export, and choosing GEDCOM5.5 as the
+output format.
+
+* Run ged2site on that saved Gedcom file.
+
+* -F may not work because it depends on Graphviz being found,
+but could work under Cygwin. On the otherhand, I've been hit by a Cygwin bug
+when trying to call Graphviz from ged2site.  This may be because ged2site
+pipes output to Graphviz, perhaps it would work if it used a temporary file
+as input.
+
+Acknowledgements
+================
 
 http://fullcalendar.io for the calendar view
 
