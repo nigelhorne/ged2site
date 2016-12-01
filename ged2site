@@ -2869,7 +2869,8 @@ sub print_person
 			# if(open(my $fout, '|-', '/bin/cat')) {
 				# print $fout 'digraph family { graph [rankdir=LR];';
 				# Best to agree with the colour in css/web.css
-				print $fout 'digraph family { bgcolor="#d6d6d6"',
+				# print $fout 'digraph family { bgcolor="#d6d6d6"',
+				print $fout 'digraph family {',
 					' subgraph parents { rank="min"; ';
 				if($father) {
 					print_graphviz({ person => $father, fout => $fout, format => 'dynamic' });
