@@ -1845,11 +1845,19 @@ sub print_person
 			my $all_residences_have_date = 1;
 			foreach my $residence(@residencelist) {
 				my $date = $residence->date();
-				if((!$date) || !defined($date_parser->parse(date => $date))) {
+				if(!$date) {
 					if($opts{'f'}) {
 						die $person->name(), ': Contains a residence without a date';
 					}
 					red_warning({ person => $person, warning => 'Contains a residence without a date' });
+					$all_residences_have_date = 0;
+					last;
+				}
+				if(!defined($date_parser->parse(date => $date))) {
+					if($opts{'f'}) {
+						die $person->name(), ": Can't parse date '$date'";
+					}
+					red_warning({ person => $person, warning => "Can't parse date '$date'" });
 					$all_residences_have_date = 0;
 					last;
 				}
