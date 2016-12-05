@@ -18,8 +18,9 @@ sub html {
 		'home' => 1,
 	};
 	my $params = $info->params({ allow => $allowed });
-	if($params && $params->{'page'}) {
+	if($params) {
 		delete $params->{'page'};
+		delete $params->{'lang'};
 	}
 
 	my $people = $args{'people'};	# Handle into the database
