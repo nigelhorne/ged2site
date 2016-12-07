@@ -2083,7 +2083,7 @@ sub print_person
 			}
 			$end_of_sentence = 0;
 		}
-		$bio .= "[$_]" foreach(@burialcitations);
+		$bio .= "[$_]" foreach(sort @burialcitations);
 	} elsif($placeofdeath || $dateofdeath) {
 		# TODO - extract marriage banns information
 		if($person->marriage_bann()) {
