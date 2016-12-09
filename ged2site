@@ -2481,27 +2481,27 @@ sub print_person
 	print $csv '!';
 
 	if($opts{'l'} || !$was_alive) {
-		my $ufinder = URI::Find::Schemeless->new(sub {
-			my($uri, $orig_uri) = @_;
-
-			my $u = URI->new($orig_uri);
-			if($u && (ref($u) ne 'URI::_generic')) {
-				if(!head($orig_uri)) {
-					if($opts{'f'}) {
-						die $person->as_string, ": $orig_uri: not found";
-					}
-					red_warning({ person => $person, warning => "$orig_uri: not found" });
-				}
-				$uri =~ s/:$//;
-				return "<a HREF=\"$uri\">" .
-					$u->host() .
-					'</a>';
-			}
-			return $orig_uri;
-		});
-
 		if($opts{'c'} && $citationcount) {
 			print $html '<h2>Citations</h2><ol>';
+			my $ufinder = URI::Find::Schemeless->new(sub {
+				my($uri, $orig_uri) = @_;
+
+				my $u = URI->new($orig_uri);
+				if($u && (ref($u) ne 'URI::_generic')) {
+					if(!head($orig_uri)) {
+						if($opts{'f'}) {
+							die $person->as_string, ": $orig_uri: not found";
+						}
+						red_warning({ person => $person, warning => "$orig_uri: not found" });
+					}
+					$uri =~ s/:$//;
+					return "<a HREF=\"$uri\">" .
+						$u->host() .
+						'</a>';
+				}
+				return $orig_uri;
+			});
+
 			foreach my $citation(1..$citationcount) {
 				if(!$citations{$citation}) {
 					if($opts{'f'}) {
