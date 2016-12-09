@@ -22,6 +22,7 @@ use FCGI::Buffer;
 use File::HomeDir;
 use Log::Any::Adapter;
 use Error qw(:try);
+use File::Spec;
 use autodie qw(:all);
 
 # use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
@@ -182,7 +183,14 @@ sub doit
 	});
 
 	my $fb = FCGI::Buffer->new();
-	$fb->init({ info => $info, optimise_content => 1, lint_content => 0, logger => $logger, lingua => $lingua });
+	$fb->init({
+		info => $info,
+		optimise_content => 1,
+		lint_content => 0,
+		logger => $logger,
+		lingua => $lingua,
+		save_to => { directory => File::Spec->catfile($config->rootdir(), 'save_to'), ttl => 3600 * 24 }
+	});
 	if(!$ENV{'REMOTE_ADDR'}) {
 		$fb->init(lint_content => 1);
 	}
