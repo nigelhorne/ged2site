@@ -16,16 +16,16 @@ sub html {
 		'page' => 'people',
 		'entry' => undef,	# TODO: regex of allowable name formats
 		'home' => 1,
+		'lang' => qr/^[A-Z][A-Z]/i,
 	};
-	my $params = $info->params({ allow => $allowed });
-	if($params) {
-		delete $params->{'page'};
-		delete $params->{'lang'};
-	}
+	my %params = %{$info->params({ allow => $allowed })};
+
+	delete $params{'page'};
+	delete $params{'lang'};
 
 	my $people = $args{'people'};	# Handle into the database
 
-	unless($params && scalar(keys %{$params})) {
+	unless(scalar(keys %params)) {
 		# Display the main index page
 		return $self->SUPER::html(updated => $people->updated());
 	}
@@ -35,7 +35,7 @@ sub html {
 	# TODO: handle situation where look up fails
 
 	return $self->SUPER::html({
-		person => $people->fetchrow_hashref($params),
+		person => $people->fetchrow_hashref(\%params),
 		decode_base64url => sub {
 			MIME::Base64::decode_base64url($_[0])
 		},
