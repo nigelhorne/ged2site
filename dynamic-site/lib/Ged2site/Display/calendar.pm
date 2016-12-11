@@ -21,9 +21,6 @@ sub html {
 		# 'month' => qr(^\d{1,2}$),	# must be one or two digits
 	};
 	my $params = $info->params({ allow => $allowed });
-	if($params && $params->{'page'}) {
-		delete $params->{'page'};
-	}
 
 	# Handle into the database
 	my $history = $args{'history'};
