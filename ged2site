@@ -2054,7 +2054,7 @@ sub print_person
 				$d =~ tr/\r//;
 				$d =~ tr/\n/ /;
 				$d =~ s/\.$//;
-				$bio .= ' (' . HTML::Entities::encode($d) . ')';
+				$bio .= " ($b)";
 			}
 			$bio .= "[$_]" foreach(@deathcitations);
 			my $opts = {
@@ -2133,7 +2133,7 @@ sub print_person
 		if(defined($death) && (my $d = notes({ person => $person, record => $death, paragraph => 0 }))) {
 			$d =~ tr/\r//;
 			$d =~ s/\.$//;
-			$bio .= ' (' . HTML::Entities::encode($d) . ')';
+			$bio .= " ($d)";
 		}
 		$end_of_sentence = 0;
 	}
@@ -3682,28 +3682,6 @@ sub notes
 	my $person = $params{'person'};
 	my $paragraph = $params{'paragraph'};
 
-	my $ufinder = URI::Find::Schemeless->new(sub {
-		my($uri, $orig_uri) = @_;
-
-		if($orig_uri =~ /(.+):$/) {
-			$orig_uri = $1;
-		}
-		my $u = URI->new($orig_uri);
-		if($u && (ref($u) ne 'URI::_generic')) {
-			if(!head($orig_uri)) {
-				if($opts{'f'}) {
-					die $person->as_string, ": $orig_uri: in notes is not found";
-				}
-				red_warning({ person => $person, warning => "$orig_uri: in notes is not found" });
-			}
-			$uri =~ s/:$//;
-			return "<a HREF=\"$uri\">" .
-				$u->host() .
-				'</a>';
-		}
-		return $orig_uri;
-	});
-
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
 	# my @deathnotes = $person, value => 'death note' });
 	my $rc = $record->get_value();
@@ -3758,6 +3736,28 @@ sub notes
 		}
 	}
 	if(defined($rc)) {
+		my $ufinder = URI::Find::Schemeless->new(sub {
+			my($uri, $orig_uri) = @_;
+
+			if($orig_uri =~ /(.+):$/) {
+				$orig_uri = $1;
+			}
+			my $u = URI->new($orig_uri);
+			if($u && (ref($u) ne 'URI::_generic')) {
+				if(!head($orig_uri)) {
+					if($opts{'f'}) {
+						die $person->as_string, ": $orig_uri: in notes is not found";
+					}
+					red_warning({ person => $person, warning => "$orig_uri: in notes is not found" });
+				}
+				$uri =~ s/:$//;
+				return "<a HREF=\"$uri\">" .
+					$u->host() .
+					'</a>';
+			}
+			return $orig_uri;
+		});
+
 		$rc =~ s/\n/<br>/g;
 		$rc =~ s/\s\s+/ /g;
 		$rc =~ s/ $//;
