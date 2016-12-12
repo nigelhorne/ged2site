@@ -199,6 +199,7 @@ sub doit
 		$fb->init(
 			cache => $buffercache,
 			# generate_304 => 0,
+			cache_age => '1 day',
 		);
 		if($fb->is_cached()) {
 			return;
