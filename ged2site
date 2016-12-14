@@ -2056,7 +2056,7 @@ sub print_person
 				$d =~ s/\.$//;
 				$bio .= " ($b)";
 			}
-			$bio .= "[$_]" foreach(@deathcitations);
+			$bio .= "[$_]" foreach(sort @deathcitations);
 			my $opts = {
 				person => $person,
 				place => $placeofburial,
@@ -3386,6 +3386,7 @@ sub Gedcom::Individual::relationship
 					6 << 8 | 3 => 'second cousin three-times-removed',
 					6 << 8 | 4 => 'third cousin twice-removed',
 					6 << 8 | 5 => 'fourth cousin once-removed',
+					6 << 8 | 6 => 'sixth cousin',
 					7 << 8 | 3 => 'second cousin four-times-removed',
 					7 << 8 | 4 => 'third cousin three-times-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
@@ -3410,6 +3411,7 @@ sub Gedcom::Individual::relationship
 					6 << 8 | 3 => 'second cousin three-times-removed',
 					6 << 8 | 4 => 'third cousin twice-removed',
 					6 << 8 | 5 => 'fourth cousin once-removed',
+					6 << 8 | 6 => 'sixth cousin',
 					7 << 8 | 3 => 'second cousin four-times-removed',
 					7 << 8 | 4 => 'third cousin three-times-removed',
 					7 << 8 | 5 => 'fourth cousin twice-removed',
