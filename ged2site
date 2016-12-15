@@ -2989,10 +2989,6 @@ sub print_person
 				if($record->date()) {
 					$text .= ' ' . year({ person => $person, record => $record });
 				}
-				if(my $note = $record->note()) {
-					$note =~ s/\n/<br>/gs;
-					$text .= "<br>$note";
-				}
 				$annotation .= "<p>$text</p>";
 			}
 		}
