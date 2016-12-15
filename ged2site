@@ -2256,6 +2256,22 @@ sub print_person
 				} else {
 					$place_records{'Travelled to'} = $event;
 				}
+			} elsif($type eq 'Departure') {
+				$bio .= ' ' . $person->pronoun();
+				if($ENV{'LANG'} =~ /^en_US/) {
+					$bio .= ' traveled';
+				} else {
+					$bio .= ' travelled';
+				}
+				my $place = place({ person => $person, record => $events[0] });
+				$place =~ s/^\sin/ from/;
+				$bio .= "$place " .
+					year({ person => $person, record => $events[0] });
+				if(my $notes = notes({ record => $event })) {
+					$notes = lcfirst($notes);
+					$bio .= " ($notes)";
+				}
+				$bio .= '. ';
 			} elsif($type eq 'Military service') {
 				$bio .= '.' if(!$end_of_sentence);
 				$bio .= " $pronoun served in the military";
