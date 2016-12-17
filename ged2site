@@ -2054,7 +2054,7 @@ sub print_person
 				$d =~ tr/\r//;
 				$d =~ tr/\n/ /;
 				$d =~ s/\.$//;
-				$bio .= " ($b)";
+				$bio .= " ($d)";
 			}
 			$bio .= "[$_]" foreach(sort @deathcitations);
 			my $opts = {
