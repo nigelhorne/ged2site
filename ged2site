@@ -3010,7 +3010,7 @@ sub print_person
 		}
 		if($current_place) {
 			if(!defined($map)) {
-				my %args;
+				my %args = (z_index => -1);
 				if($opts{'M'}) {
 					$args{'api_key'} = $opts{'M'};
 				}
