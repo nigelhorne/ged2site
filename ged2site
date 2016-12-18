@@ -2996,8 +2996,7 @@ sub print_person
 					}
 					$current_place = $place;
 					Time::HiRes::usleep(100000) unless($opts{'M'});
-				}
-				if(!defined($current_place)) {
+				} elsif(!defined($current_place)) {
 					$current_place = $place;
 				}
 				my $text = $event;
