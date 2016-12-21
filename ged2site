@@ -36,7 +36,9 @@ use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::OSM;
+use Geo::Coder::GooglePlaces;
 # use Geo::Coder::Canada;
+use HTML::GoogleMaps::V3;
 use Term::ANSIColor;
 use HTML::Entities;
 use HTTP::Cache::Transparent;
@@ -48,7 +50,6 @@ use Image::Info;
 use URI;
 use URI::Find::Schemeless;
 use LWP::UserAgent;
-use HTML::GoogleMaps::V3;
 use Sort::Key::DateTime;
 use String::ProgressBar;
 use Text::Names;
@@ -80,12 +81,22 @@ if($ARGV[1]) {
 	$ged2 = Gedcom->new(gedcom_file => $ARGV[1], read_only => 1);
 }
 my $dfn = DateTime::Format::Natural->new();
-my $geocoder = Geo::Coder::OSM->new();
+my $osm = Geo::Coder::OSM->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $ninemonths = DateTime::Duration->new(months => 9);
 my $sixteenyears = DateTime::Duration->new(years => 16);
 my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
+
+my %gp_args;
+if($opts{'M'}) {
+	$gp_args{'key'} = $opts{'M'};
+}
+my $l = $ENV{'LANG'};
+if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
+	$gp_args{'language'} = lc($1);
+}
+my $google_places = Geo::Coder::GooglePlaces->new(%gp_args);
 
 # FIXME: Do this properly
 my %censusmaps = (
@@ -644,8 +655,7 @@ sub print_person
 		open(my $html, '>', 'static-site/index.html');
 		print $html "<html><head><title>The Family Tree $name</title>",
 			'<meta http-equiv="Refresh" content="1;URL=', make_filename_from_person(person => $person), '">';
-		if($ENV{'LANG'}) {
-			my $lang = $ENV{'LANG'};
+		if(my $lang = $ENV{'LANG'}) {
 			$lang =~ s/\.UTF-8//;
 			$lang =~ tr/_/-/;
 			$lang = lc($lang);
@@ -2977,7 +2987,7 @@ sub print_person
 				$place =~ s/^\s(at|in)\s//;
 				if(defined($current_place) && ($place ne $current_place)) {
 					if(!defined($map)) {
-						my %args = (z_index => -1);
+						my %args = (geocoder => $google_places, z_index => -1);
 						if($opts{'M'}) {
 							$args{'api_key'} = $opts{'M'};
 						}
@@ -2988,7 +2998,7 @@ sub print_person
 					if($annotation) {
 						if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
 							if($opts{'w'}) {
-								red_warning({ person => $person, warning => "$current_place isn't known by Google Maps" });
+								red_warning({ person => $person, warning => "$current_place isn't known by Google Places" });
 							}
 						}
 						$annotation = undef;
@@ -3010,7 +3020,7 @@ sub print_person
 		}
 		if($current_place) {
 			if(!defined($map)) {
-				my %args = (z_index => -1);
+				my %args = (geocoder => $google_places, z_index => -1);
 				if($opts{'M'}) {
 					$args{'api_key'} = $opts{'M'};
 				}
@@ -3021,7 +3031,7 @@ sub print_person
 			if($annotation) {
 				if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
 					if($opts{'w'}) {
-						red_warning({ person => $person, warning => "$current_place isn't known by Google Maps" });
+						red_warning({ person => $person, warning => "$current_place isn't known by Google Places" });
 					}
 				}
 			} else {
@@ -3818,7 +3828,7 @@ sub validate_place
 			# Use only the town part
 			$town = $1;
 		}
-		if(!$geocoder->geocode($town)) {
+		if(!$osm->geocode($town)) {
 			my $found = 0;
 			# if(($place =~ /, Canada$/) &&
 			  # (my $ap = Lingua::EN::AddressParse->new(country => 'CA', auto_clean => 1, force_case => 1, force_post_code => 0))) {
