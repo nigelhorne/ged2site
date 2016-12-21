@@ -12,6 +12,9 @@
 
 # TODO: Move from CSV to XML
 
+# -d:	Download copies of objects rather than link to them, useful if the
+#	objects are on pay sites such as FMP
+
 use strict;
 use warnings;
 use autodie qw(:all);
@@ -238,9 +241,7 @@ foreach my $dir(@dirlist) {
 	mkdir $dir if(!-d $dir);
 }
 
-if($opts{'d'}) {
-	# Download copies of objects rather than link to them, useful if the
-	# objects are on pay sites such as FMP
+if($opts{'d'} || $opts{'m'}) {
 	my $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'http-cache-transparent');
 	if(!-d $cachedir) {
 		mkdir $cachedir || die "$cachedir: $!";
