@@ -37,6 +37,8 @@ use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::OSM;
 use Geo::Coder::GooglePlaces;
+use Geo::Coder::List;
+use Geo::Coder::Google;
 # use Geo::Coder::Canada;
 use HTML::GoogleMaps::V3;
 use Term::ANSIColor;
@@ -81,7 +83,6 @@ if($ARGV[1]) {
 	$ged2 = Gedcom->new(gedcom_file => $ARGV[1], read_only => 1);
 }
 my $dfn = DateTime::Format::Natural->new();
-my $osm = Geo::Coder::OSM->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $ninemonths = DateTime::Duration->new(months => 9);
 my $sixteenyears = DateTime::Duration->new(years => 16);
@@ -91,12 +92,21 @@ my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 my %gp_args;
 if($opts{'M'}) {
 	$gp_args{'key'} = $opts{'M'};
+	$gp_args{'api_key'} = $opts{'M'};
+}
+if($ENV{'GMAP_KEY'}) {
+	$gp_args{'key'} = $ENV{'GMAP_KEY'};
+	$gp_args{'api_key'} = $ENV{'GMAP_KEY'};
 }
 my $l = $ENV{'LANG'};
 if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 	$gp_args{'language'} = lc($1);
 }
-my $google_places = Geo::Coder::GooglePlaces->new(%gp_args);
+my $osm = Geo::Coder::OSM->new();
+my $geocoder = Geo::Coder::List->new()
+	->push(Geo::Coder::Google->new(%gp_args))
+	->push($osm)
+	->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
 # FIXME: Do this properly
 my %censusmaps = (
@@ -2987,8 +2997,7 @@ sub print_person
 				$place =~ s/^\s(at|in)\s//;
 				if(defined($current_place) && ($place ne $current_place)) {
 					if(!defined($map)) {
-						# my %args = (geocoder => $google_places, z_index => -1);
-						my %args = (z_index => -1);
+						my %args = (geocoder => $geocoder, z_index => -1);
 						if($opts{'M'}) {
 							$args{'api_key'} = $opts{'M'};
 						}
@@ -3021,8 +3030,7 @@ sub print_person
 		}
 		if($current_place) {
 			if(!defined($map)) {
-				# my %args = (geocoder => $google_places, z_index => -1);
-				my %args = (z_index => -1);
+				my %args = (geocoder => $geocoder, z_index => -1);
 				if($opts{'M'}) {
 					$args{'api_key'} = $opts{'M'};
 				}
