@@ -63,8 +63,8 @@ use Data::Fetch;
 no lib '.';
 
 my %opts;
-getopts('cdfFg:h:lmM:wv', \%opts);
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google verification ] [ -h home-person-name ] [ -l ] [ -m ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
+getopts('cdfFG:g:h:J:lm:wv', \%opts);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google search verification ] [ -h home-person-name ] [ -l ] [ -m [-G Google Maps GeoLocation key ] [ -J Google Maps JavaScript key ] ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 my $me;
 my @myancestors;
@@ -90,9 +90,9 @@ my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
 my %gp_args;
-if($opts{'M'}) {
-	$gp_args{'key'} = $opts{'M'};
-	$gp_args{'api_key'} = $opts{'M'};
+if($opts{'G'}) {
+	$gp_args{'key'} = $opts{'G'};
+	$gp_args{'api_key'} = $opts{'G'};
 }
 if($ENV{'GMAP_KEY'}) {
 	$gp_args{'key'} = $ENV{'GMAP_KEY'};
@@ -104,8 +104,8 @@ if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 }
 my $osm = Geo::Coder::OSM->new();
 my $geocoder = Geo::Coder::List->new()
-	->push(Geo::Coder::Google->new(%gp_args))
 	->push($osm)
+	->push(Geo::Coder::Google->new(%gp_args))
 	->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
 # FIXME: Do this properly
@@ -683,7 +683,7 @@ sub print_person
 	if($opts{'m'}) {
 		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
 	} else {
-		if($opts{'M'}) {
+		if($opts{'G'}) {
 			die "$0: -M makes no sense without -m";
 		}
 		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
@@ -2998,12 +2998,12 @@ sub print_person
 				if(defined($current_place) && ($place ne $current_place)) {
 					if(!defined($map)) {
 						my %args = (geocoder => $geocoder, z_index => -1);
-						if($opts{'M'}) {
-							$args{'api_key'} = $opts{'M'};
+						if($opts{'J'}) {
+							$args{'api_key'} = $opts{'J'};
 						}
 						$map = HTML::GoogleMaps::V3->new(%args);
 						$map->center($current_place);
-						Time::HiRes::usleep(100000) unless($opts{'M'});
+						Time::HiRes::usleep(100000) unless($opts{'J'});
 					}
 					if($annotation) {
 						if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
@@ -3016,7 +3016,7 @@ sub print_person
 						$map->add_marker(point => $current_place, html => $current_place);
 					}
 					$current_place = $place;
-					Time::HiRes::usleep(100000) unless($opts{'M'});
+					Time::HiRes::usleep(100000) unless($opts{'J'});
 				} elsif(!defined($current_place)) {
 					$current_place = $place;
 				}
@@ -3031,12 +3031,12 @@ sub print_person
 		if($current_place) {
 			if(!defined($map)) {
 				my %args = (geocoder => $geocoder, z_index => -1);
-				if($opts{'M'}) {
-					$args{'api_key'} = $opts{'M'};
+				if($opts{'J'}) {
+					$args{'api_key'} = $opts{'G'};
 				}
 				$map = HTML::GoogleMaps::V3->new(%args);
 				$map->center($current_place);
-				Time::HiRes::usleep(100000) unless($opts{'M'});
+				Time::HiRes::usleep(100000) unless($opts{'J'});
 			}
 			if($annotation) {
 				if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
@@ -3047,17 +3047,17 @@ sub print_person
 			} else {
 				$map->add_marker(point => $current_place, html => $current_place);
 			}
-			Time::HiRes::usleep(100000) unless($opts{'M'});
+			Time::HiRes::usleep(100000) unless($opts{'J'});
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
 			# late now!
 			my ($head, $map_div) = $map->onload_render();
 			$head =~ s/http:/https:/;
-			if($opts{'M'}) {
-				# Don't include the key in the webpage.
-				$head =~ s/\?key=\w+?"/"/;
-			}
+			# if($opts{'M'}) {
+				# # Don't include the key in the webpage.
+				# $head =~ s/\?key=\w+?"/"/;
+			# }
 			print $html "$head<h2>Map</h2>$map_div\n";
 			print $csv MIME::Base64::encode_base64url($head), '!', MIME::Base64::encode_base64url($map_div), '!';
 		} else {
