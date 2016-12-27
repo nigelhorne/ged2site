@@ -1594,50 +1594,58 @@ sub print_person
 					$bio .= scalar(@spouses) . ' times';
 				}
 
-				my $names;
+				$bio .= ', to';
+
+				print $html $bio;
+				print $csv $bio;
+				$bio = '';
+
 				my $spousenumber = 0;
 				foreach my $spouse(@spouses) {
-					# $names .= ', ' if($names);
-					$names .= ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
+					print $html ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
 						$spouse->as_string() . '</a>';
+					print $csv '<a href="?page=people&entry=', $spouse->{'xref'}, '">',
+						$spouse->as_string(),
+						'</a>';
+
 					my $dateofmarriage = get_value({ person => $spouse, value => 'marriage date' });
 					if(!defined($dateofmarriage)) {
-						my $marriage = $spouse->get_record('marriage') || $spouse->get_record('fams marriage');
-						if($marriage) {
+						if(my $marriage = $spouse->get_record('marriage') || $spouse->get_record('fams marriage')) {
 							$dateofmarriage = $marriage->date();
 						}
 					}
 					my $placeofmarriage = get_value({ person => $spouse, value => 'marriage place' });
 					if(!defined($placeofmarriage)) {
-						my $marriage = $spouse->get_record('marriage') || $spouse->get_record('fams marriage');
-						if($marriage) {
+						if(my $marriage = $spouse->get_record('marriage') || $spouse->get_record('fams marriage')) {
 							$placeofmarriage = $marriage->place();
 						}
 					}
 					if($dateofmarriage && $placeofmarriage) {
-						$names .= ' (' .
+						$bio = ' (' .
 							year({ string => $dateofmarriage }) .
 							place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed }) .
 							')';
 					} elsif($placeofmarriage) {
-						$names .= ' (' .
+						$bio = ' (' .
 							place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed }) .
 							')';
 					} elsif($dateofmarriage) {
-						$names .= ' (' .
+						$bio = ' (' .
 							year({ string => $dateofmarriage }) .
 							')';
 					}
 					$spousenumber++;
 					if($spousenumber == (scalar(@spouses) - 1)) {
-						$names .= ' and';
+						$bio .= ' and';
 					} elsif($spousenumber < (scalar(@spouses) - 1)) {
-						$names .= ',';
+						$bio .= ',';
 					}
+					print $html $bio;
+					print $csv $bio;
+					$bio = '';
 				}
 				# substr($names, rindex($names, ', '), 2, ' and ');
-				$bio .= ", to$names";
-				$bio .= "[$marriagecitation]" if($marriagecitation);
+				$bio = "[$marriagecitation]" if($marriagecitation);
 
 				# Determine if all the children are from one marriage, since that's
 				# easier to print.
@@ -1689,6 +1697,7 @@ sub print_person
 						} else {
 							$bio .= "$numberofchildren children";
 						}
+						# FIXME: do hyperlinks - needs to be correct for $csv and $html
 						my $childnames;
 						if($parentofall) {
 							if($numberofchildren == 2) {
@@ -1697,30 +1706,33 @@ sub print_person
 								$bio .= ', all with ' . $parentofall->as_string();
 							}
 							# TODO: only add hyperlink to dead children
-							$childnames = join(', ', map {
-								'<a href="' . make_filename_from_person(person => $_) . '">' .
-									$_->given_names() . '</a>'
-							} @children);
+							# $childnames = join(', ', map {
+								# '<a href="' . make_filename_from_person(person => $_) . '">' .
+									# $_->given_names() . '</a>'
+							# } @children);
+							$childnames = join(', ', @children);
 						} elsif($sex eq 'M') {
-							$childnames = join(', ', map {
-								my $mother = $_->mother();
-								'<a href="' . make_filename_from_person(person => $_) . '">' .
-									$_->given_names() . '</a>' .
-								' (with ' .
-								'<a href="' . make_filename_from_person(person => $mother) . '">' .
-									$mother->given_names() . '</a>' .
-								')'
-							} @children);
+							# $childnames = join(', ', map {
+								# my $mother = $_->mother();
+								# '<a href="' . make_filename_from_person(person => $_) . '">' .
+									# $_->given_names() . '</a>' .
+								# ' (with ' .
+								# '<a href="' . make_filename_from_person(person => $mother) . '">' .
+									# $mother->given_names() . '</a>' .
+								# ')'
+							# } @children);
+							$childnames = join(', ', @children);
 						} else {
-							$childnames = join(', ', map {
-								my $father = $_->father();
-								'<a href="' . make_filename_from_person(person => $_) . '">' .
-									$_->given_names() . '</a>' .
-								' (with ' .
-								'<a href="' . make_filename_from_person(person => $father) . '">' .
-									$father->given_names() . '</a>' .
-								')'
-							} @children);
+							# $childnames = join(', ', map {
+								# my $father = $_->father();
+								# '<a href="' . make_filename_from_person(person => $_) . '">' .
+									# $_->given_names() . '</a>' .
+								# ' (with ' .
+								# '<a href="' . make_filename_from_person(person => $father) . '">' .
+									# $father->given_names() . '</a>' .
+								# ')'
+							# } @children);
+							$childnames = join(', ', @children);
 						}
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						$bio .= ": $childnames";
