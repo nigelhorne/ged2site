@@ -64,7 +64,8 @@ no lib '.';
 
 my %opts;
 getopts('cdfFG:g:h:J:lm:wv', \%opts);
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google search verification ] [ -h home-person-name ] [ -l ] [ -m [-G Google Maps GeoLocation key ] [ -J Google Maps JavaScript key ] ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
+
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 my $me;
 my @myancestors;
@@ -3021,7 +3022,7 @@ sub print_person
 					if($annotation) {
 						if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
 							if($opts{'w'}) {
-								red_warning({ person => $person, warning => "$current_place isn't known by Google Places" });
+								red_warning({ person => $person, warning => "$current_place isn't found" });
 							}
 						}
 						$annotation = undef;
@@ -3055,7 +3056,7 @@ sub print_person
 			if($annotation) {
 				if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
 					if($opts{'w'}) {
-						red_warning({ person => $person, warning => "$current_place isn't known by Google Places" });
+						red_warning({ person => $person, warning => "$current_place isn't found" });
 					}
 				}
 			} else {
