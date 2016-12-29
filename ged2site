@@ -2375,6 +2375,7 @@ sub print_person
 						}
 					}
 					if($previous) {
+						# Two arrival records, put into one sentence for improved readability
 						my $date1 = year({ record => $previous });
 						my $date2 = year({ record => $event });
 						my $year1;
