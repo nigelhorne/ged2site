@@ -68,7 +68,7 @@ sub create_disc_cache {
 		);
 		$chi_args{'redis_options'} = \%redis_options;
 	} elsif($driver eq 'DBI') {
-		$chi_args{'dbh'} = DBI->Connect($config->{disc_cache}->{connect});
+		$chi_args{'dbh'} = DBI->connect($config->{disc_cache}->{connect});
 		$chi_args{'create_table'} = 1;
 	}
 	return CHI->new(%chi_args);
