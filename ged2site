@@ -1778,8 +1778,21 @@ sub print_person
 			}
 			if((ref($event) eq 'Gedcom::Record') &&
 			   (($event->type() =~ /^Census U[KS] (\d{4})$/) || ($event->type() eq 'Register UK 1939'))) {
-			   	my $newresidence = 1;
+				my $newresidence = 1;
 				foreach my $residence(@residences) {
+					if(!ref($residence)) {
+						my $r = $person->tag_record('EVEN', $index);
+						if(ref($r) eq 'Gedcom::Record') {
+							$residence = $r;
+						} else {
+							$r = $person->record(['residence', $index]);
+							if(ref($r) eq 'Gedcom::Record') {
+								$residence = $r;
+							} else {
+								next;	# Will warn below
+							}
+						}
+					}
 					if((ref($residence) eq 'Gedcom::Record') &&
 					  $residence->date() &&
 					  $event->date() &&
@@ -1946,19 +1959,19 @@ sub print_person
 					$place_records{"Residence/$count"} = $residence;
 				}
 				# Citation residence notes print later
-				if((!$opts{'c'}) && (my $notes = notes({ record => $residence }))) {
+				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence }))) {
 					$notes =~ s/\.$//;
 					$notes = lcfirst($notes);
 					$bio .= " ($notes)";
 				}
-				if($rdate) {
+				if($rdate) {	# residence has a date?
 					if(scalar(@residencelist) > 1) {
 						my $this_date = year({ person => $person, date => $rdate });
 						if($prev_date && ($prev_date eq $this_date)) {
 							if($opts{'f'}) {
 								die $person->name(), "Two residence records for $rdate";
 							}
-							red_warning({ person => $person, warning => "two residence records for $rdate" });
+							red_warning({ person => $person, warning => "Two residence records for $rdate" });
 						}
 						$bio .= " $this_date";
 						$prev_date = $this_date;
