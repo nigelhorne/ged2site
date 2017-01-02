@@ -3528,14 +3528,7 @@ sub year
 	}
 	if(($string =~ /^\d/) && ($string !~ /[a-z]$/i)) {
 		my $person = $params{'person'};
-		my $d;
-		eval {
-			$d = $date_parser->parse(date => $string);
-		};
-		if($d) {
-			$d = @{$d}[0];
-		}
-		if($d) {
+		if(my $d = date_parser_cached(date => $string)) {
 			$d = $dfn->parse_datetime($d->{'canonical'});
 			my $must_postdate = $params{'must_postdate'};
 			if($must_postdate) {
@@ -4260,10 +4253,10 @@ sub add_marker
 
 	if(my $annotation = $params{'annotation'}) {
 		if($map->add_marker(point => $place, html => "$place<br>$annotation")) {
-			if($opts{'w'}) {
-				red_warning({ person => $person, warning => "$place isn't found" });
-			}
 			return;
+		}
+		if($opts{'w'}) {
+			red_warning({ person => $person, warning => "$place isn't found" });
 		}
 		if($place =~ /,?(.+?),(.+?),(.+?),(.+?)$/) {
 			$place = "$1, $2, $3, $4";
@@ -4275,10 +4268,10 @@ sub add_marker
 		}
 	} else {
 		if($map->add_marker(point => $place, html => $place)) {
-			if($opts{'w'}) {
-				red_warning({ person => $person, warning => "$place isn't found" });
-			}
 			return;
+		}
+		if($opts{'w'}) {
+			red_warning({ person => $person, warning => "$place isn't found" });
 		}
 		if($place =~ /,?(.+?),(.+?),(.+?),(.+?)$/) {
 			$place = "$1, $2, $3, $4";
