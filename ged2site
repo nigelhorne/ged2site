@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2016, Nigel Horne
+# Copyright (C) 2015-2017, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -76,6 +76,7 @@ my $surnames;
 my %censuses;
 my %images;
 my %all_events;	# Maps events to people
+my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
@@ -293,6 +294,10 @@ memoize('stepsabove');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod\n";
+
+# TODO: Add a -p option to do something like this - it's useful in debugging
+# foreach my $person($ged->get_individual('Ellen Cowell')) {
+
 foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -575,7 +580,7 @@ sub print_person
 
 	my $dob = get_value({ person => $person, value => 'birth date' });
 
-	print 'Checking ', $person->as_string({ include_years => 1 }), "\n" if($opts{'v'});
+	print 'Processing ', $person->as_string({ include_years => 1 }), "\n" if($opts{'v'});
 
 	my @siblings = $person->siblings();
 	my $mother = $person->mother();
@@ -656,6 +661,8 @@ sub print_person
 		$title = $firstname;
 	}
 
+	print "Starting output\n" if($opts{'v'});
+
 	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
 	# print $xml '<entry>', $person->{'xref'}, "</entry><title>$title</title>";
 	print $csv $person->{'xref'}, "!$title!";
@@ -708,6 +715,7 @@ sub print_person
 		# print $xml '<alive>1</alive>';
 		print $csv '1!';
 		$bio = '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
+		print "Living person\n" if($opts{'v'});
 	} else {
 		print $csv '0!';
 		$surnames->{$surname}->{$title} = $person;
@@ -819,48 +827,28 @@ sub print_person
 	}
 
 	if($dateofbirth && ($dateofbirth !~ /^\d{3,4}$/) && ($dateofbirth =~ /^\d/) && ($dateofbirth !~ /[a-z]$/i)) {
-		my $d;
-		eval {
-			$d = $date_parser->parse(date => $dateofbirth);
-		};
-		if($d) {
-			$d = @{$d}[0];
-			if($d) {
-				$birth_dt = $dfn->parse_datetime($d->{'canonical'});
-			}
+		if(my $d = date_parser_cached(date => $dateofbirth)) {
+			$birth_dt = $dfn->parse_datetime($d->{'canonical'});
 		}
 	}
 	if($dateofmarriage && ($dateofmarriage !~ /^\d{3,4}$/) && ($dateofmarriage =~ /^\d/) && ($dateofmarriage !~ /[a-z]$/i)) {
-		my $d;
-		eval {
-			$d = $date_parser->parse(date => $dateofmarriage);
-		};
-		if($d) {
-			if($d = @{$d}[0]) {
-				$marriage_dt = $dfn->parse_datetime($d->{'canonical'});
-				if($birth_dt && $opts{'w'} && ($marriage_dt < ($birth_dt + $sixteenyears))) {
-					if($opts{'f'}) {
-						die $person->as_string(),
-							': married when less than 16 years old';
-					}
-					red_warning({
-						person => $person,
-						warning => 'married when less than 16 years old'
-					});
+		if(my $d = date_parser_cached(date => $dateofmarriage)) {
+			$marriage_dt = $dfn->parse_datetime($d->{'canonical'});
+			if($birth_dt && $opts{'w'} && ($marriage_dt < ($birth_dt + $sixteenyears))) {
+				if($opts{'f'}) {
+					die $person->as_string(),
+						': married when less than 16 years old';
 				}
+				red_warning({
+					person => $person,
+					warning => 'married when less than 16 years old'
+				});
 			}
 		}
 	}
 	if($dateofdeath && ($dateofdeath !~ /^\d{3,4}$/) && ($dateofdeath =~ /^\d/)) {
-		my $d;
-		eval {
-			$d = $date_parser->parse(date => $dateofdeath);
-		};
-		if($d) {
-			$d = @{$d}[0];
-			if($d) {
-				$death_dt = $dfn->parse_datetime($d->{'canonical'});
-			}
+		if(my $d = date_parser_cached(date => $dateofdeath)) {
+			$death_dt = $dfn->parse_datetime($d->{'canonical'});
 		}
 	}
 
@@ -901,8 +889,8 @@ sub print_person
 	my @burialcitations;
 	if($opts{'c'}) {
 		if($marriage) {
-			my $src = $marriage->source();
-			if($src) {
+			print "Check marriage source\n" if($opts{'v'});
+			if(my $src = $marriage->source()) {
 				$src = $ged->get_source($src) unless ref($src);
 				if(!defined($src)) {
 					if($opts{'w'}) {
@@ -923,6 +911,7 @@ sub print_person
 			}
 		}
 		if($burial) {
+			print "Check burial source\n" if($opts{'v'});
 			my @s = $burial->source();
 			foreach my $src(@s) {
 				$src = $ged->get_source($src) unless ref($src);
@@ -961,11 +950,15 @@ sub print_person
 
 	my @occupations = $person->get_value('occupation');
 
+	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
+
 	my @children;
 	foreach my $f($person->fams()) {
 		@children = (@children, $f->children());
 	}
 	my $numberofchildren = scalar(@children);
+
+	print "numberofchildren = $numberofchildren\n" if($opts{'v'});
 
 	my $relationship;
 	my $spouserelationship;
@@ -973,6 +966,7 @@ sub print_person
 	my %places_printed;
 
 	if($dateofbirth && $opts{'w'} && scalar(@siblings)) {
+		print 'Found ', scalar(@siblings), " siblings(s)\n" if($opts{'v'});
 		foreach my $sibling(@siblings) {
 			my $siblingbirth = get_value({ person => $sibling, value => 'birth date' });
 			if($siblingbirth && ($siblingbirth eq $dateofbirth) &&
@@ -986,8 +980,10 @@ sub print_person
 	}
 
 	if($me && ($person ne $me)) {
+		print "find relationship\n" if($opts{'v'});
 		$relationship = $me->relationship($person);
 		if((!$relationship) && scalar(@spouses)) {
+			print "find spousal relationship\n" if($opts{'v'});
 			if($person->spouse() eq $me) {
 				$relationship = ($sex eq 'F') ? 'wife' : 'husband';
 			} else {
@@ -1000,6 +996,7 @@ sub print_person
 				}
 			}
 		}
+		print 'relationship = ', ($relationship ? $relationship : 'unknown'), "\n" if($opts{'v'});
 	}
 
 	# TODO: print all occupations
@@ -1764,6 +1761,7 @@ sub print_person
 	my @events = $person->event();
 
 	if($opts{'l'} || !$was_alive) {
+		print "Handling residences\n" if($opts{'v'});
 		# FMP stores Censuses as events
 		my $index = 0;
 		foreach my $event(@events) {
@@ -2471,6 +2469,7 @@ sub print_person
 	print $csv '!';
 
 	if($opts{'l'} || !$was_alive) {
+		print "Create parents\n" if($opts{'v'});
 		print $html '</p>';
 		if($mother || $father) {
 			print $html "<h2>Parents</h2><ol>";
@@ -2546,6 +2545,7 @@ sub print_person
 
 	if($opts{'l'} || !$was_alive) {
 		if($opts{'c'} && $citationcount) {
+			print "Create citations\n" if($opts{'v'});
 			print $html '<h2>Citations</h2><ol>';
 			my $ufinder = URI::Find::Schemeless->new(sub {
 				my($uri, $orig_uri) = @_;
@@ -2691,6 +2691,7 @@ sub print_person
 
 			# Two passes, the first one where the links are pictures, the second where they are not
 			for(my $pass = 1; $pass <= 2; $pass++) {
+				print "Media pass $pass\n" if($opts{'v'});
 				OBJE: foreach my $o($person->obje()) {
 					my $obje = $ged->resolve_xref($o);
 					next if(!defined($obje));
@@ -2872,6 +2873,7 @@ sub print_person
 		print $csv '!';
 
 		if(defined($dot)) {
+			print "Create family tree\n" if($opts{'v'});
 			my $png = 'static-site/img/' . make_filename_from_object(object => $person) . '.png';
 			my $tmp = File::Temp->new();
 			my $filename = $tmp->filename();
@@ -3013,6 +3015,7 @@ sub print_person
 
 	my @place_events = keys %place_records;
 	if($opts{'m'} && ($opts{'l'}|| !$was_alive) && scalar(@place_events)) {
+		print "Create map\n" if($opts{'v'});
 		my $map;
 		my $current_place;
 		my $annotation;
@@ -3096,6 +3099,7 @@ sub print_person
 		print $csv '!!';
 	}
 	if($person->{'warnings'}) {
+		print "Create warnings\n" if($opts{'v'});
 		my $ufinder = URI::Find::Schemeless->new(sub {
 			my($uri, $orig_uri) = @_;
 
@@ -3140,6 +3144,8 @@ sub print_person
 	close $html;
 
 	$printed{$person->{'xref'}} = 1;
+
+	print "Done\n" if($opts{'v'});
 }
 
 sub Gedcom::Individual::as_string
@@ -3376,6 +3382,7 @@ sub Gedcom::Individual::relationship
 	}
 
 	foreach my $person1(@myancestors) {
+	die if($person1 eq $self);
 		if($person1 eq $other) {
 			# Direct ancestor
 			my $steps = stepsabove($self, $other, 0);
@@ -4200,14 +4207,7 @@ sub was_alive
 		return 0;
 	}
 	if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
-		my $d;
-		eval {
-			$d = $date_parser->parse(date => $dob);
-		};
-		if($d) {
-			$d = @{$d}[0];
-		}
-		if($d) {
+		if(my $d = date_parser_cached(date => $dob)) {
 			$d = $dfn->parse_datetime($d->{'canonical'});
 			if($d->strftime('%Y') < ($year - 120)) {
 				return 0;
@@ -4251,4 +4251,35 @@ sub make_filename_from_object
 	$rc =~ s/-$//;
 
 	return $rc;
+}
+
+# Genealogy::Gedcom::Date is expensive, so cache results
+sub date_parser_cached
+{
+	my %params;
+	
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(@_ % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'date'} = shift;
+	}
+
+	my $date = $params{'date'};
+
+	if($all_dates{$date}) {
+		print "$date is already known\n" if($opts{'v'});
+		return $all_dates{$date};
+	}
+	print "Parse date $date\n" if($opts{'v'});
+	my $d;
+	eval {
+		$d = $date_parser->parse(date => $date);
+	};
+	if($d) {
+		$d = @{$d}[0];
+		$all_dates{$date} = $d;
+		return $d;
+	}
 }
