@@ -1040,18 +1040,11 @@ sub print_person
 				my $all_siblings_have_dob = 1;
 				foreach my $sibling(@siblings) {
 					my $dob = get_value({ person => $sibling, value => 'birth date' });
-					if((!$dob) || ($dob =~ /[\/\-]/) || !$date_parser->parse(date => $dob)) {
+					if((!$dob) || ($dob =~ /[\/\-]/) || date_parser_cached(date => $dob)) {
 						$all_siblings_have_dob = 0;
 						last;
 					}
-					my $d;
-					eval {
-						$d = $date_parser->parse(date => $dob);
-					};
-					if($d) {
-						$d = @{$d}[0];
-					}
-					if($@ || !defined($d)) {
+					if(!date_parser_cached(date => $dob)) {
 						if($opts{'f'}) {
 							die $sibling->as_string(),
 								" has an invalid date of birth: $dob";
@@ -1072,17 +1065,8 @@ sub print_person
 				my $count = 1;
 				$print_sibling_count = 1;
 				foreach my $sibling(@siblings) {
-					my $dob = get_value({ person => $sibling, value => 'birth date' });
-					if($dob) {
-						my $d;
-						eval {
-							$d = $date_parser->parse(date => $dob);
-						};
-						if($d) {
-							$d = @{$d}[0];
-						}
-						if($d) {
-							$d = $dfn->parse_datetime($d->{'canonical'});
+					if(my $dob = get_value({ person => $sibling, value => 'birth date' })) {
+						if(my $d = date_parser_cached(date => $dob)) {
 							if($opts{'w'} &&
 							  ($dob =~ /^\d/) && ($dob !~ /[a-z]$/i) &&
 							  ($d < $birth_dt) &&
@@ -3036,16 +3020,7 @@ sub print_person
 						$map->center($current_place);
 						Time::HiRes::usleep(100000) unless($opts{'J'});
 					}
-					if($annotation) {
-						if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
-							if($opts{'w'}) {
-								red_warning({ person => $person, warning => "$current_place isn't found" });
-							}
-						}
-						$annotation = undef;
-					} else {
-						$map->add_marker(point => $current_place, html => $current_place);
-					}
+					add_marker(person => $person, map => $map, point => $current_place, annotation => $annotation);
 					$current_place = $place;
 					Time::HiRes::usleep(100000) unless($opts{'J'});
 				} elsif(!defined($current_place)) {
@@ -3070,15 +3045,7 @@ sub print_person
 				$map->center($current_place);
 				Time::HiRes::usleep(100000) unless($opts{'J'});
 			}
-			if($annotation) {
-				if(!$map->add_marker(point => $current_place, html => "$current_place<br>$annotation")) {
-					if($opts{'w'}) {
-						red_warning({ person => $person, warning => "$current_place isn't found" });
-					}
-				}
-			} else {
-				$map->add_marker(point => $current_place, html => $current_place);
-			}
+			add_marker(person => $person, map => $map, point => $current_place, annotation => $annotation);
 			Time::HiRes::usleep(100000) unless($opts{'J'});
 		}
 		if(defined($map)) {
@@ -3909,8 +3876,7 @@ sub validate_place
 				# Don't die because there are many
 				# false positives as locations
 				# may no longer exist
-				my $person = $params{'person'};
-				if($person) {
+				if(my $person = $params{'person'}) {
 					warn colored($person->as_string({ include_years => 1 }) . ": unknown location $place", 'red');
 				} else {
 					warn colored("Unknown location $place", 'red');
@@ -4281,5 +4247,46 @@ sub date_parser_cached
 		$d = @{$d}[0];
 		$all_dates{$date} = $d;
 		return $d;
+	}
+}
+
+sub add_marker
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+	my $map = $params{'map'};
+	my $place = $params{'place'};
+
+	if(my $annotation = $params{'annotation'}) {
+		if($map->add_marker(point => $place, html => "$place<br>$annotation")) {
+			if($opts{'w'}) {
+				red_warning({ person => $person, warning => "$place isn't found" });
+			}
+			return;
+		}
+		if($place =~ /,?(.+?),(.+?),(.+?),(.+?)$/) {
+			$place = "$1, $2, $3, $4";
+			if($map->add_marker(point => $place, html => "$place<br>$annotation")) {
+				return;
+			}
+			$place = "$2, $3, $4";
+			$map->add_marker(point => $place, html => "$place<br>$annotation");
+		}
+	} else {
+		if($map->add_marker(point => $place, html => $place)) {
+			if($opts{'w'}) {
+				red_warning({ person => $person, warning => "$place isn't found" });
+			}
+			return;
+		}
+		if($place =~ /,?(.+?),(.+?),(.+?),(.+?)$/) {
+			$place = "$1, $2, $3, $4";
+			if($map->add_marker(point => $place, html => $place)) {
+				return;
+			}
+			$place = "$2, $3, $4";
+			$map->add_marker(point => $place, html => $place);
+		}
 	}
 }
