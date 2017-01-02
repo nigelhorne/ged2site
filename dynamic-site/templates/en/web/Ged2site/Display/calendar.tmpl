@@ -36,7 +36,7 @@
 						[% FOREACH event IN events %]
 							{
 								title: '[% event.title %]: [% event.year %] [% event.event %]',
-								start: '2016-[% event.month | format('%02d') %]-[% event.day | format('%02d') %]',
+								start: '[% year %]-[% event.month | format('%02d') %]-[% event.day | format('%02d') %]',
 								url: '/cgi-bin/page.fcgi?page=people&entry=[% event.person %]'
 							},
 						[% END %]
