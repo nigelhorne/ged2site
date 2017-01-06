@@ -66,3 +66,9 @@ table {
 	width:940px;
 	text-align:center;
 }
+
+.citation {
+	position: relative;
+	bottom: 0.5em;
+	font-size: 0.8em;
+}

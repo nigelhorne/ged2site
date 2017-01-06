@@ -20,3 +20,9 @@ h2 {
 	font-size:20px;
 	color:gray
 }
+
+.citation {
+	position: relative;
+	bottom: 0.5em;
+	font-size: 0.8em;
+}

@@ -1275,7 +1275,7 @@ sub print_person
 						must_predate => $death_dt
 					});
 				}
-				$bio .= "[$_]" foreach(@birthcitations);
+				$bio .= "<span class=\"citation\">$_</span>" foreach(@birthcitations);
 				if($dateofbaptism || $placeofbaptism) {
 					if(scalar(@spouses)) {
 						$bio .= ', was';
@@ -1983,8 +1983,11 @@ sub print_person
 						}
 					}
 				}
+				my $incitation = 0;
 				if($residencecitations{$residence}) {
-					$bio .= '[' . $residencecitations{$residence} . ']';
+					my $citation = $residencecitations{$residence};
+					$bio .= "<span class=\"citation\">$citation";
+					$incitation = 1;
 				}
 				if($residence->place() &&
 				  (!$rdate) &&
@@ -1993,10 +1996,18 @@ sub print_person
 					my $peek = $residencelist[$count + 1];
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						if($residencecitations{$peek}) {
-							$bio .= '[' . $residencecitations{$peek} . ']';
+							my $citation = $residencecitations{$peek};
+							if($incitation) {
+								$bio .= ', ';
+							} else {
+								$bio .= "<span class=\"citation\">";
+							}
+							$bio .= $citation;
+							$incitation = 1;
 						}
 					}
 				}
+				$bio .= '</span>' if($incitation);
 				$count++;
 				if($count < (scalar(@residencelist) - 1)) {
 					$bio .= ';';
