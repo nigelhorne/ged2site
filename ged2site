@@ -3027,6 +3027,7 @@ sub print_person
 					}
 					add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
 					$current_place = $place;
+					$annotation = undef;
 					Time::HiRes::usleep(100000) unless($opts{'J'});
 				} elsif(!defined($current_place)) {
 					$current_place = $place;
