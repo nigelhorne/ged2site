@@ -1067,6 +1067,7 @@ sub print_person
 				foreach my $sibling(@siblings) {
 					if(my $dob = get_value({ person => $sibling, value => 'birth date' })) {
 						if(my $d = date_parser_cached(date => $dob)) {
+							$d = $dfn->parse_datetime($d->{'canonical'});
 							if($opts{'w'} &&
 							  ($dob =~ /^\d/) && ($dob !~ /[a-z]$/i) &&
 							  ($d < $birth_dt) &&
@@ -1882,7 +1883,8 @@ sub print_person
 					$all_residences_have_date = 0;
 					last;
 				}
-				if(!defined($date_parser->parse(date => $date))) {
+				$date = $date_parser->parse(date => $date);
+				if(!defined($date)) {
 					if($opts{'f'}) {
 						die $person->name(), ": Can't parse date '$date'";
 					}
@@ -1890,7 +1892,6 @@ sub print_person
 					$all_residences_have_date = 0;
 					last;
 				}
-				$date = $date_parser->parse(date => $date);
 				if(scalar(@{$date}) == 0) {
 					# e.g. "Apr/May/Jun 2016"
 					$all_residences_have_date = 0;
@@ -2496,14 +2497,7 @@ sub print_person
 			if($opts{'w'} && ($birth_dt || $death_dt)) {
 				my $dob = get_value({ person => $child, value => 'birth date' });
 				if($dob && ($dob !~ /^\d{3,4}$/) && ($dob =~ /^\d/)) {
-					my $d;
-					eval {
-						$d = $date_parser->parse(date => $dob);
-					};
-					if($d) {
-						$d = @{$d}[0];
-					}
-					if($d) {
+					if(my $d = date_parser_cached(date => $dob)) {
 						$d = $dfn->parse_datetime($d->{'canonical'});
 						if($birth_dt && ($d <= $birth_dt)) {
 							if($opts{'f'}) {
@@ -3031,7 +3025,7 @@ sub print_person
 						$map->center($current_place);
 						Time::HiRes::usleep(100000) unless($opts{'J'});
 					}
-					add_marker(person => $person, map => $map, point => $current_place, annotation => $annotation);
+					add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
 					$current_place = $place;
 					Time::HiRes::usleep(100000) unless($opts{'J'});
 				} elsif(!defined($current_place)) {
@@ -3056,7 +3050,7 @@ sub print_person
 				$map->center($current_place);
 				Time::HiRes::usleep(100000) unless($opts{'J'});
 			}
-			add_marker(person => $person, map => $map, point => $current_place, annotation => $annotation);
+			add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
 			Time::HiRes::usleep(100000) unless($opts{'J'});
 		}
 		if(defined($map)) {
