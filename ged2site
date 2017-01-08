@@ -1276,7 +1276,7 @@ sub print_person
 						must_predate => $death_dt
 					});
 				}
-				$bio .= "<span class=\"citation\">$_</span>" foreach(@birthcitations);
+				$bio .= cite(@birthcitations);
 				if($dateofbaptism || $placeofbaptism) {
 					if(scalar(@spouses)) {
 						$bio .= ', was';
@@ -1999,7 +1999,7 @@ sub print_person
 						if($residencecitations{$peek}) {
 							my $citation = $residencecitations{$peek};
 							if($incitation) {
-								$bio .= ', ';
+								$bio .= ',';
 							} else {
 								$bio .= "<span class=\"citation\">";
 							}
@@ -2097,7 +2097,7 @@ sub print_person
 				$d =~ s/\.$//;
 				$bio .= " ($d)";
 			}
-			$bio .= "[$_]" foreach(sort @deathcitations);
+			$bio .= cite(@deathcitations);
 			my $opts = {
 				person => $person,
 				place => $placeofburial,
@@ -2124,7 +2124,7 @@ sub print_person
 			}
 			$end_of_sentence = 0;
 		}
-		$bio .= "[$_]" foreach(sort @burialcitations);
+		$bio .= cite(@burialcitations);
 	} elsif($placeofdeath || $dateofdeath) {
 		# TODO - extract marriage banns information
 		if($person->marriage_bann()) {
@@ -2168,7 +2168,7 @@ sub print_person
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
 			$bio .= place({ person => $person, place => $placeofdeath });
 		}
-		$bio .= "[$_]" foreach(sort @deathcitations);
+		$bio .= cite(@deathcitations);
 
 		# Print notes about the death, if any
 		if(defined($death) && (my $d = notes({ person => $person, record => $death, paragraph => 0 }))) {
@@ -3422,6 +3422,7 @@ sub Gedcom::Individual::relationship
 					3 << 8 | 3 => 'second cousin',
 					3 << 8 | 4 => 'second cousin once-removed',
 					4 << 8 | 2 => 'first cousin twice-removed',
+					4 << 8 | 3 => 'second cousin once-removed',
 					5 << 8 | 2 => 'first cousin three-times-removed',
 					5 << 8 | 3 => 'second cousin twice-removed',
 					6 << 8 | 3 => 'second cousin three-times-removed',
@@ -3447,6 +3448,7 @@ sub Gedcom::Individual::relationship
 					3 << 8 | 4 => 'second cousin once-removed',
 					4 << 8 | 1 => 'great-great-aunt',
 					4 << 8 | 2 => 'first cousin twice-removed',
+					4 << 8 | 3 => 'second cousin once-removed',
 					5 << 8 | 2 => 'first cousin three-times-removed',
 					5 << 8 | 3 => 'second cousin twice-removed',
 					6 << 8 | 3 => 'second cousin three-times-removed',
@@ -4288,4 +4290,21 @@ sub add_marker
 			$map->add_marker(point => $place, html => $place);
 		}
 	}
+}
+
+sub cite
+{
+	# my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my %params;
+	
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(@_ % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'citations'} = \@_;
+	}
+
+	return '<span class="citation">' . join(',', sort(@{$params{'citations'}})) . '</span>';
 }
