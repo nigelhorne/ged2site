@@ -1567,7 +1567,7 @@ sub print_person
 						}
 						$bio .= ' ' . year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
 					}
-					$bio .= "[$marriagecitation]" if($marriagecitation);
+					$bio .= cite(($marriagecitation));
 				}
 			} elsif($opts{'l'} || !$was_alive) {
 				$bio .= ' was married ';
@@ -1628,7 +1628,7 @@ sub print_person
 					$bio = '';
 				}
 				# substr($names, rindex($names, ', '), 2, ' and ');
-				$bio = "[$marriagecitation]" if($marriagecitation);
+				$bio = cite(($marriagecitation));
 
 				# Determine if all the children are from one marriage, since that's
 				# easier to print.
