@@ -4306,5 +4306,7 @@ sub cite
 		$params{'citations'} = \@_;
 	}
 
+	return '' unless($params{'citations'});
+
 	return '<span class="citation">' . join(',', sort(@{$params{'citations'}})) . '</span>';
 }
