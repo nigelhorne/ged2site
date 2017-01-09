@@ -798,9 +798,40 @@ sub print_person
 		$placeofbaptism = $baptism->place();
 	}
 
+	my @events = $person->event();
+
 	my $marriage = $person->get_record('marriage') || $person->get_record('fams marriage');
 	if((!defined($marriage)) && scalar(@spouses)) {
 		$marriage = $spouses[0]->get_record('marriage');
+		if((!defined($marriage)) && scalar(@spouses)) {
+			if(scalar(@events) == 1) {
+				my $event = $person->event();
+				if(!ref($event)) {
+					my $e = $person->tag_record('EVEN');
+					if(ref($e) eq 'Gedcom::Record') {
+						$event = $e;
+					}
+				}
+				if(ref($event) eq 'Gedcom::Record') {
+					my $type = $event->type();
+					if($type eq 'Custom Marriage') {
+						# FindMyPast
+						$marriage = $event;
+					}
+				}
+			} else {
+				foreach my $event(@events) {
+					if(ref($event) eq 'Gedcom::Record') {
+						my $type = $event->type();
+						if($type eq 'Custom Marriage') {
+							# FindMyPast
+							$marriage = $event;
+							last;
+						}
+					}
+				}
+			}
+		}
 	}
 	my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
 	if((!$dateofmarriage) && $marriage) {
@@ -1743,7 +1774,6 @@ sub print_person
 	my $printed_residence = 0;
 	my %citationnotes;
 	my @residences = $person->residence();
-	my @events = $person->event();
 
 	if($opts{'l'} || !$was_alive) {
 		print "Handling residences\n" if($opts{'v'});
@@ -2329,7 +2359,11 @@ sub print_person
 					$bio .= " (<em>$notes</em>)";
 				}
 				$end_of_sentence = 0;
-			} elsif(($type !~ /^Census U[KS] (\d{4})$/) && ($type ne 'Race') && ($type ne 'Register UK 1939')) {
+			} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
+				($type ne 'Race') &&
+				($type ne 'Custom Marriage') &&
+				($type ne 'Register UK 1939')) {
+
 				red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				if(my $notes = notes(record => $event)) {
 					$notes = ucfirst($notes);
