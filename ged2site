@@ -1598,7 +1598,9 @@ sub print_person
 						}
 						$bio .= ' ' . year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
 					}
-					$bio .= cite(($marriagecitation));
+					if($marriagecitation) {
+						$bio .= cite(($marriagecitation));
+					}
 				}
 			} elsif($opts{'l'} || !$was_alive) {
 				$bio .= ' was married ';
@@ -4341,6 +4343,9 @@ sub cite
 	}
 
 	return '' unless($params{'citations'});
+	my @citations = @{$params{'citations'}};
+	return unless($citations[0]);
+	return '' unless(scalar(@citations));
 
-	return '<span class="citation">' . join(',', sort(@{$params{'citations'}})) . '</span>';
+	return '<span class="citation">' . join(',', sort(@citations)) . '</span>';
 }
