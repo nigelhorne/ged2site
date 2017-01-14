@@ -923,6 +923,7 @@ sub print_person
 			print "Check marriage source\n" if($opts{'v'});
 			if(my $src = $marriage->source()) {
 				$src = $ged->get_source($src) unless ref($src);
+				# FIXME:  Only looks for matches in the first citations
 				if(!defined($src)) {
 					if($opts{'w'}) {
 						my $src = $marriage->source();
@@ -931,8 +932,8 @@ sub print_person
 						}
 						red_warning({ person => $person, warning => "marriage citation can't find source $src" });
 					}
-				} elsif($birthcitations[0] && (grep($src, @birthcitations))) {
-					$marriagecitation = grep($src, @birthcitations);
+				} elsif($birthcitations[0] && ($citations{$birthcitations[0]} eq $src)) {
+					$marriagecitation = $birthcitations[0];
 				} elsif($deathcitations[0] && ($citations{$deathcitations[0]} eq $src)) {
 					$marriagecitation = $deathcitations[0];
 				} else {
@@ -4338,7 +4339,7 @@ sub cite
 	
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
-	} elsif((@_ % 2 == 0) && ($_[0] !~ /^\d+$/)) {
+	} elsif((@_ % 2 == 0) && defined($_[0]) && ($_[0] !~ /^\d+$/)) {
 		%params = @_;
 	} else {
 		$params{'citations'} = \@_;
@@ -4346,7 +4347,7 @@ sub cite
 
 	return '' unless($params{'citations'});
 	my @citations = @{$params{'citations'}};
-	return unless($citations[0]);
+	return '' unless($citations[0]);
 	return '' unless(scalar(@citations));
 
 	return '<span class="citation">' . join(',', sort(@citations)) . '</span>';
