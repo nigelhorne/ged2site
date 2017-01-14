@@ -189,14 +189,16 @@ sub doit
 		lint_content => 0,
 		logger => $logger,
 		lingua => $lingua,
-		save_to => {
-			directory => File::Spec->catfile($config->rootdir(), 'save_to'),
-			ttl => 3600 * 24,
-			create_table => 1,
-		}
 	});
 	if(!$ENV{'REMOTE_ADDR'}) {
 		$fb->init(lint_content => 1);
+	}
+	if(!$info->is_search_engine()) {
+		$fb->init(save_to => {
+			directory => File::Spec->catfile($config->rootdir(), 'save_to'),
+			ttl => 3600 * 24,
+			create_table => 1
+		});
 	}
 	if($fb->can_cache()) {
 		$buffercache ||= create_disc_cache(config => $config, logger => $logger, namespace => $script_name, root_dir => $cachedir);

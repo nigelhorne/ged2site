@@ -296,7 +296,7 @@ open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod\n";
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
-# foreach my $person($ged->get_individual('Ellen Cowell')) {
+# foreach my $person($ged->get_individual('Dorothy Cowell')) {
 
 foreach my $person($ged->individuals()) {
 	$index++;
@@ -749,11 +749,11 @@ sub print_person
 			foreach my $src(@s) {
 				# $src = $ged->get_source($src) unless ref($src);
 				$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
-				if(defined($src) && $src->title()) {
-					if($previous && ($src->title() eq $previous)) {
+				if(defined($src) && (my $title = $src->title())) {
+					if($previous && ($title eq $previous)) {
 						next;
 					}
-					$previous = $src->title();
+					$previous = $title;
 					push @birthcitations, ++$citationcount;
 					$citations{$citationcount} = $src;
 				}
@@ -1473,6 +1473,8 @@ sub print_person
 				}
 			}
 		}
+
+		print "bio so far: $bio\n" if($opts{'v'});
 
 		if(scalar(@spouses) &&
 		   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
@@ -4336,7 +4338,7 @@ sub cite
 	
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
-	} elsif(@_ % 2 == 0) {
+	} elsif((@_ % 2 == 0) && ($_[0] !~ /^\d+$/)) {
 		%params = @_;
 	} else {
 		$params{'citations'} = \@_;
