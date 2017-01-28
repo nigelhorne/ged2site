@@ -12,8 +12,13 @@
 
 use warnings;
 use strict;
+use autodie qw(:all);
 
 use Tk;
+use Tk::ExecuteCommand;
+use Config::Auto;
+
+my $config = Config::Auto::parse();
 
 my $mw = MainWindow->new();
 
@@ -21,10 +26,10 @@ my $menubar = $mw->Menu(-type => 'menubar');
 $mw->configure(-menu => $menubar);
 
 my $f = $menubar->cascade(-label => '~File', -tearoff => 0);
-$f->command(-label => 'Open ...', -command => sub { file_open() });
+$f->command(-label => 'Generate ...', -command => sub { file_open() });
 $f->command(-label => 'Exit', -command => sub { exit(0) });
 
-MainLoop;
+MainLoop();
 
 sub file_open
 {
@@ -32,8 +37,21 @@ sub file_open
 	# $mw->BackTrace("Open: $args");
 
 	my @types = ([ 'Gedcom', '.ged', 'TEXT']);
-	my $file = $mw->getOpenFile(-filetypes => \@types, -defaultextension => '.ged');
+	my $file = $mw->getOpenFile(
+		-filetypes => \@types,
+		-defaultextension => '.ged',
+		-initialdir => $config->{'initialdir'}
+	);
 
 	# FIXME: options should be optional
-	system("./ged2site -mcdFw '$file'");
+	my $ec = $mw->ExecuteCommand(
+		-command => '',
+		-entryWidth => 50,
+		-height     => 10,
+		-label      => '',
+		-text       => 'Execute',
+	)->pack();
+	$ec->configure(-command => "./ged2site -mcdFw '$file'");
+	$ec->execute_command();
+	$ec->update();
 }
