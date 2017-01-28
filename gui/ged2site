@@ -17,6 +17,7 @@ use autodie qw(:all);
 use Tk;
 use Tk::ExecuteCommand;
 use Config::Auto;
+use File::Path;
 
 my $config = Config::Auto::parse();
 
@@ -40,16 +41,18 @@ sub file_open
 	my $file = $mw->getOpenFile(
 		-filetypes => \@types,
 		-defaultextension => '.ged',
-		-initialdir => $config->{'initialdir'}
+		-initialdir => $config->{'inputdir'}
 	);
+
+	File::Path::remove_tree('static-site', 'dynamic-site/img', 'dynamic-site/databases' , { keep_root => 1 });
 
 	# FIXME: options should be optional
 	my $ec = $mw->ExecuteCommand(
 		-command => '',
 		-entryWidth => 50,
 		-height     => 10,
-		-label      => '',
-		-text       => 'Execute',
+		-label      => 'Gedcom File',
+		-text       => 'Generate Website',
 	)->pack();
 	$ec->configure(-command => "./ged2site -mcdFw '$file'");
 	$ec->execute_command();
