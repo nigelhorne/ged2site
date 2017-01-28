@@ -106,8 +106,8 @@ if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 }
 my $osm = Geo::Coder::OSM->new();
 my $geocoder = Geo::Coder::List->new()
-	->push($osm)
 	->push(Geo::Coder::Google->new(%gp_args))
+	->push($osm)
 	->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
 # FIXME: Do this properly
