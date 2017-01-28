@@ -60,6 +60,8 @@ use Memoize;
 use Time::HiRes;
 use File::Copy;
 use Data::Fetch;
+use Config::Auto;
+
 no lib '.';
 
 my %opts;
@@ -190,8 +192,18 @@ my %censusmaps = (
 
 # $ged->validate();
 
-if($opts{h}) {
-	$me = $ged->get_individual($opts{h});
+my $config = Config::Auto::parse();
+
+my $home = $opts{h};
+unless(defined($home)) {
+	$home = $config->{'home'};
+	if(ref($home) eq 'ARRAY') {
+		$home = join(' ', @{$home});
+	}
+}
+
+if($home) {
+	$me = $ged->get_individual($home);
 	unless($me) {
 		die "$0: Can't find '$opts{h}' in $ARGV[0]";
 	}
@@ -4352,3 +4364,5 @@ sub cite
 
 	return '<span class="citation">' . join(',', sort(@citations)) . '</span>';
 }
+
+use Config::Auto;

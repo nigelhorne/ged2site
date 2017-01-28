@@ -46,8 +46,8 @@ The options are:
 If gedcal is installed, ged2site will also create a calendar of births and
 deaths, one page for each month in the current year.
 
-Note that the dynamic page generation is in its early stages of development so
-not all of the data is available yet.
+Some of the options can be stored in 'ged2site.conf':
+    -h: home
 
 Ancestry on Windows
 ===================
