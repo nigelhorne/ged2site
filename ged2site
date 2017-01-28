@@ -93,15 +93,27 @@ my $sixteenyears = DateTime::Duration->new(years => 16);
 my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
+my $config = Config::Auto::parse();
+
 my %gp_args;
+my $geolocation_key;
 if($opts{'G'}) {
-	$gp_args{'key'} = $opts{'G'};
-	$gp_args{'api_key'} = $opts{'G'};
+	$geolocation_key = $opts{'G'};
+} elsif($ENV{'GMAP_KEY'}) {	# Compatability with various CPAN modules
+	$geolocation_key = $ENV{'GMAP_KEY'};
+} elsif($config->{'google_maps_geolocation_key'}) {
+	$geolocation_key = $config->{'google_maps_gelocation_key'};
 }
-if($ENV{'GMAP_KEY'}) {
-	$gp_args{'key'} = $ENV{'GMAP_KEY'};
-	$gp_args{'api_key'} = $ENV{'GMAP_KEY'};
+$gp_args{'key'} = $geolocation_key;
+$gp_args{'api_key'} = $geolocation_key;
+
+my $javascript_key;
+if($opts{'J'}) {
+	$javascript_key = $opts{'J'};
+} elsif($config->{'google_maps_javascript_key'}) {
+	$javascript_key = $config->{'google_maps_javascript_key'};
 }
+
 my $l = $ENV{'LANG'};
 if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 	$gp_args{'language'} = lc($1);
@@ -191,8 +203,6 @@ my %censusmaps = (
 # }
 
 # $ged->validate();
-
-my $config = Config::Auto::parse();
 
 my $home = $opts{h};
 unless(defined($home)) {
@@ -491,13 +501,15 @@ print $html '</ul></body></html>';
 close $html;
 close $csv;
 
-if($opts{'g'}) {
-	open($html, '>', "static-site/$opts{g}.html");
-	print $html "google-site-verification: $opts{g}.html";
+my $key = $opts{'g'};
+unless(defined($key)) {
+	$key = $config->{'google_verification'};
+}
+if($key) {
+	open($html, '>', "static-site/$key.html");
+	print $html "google-site-verification: $key.html";
 	close $html;
-	open($html, '>', "dynamic-site/$opts{g}.html");
-	print $html "google-site-verification: $opts{g}.html";
-	close $html;
+	link "static-site/key.html", "dynamic-sites/$key.html";
 }
 
 if($gedcal) {
@@ -703,7 +715,7 @@ sub print_person
 	if($opts{'m'}) {
 		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
 	} else {
-		if($opts{'G'}) {
+		if($geolocation_key) {
 			die "$0: -M makes no sense without -m";
 		}
 		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
@@ -3069,17 +3081,17 @@ sub print_person
 					if(!defined($map)) {
 						# my %args = (geocoder => $geocoder, z_index => -1);
 						my %args = (geocoder => $geocoder);
-						if($opts{'J'}) {
-							$args{'api_key'} = $opts{'J'};
+						if($javascript_key) {
+							$args{'api_key'} = $javascript_key;
 						}
 						$map = HTML::GoogleMaps::V3->new(%args);
 						$map->center($current_place);
-						Time::HiRes::usleep(100000) unless($opts{'J'});
+						Time::HiRes::usleep(100000) unless($javascript_key);
 					}
 					add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
 					$current_place = $place;
 					$annotation = undef;
-					Time::HiRes::usleep(100000) unless($opts{'J'});
+					Time::HiRes::usleep(100000) unless($javascript_key);
 				} elsif(!defined($current_place)) {
 					$current_place = $place;
 				}
@@ -3095,15 +3107,15 @@ sub print_person
 			if(!defined($map)) {
 				# my %args = (geocoder => $geocoder, z_index => -1);
 				my %args = (geocoder => $geocoder);
-				if($opts{'J'}) {
-					$args{'api_key'} = $opts{'G'};
+				if($javascript_key) {
+					$args{'api_key'} = $javascript_key;
 				}
 				$map = HTML::GoogleMaps::V3->new(%args);
 				$map->center($current_place);
-				Time::HiRes::usleep(100000) unless($opts{'J'});
+				Time::HiRes::usleep(100000) unless($javascript_key);
 			}
 			add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
-			Time::HiRes::usleep(100000) unless($opts{'J'});
+			Time::HiRes::usleep(100000) unless($javascript_key);
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too

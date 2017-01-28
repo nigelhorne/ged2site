@@ -1,0 +1,39 @@
+#!/usr/bin/env perl
+
+# Author Nigel Horne: njh@bandsman.co.uk
+# Copyright (C) 2017, Nigel Horne
+
+# Usage is subject to licence terms.
+# The licence terms of this software are as follows:
+# Personal single user, single computer use: GPL2
+# All other users (including Commercial, Charity, Educational, Government)
+#	must apply in writing for a licence for use from Nigel Horne at the
+#	above e-mail.
+
+use warnings;
+use strict;
+
+use Tk;
+
+my $mw = MainWindow->new();
+
+my $menubar = $mw->Menu(-type => 'menubar');
+$mw->configure(-menu => $menubar);
+
+my $f = $menubar->cascade(-label => '~File', -tearoff => 0);
+$f->command(-label => 'Open ...', -command => sub { file_open() });
+$f->command(-label => 'Exit', -command => sub { exit(0) });
+
+MainLoop;
+
+sub file_open
+{
+	# my $args = @_;
+	# $mw->BackTrace("Open: $args");
+
+	my @types = ([ 'Gedcom', '.ged', 'TEXT']);
+	my $file = $mw->getOpenFile(-filetypes => \@types, -defaultextension => '.ged');
+
+	# FIXME: options should be optional
+	system("./ged2site -mcdFw '$file'");
+}

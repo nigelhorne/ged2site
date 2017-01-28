@@ -38,7 +38,7 @@ The options are:
     -h: set the home person
     -l: include living people
     -m: Generate a Google map on each page showing events
-    -J: Google Maps JavaScript API (used to display the map)
+    -J: Google Maps JavaScript API key (used to display the map)
     -G: Google Maps geolocation API key (used to populate the map)
     -w: print warning about inconsistent data - a sort of lint for Gedcom files,
 	may not do as many as gedcal(1)
@@ -48,6 +48,9 @@ deaths, one page for each month in the current year.
 
 Some of the options can be stored in 'ged2site.conf':
     -h: home
+    -g: google_verification
+    -G: google_maps_geolocation_key
+    -J: google_maps_javascript_key
 
 Ancestry on Windows
 ===================
