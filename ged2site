@@ -124,6 +124,8 @@ my $geocoder = Geo::Coder::List->new()
 	->push($osm)
 	->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
+# TODO: BMAP_KEY for Geo::Coder::Bing
+
 # FIXME: Do this properly
 my %censusmaps = (
 	'1841 England Census' => '1841 UK Census',
@@ -4290,7 +4292,7 @@ sub date_parser_cached
 	
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
-	} elsif(@_ % 2 == 0) {
+	} elsif(scalar(@_) % 2 == 0) {
 		%params = @_;
 	} else {
 		$params{'date'} = shift;
@@ -4363,7 +4365,7 @@ sub cite
 	
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
-	} elsif((@_ % 2 == 0) && defined($_[0]) && ($_[0] !~ /^\d+$/)) {
+	} elsif((scalar(@_) % 2 == 0) && defined($_[0]) && ($_[0] !~ /^\d+$/)) {
 		%params = @_;
 	} else {
 		$params{'citations'} = \@_;
