@@ -40,7 +40,7 @@ use Geo::Coder::GooglePlaces;
 use Geo::Coder::List;
 use Geo::Coder::Google;
 # use Geo::Coder::Canada;
-use HTML::GoogleMaps::V3;
+use HTML::GoogleMaps::V3 0.10;
 use Term::ANSIColor;
 use HTML::Entities;
 use HTTP::Cache::Transparent;
@@ -120,7 +120,7 @@ if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 }
 my $osm = Geo::Coder::OSM->new();
 my $geocoder = Geo::Coder::List->new()
-	->push(Geo::Coder::Google->new(%gp_args))
+	->push(Geo::Coder::Google->new())
 	->push($osm)
 	->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
