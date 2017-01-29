@@ -275,7 +275,7 @@ my $gedcal;
 if(-x '/usr/bin/gedcal') {
 	$gedcal = '/usr/bin/gedcal';
 } elsif(-x '/usr/local/bin/gedcal') {
-	$dot = '/usr/local/bin/gedcal';
+	$gedcal = '/usr/local/bin/gedcal';
 } elsif(-x '../gedcal/gedcal') {
 	$gedcal = '../gedcal/gedcal';
 }
@@ -1248,12 +1248,12 @@ sub print_person
 
 	if($firstname) {
 		if((!$was_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
-			if($father || $mother || $occupations[0]) {
-				$bio .= ', ';
-			}
 			if($opts{'l'} || $was_alive) {
-				$bio .= "<b>$firstname</b>";
 				if($relationship) {
+					if($father || $mother || $occupations[0]) {
+						$bio .= ', ';
+					}
+					$bio .= "<b>$firstname</b>";
 					if(($dob || $marriage) && (!($was_alive || $opts{'l'}))) {
 						$bio .= ',';
 					} elsif($was_alive) {
@@ -1263,6 +1263,9 @@ sub print_person
 					}
 				}
 			} else {
+				if($father || $mother || $occupations[0]) {
+					$bio .= ', ';
+				}
 				$bio .= "<b>$firstname " .
 					$name_components{'surname_1'} .
 					'</b>';
