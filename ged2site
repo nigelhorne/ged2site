@@ -511,7 +511,7 @@ if($key) {
 	open($html, '>', "static-site/$key.html");
 	print $html "google-site-verification: $key.html";
 	close $html;
-	link "static-site/key.html", "dynamic-sites/$key.html";
+	link "static-site/$key.html", "dynamic-sites/$key.html";
 }
 
 if($gedcal) {
