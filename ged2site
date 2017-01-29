@@ -499,9 +499,9 @@ foreach my $surname(sort keys %{$surnames}) {
 	close $shtml;
 }
 
+close $csv;
 print $html '</ul></body></html>';
 close $html;
-close $csv;
 
 my $key = $opts{'g'};
 unless(defined($key)) {
@@ -511,7 +511,10 @@ if($key) {
 	open($html, '>', "static-site/$key.html");
 	print $html "google-site-verification: $key.html";
 	close $html;
-	link "static-site/$key.html", "dynamic-sites/$key.html";
+	if(-r "dynamic-site/$key.html") {
+		unlink "dynamic-site/$key.html";
+	}
+	link "static-site/$key.html", "dynamic-site/$key.html";
 }
 
 if($gedcal) {
