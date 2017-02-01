@@ -1301,13 +1301,13 @@ sub print_person
 		}
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 			$spouse->as_string({ middle_names => 1, title => 1 }),
-			"</a>, the $spouserelationship of ",
+			"</a> the $spouserelationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>,';
 		print $csv ' <a href="?page=people&entry=', $spouse->{'xref'}, '">',
 			$spouse->as_string({ middle_names => 1, title => 1 }),
-			"</a>, the $spouserelationship of ",
+			"</a> the $spouserelationship of ",
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>,';
