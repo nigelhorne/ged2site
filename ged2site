@@ -2391,7 +2391,7 @@ sub print_person
 				}
 
 				if(my $notes = notes(record => $event)) {
-					$notes = lcfirst($notes) unless($notes =~ /^RAF/);
+					$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 					$notes =~ s/\.$//;
 					$bio .= " (<em>$notes</em>)";
 				}
@@ -2440,7 +2440,7 @@ sub print_person
 					}
 
 					if(my $notes = notes(record => $event)) {
-						$notes = lcfirst($notes) unless($notes =~ /^RAF/);
+						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 						$notes =~ s/\.$//;
 						$bio .= " (<em>$notes</em>)";
 					}
