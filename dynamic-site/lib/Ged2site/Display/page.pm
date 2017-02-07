@@ -177,7 +177,8 @@ sub http {
 	}
 
 	# https://www.owasp.org/index.php/Clickjacking_Defense_Cheat_Sheet
-	return $rc . "X-Frame-Options: SAMEORIGIN\n\n";
+	# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+	return $rc . "X-Frame-Options: SAMEORIGIN\nX-Content-Type-Options: nosniff\n\n";
 }
 
 sub html {
