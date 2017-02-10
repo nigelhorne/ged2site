@@ -132,6 +132,9 @@ sub fetchrow_hashref {
 		push @args, $args{$c1};
 	}
 	$query .= ' ORDER BY entry';
+	if($self->{'logger'}) {
+		$self->{'logger'}->debug("fetchrow_hashref $query: " . join(' ', @args));
+	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute(@args) || throw Error::Simple("$query: @args");
 	return $sth->fetchrow_hashref();

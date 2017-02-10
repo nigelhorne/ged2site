@@ -93,7 +93,9 @@ my $sixteenyears = DateTime::Duration->new(years => 16);
 my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
-my $config = Config::Auto::parse();
+my $config;
+
+eval { $config = Config::Auto::parse() };
 
 my %gp_args;
 my $geolocation_key;
@@ -101,7 +103,7 @@ if($opts{'G'}) {
 	$geolocation_key = $opts{'G'};
 } elsif($ENV{'GMAP_KEY'}) {	# Compatability with various CPAN modules
 	$geolocation_key = $ENV{'GMAP_KEY'};
-} elsif($config->{'google_maps_geolocation_key'}) {
+} elsif($config && $config->{'google_maps_geolocation_key'}) {
 	$geolocation_key = $config->{'google_maps_gelocation_key'};
 }
 $gp_args{'key'} = $geolocation_key;
@@ -110,7 +112,7 @@ $gp_args{'api_key'} = $geolocation_key;
 my $javascript_key;
 if($opts{'J'}) {
 	$javascript_key = $opts{'J'};
-} elsif($config->{'google_maps_javascript_key'}) {
+} elsif($config && $config->{'google_maps_javascript_key'}) {
 	$javascript_key = $config->{'google_maps_javascript_key'};
 }
 
@@ -207,7 +209,7 @@ my %censusmaps = (
 # $ged->validate();
 
 my $home = $opts{h};
-unless(defined($home)) {
+if((!defined($home)) && defined($config)) {
 	$home = $config->{'home'};
 	if(ref($home) eq 'ARRAY') {
 		$home = join(' ', @{$home});
@@ -320,9 +322,9 @@ open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod\n";
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
-# foreach my $person($ged->get_individual('Dorothy Cowell')) {
+foreach my $person($ged->get_individual('Dorothy Cowell')) {
 
-foreach my $person($ged->individuals()) {
+# foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
 		$| = 1;
@@ -504,7 +506,7 @@ print $html '</ul></body></html>';
 close $html;
 
 my $key = $opts{'g'};
-unless(defined($key)) {
+if((!defined($key)) && defined($config)) {
 	$key = $config->{'google_verification'};
 }
 if($key) {
@@ -2612,7 +2614,7 @@ sub print_person
 
 				my $u = URI->new($orig_uri);
 				if($u && (ref($u) ne 'URI::_generic')) {
-					if(!head($orig_uri)) {
+					if((!head($orig_uri)) && !get($orig_uri)) {
 						if($opts{'f'}) {
 							die $person->as_string, ": $orig_uri: not found";
 						}
@@ -3860,7 +3862,8 @@ sub notes
 			}
 			my $u = URI->new($orig_uri);
 			if($u && (ref($u) ne 'URI::_generic')) {
-				if(!head($orig_uri)) {
+				# Some sites give 404 on HEAD but work on GET
+				if((!head($orig_uri)) && !get($orig_uri)) {
 					if($opts{'f'}) {
 						die $person->as_string, ": $orig_uri: in notes is not found";
 					}
@@ -4343,6 +4346,7 @@ sub add_marker
 				return;
 			}
 			$place = "$2, $3, $4";
+			$place =~ s/^\s+//;
 			$map->add_marker(point => $place, html => "$place<br>$annotation");
 		}
 	} else {
