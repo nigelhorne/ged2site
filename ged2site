@@ -1067,14 +1067,21 @@ sub print_person
 		shift @occupations;
 	}
 
+	my $same_occupation_as_father;
+
 	if($occupations[0]) {
-		$bio = 'A';
-		if($occupations[0] =~ /^[aeiou]/i) {
-			$bio .= 'n';
-		}
-		$bio .= ' ' . HTML::Entities::encode(lc($occupations[0]));
-		if(!($father || $mother || $spouserelationship)) {
-			$bio .= ', ';
+		if($father->occupation() && ($occupations[0] eq $father->occupation())) {
+			$same_occupation_as_father = $occupations[0];
+			@occupations = ();
+		} else {
+			$bio = 'A';
+			if($occupations[0] =~ /^[aeiou]/i) {
+				$bio .= 'n';
+			}
+			$bio .= ' ' . HTML::Entities::encode(lc($occupations[0]));
+			if(!($father || $mother || $spouserelationship)) {
+				$bio .= ', ';
+			}
 		}
 	} elsif(scalar(@occupations)) {
 		if($opts{'w'}) {
@@ -1094,7 +1101,7 @@ sub print_person
 		if(scalar(@occupations)) {
 			$bio .= ' and the ';
 		} else {
-			$bio .= 'The ';
+			$bio = 'The ';
 		}
 
 		if($birth_dt && ($opts{'l'} || !$was_alive)) {
@@ -1186,17 +1193,19 @@ sub print_person
 					$father->as_string(),
 					'</a>';
 
-				my @occupations = $father->get_value('occupation');
-				# TODO: print $html all occupations
-				if($occupations[0]) {
-					print $html ' (a';
-					print $csv ' (a';
-					if($occupations[0] =~ /^[aeiou]/i) {
-						print $html 'n';
-						print $csv 'n';
+				if(!$same_occupation_as_father) {
+					my @occupations = $father->get_value('occupation');
+					# TODO: print $html all occupations
+					if($occupations[0]) {
+						print $html ' (a';
+						print $csv ' (a';
+						if($occupations[0] =~ /^[aeiou]/i) {
+							print $html 'n';
+							print $csv 'n';
+						}
+						print $html ' ', HTML::Entities::encode(lc($occupations[0])), ')';
+						print $csv ' ', HTML::Entities::encode(lc($occupations[0])), ')';
 					}
-					print $html ' ', HTML::Entities::encode(lc($occupations[0])), ')';
-					print $csv ' ', HTML::Entities::encode(lc($occupations[0])), ')';
 				}
 				if($mother) {
 					print $html ' and';
@@ -1815,6 +1824,17 @@ sub print_person
 	my @residences = $person->residence();
 
 	if($opts{'l'} || !$was_alive) {
+		if($same_occupation_as_father) {
+			$bio .= '. ' if(!$end_of_sentence);
+			$bio .= ' Like is father, ' . lcfirst($pronoun) .
+				(was_alive(person => $person) ? ' is a' : ' was a');
+			if($same_occupation_as_father =~ /^[aeiou]/i) {
+				$bio .= 'n';
+			}
+			$bio .= ' ' . lc($same_occupation_as_father) . '. ';
+			$end_of_sentence = 1;
+		}
+
 		print "Handling residences\n" if($opts{'v'});
 		# FMP stores Censuses as events
 		my $index = 0;
