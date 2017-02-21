@@ -1,8 +1,12 @@
 ged2site
 ========
 
-Converts a Gedcom file to HTML to create family tree website.
-An example dynamic genealogy website that was produced by Ged2site is available
+Convert a Gedcom file to HTML to create a family tree website.
+
+This is quite complex software, so if you are a genealogist looking to create
+a website and aren't an IT guru, it would be better to e-mail me on `<njh at nigelhorne.com>`.
+
+An example genealogy website that was produced by Ged2site is available
 at https://genealogy.nigelhorne.com.
 
 It's been tested more extensively with GedComs exported and downloaded from
@@ -47,6 +51,7 @@ If gedcal is installed, ged2site will also create a calendar of births and
 deaths, one page for each month in the current year.
 
 Some of the options can be stored in 'ged2site.conf':
+
     -h: home
     -g: google_verification
     -G: google_maps_geolocation_key
@@ -96,3 +101,11 @@ Graphviz for the family tree and Tree::Family from CPAN for the inspiration
 
 So many CPAN modules that if I list them all I'll miss one, but special mention
 	goes to the Gedcom module.
+
+# LICENSE AND COPYRIGHT
+
+Copyright 2015-2017 Nigel Horne.
+
+This program is released under the following licence: GPL for personal use on a single computer.
+All other users (including Commercial, Charity, Educational, Government)
+must apply in writing for a licence for use from Nigel Horne at `<njh at nigelhorne.com>`.
