@@ -1062,7 +1062,6 @@ sub print_person
 		print 'relationship = ', ($relationship ? $relationship : 'unknown'), "\n" if($opts{'v'});
 	}
 
-	# TODO: print all occupations
 	while($occupations[0] && (lc($occupations[0]) =~ /^school/i)) {
 		shift @occupations;
 	}
@@ -1078,7 +1077,9 @@ sub print_person
 			if($occupations[0] =~ /^[aeiou]/i) {
 				$bio .= 'n';
 			}
-			$bio .= ' ' . HTML::Entities::encode(lc($occupations[0]));
+			my $occupations = join(', ', @occupations);
+			substr($occupations, rindex($occupations, ', '), 2, ' and ');
+			$bio .= ' ' . HTML::Entities::encode(lc($occupations));
 			if(!($father || $mother || $spouserelationship)) {
 				$bio .= ', ';
 			}
