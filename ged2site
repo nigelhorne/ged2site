@@ -322,9 +322,9 @@ open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod\n";
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
-foreach my $person($ged->get_individual('Dorothy Cowell')) {
+# foreach my $person($ged->get_individual('Dorothy Cowell')) {
 
-# foreach my $person($ged->individuals()) {
+foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
 		$| = 1;
@@ -1079,7 +1079,14 @@ sub print_person
 			}
 			my $occupations = join(', ', @occupations);
 			substr($occupations, rindex($occupations, ', '), 2, ' and ');
-			$bio .= ' ' . HTML::Entities::encode(lc($occupations));
+			$bio .= ' ';
+			if($occupations[1]) {
+				my $alloccupations = join(', ', @occupations);
+				substr($alloccupations, rindex($alloccupations, ', '), 2, ' and ');
+				$bio .= HTML::Entities::encode(lc($alloccupations));
+			} else {
+				$bio .= HTML::Entities::encode(lc($occupations[0]));
+			}
 			if(!($father || $mother || $spouserelationship)) {
 				$bio .= ', ';
 			}
