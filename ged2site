@@ -1069,7 +1069,7 @@ sub print_person
 	my $same_occupation_as_father;
 
 	if($occupations[0]) {
-		if($father->occupation() && ($occupations[0] eq $father->occupation())) {
+		if($father && $father->occupation() && ($occupations[0] eq $father->occupation())) {
 			$same_occupation_as_father = $occupations[0];
 			@occupations = ();
 		} else {
