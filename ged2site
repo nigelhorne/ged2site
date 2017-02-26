@@ -323,9 +323,8 @@ print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!me
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dorothy Cowell')) {
-foreach my $person($ged->get_individual('William Deal')) {
 
-# foreach my $person($ged->individuals()) {
+foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
 		$| = 1;
