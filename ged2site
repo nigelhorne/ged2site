@@ -1074,7 +1074,7 @@ sub print_person
 		print 'relationship = ', ($relationship ? $relationship : 'unknown'), "\n" if($opts{'v'});
 	}
 
-	while($occupations[0] && (lc($occupations[0]) =~ /^school/i)) {
+	while($occupations[0] && (lc($occupations[0]) =~ /^scho(ol|lar)/i)) {
 		shift @occupations;
 	}
 
