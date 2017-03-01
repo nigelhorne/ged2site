@@ -2882,6 +2882,9 @@ sub print_person
 						} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
 							next OBJE if($pass == 2);
 							my $srcfile = $1;
+							if(!-r $srcfile) {
+								die $srcfile, ' does not exist on your filesystem!';
+							}
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							if(!-r $localfile) {
 								if($jpegtran) {
