@@ -1174,13 +1174,15 @@ sub print_person
 							}
 							$count++ if($d && ($d < $birth_dt));
 						} else {
-							$print_sibling_count = 0;
+							$all_siblings_have_dob = 0;
 							last;
 						}
 					}
 				}
-				if($print_sibling_count) {
-					if((scalar(@siblings)) && ($count == (scalar(@siblings) + 1))) {
+				if($all_siblings_have_dob) {
+					if(scalar(@siblings) && ($count == (scalar(@siblings) + 1))) {
+						$bio .= ((scalar(@siblings) > 1) ? 'eldest' : 'eldest');
+					} elsif(scalar(@siblings) && ($count == 1)) {
 						$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
 					} else {
 						$bio .= ordinate($count);
