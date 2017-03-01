@@ -2856,9 +2856,9 @@ sub print_person
 										# Flag a person having two images of the same
 										# name
 										if($opts{'f'}) {
-											die $person->as_string(), ': ', $localfile, ' duplicate filename';
+											die $person->as_string(), ": $localfile duplicate filename";
 										}
-										red_warning({ person => $person, warning => "duplicate filename: " . $obje->title() });
+										red_warning({ person => $person, warning => "duplicate filename: $localfile" });
 									}
 									my $tmp;
 									if($jpegtran) {
@@ -2882,8 +2882,13 @@ sub print_person
 						} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
 							next OBJE if($pass == 2);
 							my $srcfile = $1;
-							if(!-r $srcfile) {
-								die $srcfile, ' does not exist on your filesystem!';
+							if($opts{'w'} && !-r $srcfile) {
+								# Patch from github.com/cablespaghetti
+								if($opts{'f'}) {
+									die $person->as_string(), ': ', $srcfile, ' file not found';
+								}
+								red_warning({ person => $person, warning => "$srcfile: file not found" });
+								next OBJE;
 							}
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							if(!-r $localfile) {
