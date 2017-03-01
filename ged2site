@@ -516,7 +516,11 @@ if($key) {
 	if(-r "dynamic-site/$key.html") {
 		unlink "dynamic-site/$key.html";
 	}
-	link "static-site/$key.html", "dynamic-site/$key.html";
+	if($^O eq 'MSWin32') {
+		copy("static-site/$key.html", "dynamic-site/$key.html");
+	} else {
+		link "static-site/$key.html", "dynamic-site/$key.html";
+	}
 }
 
 if($gedcal) {
@@ -2868,7 +2872,11 @@ sub print_person
 									close $tmp;
 									$form = 'JPG';
 									$images{$key} = 1;
-									link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+									if($^O eq 'MSWin32') {
+										copy($localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg');
+									} else {
+										link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+									}
 								}
 							}
 						} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
@@ -2884,7 +2892,11 @@ sub print_person
 								} else {
 									copy($srcfile, $localfile);
 								}
-								link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+								if($^O eq 'MSWin32') {
+									copy($localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg');
+								} else {
+									link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+								}
 							}
 							$form = 'JPG';
 							my $key = $person->as_string() . ";$localfile";
@@ -2925,7 +2937,11 @@ sub print_person
 										$profile_image = "static-site/$localfile";
 									}
 									unless(-r "dynamic-site/$localfile") {
-										link "static-site/$localfile", "dynamic-site/$localfile";
+										if($^O eq 'MSWin32') {
+											copy("static-site/$localfile", "dynamic-site/$localfile");
+										} else {
+											link "static-site/$localfile", "dynamic-site/$localfile";
+										}
 									}
 								} else {
 									red_warning({ person => $person, warning => "static-site/$localfile: $!" });
