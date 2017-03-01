@@ -2882,12 +2882,14 @@ sub print_person
 						} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
 							next OBJE if($pass == 2);
 							my $srcfile = $1;
-							if($opts{'w'} && !-r $srcfile) {
+							if(!-r $srcfile) {
 								# Patch from github.com/cablespaghetti
 								if($opts{'f'}) {
-									die $person->as_string(), ': ', $srcfile, ' file not found';
+									die $person->as_string(), ": $srcfile file not found";
 								}
-								red_warning({ person => $person, warning => "$srcfile: file not found" });
+								if($opts{'w'}) {
+									red_warning({ person => $person, warning => "$srcfile: file not found" });
+								}
 								next OBJE;
 							}
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
