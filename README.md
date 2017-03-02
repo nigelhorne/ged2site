@@ -19,7 +19,7 @@ Typical usage:
 
 You will then have two sites created in sub directories
 - static-site is static HTML,
-- dynamic-site is a [VWF](//githib.com/nigelhorne/vwf) based website which uses templates to support more than one
+- dynamic-site is a [VWF](//github.com/nigelhorne/vwf) based website which uses templates to support more than one
 language and present different content to mobile/web/search-engine clients.
 
 If you decide to use the static site, just copy files in the static-site directory to your webserver.
@@ -44,7 +44,7 @@ The options are:
 | -m   | Generate a Google map on each page showing events |
 | -J   | Google Maps JavaScript API key (used to display the map) |
 | -G   | Google Maps geolocation API key (used to populate the map) |
-| -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcal](//githib.com/nigelhorne/gedcal)* |
+| -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcal](//github.com/nigelhorne/gedcal)* |
 
 If gedcal is installed, ged2site will also create a calendar of births and
 deaths, one page for each month in the current year.
