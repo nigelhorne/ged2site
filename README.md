@@ -6,7 +6,7 @@ Convert a Gedcom file to HTML to create a family tree website.
 This is quite complex software, so if you are a genealogist looking to create
 a website and aren't an IT guru, it would be better to e-mail me on `<njh at nigelhorne.com>`.
 
-An example genealogy website that was produced by Ged2site is available
+An example genealogy website that was produced by ged2site is available
 at https://genealogy.nigelhorne.com.
 
 It's been tested more extensively with GedComs exported and downloaded from
@@ -17,8 +17,9 @@ Typical usage:
 
     ged2site -cFdh 'Your Name' gedfile.ged
 
-You will then have two sites - static-site is static HTML,
-dynamic-site is a VWF based website which uses templates to support more than one
+You will then have two sites created in sub directories
+- static-site is static HTML,
+- dynamic-site is a [VWF](//nigelhorne/vwf) based website which uses templates to support more than one
 language and present different content to mobile/web/search-engine clients.
 
 If you decide to use the static site, just copy files in the static-site directory to your webserver.
@@ -45,17 +46,19 @@ The options are:
     -J: Google Maps JavaScript API key (used to display the map)
     -G: Google Maps geolocation API key (used to populate the map)
     -w: print warning about inconsistent data - a sort of lint for Gedcom files,
-	may not do as many as gedcal(1)
+	may not do as many as `[gedcal(1)](//nigelhorne/gedcal)`
 
 If gedcal is installed, ged2site will also create a calendar of births and
 deaths, one page for each month in the current year.
 
-Some of the options can be stored in 'ged2site.conf':
+Some of the options can be stored in *ged2site.conf*:
 
-    -h: home
-    -g: google_verification
-    -G: google_maps_geolocation_key
-    -J: google_maps_javascript_key
+| Flag | Meaning |
+| ---- | ------- |
+| -h   |  home |
+| -g   |  google_verification |
+| -G   |  google_maps_geolocation_key (also can be stored in the `GMAP_KEY` environment variable) |
+| -J   |  google_maps_javascript_key |
 
 Ancestry on Windows
 ===================
