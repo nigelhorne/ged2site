@@ -2401,12 +2401,27 @@ sub print_person
 				$bio .= ' ' . $person->pronoun() . ' arrived' .
 					place({ person => $person, record => $events[0] }) .
 					' ' .
-					year({ person => $person, record => $events[0] }) .
-					'.';
+					year({ person => $person, record => $events[0] });
+				if(my $spouse = $person->spouse()) {
+					foreach my $sevent($spouse->event()) {
+						if(ref($sevent) eq 'Gedcom::Record') {
+							if(($sevent->type() eq 'Arrival') &&
+							   ($event->date() eq $sevent->date()) &&
+							   ($event->place() eq $sevent->place())) {
+								$bio .= ' with ' .
+									lcfirst($person->possessive()) . ' ' .
+									($sex eq 'M') ? 'wife' : 'husband' .
+									' ' . $spouse->given_names();
+							}
+						}
+					}
+				}
 				if(my $notes = notes({ record => $event })) {
 					$notes = lcfirst($notes);
+					$notes =~ s/\.$//;
 					$bio .= " ($notes)";
 				}
+				print '. ';
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$place_records{'Traveled to'} = $event;
 				} else {
