@@ -1133,22 +1133,27 @@ sub print_person
 				# If possible, sort siblings by date of birth
 				my $all_siblings_have_dob = 1;
 				foreach my $sibling(@siblings) {
-					my $dob = get_value({ person => $sibling, value => 'birth date' });
-					if((!$dob) || ($dob =~ /[\/\-]/) || date_parser_cached(date => $dob)) {
-						$all_siblings_have_dob = 0;
-						last;
-					}
-					if(!date_parser_cached(date => $dob)) {
-						if($opts{'f'}) {
-							die $sibling->as_string(),
-								" has an invalid date of birth: $dob";
+					if(my $dob = get_value({ person => $sibling, value => 'birth date' })) {
+						if(($dob !~ /^\d/) || ($dob =~ /[a-z]$/i) ||
+						   ($dob =~ /[\/\-]/) || date_parser_cached(date => $dob)) {
+							$all_siblings_have_dob = 0;
+							last;
 						}
-						if($opts{'w'}) {
-							red_warning({
-								person => $sibling,
-								warning => "has an invalid date of birth: $dob"
-							});
+						if(!date_parser_cached(date => $dob)) {
+							if($opts{'f'}) {
+								die $sibling->as_string(),
+									" has an invalid date of birth: $dob";
+							}
+							if($opts{'w'}) {
+								red_warning({
+									person => $sibling,
+									warning => "has an invalid date of birth: $dob"
+								});
+							}
+							$all_siblings_have_dob = 0;
+							last;
 						}
+					} else {
 						$all_siblings_have_dob = 0;
 						last;
 					}
@@ -1929,7 +1934,9 @@ sub print_person
 				if(ref($residence) eq 'Gedcom::Record') {
 					my $place = $residence->place();
 					if(my $address = $residence->address()) {
-						if($place) {
+						if(ref($address) eq 'Gedcom::Record') {
+							$place = getaddress($address);
+						} elsif($place) {
 							$place = "$address, $place";
 						} elsif($opts{'f'}) {
 							die $person->string(), ": address set to $address but place is empty";
@@ -1977,7 +1984,7 @@ sub print_person
 								}
 							}
 						}
-					} elsif(!defined($place)) {
+					} else {
 						red_warning({ person => $person, warning => 'Residence record contains no location' });
 					}
 				}
@@ -2635,7 +2642,7 @@ sub print_person
 			}
 			if($opts{'w'} && ($birth_dt || $death_dt)) {
 				my $dob = get_value({ person => $child, value => 'birth date' });
-				if($dob && ($dob !~ /^\d{3,4}$/) && ($dob =~ /^\d/)) {
+				if($dob && ($dob !~ /^\d{3,4}$/) && ($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
 					if(my $d = date_parser_cached(date => $dob)) {
 						$d = $dfn->parse_datetime($d->{'canonical'});
 						if($birth_dt && ($d <= $birth_dt)) {
@@ -3352,7 +3359,7 @@ sub Gedcom::Individual::as_string
 
 	my $rc;
 
-	if($args{'title'}) {
+	if($args{'title'} && $name_components{'title_1'}) {
 		$rc = $name_components{'title_1'};
 		if($rc) {
 			$rc .= ' ';
@@ -3779,9 +3786,16 @@ sub place
 		return unless($place);
 
 		$address = $place->address();
-
-		$place = $place->place();
+		if(ref($address) eq 'Gedcom::Record') {
+			$place = getaddress($address);
+			$address = undef;
+		} else {
+			$place = $place->place();
+		}
 		return unless($place);
+	} elsif(ref($address) eq 'Gedcom::Record') {
+		$place = getaddress($address);
+		$address = undef;
 	}
 
 	# Google maps (and possibly others) sometimes works better with full names
@@ -3878,6 +3892,30 @@ sub place
 		$places_printed->{$place} = 1;
 	}
 	return HTML::Entities::encode($place);
+}
+
+sub getaddress {
+	my $address = shift;
+
+	my $rc;
+
+	if(my $city = $address->city()) {
+		$rc = $city;
+	}
+	if(my $state = $address->state()) {
+		if($rc) {
+			$rc .= ', ';
+		}
+		$rc .= $state;
+	}
+	if(my $country = $address->country()) {
+		if($rc) {
+			$rc .= ', ';
+		}
+		$rc .= $country;
+	}
+
+	return $rc;
 }
 
 sub notes
