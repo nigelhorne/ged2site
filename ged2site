@@ -1346,13 +1346,17 @@ sub print_person
 			"</a> the $spouserelationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
-			'</a>,';
+			'</a>';
 		print $csv ' <a href="?page=people&entry=', $spouse->{'xref'}, '">',
 			$spouse->as_string({ middle_names => 1, title => 1 }),
 			"</a> the $spouserelationship of ",
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
-			'</a>,';
+			'</a>';
+		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {
+			print $html ',';
+			print $csv ',';
+		}
 		$haveprintedspousename = 1;
 	}
 
@@ -1596,11 +1600,19 @@ sub print_person
 						$parentheses = 1;
 					}
 					if(my $soccupation = $spouses[0]->occupation()) {
-						$bio .= 'a';
-						if($soccupation =~ /^[aeiou]/i) {
-							$bio .= 'n';
+						if(ref($soccupation) eq 'Gedcom::Record') {
+							my @items = $soccupation->items();
+							$soccupation = $items[0]->value();
 						}
-						$bio .= ' ' . lc($soccupation) . ' ';
+						if($soccupation =~ /^self-employed$/i) {
+							$bio .= 'self-employed ';
+						} else {
+							$bio .= 'a';
+							if($soccupation =~ /^[aeiou]/i) {
+								$bio .= 'n';
+							}
+							$bio .= ' ' . lc($soccupation) . ' ';
+						}
 					}
 					$bio .= 'with whom ' . lcfirst($pronoun);
 					if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
