@@ -121,6 +121,10 @@ sub new {
 		}
 	}
 
+	unless($config->{'config_path'}) {
+		$config->{'config_path'} = $path;
+	}
+
 	return bless $config, $class;
 }
 
