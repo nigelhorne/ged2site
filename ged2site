@@ -3310,7 +3310,7 @@ sub Gedcom::Individual::as_string
 
 	if($args{'use_aka'}) {
 		my $n2 = $self->tag_record('NAME', 2);
-		if(defined($n2) && (ref($n2) eq 'Gedcom::Record') && defined($n2->type()) && ($n2->type() eq 'AlsoKnownAs')) {
+		if(defined($n2) && (ref($n2) eq 'Gedcom::Record') && defined($n2->type()) && ($n2->type() eq 'AlsoKnownAs') && ($n2->value() ne $self-name())) {
 			$name = $n2->value();
 		} else {
 			return;
