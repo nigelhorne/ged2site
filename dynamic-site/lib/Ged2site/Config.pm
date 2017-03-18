@@ -122,7 +122,7 @@ sub new {
 	}
 
 	unless($config->{'config_path'}) {
-		$config->{'config_path'} = $path;
+		$config->{'config_path'} = File::Spec->catdir($path, $info->domain_name())
 	}
 
 	return bless $config, $class;
