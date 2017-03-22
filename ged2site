@@ -912,11 +912,7 @@ sub print_person
 			}
 		}
 	}
-	if($dateofdeath && ($dateofdeath !~ /^\d{3,4}$/) && ($dateofdeath =~ /^\d/)) {
-		if(my $d = date_parser_cached(date => $dateofdeath)) {
-			$death_dt = $dfn->parse_datetime($d->{'canonical'});
-		}
-	}
+	$death_dt = date_to_datetime(date => $dateofdeath);
 
 	if($opts{'l'} || !$was_alive) {
 		# RT114091
@@ -1891,32 +1887,37 @@ sub print_person
 					red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
 				}
 			}
-			if((ref($event) eq 'Gedcom::Record') &&
-			   (($event->type() =~ /^Census U[KS] (\d{4})$/) || ($event->type() eq 'Register UK 1939'))) {
-				my $newresidence = 1;
-				foreach my $residence(@residences) {
-					if(!ref($residence)) {
-						my $r = $person->tag_record('EVEN', $index);
-						if(ref($r) eq 'Gedcom::Record') {
-							$residence = $r;
-						} else {
-							$r = $person->record(['residence', $index]);
+			if(ref($event) eq 'Gedcom::Record') {
+				my $type = $event->type();
+
+				if(($type =~ /^Census U[KS] (\d{4})$/) || ($type eq 'Register UK 1939')) {
+					my $newresidence = 1;
+					foreach my $residence(@residences) {
+						if(!ref($residence)) {
+							my $r = $person->tag_record('EVEN', $index);
 							if(ref($r) eq 'Gedcom::Record') {
 								$residence = $r;
 							} else {
-								next;	# Will warn below
+								$r = $person->record(['residence', $index]);
+								if(ref($r) eq 'Gedcom::Record') {
+									$residence = $r;
+								} else {
+									next;	# Will warn below
+								}
 							}
 						}
+						if((ref($residence) eq 'Gedcom::Record') &&
+						  $residence->date() &&
+						  $event->date() &&
+						  $residence->date() eq $event->date()) {
+							$newresidence = 0;
+							last;
+						}
 					}
-					if((ref($residence) eq 'Gedcom::Record') &&
-					  $residence->date() &&
-					  $event->date() &&
-					  $residence->date() eq $event->date()) {
-						$newresidence = 0;
-						last;
-					}
+					push @residences, $event if($newresidence);
+				} elsif($type eq 'Hospitalisation') {	# Find My Past
+					push @residences, $event;
 				}
-				push @residences, $event if($newresidence);
 			}
 		}
 
@@ -2038,6 +2039,10 @@ sub print_person
 			my $count = 0;
 			my $have_printed = 0;
 			my $prev_date;
+			my $spdeath_dt;
+			if($spouses[0]) {
+				$spdeath_dt = date_to_datetime(date => get_value({ person => $spouses[0], value => 'death date' }));
+			}
 			foreach my $residence(@residencelist) {
 				my $rdate = $residence->date();
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
@@ -2069,6 +2074,9 @@ sub print_person
 							record => $residence,
 							places_printed => \%places_printed
 						});
+						if($residence->type() && ($residence->type() eq 'Hospitalisation')) {
+							$bio .= ' in hospital';
+						}
 						$places_printed{$p} = 1;
 						$bio .= HTML::Entities::encode($p);
 						$places_printed{$p} = 1;
@@ -2115,6 +2123,16 @@ sub print_person
 									}
 								}
 							}
+						}
+					}
+					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
+						if($rdate_dt > $spdeath_dt) {
+							# TODO: add test of living with a child
+							$bio .= ' following the death of ' .
+								$person->pronoun() eq 'She' ? 'her' : 'his' .
+								($sex eq 'M') ? ' wife ' : ' husband ' .
+								year(date => get_value({ person => $spouses[0], value => 'death date' }));
+							$spdeath_dt = undef;
 						}
 					}
 				}
@@ -2590,7 +2608,8 @@ sub print_person
 					$end_of_sentence = 1;
 				} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
 					($type ne 'Register UK 1939') &&
-					($type ne 'Race')) {
+					($type ne 'Race') &&
+					($type ne 'Hospitalisation')) {
 					red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				}
 			}
@@ -4460,6 +4479,26 @@ sub date_parser_cached
 		$d = @{$d}[0];
 		$all_dates{$date} = $d;
 		return $d;
+	}
+}
+
+sub date_to_datetime
+{
+	my %params;
+	
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'date'} = shift;
+	}
+
+	my $date = $params{'date'};
+	if($date && ($date !~ /^\d{3,4}$/) && ($date =~ /^\d/)) {
+		if(my $d = date_parser_cached($date)) {
+			return $dfn->parse_datetime($d->{'canonical'});
+		}
 	}
 }
 
