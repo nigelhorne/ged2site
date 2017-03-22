@@ -1618,6 +1618,8 @@ sub print_person
 					} else {
 						$bio .= $dateofdeath || $dateofburial ? ' had ' : ' has ';
 					}
+					# FIXME: currently lists all children even if some where not with this
+					# spouse
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
 							$bio .= '1 surviving child, ';
@@ -2060,7 +2062,7 @@ sub print_person
 							$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate })) .
 								' ' . lcfirst($pronoun) . ' was living';
 						} else {
-							$bio .= ' During ' .
+							$bio .= '<p>During ' .
 								lc($person->possessive()) .
 								' life ' . lcfirst($pronoun) . ' lived';
 						}
@@ -2133,6 +2135,48 @@ sub print_person
 								($sex eq 'M') ? ' wife ' : ' husband ' .
 								year(date => get_value({ person => $spouses[0], value => 'death date' }));
 							$spdeath_dt = undef;
+						}
+					}
+					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
+						if($rdate_dt > $spdeath_dt) {
+							# Living with a child following death of spouse?
+							CHILD: foreach my $child(@children) {
+								my @cevents = $child->event();
+								my $index = 0;
+								EVENT: foreach my $event(@cevents) {
+									$index++;
+									if(!ref($event)) {
+										my $e = $child->tag_record('EVEN', $index);
+										if(ref($e) eq 'Gedcom::Record') {
+											$event = $e;
+										} else {
+											# red_warning({ person => $child, warning => "Event record is just description ($event), infomation has been lost" });
+											next EVENT;
+										}
+									}
+									my $type = $event->type();
+
+									if(($type !~ /^Census U[KS] (\d{4})$/) && ($type ne 'Register UK 1939')) {
+										next EVENT;
+									}
+									if((ref($event) eq 'Gedcom::Record') &&
+									   $event->date() && ($event->date() eq $rdate) &&
+									   places_are_the_same({ first => $residence, second => $event })) {
+										$bio .= ' when ' . lcfirst($person->pronoun()) .
+											' was living with ' .
+											lcfirst($person->possessive()) .
+											($child->sex() eq 'F') ? ' daughter ' : ' son ' .
+											$child->given_names() .
+											' following the death of ' .
+											$person->pronoun() eq 'She' ? 'her' : 'his' .
+											($sex eq 'M') ? ' wife ' : ' husband ' .
+											year(date => get_value({ person => $spouses[0], value => 'death date' }));
+										$spdeath_dt = undef;
+										last CHILD;
+									}
+									
+								}
+							}
 						}
 					}
 				}
@@ -2233,7 +2277,7 @@ sub print_person
 			$end_of_sentence = 0;
 		} elsif($dateofdeath || $placeofdeath) {
 			$bio .= '.' if(!$end_of_sentence);
-			$bio .= " $pronoun died";
+			$bio .= "<p>$pronoun died";
 			if($dateofdeath) {
 				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			}
@@ -2271,10 +2315,13 @@ sub print_person
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
+			} elsif(($placeofburial eq $placeofdeath) &&
+			   $burial->address() && (!$death->address())) {
+				$bio .= ' and is buried there at ', $burial->address();
 			} else {
 				$bio .= ' and is buried' . place($opts);
 			}
-			$end_of_sentence = 0;
+		$end_of_sentence = 0;
 		}
 		$bio .= cite(@burialcitations);
 	} elsif($placeofdeath || $dateofdeath) {
@@ -2291,7 +2338,7 @@ sub print_person
 			$bio .= ' is also where ' . lcfirst($pronoun);
 		} else {
 			$bio .= '.' if(!$end_of_sentence);
-			$bio .= " $pronoun";
+			$bio .= "<p>$pronoun";
 		}
 		$bio .= ' died';
 		if($dateofdeath) {
