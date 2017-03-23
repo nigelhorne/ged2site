@@ -868,10 +868,6 @@ sub print_person
 			}
 		}
 	}
-	my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
-	if((!$dateofmarriage) && $marriage) {
-		$dateofmarriage = $marriage->date();
-	}
 	my $placeofmarriage = get_value({ person => $person, value => 'marriage place' });
 	if((!$placeofmarriage) && $marriage) {
 		$placeofmarriage = $marriage->place();
