@@ -2309,7 +2309,7 @@ sub print_person
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
-			} elsif(($placeofburial eq $placeofdeath) &&
+			} elsif($placeofdeath && ($placeofburial eq $placeofdeath) &&
 			   $burial->address() && (!$death->address())) {
 				$bio .= ' and is buried there at ', $burial->address();
 			} else {
