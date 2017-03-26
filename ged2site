@@ -1071,6 +1071,11 @@ sub print_person
 	while($occupations[0] && (lc($occupations[0]) =~ /^scho(ol|lar)/i)) {
 		shift @occupations;
 	}
+	while(scalar(@occupations) > 1) {
+		if(($occupations[0] =~ /labou?rer/i) && ($occupations[1] =~ /labou?rer/i)) {
+			shift @occupations;
+		}
+	}
 
 	my $same_occupation_as_father;
 
