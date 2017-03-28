@@ -72,3 +72,30 @@ table {
 	bottom: 0.5em;
 	font-size: 0.8em;
 }
+
+h2 {                                            
+        /* position: relative;          
+        top:3em;                        
+        border: 2px solid #2c4eac; */           
+        width: 85%;
+        margin: auto;                   
+        color:#2C4EAC;          
+        line-height: 2em;
+}                       
+                                
+/* http://accessify.com/tools-and-wizards/developer-tools/list-o-matic/ */
+ul#nav {                                        
+        color:#2c4eac;                                  
+        font-family:helvetica,arial,sans-serif;margin:0;padding:0;width:30em
+}                                               
+ul#nav li {                             
+        margin:0;padding:0;list-style:none;margin:0 0 0.3em 0;color:#2c4eac;margin-left:10em;
+}                       
+ul#nav li a {   
+        color:#2c4eac;
+        text-decoration:none;display:block;padding:0.3em 0.5em;border:1px solid silver;background:#fff
+}
+ul#nav li a:hover {
+        /*border:1px solid gray;color:#000;background:#efefef*/
+        border:1px solid gray;color:#2c4eac;background:#efefef
+}

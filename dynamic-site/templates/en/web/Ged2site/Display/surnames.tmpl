@@ -55,20 +55,24 @@
 					[% FOREACH surname IN surnames %]
 						[% IF surname.substr(0,1) != initial %]
 							[% IF initial %]
-								</dd>
+								</ul>
 							[% END %]
 							[% IF surname == 'UNKNOWN' %]
 								[% initial = '?' %]
 							[% ELSE %]
 								[% initial = surname.substr(0,1) %]
 							[% END %]
-							<dt>[% initial %]</dt><dd>
+							<h2>[% initial %]</h2>
+							<ul id="nav">
 						[% END %]
-						<a href="?page=surnames&surname=[%- surname | uri -%]">[% surname %]</a>
+						<li>
+							<a href="?page=surnames&surname=[%- surname | uri -%]">[% surname %]</a>
+						</li>
 					[% END %]
-				</dd></dl>
+				</ul>
 			[% ELSIF people %]
-				<ul>
+				<br>
+				<ul id="nav">
 					[% FOREACH person IN people %]
 						<li>
 							<a href="?page=people&entry=[%- person.entry %]">[% person.title %]</a>
