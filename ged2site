@@ -1074,6 +1074,8 @@ sub print_person
 	while(scalar(@occupations) > 1) {
 		if(($occupations[0] =~ /labou?rer/i) && ($occupations[1] =~ /labou?rer/i)) {
 			shift @occupations;
+		} else {
+			last;
 		}
 	}
 
