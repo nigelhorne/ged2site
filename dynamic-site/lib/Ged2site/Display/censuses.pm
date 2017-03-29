@@ -14,6 +14,7 @@ sub html {
 	my $allowed = {
 		'page' => 'censuses',
 		'census' => undef,	# TODO: regex of allowable name formats
+		'lang' => qr/^[A-Z][A-Z]/i,
 	};
 	my $params = $info->params({ allow => $allowed });
 	if($params && $params->{'page'}) {
@@ -27,7 +28,7 @@ sub html {
 	unless($params && scalar(keys %{$params})) {
 		# Display the main index page
 		my @c = $censuses->census();
-		return $self->SUPER::html({ censuses => \@c });
+		return $self->SUPER::html({ censuses => \@c, updated => $censuses->updated() });
 	}
 
 	# Look in the censuses.csv for the name given as the CGI argument and
@@ -37,7 +38,7 @@ sub html {
 	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$census};
 
 	# TODO: handle situation where look up fails
-	return $self->SUPER::html({ census => $census, people => \@people });
+	return $self->SUPER::html({ census => $census, people => \@people, updated => $censuses->updated() });
 }
 
 1;
