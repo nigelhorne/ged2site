@@ -177,7 +177,7 @@ sub AUTOLOAD {
 		push @args, $args{$c1};
 	}
 	$query .= ' ORDER BY entry';
-	my $sth = $self->{$table}->prepare($query);
+	my $sth = $self->{$table}->prepare($query) || throw Error::Simple($query);
 	$sth->execute(@args) || throw Error::Simple($query);
 
 	return map { $_->[0] } @{$sth->fetchall_arrayref()};
