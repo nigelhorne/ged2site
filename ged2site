@@ -1223,7 +1223,10 @@ sub print_person
 
 				if(!$same_occupation_as_father) {
 					my @occupations = $father->get_value('occupation');
-					# TODO: print $html all occupations
+					while($occupations[0] && (lc($occupations[0]) =~ /^scho(ol|lar)/i)) {
+						shift @occupations;
+					}
+					# TODO: print all occupations
 					if($occupations[0]) {
 						print $html ' (a';
 						print $csv ' (a';
