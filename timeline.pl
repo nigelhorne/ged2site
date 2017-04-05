@@ -17,4 +17,4 @@ use autodie qw(:all);
 
 use HTML::Timeline;
 
-HTML::Timeline->new({ gedcom_file => $ARGV[0] })->run();
+HTML::Timeline->new(options => { gedcom_file => $ARGV[0] })->run();
