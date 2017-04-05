@@ -321,6 +321,9 @@ memoize('stepsabove');
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod\n";
 
+open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
+print $timeline_xml "<data>\n";
+
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dorothy Cowell')) {
 
@@ -343,6 +346,9 @@ foreach my $person($ged->individuals()) {
 # print $xml '</table>';
 # close $xml;
 close $csv;
+
+print $timeline_xml "</data>\n";
+close $timeline_xml;
 
 if(!$opts{'w'}) {
 	print "\n$index records processed\n";
@@ -1385,6 +1391,13 @@ sub print_person
 						date => $dateofbirth,
 						must_predate => $death_dt
 					});
+
+					# FIXME: add date of death as 'end'
+					# TODO: Add image= as primary image
+					print $timeline_xml '<event ',
+						"start=\"$dateofbirth\" ",
+						'title="', $person->as_string(), '"',
+						"></event>\n";
 				}
 				$bio .= cite(@birthcitations);
 				if($dateofbaptism || $placeofbaptism) {
