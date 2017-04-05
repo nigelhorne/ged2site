@@ -10,11 +10,6 @@
 #	must apply in writing for a licence for use from Nigel Horne at the
 #	above e-mail.
 
-# TODO: Move from CSV to XML
-
-# -d:	Download copies of objects rather than link to them, useful if the
-#	objects are on pay sites such as FMP
-
 use strict;
 use warnings;
 use autodie qw(:all);
@@ -22,5 +17,4 @@ use autodie qw(:all);
 
 use HTML::Timeline;
 
-my $ht = HTML::Timeline->new({ gedcom_file => $ARGV[0] });
-$ht->run();
+HTML::Timeline->new({ gedcom_file => $ARGV[0] })->run();
