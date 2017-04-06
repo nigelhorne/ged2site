@@ -88,6 +88,30 @@ when trying to call Graphviz from ged2site.  This may be because ged2site
 pipes output to Graphviz, perhaps it would work if it used a temporary file
 as input.
 
+.htaccess
+=========
+I strongly suggest adding this to your .htaccess file:
+
+> # disallow access to special directories and feed back a 404 error
+> RedirectMatch 404 /\\.svn(/|$)
+> RedirectMatch 404 /\\.git(/|$)
+> 
+> <IfModule mod_expires.c>
+> # http://httpd.apache.org/docs/2.0/mod/mod_expires.html
+> ExpiresActive On
+> 
+> ExpiresDefault "access plus 1 hour"
+> 
+> ExpiresByType image/x-icon "access plus 1 month"
+> ExpiresByType image/png "access plus 1 month"
+> ExpiresByType image/jpg "access plus 1 month"
+> ExpiresByType image/gif "access plus 1 month"
+> ExpiresByType image/jpeg "access plus 1 month"
+> 
+> ExpiresByType text/css "access plus 1 day"
+> ExpiresByType text/javascript "access plus 1 day"
+> </IfModule>
+
 Acknowledgements
 ================
 

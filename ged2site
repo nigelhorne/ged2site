@@ -14,6 +14,10 @@
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
+#
+
+# For the Simile Timeline format see
+#	http://www.simile-widgets.org/wiki/Timeline_EventSources
 
 use strict;
 use warnings;
@@ -24,6 +28,7 @@ use autodie qw(:all);
 	# *CORE::GLOBAL::die = \&main::die;
 # }
 
+no lib '.';
 use Gedcom;
 use Getopt::Std;
 use Gedcom;
@@ -1391,13 +1396,6 @@ sub print_person
 						date => $dateofbirth,
 						must_predate => $death_dt
 					});
-
-					# FIXME: add date of death as 'end'
-					# TODO: Add image= as primary image
-					print $timeline_xml '<event ',
-						"start=\"$dateofbirth\" ",
-						'title="', $person->as_string(), '"',
-						"></event>\n";
 				}
 				$bio .= cite(@birthcitations);
 				if($dateofbaptism || $placeofbaptism) {
@@ -3379,6 +3377,33 @@ sub print_person
 	print $html '</body></html>';
 	close $html;
 
+	if($birth_dt || $death_dt) {
+		# TODO: Add image= as primary image
+		print $timeline_xml '<event ';
+		if($birth_dt) {
+			print $timeline_xml 'start="', $birth_dt->year();
+			if($birth_dt->month() && $birth_dt->day()) {
+				printf $timeline_xml '-%02d', $birth_dt->month();
+				if($birth_dt->day()) {
+					printf $timeline_xml '-%02d', $birth_dt->day();
+				}
+			}
+			print $timeline_xml '" ';
+		}
+		if($death_dt) {
+			print $timeline_xml 'end="', $death_dt->year();
+			if($death_dt->month() && $death_dt->day()) {
+				printf $timeline_xml '-%02d', $death_dt->month();
+				if($death_dt->day()) {
+					printf $timeline_xml '-%02d', $death_dt->day();
+				}
+			}
+			print $timeline_xml '" ';
+		}
+		print $timeline_xml 'title="', $person->as_string(), '"',
+		      "></event>\n";
+	}
+
 	$printed{$person->{'xref'}} = 1;
 
 	print "Done\n" if($opts{'v'});
@@ -4629,5 +4654,3 @@ sub cite
 
 	return '<span class="citation">' . join(',', sort(@citations)) . '</span>';
 }
-
-use Config::Auto;
