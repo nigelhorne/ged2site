@@ -327,7 +327,8 @@ open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod\n";
 
 open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
-print $timeline_xml "<data>\n";
+print $timeline_xml "<?xml version=\"1.0\"?>\n",
+	"<data date-time-format=\"iso8601\">\n";
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dorothy Cowell')) {
@@ -756,6 +757,7 @@ sub print_person
 	print $html ' | [ <a href="history.html">Family History</a> ]</center><p>';
 
 	my $bio;
+	my $fullbio;
 
 	if($was_alive && !$opts{'l'}) {
 		# print $xml '<alive>1</alive>';
@@ -1221,6 +1223,7 @@ sub print_person
 		print $html $bio;
 		print $csv $bio;
 
+		$fullbio = $bio;
 		$bio = '';
 
 		if($opts{'l'} || !$was_alive) {
@@ -1249,9 +1252,11 @@ sub print_person
 						print $csv ' ', HTML::Entities::encode(lc($occupations[0])), ')';
 					}
 				}
+				$fullbio .= ' ' . $father->as_string();
 				if($mother) {
 					print $html ' and';
 					print $csv ' and';
+					$fullbio .= ' and';
 				}
 			}
 			if($mother) {
@@ -1274,6 +1279,7 @@ sub print_person
 					print $html ' ', lc($occupations[0]), ')';
 					print $csv ' ', lc($occupations[0]), ')';
 				}
+				$fullbio .= ' ' . $mother->as_string();
 			}
 		} else {
 			if($father) {
@@ -1332,6 +1338,7 @@ sub print_person
 	print $html $bio;
 	print $csv $bio;
 
+	$fullbio .= $bio;
 	$bio = '';
 
 	my $haveprintedspousename;
@@ -1585,7 +1592,10 @@ sub print_person
 				} else {
 					print $html $bio;
 					print $csv $bio;
+
+					$fullbio .= $bio . $spouses[0]->as_string();
 					$bio = '';
+
 					if($opts{'l'} || !$was_alive) {
 						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->as_string(),
@@ -1652,8 +1662,7 @@ sub print_person
 						$bio .= $children[0]->given_names();
 					} elsif($numberofchildren > 1) {
 						print $html $bio;
-						print $csv $bio;
-						$bio = '';
+
 						my $childnames = join(', ', map {
 							'<a href="' . make_filename_from_person(person => $_) . '">'.
 								$_->given_names() . '</a>'
@@ -1665,7 +1674,7 @@ sub print_person
 								$_->given_names() . '</a>'
 						} @children);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
-						print $csv $childnames;
+						$bio .= $childnames;
 					}
 				} else {
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
@@ -1716,6 +1725,8 @@ sub print_person
 
 				print $html $bio;
 				print $csv $bio;
+
+				$fullbio .= $bio;
 				$bio = '';
 
 				my $spousenumber = 0;
@@ -1760,6 +1771,8 @@ sub print_person
 					}
 					print $html $bio;
 					print $csv $bio;
+
+					$fullbio .= $bio;
 					$bio = '';
 				}
 				# substr($names, rindex($names, ', '), 2, ' and ');
@@ -2698,6 +2711,8 @@ sub print_person
 	}
 
 	print $html $bio;
+	$fullbio .= $bio;
+
 	if($opts{'l'} || !$was_alive) {
 		print $csv $bio;
 	}
@@ -2770,6 +2785,7 @@ sub print_person
 	}
 
 	print $csv '!';
+	my $profile_image;
 
 	if($opts{'l'} || !$was_alive) {
 		if($opts{'c'} && $citationcount) {
@@ -2885,7 +2901,7 @@ sub print_person
 		print $csv '!';
 
 		# FIXME: Should be a table mapping from records to profiles
-		my $profile_image;
+		my $s_profile_image;
 
 		# print 'f:', $person->form() if($person->form());
 
@@ -2991,6 +3007,7 @@ sub print_person
 										copy($localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg');
 									} else {
 										link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+										chmod 0444, $localfile;
 									}
 								}
 							}
@@ -3059,7 +3076,7 @@ sub print_person
 										print $csv "/$localfile--- ---$h----";
 									}
 									if(defined($profile_object) && ($obje eq $profile_object)) {
-										$profile_image = "static-site/$localfile";
+										$s_profile_image = "static-site/$localfile";
 									}
 									unless(-r "dynamic-site/$localfile") {
 										if($^O eq 'MSWin32') {
@@ -3083,7 +3100,7 @@ sub print_person
 										print $csv "$file--- ---0----";
 									}
 									if(defined($profile_object) && ($obje eq $profile_object)) {
-										$profile_image = $file;
+										$s_profile_image = $file;
 									}
 								}
 							} else {
@@ -3100,7 +3117,7 @@ sub print_person
 									print $csv "$file--- ---0----";
 								}
 								if(defined($profile_object) && ($obje eq $profile_object)) {
-									$profile_image = $file;
+									$s_profile_image = $file;
 								}
 							}
 						} else {
@@ -3139,7 +3156,7 @@ sub print_person
 					print_graphviz({ person => $mother, fout => $fout, format => 'static' });
 				}
 				print $fout '} subgraph main { rank="same"; ';
-				print_graphviz({ person => $person, fout => $fout, profile_image => $profile_image, format => 'static' });
+				print_graphviz({ person => $person, fout => $fout, profile_image => $s_profile_image, format => 'static' });
 				foreach my $spouse(@spouses) {
 					print_graphviz({ person => $spouse, fout => $fout, format => 'static' });
 				}
@@ -3203,11 +3220,11 @@ sub print_person
 					print_graphviz({ person => $mother, fout => $fout, format => 'dynamic' });
 				}
 				print $fout '} subgraph main { rank="same"; ';
-				my $d_profile = $profile_image;
-				if(defined($d_profile)) {
-					$d_profile =~ s/static/dynamic/;
+				$profile_image = $s_profile_image;
+				if(defined($profile_image)) {
+					$profile_image =~ s/static/dynamic/;
 				}
-				print_graphviz({ person => $person, fout => $fout, profile_image => $d_profile, format => 'dynamic' });
+				print_graphviz({ person => $person, fout => $fout, profile_image => $profile_image, format => 'dynamic' });
 				foreach my $spouse(@spouses) {
 					print_graphviz({ person => $spouse, fout => $fout, format => 'dynamic' });
 				}
@@ -3377,19 +3394,16 @@ sub print_person
 	print $html '</body></html>';
 	close $html;
 
-	if($birth_dt || $death_dt) {
-		# TODO: Add image= as primary image
-		print $timeline_xml '<event ';
-		if($birth_dt) {
-			print $timeline_xml 'start="', $birth_dt->year();
-			if($birth_dt->month() && $birth_dt->day()) {
-				printf $timeline_xml '-%02d', $birth_dt->month();
-				if($birth_dt->day()) {
-					printf $timeline_xml '-%02d', $birth_dt->day();
-				}
+	if($birth_dt && ($opts{'l'} || !$was_alive)) {
+		print $timeline_xml '<event start="', $birth_dt->year();
+		if($birth_dt->month() && $birth_dt->day()) {
+			printf $timeline_xml '-%02d', $birth_dt->month();
+			if($birth_dt->day()) {
+				printf $timeline_xml '-%02d', $birth_dt->day();
 			}
-			print $timeline_xml '" ';
 		}
+		print $timeline_xml '" ';
+
 		if($death_dt) {
 			print $timeline_xml 'end="', $death_dt->year();
 			if($death_dt->month() && $death_dt->day()) {
@@ -3400,8 +3414,21 @@ sub print_person
 			}
 			print $timeline_xml '" ';
 		}
-		print $timeline_xml 'title="', $person->as_string(), '"',
-		      "></event>\n";
+
+		# FIXME: use the thumbnail
+		if($profile_image) {
+			$profile_image =~ s/^dynamic-site\///;
+			print $timeline_xml "image=\"/$profile_image\" ";
+		}
+
+		# Don't need citations here, and also some phrases are missing
+		# leading to double commas
+		$fullbio =~ s/<span class="citation">[\d,]+?<\/span>([\s\.])/$1/g;
+		$fullbio =~ s/,,/,/g;
+		print $timeline_xml 'title="', $person->as_string(), '" ',
+			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $person->{'xref'}, '"',
+			'>', HTML::Entities::encode($fullbio),
+			"<\/event>\n";
 	}
 
 	$printed{$person->{'xref'}} = 1;
