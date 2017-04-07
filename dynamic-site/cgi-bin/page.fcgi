@@ -12,6 +12,8 @@ use strict;
 use warnings;
 # use diagnostics;
 
+no lib '.';
+
 use Log::Log4perl qw(:levels);	# Put first to cleanup last
 use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info;
