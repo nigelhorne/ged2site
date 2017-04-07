@@ -123,6 +123,8 @@ https://github.com/weichie/animated-Timeline for the family history view
 
 Google for the map page
 
+Ron Savage for the HTML::Timeline module which sparked a template for the timeline code
+
 Graphviz for the family tree and Tree::Family from CPAN for the inspiration
 	and code to use as a template
 

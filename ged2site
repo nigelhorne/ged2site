@@ -3394,7 +3394,7 @@ sub print_person
 	print $html '</body></html>';
 	close $html;
 
-	if($birth_dt && ($opts{'l'} || !$was_alive)) {
+	if($birth_dt && ($opts{'l'} || !$was_alive) && ($relationship || ($person eq $me))) {
 		print $timeline_xml '<event start="', $birth_dt->year();
 		if($birth_dt->month() && $birth_dt->day()) {
 			printf $timeline_xml '-%02d', $birth_dt->month();
