@@ -3433,7 +3433,7 @@ sub print_person
 
 		# Don't need citations here, and also some phrases are missing
 		# leading to double commas
-		$fullbio =~ s/<span class="citation">[\d,]+?<\/span>([\s\.;])/$1/g;
+		$fullbio =~ s/<span class="citation">[\d,]+?<\/span>([\s\.;,])/$1/g;
 		$fullbio =~ s/,,/,/g;
 		$fullbio =~ s/href="\?page=/href="cgi-bin\/page.fcgi?page=/g;
 		print $timeline_xml 'title="', $person->as_string(), '" ',
