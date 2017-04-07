@@ -139,6 +139,7 @@ my %censusmaps = (
 	'1841 England, Wales & Scotland Census - Findmypast' => '1841 UK Census',
 	'1851 England Census' => '1851 UK Census',
 	'1851 Wales Census' => '1851 UK Census',
+	'1851 Census' => '1851 UK Census',
 	'1851 England, Wales & Scotland Census - Findmypast' => '1851 UK Census',
 	'1861 England Census' => '1861 UK Census',
 	'1861 England, Wales & Scotland Census - Findmypast' => '1861 UK Census',
@@ -154,6 +155,7 @@ my %censusmaps = (
 	'1911 England Census' => '1911 UK Census',
 	'1911 England Census Summary Books' => '1911 UK Census',
 	'1911 Census for England & Wales - Findmypast' => '1911 UK Census',
+	'1911 Wales Census' => '1911 UK Census',
 
 	'1851 Census of Canada East, Canada West, New Brunswick, and Nova Scotia' => '1851 Canadian Census',
 	'1861 Census of Canada' => '1861 Canadian Census',
@@ -1784,6 +1786,7 @@ sub print_person
 				# FIXME:  handle where offspring are from more than one marriage
 				if($numberofchildren) {
 					my %childrenbyspouse;
+					my $childrenseen = 0;
 					foreach my $family ($person->fams()) {
 						if($family->number_of_children() &&
 						   ($spouse = ($sex eq 'M') ? $family->wife() : $family->husband())) {
@@ -1792,11 +1795,18 @@ sub print_person
 								foreach my $spouseschild($spouse->children()) {
 									if($spouseschild eq $child) {
 										$childrenbyspouse{$spouse}++;
+										$childrenseen++;
 										last;
 									}
 								}
 							}
 						}
+					}
+					if($childrenseen != $numberofchildren) {
+						# FIXME: Unable to find the parent of all of the children.  This
+						# may be the case where someone married more than once,
+						# and has a child by a 3rd unknown (or unfound) person
+						die $person->as_string() . ": BUG: expected $numberofchildren by the spouses, found $childrenseen";
 					}
 					my $parentofall;
 					foreach my $spouse(@spouses) {
