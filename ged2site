@@ -3435,6 +3435,7 @@ sub print_person
 		# leading to double commas
 		$fullbio =~ s/<span class="citation">[\d,]+?<\/span>([\s\.;])/$1/g;
 		$fullbio =~ s/,,/,/g;
+		$fullbio =~ s/href="\?page=/href="cgi-bin\/page.fcgi?page=/g;
 		print $timeline_xml 'title="', $person->as_string(), '" ',
 			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $person->{'xref'}, '"',
 			'>', HTML::Entities::encode($fullbio),
