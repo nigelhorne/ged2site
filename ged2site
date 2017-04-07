@@ -138,6 +138,7 @@ my %censusmaps = (
 	'1841 England Census' => '1841 UK Census',
 	'1841 England, Wales & Scotland Census - Findmypast' => '1841 UK Census',
 	'1851 England Census' => '1851 UK Census',
+	'1851 Wales Census' => '1851 UK Census',
 	'1851 England, Wales & Scotland Census - Findmypast' => '1851 UK Census',
 	'1861 England Census' => '1861 UK Census',
 	'1861 England, Wales & Scotland Census - Findmypast' => '1861 UK Census',
@@ -1818,7 +1819,7 @@ sub print_person
 						if($parentofall) {
 							$bio .= ' with ' . $parentofall->as_string();
 						} else {
-							die $person->string() . ': BUG: parentofall not set when only one child';
+							die $person->as_string() . ': BUG: parentofall not set when only one child';
 						}
 						# TODO: make hyperlink to the persons record, unless surviving
 						$bio .= ', ' . $children[0]->given_names();
