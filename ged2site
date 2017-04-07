@@ -2786,6 +2786,7 @@ sub print_person
 
 	print $csv '!';
 	my $profile_image;
+	my $profile_thumbnail;
 
 	if($opts{'l'} || !$was_alive) {
 		if($opts{'c'} && $citationcount) {
@@ -3224,7 +3225,7 @@ sub print_person
 				if(defined($profile_image)) {
 					$profile_image =~ s/static/dynamic/;
 				}
-				print_graphviz({ person => $person, fout => $fout, profile_image => $profile_image, format => 'dynamic' });
+				$profile_thumbnail = print_graphviz({ person => $person, fout => $fout, profile_image => $profile_image, format => 'dynamic' });
 				foreach my $spouse(@spouses) {
 					print_graphviz({ person => $spouse, fout => $fout, format => 'dynamic' });
 				}
@@ -3416,14 +3417,23 @@ sub print_person
 		}
 
 		# FIXME: use the thumbnail
-		if($profile_image) {
-			$profile_image =~ s/^dynamic-site\///;
-			print $timeline_xml "image=\"/$profile_image\" ";
+		if($profile_thumbnail) {
+			my $localfile = "dynamic-site/img/thumb-$profile_thumbnail";
+			$localfile =~ s/thumbs\///;
+			unless(-r $localfile) {
+				if($^O eq 'MSWin32') {
+					copy($profile_thumbnail, $localfile);
+				} else {
+					link($profile_thumbnail, $localfile);
+				}
+			}
+			$localfile =~ s/^dynamic-site\///;
+			print $timeline_xml "image=\"/$localfile\" ";
 		}
 
 		# Don't need citations here, and also some phrases are missing
 		# leading to double commas
-		$fullbio =~ s/<span class="citation">[\d,]+?<\/span>([\s\.])/$1/g;
+		$fullbio =~ s/<span class="citation">[\d,]+?<\/span>([\s\.;])/$1/g;
 		$fullbio =~ s/,,/,/g;
 		print $timeline_xml 'title="', $person->as_string(), '" ',
 			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $person->{'xref'}, '"',
@@ -4452,6 +4462,8 @@ sub print_graphviz
 	my $dob = get_value({ person => $person, value => 'birth date' });
 	my $dod = get_value({ person => $person, value => 'death date' });
 
+	my $thumbnail;
+
 	# If you get 'Warning: No loadimage plugin for "jpeg:cairo"', do this
 	# instead:
 	# if(0) {
@@ -4474,13 +4486,16 @@ sub print_graphviz
 		# use PNG to try to avoid
 		#	'Warning: No loadimage plugin for "jpeg:cairo"'
 		$thumbname[0] =~ s/\.jpg$/.png/;
-		$thumb->Write("thumbs/$thumbname[0]");
+		$thumbnail = "thumbs/$thumbname[0]";
+		$thumb->Write($thumbnail);
 
 		# FIXME: TABLE isn't supported by Graphviz
 		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>";
 		print $fout ",labelloc=b";
 
 		# print $fout ",image=\"$profile_image\",labelloc=b";
+
+		chmod 0444, $thumbnail;
 	} elsif(defined($dod) || $opts{'l'}) {
 		if(defined($dob)) {
 			$label .= "\\nb. $dob";
@@ -4492,7 +4507,10 @@ sub print_graphviz
 	} else {
 		print $fout "label=\"$label\"";
 	}
+
 	print $fout "];\n";
+
+	return $thumbnail;
 }
 
 sub was_alive
