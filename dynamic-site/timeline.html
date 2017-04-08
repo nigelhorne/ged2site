@@ -21,9 +21,10 @@ function onLoad() {
     Timeline.createBandInfo({
     width:          "100%",
     intervalUnit:   Timeline.DateTime.DECADE,
-    intervalPixels: 70,
+    intervalPixels: 170,
     eventSource:    eventSource,
     date:           d,
+    layout:	    'original',
     theme:          theme
   })
   ];
@@ -33,7 +34,7 @@ function onLoad() {
 }
 
 var resizeTimerID = null;
-  function onResize() {
+function onResize() {
   if (resizeTimerID == null) {
     resizeTimerID = window.setTimeout(function() {
     resizeTimerID = null;
@@ -61,6 +62,6 @@ var resizeTimerID = null;
 on each separately, for slow or quick movement through time.</p>
 	-->
 
-	<div id="my-timeline" style="height: 600px; border: 1px solid #aaa"></div>
+	<div id="my-timeline" style="height: 510px; font-size: 10px; border: 1px solid #aaa"></div>
 </body>
 </html>
