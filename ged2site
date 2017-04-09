@@ -333,6 +333,33 @@ open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
 print $timeline_xml "<?xml version=\"1.0\"?>\n",
 	"<data date-time-format=\"iso8601\">\n";
 
+open(my $visjs, '>', 'dynamic-site/visjs.html');
+print $visjs <<'HEADER';
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | Basic demo</title>
+
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="visualization"></div>
+
+<script type="text/javascript">
+  // DOM element where the Timeline will be attached
+  var container = document.getElementById('visualization');
+
+  // Create a DataSet (allows two way data-binding)
+  var items = new vis.DataSet([
+HEADER
+
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dorothy Cowell')) {
 
@@ -358,6 +385,21 @@ close $csv;
 
 print $timeline_xml "</data>\n";
 close $timeline_xml;
+
+print $visjs <<'FOOTER';
+  ]);
+
+  // Configuration for the Timeline
+  var options = { zoomable: false};
+
+  // Create a Timeline
+  var timeline = new vis.Timeline(container, items, options);
+</script>
+</body>
+</html>
+FOOTER
+
+close $visjs;
 
 if(!$opts{'w'}) {
 	print "\n$index records processed\n";
@@ -3427,9 +3469,9 @@ sub print_person
 			print $timeline_xml '" ';
 		}
 
-		# FIXME: use the thumbnail
+		my $localfile;
 		if($profile_thumbnail) {
-			my $localfile = "dynamic-site/img/thumb-$profile_thumbnail";
+			$localfile = "dynamic-site/img/thumb-$profile_thumbnail";
 			$localfile =~ s/thumbs\///;
 			unless(-r $localfile) {
 				if($^O eq 'MSWin32') {
@@ -3451,6 +3493,34 @@ sub print_person
 			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $person->{'xref'}, '"',
 			'>', HTML::Entities::encode($fullbio),
 			"<\/event>\n";
+
+		print $visjs '{ content: \'<a href="cgi-bin/page.fcgi?page=people&entry=',
+			$person->{'xref'}, '">', $person->as_string(), '</a>,',
+			' start: \'', $birth_dt->year();
+		if($birth_dt->month() && $birth_dt->day()) {
+			printf $visjs '-%02d', $birth_dt->month();
+			if($birth_dt->day()) {
+				printf $visjs '-%02d', $birth_dt->day();
+			}
+		}
+		print $visjs "'";
+
+		if($death_dt) {
+			print $visjs ', end: \'', $death_dt->year();
+			if($death_dt->month() && $death_dt->day()) {
+				printf $visjs '-%02d', $death_dt->month();
+				if($death_dt->day()) {
+					printf $visjs '-%02d', $death_dt->day();
+				}
+			}
+			print $visjs "'";
+		}
+
+		print $visjs 'title: \'';
+		if($profile_thumbnail) {
+			print $visjs "<img src=\"/$localfile\">";
+		}
+		print $visjs "$fullbio' },\n";
 	}
 
 	$printed{$person->{'xref'}} = 1;
