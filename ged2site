@@ -2304,7 +2304,13 @@ sub print_person
 				$bio .= '</span>' if($incitation);
 				$count++;
 				if($count < (scalar(@residencelist) - 1)) {
-					$bio .= ';';
+					my $peek = $residencelist[$count];
+					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+						# FIXME: and and and
+						$bio .= ' and';
+					} else {
+						$bio .= ';';
+					}
 				} elsif($count == (scalar(@residencelist) - 1)) {
 					if($count > 1) {
 						$bio .= ';';
