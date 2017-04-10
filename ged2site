@@ -18,6 +18,8 @@
 
 # For the Simile Timeline format see
 #	http://www.simile-widgets.org/wiki/Timeline_EventSources
+# For visjs see
+#	http://visjs.org/docs/timeline/
 
 use strict;
 use warnings;
@@ -340,16 +342,26 @@ print $visjs <<'HEADER';
 <head>
   <title>Timeline | Basic demo</title>
 
+  <link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
   <style type="text/css">
     body, html {
       font-family: sans-serif;
+      font-size: 10px;
     }
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" />
+  <style type="text/css">
+    div.vis-tooltip { font-size:10px; }
+  </style>
 </head>
 <body>
+<p><font size=+2>
+	Use the mouse wheel to zoom in and out. 
+	Click and move the mouse to move around the timeline.
+</font>
+</p>
 <div id="visualization"></div>
 
 <script type="text/javascript">
@@ -1844,7 +1856,7 @@ sub print_person
 							}
 						}
 					}
-					if($childrenseen != $numberofchildren) {
+					if($childrenseen < $numberofchildren) {
 						# FIXME: Unable to find the parent of all of the children.  This
 						# may be the case where someone married more than once,
 						# and has a child by a 3rd unknown (or unfound) person
@@ -2397,12 +2409,12 @@ sub print_person
 					$bio .= " ($b)";
 				}
 			} elsif($placeofdeath && ($placeofburial eq $placeofdeath) &&
-			   $burial->address() && (!$death->address())) {
+			   $burial->address() && !$death->address()) {
 				$bio .= ' and is buried there at ', $burial->address();
 			} else {
 				$bio .= ' and is buried' . place($opts);
 			}
-		$end_of_sentence = 0;
+			$end_of_sentence = 0;
 		}
 		$bio .= cite(@burialcitations);
 	} elsif($placeofdeath || $dateofdeath) {
@@ -3494,10 +3506,10 @@ sub print_person
 			'>', HTML::Entities::encode($fullbio),
 			"<\/event>\n";
 
-		print $visjs '{ content: \'<a href="cgi-bin/page.fcgi?page=people&entry=',
-			$person->{'xref'}, '">', $person->as_string(), '</a>,',
-			' start: \'', $birth_dt->year();
-		if($birth_dt->month() && $birth_dt->day()) {
+		print $visjs "{\ncontent: '<a href=\"cgi-bin/page.fcgi?page=people&entry=",
+			$person->{'xref'}, '">', $person->as_string(), "</a>',\n",
+			'start: \'', $birth_dt->year();
+			if($birth_dt->month() && $birth_dt->day()) {
 			printf $visjs '-%02d', $birth_dt->month();
 			if($birth_dt->day()) {
 				printf $visjs '-%02d', $birth_dt->day();
@@ -3506,7 +3518,7 @@ sub print_person
 		print $visjs "'";
 
 		if($death_dt) {
-			print $visjs ', end: \'', $death_dt->year();
+			print $visjs ",\nend: '", $death_dt->year();
 			if($death_dt->month() && $death_dt->day()) {
 				printf $visjs '-%02d', $death_dt->month();
 				if($death_dt->day()) {
@@ -3516,11 +3528,12 @@ sub print_person
 			print $visjs "'";
 		}
 
-		print $visjs 'title: \'';
+		print $visjs ",\ntitle: '";
 		if($profile_thumbnail) {
-			print $visjs "<img src=\"/$localfile\">";
+			print $visjs "<img src=\"/$localfile\"><p>";
 		}
-		print $visjs "$fullbio' },\n";
+		$fullbio =~ s/'/\&#39;/g;
+		print $visjs "$fullbio'\n},\n";
 	}
 
 	$printed{$person->{'xref'}} = 1;
