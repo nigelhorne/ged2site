@@ -1157,6 +1157,9 @@ sub print_person
 			@occupations = ();
 		} else {
 			$bio = 'A';
+			if($occupations[0] =~ /^works on (.+)/i) {
+				$occupations[0] = "$1 worker";
+			}
 			if($occupations[0] =~ /^[aeiou]/i) {
 				$bio .= 'n';
 			}
@@ -1164,9 +1167,10 @@ sub print_person
 			substr($occupations, rindex($occupations, ', '), 2, ' and ');
 			$bio .= ' ';
 			if($occupations[1]) {
-				my $alloccupations = join(', ', @occupations);
-				substr($alloccupations, rindex($alloccupations, ', '), 2, ' and ');
-				$bio .= HTML::Entities::encode(lc($alloccupations));
+				# my $alloccupations = join(', ', @occupations);
+				# substr($alloccupations, rindex($alloccupations, ', '), 2, ' and ');
+				# $bio .= HTML::Entities::encode(lc($alloccupations));
+				$bio .= lc(Lingua::EN::Inflect::WORDLIST(@occupations, {final_sep => ''}));
 			} else {
 				$bio .= HTML::Entities::encode(lc($occupations[0]));
 			}
