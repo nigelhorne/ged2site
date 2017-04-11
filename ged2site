@@ -38,6 +38,7 @@ use Lingua::EN::NameCase;
 use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;
 use Lingua::EN::ABC;
+use Lingua::EN::Inflect;
 # use Lingua::EN::AddressParse;
 use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
@@ -181,6 +182,8 @@ my %censusmaps = (
 	'1870 United States Federal Census' => '1870 US Census',
 
 	'1880 United States Federal Census' => '1880 US Census',
+	'US Census 1880 - Findmypast' => '1880 US Census',
+	'Us Census 1880 - Findmypast' => '1880 US Census',
 
 	'US Census 1900 - Findmypast' => '1900 US Census',
 	'1900 United States Federal Census' => '1900 US Census',
