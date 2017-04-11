@@ -4448,7 +4448,8 @@ sub sibling_baptism_string
 	my $siblings = $params{'siblings'};
 	my $date = $params{'date'};
 	my $birthdate = $params{'birthdate'};
-	my $rc = '';
+
+	return if(scalar(@{$siblings}) == 0);
 
 	my @onsameday;
 	foreach my $sibling(@{$siblings}) {
@@ -4457,26 +4458,52 @@ sub sibling_baptism_string
 			push @onsameday, $sibling;
 		}
 	}
-	my $count = 0;
-	foreach my $sibling(@onsameday) {
-		if($count == 0) {
-			$rc = ', the same day as ';
-		} elsif($count < (scalar(@onsameday) - 1)) {
-			$rc .= ', ';
-		} elsif($count == (scalar(@onsameday) - 1)) {
-			$rc .= ' and ';
+	my $allsamesex = 1;
+	if(scalar(@onsameday) > 1) {
+		foreach my $sibling(@onsameday) {
+			if($sibling->sex() ne $person->sex()) {
+				$allsamesex = 0;
+				last;
+			}
 		}
-		$rc .= lcfirst($person->possessive()) . ' ';
-		my $dateofsiblingbirth = get_value({ person => $sibling, value => 'birth date' });
-		if($dateofsiblingbirth && $birthdate && ($dateofsiblingbirth eq $birthdate)) {
-			$rc .= 'twin ';
+		if($allsamesex) {
+			foreach my $sibling(@onsameday) {
+				my $dateofsiblingbirth = get_value({ person => $sibling, value => 'birth date' });
+				if($dateofsiblingbirth && $birthdate && ($dateofsiblingbirth eq $birthdate)) {
+					$allsamesex = 0;	# Fudge to force special twin handler
+				}
+			}
 		}
-		$rc .= ($sibling->sex() eq 'M' ? 'brother ' : 'sister ') .
-			$sibling->given_names();
-		$count++;
+	} else {
+		$allsamesex = 0;
 	}
 
-	return $rc;
+	if($allsamesex) {
+		return ', the same day as ', lcfirst($person->possessive()), ' ',
+			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters '),
+			Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @onsameday), {final_sep => ''});
+	} else {
+		my $count = 0;
+		my $rc = '';
+		foreach my $sibling(@onsameday) {
+			if($count == 0) {
+				$rc = ', the same day as ';
+			} elsif($count < (scalar(@onsameday) - 1)) {
+				$rc .= ', ';
+			} elsif($count == (scalar(@onsameday) - 1)) {
+				$rc .= ' and ';
+			}
+			$rc .= lcfirst($person->possessive()) . ' ';
+			my $dateofsiblingbirth = get_value({ person => $sibling, value => 'birth date' });
+			if($dateofsiblingbirth && $birthdate && ($dateofsiblingbirth eq $birthdate)) {
+				$rc .= 'twin ';
+			}
+			$rc .= ($sibling->sex() eq 'M' ? 'brother ' : 'sister ') .
+				$sibling->given_names();
+			$count++;
+		}
+		return $rc;
+	}
 }
 
 sub red_warning
