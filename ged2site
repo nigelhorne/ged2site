@@ -353,7 +353,7 @@ print $visjs <<'HEADER';
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" />
   <style type="text/css">
-    div.vis-tooltip { font-size:10px; }
+	div.vis-tooltip { font-size:10px; white-space: normal; width: 30em; word-wrap: break-word; }
   </style>
 </head>
 <body>
@@ -402,7 +402,7 @@ print $visjs <<'FOOTER';
   ]);
 
   // Configuration for the Timeline
-  var options = { zoomable: false};
+  var options = { zoomable: 'false', verticalScroll: 'true', autoResize: true, height: '500px' };
 
   // Create a Timeline
   var timeline = new vis.Timeline(container, items, options);
