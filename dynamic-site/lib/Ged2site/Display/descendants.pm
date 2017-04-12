@@ -64,7 +64,7 @@ sub _build_nodes {
 	my $level = shift;
 
 	my $title = $person->{'title'};
-	$title =~ s/\s\d{4}.+//;
+	$title =~ s/\sc?\d{4}.+//;	# Remove dates
 	if($title =~ /(.+)\s.+\s\(n&eacute;e\s(.+)\)/) {
 		$title = "$1 $2";	# Get maiden name
 	}

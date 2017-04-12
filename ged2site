@@ -356,7 +356,16 @@ print $visjs <<'HEADER';
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" />
   <style type="text/css">
-	div.vis-tooltip { font-size:10px; white-space: normal; width: 30em; word-wrap: break-word; }
+	/* Limit the width of the biography box */
+	/*div.vis-tooltip { font-size:10px; white-space: normal; width: 30em; word-wrap: break-word; }*/
+	div.vis-tooltip {
+		font-size: 10px;
+		white-space: normal;
+		width: 30em;
+		max-width: 300px;
+		word-wrap: break-word;
+		padding: 5px;
+	}
   </style>
 </head>
 <body>
