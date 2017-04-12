@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" />
+        <style type="text/css">
+          body {
+              font: 10pt sans;
+          }
+
+          #network {
+              width: 100%;
+              height: 600px;
+              background: white;
+              border: 1px solid lightgray;
+          }
+      </style>
+        <script type="text/javascript">
+            function main() {
+                var graph = {
+                    nodes: new vis.DataSet([
+                      {"id": "0", "label": "Parent", "level": 0}, 
+                      
+                      {"id": "0.1", "label": "Child", "level": 1},
+                      {"id": "0.2", "label": "Child", "level": 1},
+                      
+                      {"id": "0.1.1", "label": "Grand Child", "level": 2},
+                      {"id": "0.2.1", "label": "Grand Child", "level": 2},
+                      {"id": "0.2.2", "label": "Grand Child", "level": 2},
+                      {"id": "0.2.3", "label": "Grand Child", "level": 2},
+                      
+                      {"id": "0.2.2.1", "label": "Grand Grand Child", "level": 3},
+                      {"id": "0.2.2.2", "label": "Grand Grand Child", "level": 3},
+                      {"id": "0.2.2.3", "label": "Grand Grand Child", "level": 3}
+                    ]),
+                    edges: new vis.DataSet([
+                      {"from": "0", "to": "0.1"},
+                      {"from": "0", "to": "0.2"},
+                      
+                      {"from": "0.1", "to": "0.1.1"},
+                      
+                      {"from": "0.2", "to": "0.2.1"},
+                      {"from": "0.2", "to": "0.2.2"},
+                      {"from": "0.2", "to": "0.2.3"},
+                      
+                      {"from": "0.2.2", "to": "0.2.2.1"},
+                      {"from": "0.2.2", "to": "0.2.2.2"},
+                      {"from": "0.2.2", "to": "0.2.2.3"},
+                    ])
+                };
+                
+                var options = {
+                  nodes: {
+                    borderWidth: 1,
+                    borderWidthSelected: 1,
+                    shape: "box",
+                    color: {
+                      border: 'lightgray',
+                      background: 'white',
+                      highlight: {
+                        border: 'lightgray',
+                        background: 'lightblue'
+                      },
+                      hover: {
+                        border: 'lightgray',
+                        background: 'lightblue'
+                      }
+                    }
+                  },
+                  edges: {
+                    smooth: {
+                      type: 'cubicBezier',
+                      forceDirection: 'vertical',
+                      roundness: 1
+                    },
+                    color: 'lightgray'
+                  },
+                  layout: {
+                    hierarchical: {
+                      direction: 'UD',
+                      nodeSpacing: 150
+                    }
+                  },
+                  interaction: {dragNodes :false},
+                  physics:false
+                  };
+                var network = new vis.Network(document.getElementById("network"), graph, options);
+            }
+        </script>
+    </head>
+    <body onload="main();">
+        <div id="network"></div>
+    </body>
+</html>
