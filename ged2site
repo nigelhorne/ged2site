@@ -4221,13 +4221,13 @@ sub notes
 	my $record = $params{'record'};
 	my $person = $params{'person'};
 	my $paragraph = $params{'paragraph'};
+	my @notes = $record->get_record('note');
 
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
 	# my @deathnotes = $person, value => 'death note' });
 	my $rc = $record->get_value();
-	$rc .= '.' if($rc);
+	$rc .= '.' if($rc && !scalar(@notes));
 
-	my @notes = $record->get_record('note');
 	foreach my $note(@notes) {
 		if($note) {
 			if(ref($note) eq 'Gedcom::Record') {
