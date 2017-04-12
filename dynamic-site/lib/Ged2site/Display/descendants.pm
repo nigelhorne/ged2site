@@ -73,7 +73,7 @@ sub _build_nodes {
 	}
 	# See https://github.com/almende/vis/issues/2975
 	my $bio = $person->{'bio'};
-	if($person->{'profile_thumbnail'} {
+	if($person->{'profile_thumbnail'}) {
 		$bio = '<img src="/' . $person->{'person_thumbnail'} . "><p>$bio<h2>$title</h2><hr>";
 	}
 	$bio =~ s/"/\\"/g;
