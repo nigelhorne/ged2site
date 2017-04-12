@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+    	<title>Descendents of [% person.title %]</title>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" />
         <style type="text/css">
@@ -17,37 +18,7 @@
       </style>
         <script type="text/javascript">
             function main() {
-                var graph = {
-                    nodes: new vis.DataSet([
-                      {"id": "0", "label": "Parent", "level": 0}, 
-                      
-                      {"id": "0.1", "label": "Child", "level": 1},
-                      {"id": "0.2", "label": "Child", "level": 1},
-                      
-                      {"id": "0.1.1", "label": "Grand Child", "level": 2},
-                      {"id": "0.2.1", "label": "Grand Child", "level": 2},
-                      {"id": "0.2.2", "label": "Grand Child", "level": 2},
-                      {"id": "0.2.3", "label": "Grand Child", "level": 2},
-                      
-                      {"id": "0.2.2.1", "label": "Grand Grand Child", "level": 3},
-                      {"id": "0.2.2.2", "label": "Grand Grand Child", "level": 3},
-                      {"id": "0.2.2.3", "label": "Grand Grand Child", "level": 3}
-                    ]),
-                    edges: new vis.DataSet([
-                      {"from": "0", "to": "0.1"},
-                      {"from": "0", "to": "0.2"},
-                      
-                      {"from": "0.1", "to": "0.1.1"},
-                      
-                      {"from": "0.2", "to": "0.2.1"},
-                      {"from": "0.2", "to": "0.2.2"},
-                      {"from": "0.2", "to": "0.2.3"},
-                      
-                      {"from": "0.2.2", "to": "0.2.2.1"},
-                      {"from": "0.2.2", "to": "0.2.2.2"},
-                      {"from": "0.2.2", "to": "0.2.2.3"},
-                    ])
-                };
+	    	[% graph %]
                 
                 var options = {
                   nodes: {

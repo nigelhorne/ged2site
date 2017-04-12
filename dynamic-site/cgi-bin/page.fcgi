@@ -58,6 +58,7 @@ use Ged2site::Display::surnames;
 use Ged2site::Display::history;
 use Ged2site::Display::todo;
 use Ged2site::Display::calendar;
+use Ged2site::Display::descendants;
 
 use Ged2site::DB::people;
 use Ged2site::DB::censuses;
@@ -235,6 +236,8 @@ sub doit
 			$display = Ged2site::Display::todo->new($args);
 		} elsif($info->param('page') eq 'calendar') {
 			$display = Ged2site::Display::calendar->new($args);
+		} elsif($info->param('page') eq 'descendants') {
+			$display = Ged2site::Display::descendants->new($args);
 		} else {
 			$invalidpage = 1;
 		}
@@ -296,5 +299,6 @@ sub choose
 			"/cgi-bin/page.fcgi?page=history\n",
 			"/cgi-bin/page.fcgi?page=todo\n",
 			"/cgi-bin/page.fcgi?page=calendar\n",
+			"/cgi-bin/page.fcgi?page=descendants\n",
 	}
 }
