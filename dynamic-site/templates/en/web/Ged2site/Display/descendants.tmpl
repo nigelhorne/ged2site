@@ -7,6 +7,7 @@ See http://stackoverflow.com/questions/39096205/family-chart-with-horizontal-and
     <head>
     	<title>Descendents of [% person.title %]</title>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
+	<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" />
         <style type="text/css">
           body {
@@ -74,6 +75,7 @@ See http://stackoverflow.com/questions/39096205/family-chart-with-horizontal-and
     </head>
     <body onload="main();">
 	<center>
+		<h1>Descendents of [% person.title %]</h1>
 		[ <a href="?page=people&home=1">Home</a> ] |
 		[ <a href="?page=censuses">Census Index</a> ] |
 		[ <a href="?page=surnames">Surname Index</a> ] |
@@ -82,6 +84,11 @@ See http://stackoverflow.com/questions/39096205/family-chart-with-horizontal-and
 		[ <a href="?page=calendar">Calendar</a> ] |
 		[ <a href="/visjs.html">Timeline</a> ]
 	</center>
+	<p><font size=+1>
+		Click and move the mouse to move around the timeline, and use
+		the mouse wheel to zoom in and out.
+		Only people with known birth dates are shown.
+	</font></p>
         <div id="network"></div>
     </body>
 </html>
