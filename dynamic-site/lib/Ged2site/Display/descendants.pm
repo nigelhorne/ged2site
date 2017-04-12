@@ -71,7 +71,10 @@ sub _build_nodes {
 	if($title =~ /(.+)\s.+\s(.+)/) {
 		$title = "$1 $2";	# Remove middle name(s)
 	}
-	my $nodes = "{\"id\": \"$id\", \"label\": \"" . $title . "\", \"level\": $level },\n";
+	# See https://github.com/almende/vis/issues/2975
+	my $bio = $person->{'bio'};
+	$bio =~ s/"/\\"/g;
+	my $nodes = "{\"id\": \"$id\", \"label\": \"$title\", \"level\": $level, \"title\": \"$bio\" },\n";
 	my $count = 1;
 	my $edges;
 
