@@ -3726,7 +3726,11 @@ sub Gedcom::Individual::as_string
 		my $yob;	# Year of birth
 		if($dob && ($dob =~ /.*?(\d{3,4})/)) {
 			if($dob =~ /^(Abt|ca?)\.?\s*(.+)/i) {
-				$yob = "c$2";
+				my $year = $2;
+				if($year =~ /^[A-Z]{3}\s(.+)/i) {
+					$yob = "c$1";	# Get the "1951" from "Feb 1951"
+				}
+				$yob = "c$year";
 			} else {
 				$yob = $1;
 			}
