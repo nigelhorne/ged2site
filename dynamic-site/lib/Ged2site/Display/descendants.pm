@@ -79,6 +79,7 @@ sub _build_nodes {
 	foreach my $child(split('----' ,$person->{'children'})) {
 		if($child =~ /entry=(I\d+)">.+<\/a>/) {
 			$child = $people->fetchrow_hashref({ entry => $1 });
+			next if($child->{'alive'});
 
 			my ($n, $e) = _build_nodes($people, $child, "$id." . $count, $level);
 			$nodes .= $n;
