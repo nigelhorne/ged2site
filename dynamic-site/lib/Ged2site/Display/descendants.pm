@@ -18,7 +18,7 @@ sub html {
 	my $allowed = {
 		'page' => 'descendants',
 		'entry' => undef,	# TODO: regex of allowable name formats
-		# 'lang' => qr/^[A-Z][A-Z]/i,
+		'lang' => qr/^[A-Z][A-Z]/i,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
 
