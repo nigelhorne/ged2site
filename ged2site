@@ -353,7 +353,7 @@ print $visjs <<'HEADER';
     }
   </style>
 
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> 
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" />
   <style type="text/css">
@@ -425,7 +425,7 @@ print $visjs <<'FOOTER';
   // Configuration for the Timeline
   // var options = { zoomable: false, horizontalScroll: true, verticalScroll: true, autoResize: true, height: '500px', min: '1500', max: '2017' };
   var timelineHeight = Math.round($(window).height() * 0.85) + 'px';
-var options = { 
+var options = {
     zoomKey: 'ctrlKey',
     verticalScroll: true,
     min: '1500',
@@ -1594,6 +1594,9 @@ sub print_person
 				if($placeofbaptism) {
 					if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 						$bio .= ' there';
+						if(my $address = $baptism->address()) {
+							$bio .= " at $address";
+						}
 					} else {
 						my $p = place({ person => $person, place => $placeofbaptism });
 						$bio .= $p;
@@ -1631,6 +1634,9 @@ sub print_person
 			if($placeofbaptism) {
 				if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 					$bio .= ' there';
+					if(my $address = $baptism->address()) {
+						$bio .= " at $address";
+					}
 				} else {
 					my $opts = {
 						person => $person,
