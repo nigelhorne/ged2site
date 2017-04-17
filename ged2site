@@ -2057,15 +2057,15 @@ sub print_person
 			if(scalar(@children) > scalar(@childrenunknownparent)) {
 				$bio .= 'also ';
 			}
-			$bio .= 'had ', scalar(@childrenunknownparent), ' ';
+			$bio .= 'had ' . scalar(@childrenunknownparent) . ' ';
 			if(scalar(@childrenunknownparent) == 1) {
 				$bio .= 'child, ';
 			} else {
 				$bio .= 'children, ';
 			}
-			$bio .= Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @childrenunknownparent), {final_sep => ''}),
-				', whose ',
-				($sex eq 'F') ? 'father' : 'mother',
+			$bio .= Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @childrenunknownparent), {final_sep => ''}) .
+				', whose ' .
+				($sex eq 'F') ? 'father' : 'mother' .
 				' is unknown';
 			$end_of_sentence = 0;
 		}
