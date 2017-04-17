@@ -2052,18 +2052,18 @@ sub print_person
 
 	if($opts{'l'} || !$was_alive) {
 		if(scalar(@childrenunknownparent)) {
-			print '.  ' if(!$end_of_sentence);
-			print "$pronoun ";
+			$bio .= '.  ' if(!$end_of_sentence);
+			$bio .= "$pronoun ";
 			if(scalar(@children) > scalar(@childrenunknownparent)) {
-				print 'also ';
+				$bio .= 'also ';
 			}
-			print 'had ', scalar(@childrenunknownparent), ' ';
+			$bio .= 'had ', scalar(@childrenunknownparent), ' ';
 			if(scalar(@childrenunknownparent) == 1) {
-				print 'child, ';
+				$bio .= 'child, ';
 			} else {
-				print 'children, ';
+				$bio .= 'children, ';
 			}
-			print Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @childrenunknownparent), {final_sep => ''}),
+			$bio .= Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @childrenunknownparent), {final_sep => ''}),
 				', whose ',
 				($sex eq 'F') ? 'father' : 'mother',
 				' is unknown';
@@ -2667,7 +2667,7 @@ sub print_person
 				$notes = lcfirst($notes);
 				$bio .= " ($notes)";
 			}
-			print '.';
+			$bio .= '.';
 			if($ENV{'LANG'} =~ /^en_US/) {
 				$place_records{'Traveled to'} = $arrival;
 			} else {
@@ -2715,7 +2715,7 @@ sub print_person
 					$notes =~ s/\.$//;
 					$bio .= " ($notes)";
 				}
-				print '. ';
+				$bio .= '. ';
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$place_records{'Traveled to'} = $event;
 				} else {
