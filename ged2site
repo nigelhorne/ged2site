@@ -1495,6 +1495,7 @@ sub print_person
 
 	my $end_of_sentence = 0;
 
+	my @childrenunknownparent;
 	if($opts{'l'} || !$was_alive) {
 		if(($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism)) {
 			if($dateofbirth || $placeofbirth) {
@@ -1689,6 +1690,7 @@ sub print_person
 
 		print "bio so far: $bio\n" if($opts{'v'});
 
+		# TODO: children != 0 && spouses == 0
 		if(scalar(@spouses) &&
 		   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
 			$bio .= '<p>' . ucfirst($pronoun) if($end_of_sentence);
@@ -1759,8 +1761,42 @@ sub print_person
 					} else {
 						$bio .= $dateofdeath || $dateofburial ? ' had ' : ' has ';
 					}
-					# FIXME: currently lists all children even if some where not with this
-					# spouse
+					my @childrenofthisspouse;
+					my $numberofchildrenwiththisspouse = $numberofchildren;
+					my $spouse = $spouses[0];
+					foreach my $child(@children) {
+						if($sex eq 'F') {
+							my $father = $child->father();
+							if((!defined($father)) || ($father ne $spouse)) {
+								push @childrenunknownparent, $child;
+								$numberofchildrenwiththisspouse--;
+							} else {
+								push @childrenofthisspouse, $child;
+							}
+						} else {
+							my $mother = $child->mother();
+							if((!defined($mother)) || ($mother ne $spouse)) {
+								push @childrenunknownparent, $child;
+								$numberofchildrenwiththisspouse--;
+							} else {
+								push @childrenunknownparent, $child;
+								push @childrenofthisspouse, $child;
+							}
+						}
+					}
+					if($numberofchildrenwiththisspouse == 1) {
+						if($all_children_are_alive) {
+							$bio .= '1 surviving child, ';
+						} else {
+							$bio .= '1 child, ';
+						}
+					} else {
+						if($all_children_are_alive) {
+							$bio .= "$numberofchildrenwiththisspouse surviving children: ";
+						} else {
+							$bio .= "$numberofchildrenwiththisspouse children: ";
+						}
+					}
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
 							$bio .= '1 surviving child, ';
@@ -1774,21 +1810,19 @@ sub print_person
 							$bio .= "$numberofchildren children: ";
 						}
 					}
-					if($numberofchildren == 1) {
+					if($numberofchildrenwiththisspouse == 1) {
 						$bio .= $children[0]->given_names();
-					} elsif($numberofchildren > 1) {
-						print $html $bio;
-
+					} elsif($numberofchildrenwiththisspouse > 1) {
 						my $childnames = join(', ', map {
 							'<a href="' . make_filename_from_person(person => $_) . '">'.
 								$_->given_names() . '</a>'
-						} @children);
+						} @childrenofthisspouse);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						print $html $childnames;
 						$childnames = join(', ', map {
 							'<a href="?page=people&entry=' . $_->{'xref'} . '">'.
 								$_->given_names() . '</a>'
-						} @children);
+						} @childrenofthisspouse);
 						substr($childnames, rindex($childnames, ', '), 2, ' and ');
 						$bio .= $childnames;
 					}
@@ -2017,6 +2051,24 @@ sub print_person
 	my @residences = $person->residence();
 
 	if($opts{'l'} || !$was_alive) {
+		if(scalar(@childrenunknownparent)) {
+			print '.  ' if(!$end_of_sentence);
+			print "$pronoun ";
+			if(scalar(@children) > scalar(@childrenunknownparent)) {
+				print 'also ';
+			}
+			print 'had ', scalar(@childrenunknownparent), ' ';
+			if(scalar(@childrenunknownparent) == 1) {
+				print 'child, ';
+			} else {
+				print 'children, ';
+			}
+			print Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @childrenunknownparent), {final_sep => ''}),
+				', whose ',
+				($sex eq 'F') ? 'father' : 'mother',
+				' is unknown';
+			$end_of_sentence = 0;
+		}
 		if($same_occupation_as_father) {
 			$bio .= '. ' if(!$end_of_sentence);
 			$bio .= ' Like is father, ' . lcfirst($pronoun) .
