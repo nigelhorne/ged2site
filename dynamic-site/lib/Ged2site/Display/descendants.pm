@@ -6,7 +6,6 @@ use warnings;
 # Display a person's descendants
 
 use Ged2site::Display::page;
-use MIME::Base64;
 
 our @ISA = ('Ged2site::Display::page');
 
@@ -17,7 +16,7 @@ sub html {
 	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'descendants',
-		'entry' => undef,	# TODO: regex of allowable name formats
+		'entry' => qr/^I\d+$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
@@ -50,9 +49,6 @@ sub html {
 	return $self->SUPER::html({
 		graph => $graph,
 		person => $person,
-		decode_base64url => sub {
-			MIME::Base64::decode_base64url($_[0])
-		},
 		updated => $people->updated()
 	});
 }
