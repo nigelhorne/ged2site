@@ -2370,33 +2370,37 @@ sub print_person
 						}
 					}
 				}
-				my $incitation = 0;
-				if($residencecitations{$residence}) {
-					my $citation = $residencecitations{$residence};
-					$bio .= "<span class=\"citation\">$citation";
-					$incitation = 1;
-				}
-				if($residence->place() &&
-				  (!$rdate) &&
-				  ($count <= (scalar(@residencelist) - 1)) &&
-				  ($residencecitations{$residence})) {
-					my $peek = $residencelist[$count + 1];
-					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-						if($residencecitations{$peek}) {
-							my $citation = $residencecitations{$peek};
-							if($incitation) {
-								$bio .= ',';
-							} else {
-								$bio .= "<span class=\"citation\">";
+				if($opts{'c'}) {
+					my $incitation = 0;
+					if($residencecitations{$residence}) {
+						my $citation = $residencecitations{$residence};
+						$bio .= "<span class=\"citation\">$citation";
+						$incitation = 1;
+					}
+					if($residence->place() &&
+					  (!$rdate) &&
+					  ($count <= (scalar(@residencelist) - 1)) &&
+					  ($residencecitations{$residence})) {
+						my $peek = $residencelist[$count + 1];
+						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+							if($residencecitations{$peek}) {
+								my $citation = $residencecitations{$peek};
+								if($incitation) {
+									$bio .= ',';
+								} else {
+									$bio .= "<span class=\"citation\">";
+								}
+								$bio .= $citation;
+								$incitation = 1;
 							}
-							$bio .= $citation;
-							$incitation = 1;
 						}
 					}
+					$bio .= '</span>' if($incitation);
 				}
-				$bio .= '</span>' if($incitation);
 				$count++;
-				if($count < scalar(@residencelist)) {
+				if(($count == 1) && (scalar(@residencelist) == 2)) {
+					$bio .= ' and';
+				} elsif($count < scalar(@residencelist)) {
 					my $peek = $residencelist[$count];
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						# FIXME: and and and
