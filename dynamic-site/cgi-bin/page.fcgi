@@ -25,6 +25,7 @@ use File::HomeDir;
 use Log::Any::Adapter;
 use Error qw(:try);
 use File::Spec;
+use Log::WarnDie;
 use autodie qw(:all);
 
 # use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
@@ -49,6 +50,7 @@ my $buffercache;
 
 Log::Log4perl->init("$script_dir/../conf/$script_name.l4pconf");
 my $logger = Log::Log4perl->get_logger($script_name);
+Log::WarnDie->dispatcher($logger);
 
 # my $pagename = "Ged2site::Display::$script_name";
 # eval "require $pagename";
