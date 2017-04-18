@@ -114,6 +114,24 @@ ExpiresByType text/javascript "access plus 1 day"
 </IfModule>
 ```
 
+Bugs
+====
+
+If you see this message in your log file:
+```
+Can't locate auto/NetAddr/IP/InetBase/AF_INET6.al
+```
+this is because of a bug in the autoloader.  The fix is to edit NetAddr/IP/InetBase.pm
+adding this toward the top, just after the package statement:
+
+```
+use Socket;
+```
+
+There will be numerous strange handling of Gedcoms since it's not that tightly observed by
+websites.
+If you see lumpy English text in the output, or just plain mistakes, please e-mail me.
+
 Acknowledgements
 ================
 
