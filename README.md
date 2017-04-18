@@ -4,7 +4,8 @@ ged2site
 Convert a Gedcom file to HTML to create a family tree website.
 
 This is quite complex software, so if you are a genealogist looking to create
-a website and aren't an IT guru, it would be better to e-mail me on `<njh at nigelhorne.com>`.
+a website and aren't an IT guru, it would be better to e-mail me on `<njh at nigelhorne.com>`
+for help.
 
 An example genealogy website that was produced by ged2site is available
 at https://genealogy.nigelhorne.com.
@@ -130,7 +131,8 @@ use Socket;
 
 There will be numerous strange handling of Gedcoms since it's not that tightly observed by
 websites.
-If you see lumpy English text in the output, or just plain mistakes, please e-mail me.
+If you see lumpy English text in the output, or just plain mistakes,
+please e-mail me or add a bug report to github.com/nigelhorne/ged2site.
 
 Acknowledgements
 ================
@@ -146,7 +148,7 @@ Ron Savage for the HTML::Timeline module which sparked a template for the timeli
 Graphviz for the family tree and Tree::Family from CPAN for the inspiration
 	and code to use as a template
 
-So many CPAN modules that if I list them all I'll miss one, but special mention
+So many Perl CPAN modules that if I list them all I'll miss one, but special mention
 	goes to the Gedcom module.
 
 # LICENSE AND COPYRIGHT
