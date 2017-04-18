@@ -1779,7 +1779,6 @@ sub print_person
 								push @childrenunknownparent, $child;
 								$numberofchildrenwiththisspouse--;
 							} else {
-								push @childrenunknownparent, $child;
 								push @childrenofthisspouse, $child;
 							}
 						}
@@ -1795,19 +1794,6 @@ sub print_person
 							$bio .= "$numberofchildrenwiththisspouse surviving children: ";
 						} else {
 							$bio .= "$numberofchildrenwiththisspouse children: ";
-						}
-					}
-					if($numberofchildren == 1) {
-						if($all_children_are_alive) {
-							$bio .= '1 surviving child, ';
-						} else {
-							$bio .= '1 child, ';
-						}
-					} else {
-						if($all_children_are_alive) {
-							$bio .= "$numberofchildren surviving children: ";
-						} else {
-							$bio .= "$numberofchildren children: ";
 						}
 					}
 					if($numberofchildrenwiththisspouse == 1) {
@@ -2052,7 +2038,7 @@ sub print_person
 
 	if($opts{'l'} || !$was_alive) {
 		if(scalar(@childrenunknownparent)) {
-			$bio .= '.  ' if(!$end_of_sentence);
+			$bio .= '. ' if(!$end_of_sentence);
 			$bio .= "$pronoun ";
 			if(scalar(@children) > scalar(@childrenunknownparent)) {
 				$bio .= 'also ';
@@ -2065,7 +2051,7 @@ sub print_person
 			}
 			$bio .= Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @childrenunknownparent), {final_sep => ''}) .
 				', whose ' .
-				($sex eq 'F') ? 'father' : 'mother' .
+				(($sex eq 'F') ? 'father' : 'mother') .
 				' is unknown';
 			$end_of_sentence = 0;
 		}
