@@ -75,7 +75,7 @@ sub _build_nodes {
 	$bio =~ s/"/\\"/g;
 	my $nodes = "{\"id\": \"$id\", \"label\": \"$title\", \"level\": $level, \"title\": \"$bio\" },\n";
 	my $count = 1;
-	my $edges;
+	my $edges = '';
 
 	$level++;
 	foreach my $child(split('----' ,$person->{'children'})) {
