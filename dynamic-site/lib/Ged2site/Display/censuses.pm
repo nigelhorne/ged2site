@@ -26,8 +26,9 @@ sub html {
 	my $people = $args{'people'};
 
 	unless($params && scalar(keys %{$params})) {
-		# Display the main index page
+		# Display list of censuses
 		my @c = $censuses->census();
+		@c = sort @c;
 		return $self->SUPER::html({ censuses => \@c, updated => $censuses->updated() });
 	}
 
@@ -35,7 +36,7 @@ sub html {
 	# find their details
 	my $census = $censuses->selectall_hashref($params);
 
-	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$census};
+	my @people = sort map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$census};
 
 	# TODO: handle situation where look up fails
 	return $self->SUPER::html({ census => $census, people => \@people, updated => $censuses->updated() });
