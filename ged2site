@@ -3152,7 +3152,7 @@ sub print_person
 						}
 						$file =~ s/\{0\}//g;
 						$file =~ s/\r//g;
-						if($opts{'d'} && ($file =~ /^https?:\/\//) && ($file !~ /\.jpe?g$/)) {
+						if($opts{'d'} && ($file =~ /^https?:\/\//) && ($file !~ /\.jpe?g$/) && ($file !~ /ancestry.com.*image.*guid=/)) {
 							$file =~ s/%2f/\//gi;
 
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
@@ -3160,8 +3160,9 @@ sub print_person
 							if(!-r $localfile) {
 								my $browser = LWP::UserAgent->new();
 								$browser->env_proxy(1);
+								print "Download non-image $file\n" if($opts{'v'});
 								my $resp = $browser->get($file);
-								if($resp->is_success && ($resp->content_type() eq 'image/jpeg')) {
+								if($resp->is_success() && ($resp->content_type() eq 'image/jpeg')) {
 									next OBJE if($pass == 2);
 									my $key = $person->as_string() . ";$localfile";
 									if($images{$key}) {
@@ -3230,6 +3231,7 @@ sub print_person
 							#	http://trees.ancestry.com/rd?f=image&guid=53c0a698-3eb8-40ec-a9f8-303fe7f2e46c&tid=4593693&pid=3
 							# to
 							#	https://mediasvc.ancestry.com/v2/image/namespaces/1093/media/53c0a698-3eb8-40ec-a9f8-303fe7f2e46c.jpg?client=Trees
+
 							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
@@ -3238,6 +3240,20 @@ sub print_person
 							}
 							if($opts{'d'}) {
 								# Get and stash a local copy
+								if($file =~ /ancestry.com.+guid=.+&tid=/) {
+									# Ancestry's Gedcoms are broken, perhaps pointing to an old
+									# location that they forgot to fix
+									print "Map from $file\n" if($opts{'v'});
+									if($file =~ /guid=([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/) {
+										$file = "https://mediasvc.ancestry.com/v2/image/namespaces/1093/media/$1?client=Trees";
+									} elsif($opts{'w'}) {
+										if($opts{'f'}) {
+											die "BUG: update ACOM mapping for $file";
+										}
+										red_warning({ person => $person, warning => "BUG: update ACOM mapping for $file" });
+									}
+								}
+								print "Download image $file\n" if($opts{'v'});
 								my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
 								if((-r "static-site/$localfile") ||
 								   is_success(getstore($file, "static-site/$localfile"))) {
@@ -3271,7 +3287,7 @@ sub print_person
 										}
 									}
 								} else {
-									red_warning({ person => $person, warning => "static-site/$localfile: $!" });
+									red_warning({ person => $person, warning => "downloading $file to static-site/$localfile: $!" });
 
 									if($title) {
 										print $html "<a href=\"$file\" target=\"_blank\">",
