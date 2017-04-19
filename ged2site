@@ -177,6 +177,7 @@ my %censusmaps = (
 
 	'1860 United States Federal Census' => '1860 US Census',
 	'US Census 1860 - Findmypast' => '1860 US Census',
+	'Nebraska, State Census Collection, 1860-1885' => '1860 US Census',
 
 	'US Census 1870 - Findmypast' => '1870 US Census',
 	'1870 United States Federal Census' => '1870 US Census',
@@ -196,6 +197,8 @@ my %censusmaps = (
 
 	'US Census 1930 - Findmypast' => '1930 US Census',
 	'1930 United States Federal Census' => '1930 US Census',
+
+	'South Dakota, State Census, 1935' => '1935 US Census',
 
 	'US Census 1940 - Findmypast' => '1940 US Census',
 	'1940 United States Federal Census' => '1940 US Census',
@@ -3110,7 +3113,12 @@ sub print_person
 			for(my $pass = 1; $pass <= 2; $pass++) {
 				print "Media pass $pass\n" if($opts{'v'});
 				OBJE: foreach my $o($person->obje()) {
-					my $obje = $ged->resolve_xref($o);
+					my $obje;
+					if(ref($o) eq 'Gedcom::Record') {
+						$obje = $o;	# e.g. Ancestry
+					} else {
+						$obje = $ged->resolve_xref($o);	# e.g. FMP
+					}
 					next if(!defined($obje));
 					if(my $file = $obje->file()) {
 						if(ref($file) eq 'Gedcom::Record') {
@@ -3217,7 +3225,7 @@ sub print_person
 							my $key = $person->as_string() . ";$localfile";
 							$images{$key} = 1;
 						}
-						if($form && ($form eq 'JPG')) {
+						if($form && ($form =~ /^JPG$/i)) {
 							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
