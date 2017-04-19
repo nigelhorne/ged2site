@@ -25,8 +25,9 @@ sub html {
 	my $people = $args{'people'};
 
 	unless(scalar(keys %params)) {
-		# Display the main index page
+		# Display the list of surnames
 		my @s = $surnames->surname();
+		@s = sort @s;
 		return $self->SUPER::html({ surnames => \@s, updated => $surnames->updated() });
 	}
 
