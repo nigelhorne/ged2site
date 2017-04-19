@@ -36,7 +36,7 @@ format with using
 [csv2sqlite](http://search.cpan.org/~rwstauner/App-csv2sqlite/),
 which you should run on each of the .csv files.
 
-    csv2sqlite -o sep_char='!' -o quote_char= people.csv people.sql
+    csv2sqlite -o sep_char='!' -o allow_loose_quotes=1 people.csv people.sql
 
 The options are:
 
