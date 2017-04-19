@@ -4852,6 +4852,7 @@ sub make_filename_from_object
 	}
 	$rc =~ tr/ /-/s;
 	$rc =~ tr/'/-/s;
+	$rc =~ tr/\//-/s;
 	$rc =~ s/--+/-/g;
 	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;

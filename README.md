@@ -130,7 +130,8 @@ adding this toward the top, just after the package statement:
 use Socket;
 ```
 
-Ancestry images attached from another tree to your tree are not downloaded.  Either use
+Ancestry images that you've uploaded yourself should work fine.  However, images attached
+from another tree to your tree are not downloaded.  Either use
 FTM or download from the other tree to your desktop and upload to your tree.
 
 There will be numerous strange handling of Gedcoms since it's not that tightly observed by
