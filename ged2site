@@ -3109,6 +3109,8 @@ sub print_person
 			}
 			my $printed_media_header = 0;
 
+			my %downloadhistory;
+
 			# Two passes, the first one where the links are pictures, the second where they are not
 			for(my $pass = 1; $pass <= 2; $pass++) {
 				print "Media pass $pass\n" if($opts{'v'});
@@ -3234,6 +3236,13 @@ sub print_person
 								print $html '<br>';
 							}
 							if($opts{'d'}) {
+								if($downloadhistory{$file}) {
+									# Ancestry does this
+									print "Skip duplicate image $file\n" if($opts{'v'});
+									next OBJE;
+								}
+								$downloadhistory{$file} = 1;
+									
 								# Get and stash a local copy
 								if($file =~ /ancestry.com.+guid=.+&tid=/) {
 									# Ancestry's Gedcoms are broken, perhaps pointing to an old

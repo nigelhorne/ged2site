@@ -147,6 +147,8 @@ observed by websites.
 If you see lumpy English text in the output, or just plain mistakes,
 please e-mail me or add a bug report to github.com/nigelhorne/ged2site.
 
+Profile pictures are not handled with output from Ancestry.  Findmypast is handled correctly.
+
 Acknowledgements
 ================
 
