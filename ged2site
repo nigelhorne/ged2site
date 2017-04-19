@@ -3226,6 +3226,10 @@ sub print_person
 							$images{$key} = 1;
 						}
 						if($form && ($form =~ /^JPG$/i)) {
+							# TODO: map $file from
+							#	http://trees.ancestry.com/rd?f=image&guid=53c0a698-3eb8-40ec-a9f8-303fe7f2e46c&tid=4593693&pid=3
+							# to
+							#	https://mediasvc.ancestry.com/v2/image/namespaces/1093/media/53c0a698-3eb8-40ec-a9f8-303fe7f2e46c.jpg?client=Trees
 							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
