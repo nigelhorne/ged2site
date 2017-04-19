@@ -45,39 +45,50 @@ sub _open {
 	my $dbh;
 
 	my $directory = $self->{'directory'} || $directory;
-	my $slurp_file = File::Spec->catfile($directory, "$table.csv");
+	my $slurp_file = File::Spec->catfile($directory, "$table.sql");
+
 	if(-r $slurp_file) {
-		my $sep_char = $args{'sep_char'};
-		$dbh = DBI->connect("dbi:CSV:csv_sep_char=$sep_char");
-		$dbh->{'RaiseError'} = 1;
-
+		$dbh = DBI->connect("dbi:SQLite:dbname=$slurp_file", undef, undef, {
+			sqlite_open_flags => SQLITE_OPEN_READONLY,
+		});
 		if($self->{'logger'}) {
-			$self->{'logger'}->debug("read in $table from $slurp_file");
+			$self->{'logger'}->debug("read in $table from SQLite $slurp_file");
 		}
-
-		$dbh->{csv_tables}->{$table} = {
-			allow_loose_quotes => 1,
-			blank_is_undef => 1,
-			empty_is_undef => 1,
-			binary => 1,
-			f_file => $slurp_file,
-			escape_char => '\\',
-		};
 	} else {
-		$slurp_file = File::Spec->catfile($directory, "$table.xml");
+		$slurp_file = File::Spec->catfile($directory, "$table.csv");
 		if(-r $slurp_file) {
-			# You'll need to install XML::Twig and
-			# AnyData::Format::XML
-			# The DBD::AnyData in CPAN doesn't work - grab a
-			# patched version from https://github.com/nigelhorne/DBD-AnyData.git
-			$dbh = DBI->connect('dbi:AnyData(RaiseError=>1):');
+			my $sep_char = $args{'sep_char'};
+			$dbh = DBI->connect("dbi:CSV:csv_sep_char=$sep_char");
 			$dbh->{'RaiseError'} = 1;
+
 			if($self->{'logger'}) {
 				$self->{'logger'}->debug("read in $table from $slurp_file");
 			}
-			$dbh->func($table, 'XML', $slurp_file, 'ad_import');
+
+			$dbh->{csv_tables}->{$table} = {
+				allow_loose_quotes => 1,
+				blank_is_undef => 1,
+				empty_is_undef => 1,
+				binary => 1,
+				f_file => $slurp_file,
+				escape_char => '\\',
+			};
 		} else {
-			throw Error::Simple("Can't open $slurp_file");
+			$slurp_file = File::Spec->catfile($directory, "$table.xml");
+			if(-r $slurp_file) {
+				# You'll need to install XML::Twig and
+				# AnyData::Format::XML
+				# The DBD::AnyData in CPAN doesn't work - grab a
+				# patched version from https://github.com/nigelhorne/DBD-AnyData.git
+				$dbh = DBI->connect('dbi:AnyData(RaiseError=>1):');
+				$dbh->{'RaiseError'} = 1;
+				if($self->{'logger'}) {
+					$self->{'logger'}->debug("read in $table from $slurp_file");
+				}
+				$dbh->func($table, 'XML', $slurp_file, 'ad_import');
+			} else {
+				throw Error::Simple("Can't open $slurp_file");
+			}
 		}
 	}
 	push @databases, $table;

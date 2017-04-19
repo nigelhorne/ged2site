@@ -4,8 +4,8 @@ ged2site
 Convert a Gedcom file to HTML to create a family tree website.
 
 This is quite complex software, so if you are a genealogist looking to create
-a website and aren't an IT guru, it would be better to e-mail me on `<njh at nigelhorne.com>`
-for help.
+a website and aren't an IT guru,
+it would be better to e-mail me on `<njh at nigelhorne.com>` for help.
 
 An example genealogy website that was produced by ged2site is available
 at https://genealogy.nigelhorne.com.
@@ -24,12 +24,19 @@ You will then have two sites created in sub directories
 language and present different content to mobile/web/search-engine clients.
 
 If you decide to use the static site, just copy files in the static-site directory to your webserver.
+
 If you decide to use the dynamic site first create a $hostname.com file in the
 conf directory (use example.com as a template),
 then modify the contents of the template tree so that the site looks as you
 want it.
 The configration file can be in any number of formats including INI and XML.
 Then upload the dynamic-site directory to your webserver.
+The databases are in CSV format. To speed up access you can convert to SQLite
+format with using
+[csv2sqlite](http://search.cpan.org/~rwstauner/App-csv2sqlite/),
+which you should run on each of the .csv files.
+
+    csv2sqlite -o sep_char='!' -o quote_char= people.csv people.sql
 
 The options are:
 
@@ -134,8 +141,8 @@ Ancestry images that you've uploaded yourself should work fine.  However, images
 from another tree to your tree are not downloaded.  Either use
 FTM or download from the other tree to your desktop and upload to your tree.
 
-There will be numerous strange handling of Gedcoms since it's not that tightly observed by
-websites.
+There will be numerous strange handling of Gedcoms since it's not that tightly
+observed by websites.
 
 If you see lumpy English text in the output, or just plain mistakes,
 please e-mail me or add a bug report to github.com/nigelhorne/ged2site.
@@ -152,10 +159,10 @@ Google for the map page
 Ron Savage for the HTML::Timeline module which sparked a template for the timeline code
 
 Graphviz for the family tree and Tree::Family from CPAN for the inspiration
-	and code to use as a template
+and code to use as a template
 
-So many Perl CPAN modules that if I list them all I'll miss one, but special mention
-	goes to the Gedcom module.
+So many Perl CPAN modules that if I list them all I'll miss one, but special
+mention goes to the Gedcom module.
 
 # LICENSE AND COPYRIGHT
 
