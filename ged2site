@@ -3227,11 +3227,6 @@ sub print_person
 							$images{$key} = 1;
 						}
 						if($form && ($form =~ /^JPG$/i)) {
-							# TODO: map $file from
-							#	http://trees.ancestry.com/rd?f=image&guid=53c0a698-3eb8-40ec-a9f8-303fe7f2e46c&tid=4593693&pid=3
-							# to
-							#	https://mediasvc.ancestry.com/v2/image/namespaces/1093/media/53c0a698-3eb8-40ec-a9f8-303fe7f2e46c.jpg?client=Trees
-
 							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
@@ -3245,7 +3240,10 @@ sub print_person
 									# location that they forgot to fix
 									print "Map from $file\n" if($opts{'v'});
 									if($file =~ /guid=([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/) {
-										$file = "https://mediasvc.ancestry.com/v2/image/namespaces/1093/media/$1?client=Trees";
+										# FIXME: Ancestry pictures attached from another
+										# tree aren't downloaded.  This URL will generate a
+										# 404
+										$file = "https://mediasvc.ancestry.com/v2/image/namespaces/1093/media/$1.jpg?client=Trees";
 									} elsif($opts{'w'}) {
 										if($opts{'f'}) {
 											die "BUG: update ACOM mapping for $file";
@@ -3255,8 +3253,9 @@ sub print_person
 								}
 								print "Download image $file\n" if($opts{'v'});
 								my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
+								my $rc;
 								if((-r "static-site/$localfile") ||
-								   is_success(getstore($file, "static-site/$localfile"))) {
+								   is_success($rc = getstore($file, "static-site/$localfile"))) {
 									my $info = Image::Info::image_info("static-site/$localfile");
 									my ($w, $h) = Image::Info::dim($info);
 									if(!defined($w)) {
@@ -3287,7 +3286,7 @@ sub print_person
 										}
 									}
 								} else {
-									red_warning({ person => $person, warning => "downloading $file to static-site/$localfile: $!" });
+									red_warning({ person => $person, warning => "download $file failed to static-site/$localfile: $rc" });
 
 									if($title) {
 										print $html "<a href=\"$file\" target=\"_blank\">",

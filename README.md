@@ -65,7 +65,8 @@ Ancestry on Windows
 I use FindMyPast on Linux, because export of images is better on FMP and
 because Linux.  I recognise that many folks use Ancestry on Windows, so I
 have this rough guide which works for me, but understand that you'll still
-need to be an advanced Windows user, this is not for the Novice.
+need to be an advanced Windows user, this is not for the Novice.  If you
+still need help, e-mail me, or put an issue on github.com/nigelhorne/ged2site.
 
 * Firstly install a Perl, either ActiveState or Strawberry will work fine. I
 have also had success using Cygwin's Perl.
@@ -73,8 +74,8 @@ have also had success using Cygwin's Perl.
 * Load in all the CPAN modules that ged2site uses.
 
 * Install Family Tree Maker.  Sorry, there's no alternative, you'll just have
-to find a copy and buy it.  Good luck because ACOM is dropping it, and I'm
-yet to play with its successor.
+to find a copy and buy it.  Yes, I know it no longer supports syncing, hopefully
+this will be addressed soon.
 
 * Sync your ACOM tree to FTM, ensuring you also sync all of the media.
 
@@ -129,8 +130,12 @@ adding this toward the top, just after the package statement:
 use Socket;
 ```
 
+Ancestry images attached from another tree to your tree are not downloaded.  Either use
+FTM or download from the other tree to your desktop and upload to your tree.
+
 There will be numerous strange handling of Gedcoms since it's not that tightly observed by
 websites.
+
 If you see lumpy English text in the output, or just plain mistakes,
 please e-mail me or add a bug report to github.com/nigelhorne/ged2site.
 
