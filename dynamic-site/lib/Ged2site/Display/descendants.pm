@@ -16,7 +16,7 @@ sub html {
 	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'descendants',
-		'entry' => qr/^I\d+$/,
+		'entry' => qr/^[PI]\d+$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
@@ -77,17 +77,19 @@ sub _build_nodes {
 	my $count = 1;
 	my $edges = '';
 
-	$level++;
-	foreach my $child(split('----' ,$person->{'children'})) {
-		if($child =~ /entry=(I\d+)">.+<\/a>/) {
-			$child = $people->fetchrow_hashref({ entry => $1 });
-			next if($child->{'alive'});
+	if($person->{'children'}) {
+		$level++;
+		foreach my $child(split('----' ,$person->{'children'})) {
+			if($child =~ /entry=([PI]\d+)">.+<\/a>/) {
+				$child = $people->fetchrow_hashref({ entry => $1 });
+				next if($child->{'alive'});
 
-			my ($n, $e) = _build_nodes($people, $child, "$id." . $count, $level);
-			$nodes .= $n;
-			$edges .= "{\"from\": \"$id\", \"to\": \"$id.$count\"},\n" . $e;
+				my ($n, $e) = _build_nodes($people, $child, "$id." . $count, $level);
+				$nodes .= $n;
+				$edges .= "{\"from\": \"$id\", \"to\": \"$id.$count\"},\n" . $e;
 
-			$count++;
+				$count++;
+			}
 		}
 	}
 

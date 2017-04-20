@@ -708,15 +708,17 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 			print $fout "<h2>$year</h2><ul>";
 		}
 		my $person = $e->{'person'};
+		my $string = $person->as_srtring();
+		$string =~ s/'/\&apos;/g;
 		print $fout '<li>', @{$dtl->month_format_wide()}[$date->month() - 1], ' ',
 			$date->day(), ': <a href="',
 			make_filename_from_person(person => $person), '">',
-			$e->{'person'}->as_string(), '</a>: ', $e->{'event'}, '</li>';
+			$person->as_string(), '</a>: ', $e->{'event'}, '</li>';
 		print $csv "$index!$year!",
 			$date->month(), '!',
 			$date->day(), '!',
 			$person->{'xref'}, '!',
-			$person->as_string(), '!',
+			"$string!",
 			$e->{'event'}, "\n";
 		$index++;
 	}
