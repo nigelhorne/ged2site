@@ -9,6 +9,7 @@ use File::Spec;
 
 our @databases;
 our $directory;
+our $logger;
 
 sub new {
 	my $proto = shift;
@@ -16,9 +17,9 @@ sub new {
 
 	my $class = ref($proto) || $proto;
 
-	init(\%args);
+	# init(\%args);
 
-	return bless { logger => $args{'logger'}, directory => $args{'directory'} || $directory }, $class;
+	return bless { logger => $args{'logger'} || $logger, directory => $args{'directory'} || $directory }, $class;
 }
 
 # Can also be run as a class level Ged2site::DB::init(directory => '../databases')
@@ -26,7 +27,15 @@ sub init {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	$directory ||= $args{'directory'};
+	$logger ||= $args{'logger'};
 	throw Error::Simple('directory not given') unless($directory);
+}
+
+sub set_logger {
+        my $self = shift;
+        my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+        $self->{'logger'} = $args{'logger'};
 }
 
 sub _open {
@@ -116,6 +125,9 @@ sub selectall_hashref {
 		push @args, $args{$c1};
 	}
 	$query .= ' ORDER BY entry';
+	if($self->{'logger'}) {
+		$self->{'logger'}->debug("selectall_hashref $query: " . join(' ', @args));
+	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute(@args) || throw Error::Simple("$query: @args");
 	my @rc;
