@@ -2280,12 +2280,6 @@ sub print_person
 					}
 					$place_records{"Residence/$count"} = $residence;
 				}
-				# Citation residence notes print later
-				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence }))) {
-					$notes =~ s/\.$//;
-					$notes = lcfirst($notes);
-					$bio .= " ($notes)";
-				}
 				if($rdate) {	# residence has a date?
 					if(scalar(@residencelist) > 1) {
 						my $this_date = year({ person => $person, date => $rdate });
@@ -2375,7 +2369,12 @@ sub print_person
 						}
 					}
 				}
-				if($opts{'c'}) {
+				# Citation residence notes print later
+				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence }))) {
+					$notes =~ s/\.$//;
+					$notes = lcfirst($notes);
+					$bio .= " ($notes)";
+				} elsif($opts{'c'}) {
 					my $incitation = 0;
 					if($residencecitations{$residence}) {
 						my $citation = $residencecitations{$residence};
@@ -2405,19 +2404,16 @@ sub print_person
 				$count++;
 				if(($count == 1) && (scalar(@residencelist) == 2)) {
 					$bio .= ' and';
-				} elsif($count < scalar(@residencelist)) {
+				} else {
 					my $peek = $residencelist[$count];
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						# FIXME: and and and
 						$bio .= ' and';
-					} else {
+					} elsif($count == (scalar(@residencelist) - 1)) {
+						$bio .= '; and';
+					} elsif($count < (scalar(@residencelist) - 1)) {
 						$bio .= ';';
 					}
-				} elsif($count == (scalar(@residencelist) - 1)) {
-					if($count > 1) {
-						$bio .= ';';
-					}
-					$bio .= ' and';
 				}
 				$printed_residence = 1;
 			}

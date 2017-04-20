@@ -35,14 +35,14 @@ sub set_logger {
         my $self = shift;
 
 	if(ref($_[0]) eq 'HASH') {
-		%params = %{$_[0]};
+		%args = %{$_[0]};
 	} elsif(scalar(@_) % 2 == 0) {
-		%params = @_;
+		%args = @_;
 	} else {
-		$params{'logger'} = shift;
+		$args{'logger'} = shift;
 	}
 
-        $self->{'logger'} = $params{'logger'};
+        $self->{'logger'} = $args{'logger'};
 }
 
 sub _open {
