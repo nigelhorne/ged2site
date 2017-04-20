@@ -708,7 +708,7 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 			print $fout "<h2>$year</h2><ul>";
 		}
 		my $person = $e->{'person'};
-		my $string = $person->as_srtring();
+		my $string = $person->as_string();
 		$string =~ s/'/\&apos;/g;
 		print $fout '<li>', @{$dtl->month_format_wide()}[$date->month() - 1], ' ',
 			$date->day(), ': <a href="',
