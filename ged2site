@@ -2407,8 +2407,12 @@ sub print_person
 				} else {
 					my $peek = $residencelist[$count];
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-						# FIXME: and and and
-						$bio .= ' and';
+						$peek = $residencelist[$count + 1];
+						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+							$bio .= ',';
+						} else {
+							$bio .= ' and';
+						}
 					} elsif($count == (scalar(@residencelist) - 1)) {
 						$bio .= '; and';
 					} elsif($count < (scalar(@residencelist) - 1)) {
@@ -4207,6 +4211,13 @@ sub place
 	} elsif(ref($address) eq 'Gedcom::Record') {
 		$place = getaddress($address);
 		$address = undef;
+	}
+
+	if((!defined($address)) &&
+	   ($place !~ /USA$/) && ($place !~ /United States$/) &&
+	   ($place =~ /(.+),\s*(.+,\s*.+,\s*.+)$/)) {
+		$address = $1;
+		$place = $2;
 	}
 
 	# Google maps (and possibly others) sometimes works better with full names

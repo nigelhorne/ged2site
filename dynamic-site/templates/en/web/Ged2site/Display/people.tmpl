@@ -99,7 +99,7 @@
 						[ <a href="?page=history">Family History</a> ] |
 						[ <a href="?page=todo">To Do</a> ] |
 						[ <a href="?page=calendar">Calendar</a> ] |
-						[% UNLESS person.alive %]
+						[% IF person.children && !person.alive %]
 							[ <a href="?page=descendants&entry=[% entry %]">Descendants</a> ] |
 						[% END %]
 						[ <a href="/visjs.html">Timeline</a> ]
