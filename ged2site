@@ -2194,6 +2194,8 @@ sub print_person
 								}
 							}
 						}
+					} elsif(my $dor = $residence->date()) {
+						red_warning({ person => $person, warning => "Residence record for $dor contains no location" });
 					} else {
 						red_warning({ person => $person, warning => 'Residence record contains no location' });
 					}
@@ -3146,7 +3148,7 @@ sub print_person
 						warn $obje->{"_DATE"}, "\n" if($obje->{'_DATE'});
 						warn $obje->{"_date"}, "\n" if($obje->{'_date'});
 						# warn $obje->tag(), "\n" if($obje->tag());
-						my $title = $obje->title();
+						my $title = $obje->title() || $obje->tag_record('TITL', 1);
 						my $form = $obje->form();
 						if((!$form) && $obje->items()) {
 							# Family Tree Maker does this
