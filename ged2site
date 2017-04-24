@@ -1486,7 +1486,7 @@ sub print_person
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>';
-		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {
+		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
 			print $html ',';
 			print $csv ',';
 		}
