@@ -3789,6 +3789,8 @@ sub Gedcom::Individual::as_string
 		if(my $suffix = $name_components{'suffix'}) {
 			$rc .= " $suffix";
 		}
+	} elsif($args{'print_unknown'}) {
+		$rc .= ' UNKNOWN';
 	}
 
 	if($has_maiden_name && $self->surname()) {
