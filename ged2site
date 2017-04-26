@@ -1623,7 +1623,7 @@ sub print_person
 					});
 				}
 			}
-			if(scalar(@spouses) && ($numberofchilden > 0)) {
+			if(scalar(@spouses) && ($numberofchildren > 0)) {
 				$bio .= ' and';
 			} else {
 				$bio .= '.';
