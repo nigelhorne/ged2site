@@ -4397,6 +4397,11 @@ sub notes
 			$note =~ s/\r//g;
 			$note =~ tr/\n/ /;
 			$note =~ s/\.$//;
+			$note =~ s/\xe2\x80\x9c/\&#8220/g;	# left quotation
+			$note =~ s/\xe2\x80\x9d/\&#8221;/g;	# right quotation
+			$note =~ s/\xe2\x80\x99/\&apos;/g;
+			$note =~ s/[\x93\x94]/\&quot;/g;
+			$note =~ s/[\x91\x92]/\&apos;/g;
 			if($paragraph) {
 				$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
 			} else {
@@ -4435,11 +4440,6 @@ sub notes
 		$rc =~ s/\s\s+/ /g;
 		$rc =~ s/ $//;
 		$rc =~ s/!/\&excl;/g;	# ! is the sep_char
-		$rc =~ s/\xe2\x80\x9c/\&#8220/g;	# left quotation
-		$rc =~ s/\xe2\x80\x9d/\&#8221;/g;	# right quotation
-		$rc =~ s/\xe2\x80\x99/\&apos;/g;
-		$rc =~ s/[\x93\x94]/\&quot;/g;
-		$rc =~ s/[\x91\x92]/\&apos;/g;
 		$ufinder->find(\$rc);
 
 		if(defined($ENV{'LANG'})) {
