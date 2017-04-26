@@ -1623,7 +1623,7 @@ sub print_person
 					});
 				}
 			}
-			if(scalar(@spouses)) {
+			if(scalar(@spouses) && ($numberofchilden > 0)) {
 				$bio .= ' and';
 			} else {
 				$bio .= '.';
