@@ -4397,8 +4397,8 @@ sub notes
 			$note =~ s/\r//g;
 			$note =~ tr/\n/ /;
 			$note =~ s/\.$//;
-			$note =~ s/\xe2\x80\x9c/\&#8220/g;	# left quotation
-			$note =~ s/\xe2\x80\x9d/\&#8221;/g;	# right quotation
+			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
+			$note =~ s/\xe2\x80\x9d/"/g;	# right quotation
 			$note =~ s/\xe2\x80\x99/\'/g;
 			$note =~ s/[\x93\x94]/"/g;
 			$note =~ s/[\x91\x92]/'/g;
@@ -4681,12 +4681,13 @@ sub red_warning
 
 		die "What do you want to say?" unless($params{'warning'});
 
+		my $warning = HTML::Entities::decode($params{'warning'});
 		if($params{'person'}) {
 			my @call_details = caller(0);
-			warn colored(['red'], $params{'person'}->as_string(), ': ', $params{'warning'}, ' at line ', $call_details[2]);
-			push @{$params{'person'}->{'warnings'}}, $params{'warning'};
+			warn colored(['red'], $params{'person'}->as_string(), ": $warning at line ", $call_details[2]);
+			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
-			warn colored(lcfirst($params{'warning'}), 'red');
+			warn colored(lcfirst($warning), 'red');
 		}
 		# my $i = 0;
 		# while((my @call_details = (caller($i++)))) {
