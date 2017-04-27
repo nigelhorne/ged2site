@@ -144,16 +144,21 @@ my %censusmaps = (
 	'1851 Wales Census' => '1851 UK Census',
 	'1851 Census' => '1851 UK Census',
 	'1851 England, Wales & Scotland Census - Findmypast' => '1851 UK Census',
+	'1851 United Kingdom Census Sample' => '1851 UK Census',
 	'1861 England Census' => '1861 UK Census',
 	'1861 England, Wales & Scotland Census - Findmypast' => '1861 UK Census',
 	'1871 England Census' => '1871 UK Census',
 	'1871 England, Wales & Scotland Census - Findmypast' => '1871 UK Census',
+	'1871 Wales Census' => '1871 UK Census',
 	'1881 England Census' => '1881 UK Census',
 	'1881 England, Wales & Scotland Census - Findmypast' => '1881 UK Census',
 	'1881 Isle of Man Census' => '1881 Isle of Man Census',
+	'1881 Wales Census' => '1881 UK Census',
 	'1891 England Census' => '1891 UK Census',
 	'1891 England, Wales & Scotland Census - Findmypast' => '1891 UK Census',
+	'1891 Wales Census' => '1891 UK Census',
 	'1901 England Census' => '1901 UK Census',
+	'1901 Wales Census' => '1901 UK Census',
 	'1901 England, Wales & Scotland Census - Findmypast' => '1901 UK Census',
 	'1911 England Census' => '1911 UK Census',
 	'1911 England Census Summary Books' => '1911 UK Census',
@@ -1940,20 +1945,26 @@ sub print_person
 							}
 						}
 					}
+					my $parentofall;
 					if($childrenseen < $numberofchildren) {
-						# FIXME: Unable to find the parent of all of the children.  This
+						# Unable to find the parent of all of the children.  This
 						# may be the case where someone married more than once,
 						# and has a child by a 3rd unknown (or unfound) person
-						die $person->as_string() . ": BUG: expected $numberofchildren by the spouses, found $childrenseen";
-					}
-					my $parentofall;
-					foreach my $spouse(@spouses) {
-						if($parentofall && $childrenbyspouse{$spouse}) {
-							$parentofall = undef;
-							last;
+						if($opts{'w'}) {
+							if($opts{'f'}) {
+								die $person->as_string() . ': one of the parents of ' . $numberofchildren - $childrenseen . ' children is not known';
+							}
+							red_warning({ person => $person, warning => 'One of the parents of ' . $numberofchildren - $childrenseen . ' children is not known'});
 						}
-						if($childrenbyspouse{$spouse}) {
-							$parentofall = $spouse;
+					} else {
+						foreach my $spouse(@spouses) {
+							if($parentofall && $childrenbyspouse{$spouse}) {
+								$parentofall = undef;
+								last;
+							}
+							if($childrenbyspouse{$spouse}) {
+								$parentofall = $spouse;
+							}
 						}
 					}
 					$bio .= ". $pronoun " .
@@ -1964,10 +1975,14 @@ sub print_person
 						} else {
 							$bio .= '1 child';
 						}
-						if($parentofall) {
-							$bio .= ' with ' . $parentofall->as_string();
+						if($childrenseen >= $numberofchildren) {
+							if($parentofall) {
+								$bio .= ' with ' . $parentofall->as_string();
+							} else {
+								die $person->as_string() . ': BUG: parentofall not set when only one child';
+							}
 						} else {
-							die $person->as_string() . ': BUG: parentofall not set when only one child';
+							$bio .= ' with an unknown ' . (($sex eq 'M') ? 'mother' : 'father');
 						}
 						# TODO: make hyperlink to the persons record, unless surviving
 						$bio .= ', ' . $children[0]->given_names();
@@ -2800,6 +2815,15 @@ sub print_person
 					}
 					$end_of_sentence = 0;
 				} elsif($type eq 'Arrival') {
+					if(!defined($event->place())) {
+						if($opts{'f'}) {
+							die $person->as_string() . ': arrival record without destination';
+						}
+						if($opts{'w'}) {
+							red_warning({ person => $person, warning => 'Arrival record without destination' });
+						}
+						next;
+					}
 					if($events[$index] && ($events[$index]->type() eq 'Arrival') && $event->date()) {
 						if($events[$index]->date()) {
 							$previous = $event;
@@ -2836,7 +2860,7 @@ sub print_person
 								place({ person => $person, record => $previous }) .
 								' and ' .
 								year({ person => $person, record => $event }) .
-								' ' . lcfirst($person->pronoun()) .
+								' ' . lcfirst($pronoun),
 								' arrived' .
 								place({ person => $person, record => $event }) . '.';
 						}
@@ -3863,6 +3887,8 @@ sub Gedcom::Individual::as_string
 		red_warning({ "Can't determine the name for record " . $self->{'xref'} });
 		return '';
 	}
+
+	$rc =~ tr/"/'/;	# fix issues with Graphviz and others
 		
 	return $rc;
 }
@@ -4795,8 +4821,8 @@ sub print_graphviz
 		$thumb->Write($thumbnail);
 
 		# FIXME: TABLE isn't supported by Graphviz
-		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>";
-		print $fout ",labelloc=b";
+		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>",
+			",labelloc=b";
 
 		# print $fout ",image=\"$profile_image\",labelloc=b";
 
@@ -4864,6 +4890,8 @@ sub make_filename_from_person
 
 	my $rc = $person->as_string(include_years => 1);
 	$rc =~ tr/ /-/s;
+	$rc =~ tr/ /-/s;
+	$rc =~ tr/"/'/s;
 	$rc =~ s/--+/-/g;
 	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;
