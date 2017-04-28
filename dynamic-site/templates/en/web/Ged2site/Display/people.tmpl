@@ -152,6 +152,12 @@
 								[% IF (offset % 4) == 0 %]
 									<center>
 								[% END %]
+								[% IF object.split('---').1 %]
+									</center>
+                                                                        <h3>[% object.split('---').1 %]</h3>
+                                                                        [% offset = 3 %]
+									<center>
+                                                                [% END %]
 								<a href="[% object.split('---').0 %]" target="_blank">
 									<img src="[% object.split('---').0 %]" alt="[% object.split('---').1 %]"
 										width="175"
