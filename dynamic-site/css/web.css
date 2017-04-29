@@ -82,6 +82,12 @@ h2 {
         color:#2C4EAC;          
         line-height: 2em;
 }                       
+
+h3 {                                            
+        color:#2C4EAC;          
+        width: 80%;
+        margin: auto;                   
+}
                                 
 /* http://accessify.com/tools-and-wizards/developer-tools/list-o-matic/ */
 ul#nav {                                        
