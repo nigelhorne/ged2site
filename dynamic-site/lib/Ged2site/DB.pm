@@ -32,7 +32,7 @@ sub init {
 }
 
 sub set_logger {
-        my $self = shift;
+	my $self = shift;
 
 	if(ref($_[0]) eq 'HASH') {
 		%args = %{$_[0]};
@@ -42,7 +42,7 @@ sub set_logger {
 		$args{'logger'} = shift;
 	}
 
-        $self->{'logger'} = $args{'logger'};
+	$self->{'logger'} = $args{'logger'};
 }
 
 sub _open {

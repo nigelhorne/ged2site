@@ -61,6 +61,7 @@ use Ged2site::Display::history;
 use Ged2site::Display::todo;
 use Ged2site::Display::calendar;
 use Ged2site::Display::descendants;
+use Ged2site::Display::graphs;
 
 use Ged2site::DB::people;
 use Ged2site::DB::censuses;
@@ -242,6 +243,8 @@ sub doit
 			$display = Ged2site::Display::calendar->new($args);
 		} elsif($info->param('page') eq 'descendants') {
 			$display = Ged2site::Display::descendants->new($args);
+		} elsif($info->param('page') eq 'graphs') {
+			$display = Ged2site::Display::graphs->new($args);
 		} else {
 			$invalidpage = 1;
 		}
@@ -304,5 +307,6 @@ sub choose
 			"/cgi-bin/page.fcgi?page=todo\n",
 			"/cgi-bin/page.fcgi?page=calendar\n",
 			"/cgi-bin/page.fcgi?page=descendants\n",
+			"/cgi-bin/page.fcgi?page=graphs\n",
 	}
 }
