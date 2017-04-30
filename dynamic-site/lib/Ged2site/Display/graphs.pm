@@ -59,6 +59,10 @@ sub html {
 		}
 	}
 		
+	# drawpoints: false,
+	# interpolation: {
+	#	parametrization: 'centripetal'
+	# },
 	my $options = "start: '$start-01-01',\nend: '$end-12-31'\n";
 
 	return $self->SUPER::html({
