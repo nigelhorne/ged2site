@@ -59,7 +59,7 @@ sub html {
 		}
 	}
 		
-	my $options = "start: '$start-01-01',\nend: '$end-12-31\n";
+	my $options = "start: '$start-01-01',\nend: '$end-12-31'\n";
 
 	return $self->SUPER::html({
 		items => $items,
