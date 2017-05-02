@@ -148,14 +148,11 @@
 							[% IF (offset % 4) == 0 %]
 								<p>
 							[% END %]
-							[% IF object.split('---').2 %]
-								[% IF (offset % 4) == 0 %]
-									<center>
-								[% END %]
+							[% IF object.split('---').0 %]
 								[% IF object.split('---').1 %]
-									</center>
                                                                         <h3>[% object.split('---').1 %]</h3>
-                                                                        [% offset = 3 %]
+									<center>
+								[% ELSIF (offset % 4) == 0 %]
 									<center>
                                                                 [% END %]
 								<a href="[% object.split('---').0 %]" target="_blank">
@@ -164,21 +161,23 @@
 										height="[% object.split('---').2 %]"
 									>
 								</a>
-								[% offset = offset + 1 %]
-								[% IF (offset % 4) == 0 %]
+								[% IF object.split('---').1 %]
 									</center>
+									[% offset = 0 %]
+								[% ELSE %]
+									[% offset = offset + 1 %]
+									[% IF (offset % 4) == 0 %]
+										</center>
+									[% END %]
 								[% END %]
 							[% ELSE %]
-								[% IF offset != 0 %]
-									</center>
-								[% END %]
 								<p>
 									<a href="[% object.split('---').0 %]" target="_blank">[% object.split('---').0 %]</a>
 								</p>
 								[% offset = 0 %]
 							[% END %]
 						[% END %]
-						[% IF offset != 0 %]
+						[% IF (offset % 4) != 0 %]
 							</center>
 						[% END %]
 					</div>
