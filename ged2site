@@ -1148,7 +1148,7 @@ sub print_person
 		foreach my $child(@children) {
 			if($child eq $person) {
 				if($opts{'f'}) {
-					die $person->_as_string(), ': person is own parent';
+					die $person->as_string(), ': person is own parent';
 				} else {
 					red_warning({ person => $person, warning => 'person is own parent' });
 				}
