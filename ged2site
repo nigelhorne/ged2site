@@ -1875,6 +1875,23 @@ sub print_person
 				$fullbio .= $bio;
 				$bio = '';
 
+				my $all_marriages_have_date = 1;
+				foreach my $spouse(@spouses) {
+					my $date = get_value({ person => $spouse, value => 'marriage date' });
+					if(!defined($date)) {
+						if(my $marriage = ($spouse->get_record('marriage') || $spouse->get_record('fams marriage'))) {
+							$date = $marriage->date();
+						}
+					}
+					if(!date_to_datetime($date)) {
+						$all_marriages_have_date = 0;
+						last;
+					}
+				}
+				if($all_marriages_have_date) {
+					@spouses = Sort::Key::DateTime::dtkeysort { date_to_datetime(date => (($_->get_record('fams marriage')->date()) || ($_->get_record('marriage')->date()))) } @spouses;
+				}
+
 				my $spousenumber = 0;
 				foreach my $spouse(@spouses) {
 					print $html ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
@@ -1885,7 +1902,7 @@ sub print_person
 
 					my $dateofmarriage = get_value({ person => $spouse, value => 'marriage date' });
 					if(!defined($dateofmarriage)) {
-						if(my $marriage = $spouse->get_record('marriage') || $spouse->get_record('fams marriage')) {
+						if(my $marriage = ($spouse->get_record('marriage') || $spouse->get_record('fams marriage'))) {
 							$dateofmarriage = $marriage->date();
 						}
 					}
