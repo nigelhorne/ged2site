@@ -46,7 +46,7 @@ sub html {
 					next;
 				}
 				next if($yob < 1840);
-				next if($yob >= 1940);
+				next if($yob >= 1930);
 				my $dod = $person->{'dod'};
 				my $yod;
 				if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {

@@ -67,21 +67,19 @@
 		<p>
 
 		[% IF graph == 'ageatdeath' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
 				This graph only includes those who lived past the age of 20.
 			</p>
-			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'birthmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 		[% ELSE %]
-			<div id="header_container">
-				<h1>Available graphs</h1>
-			</div>
 			<div id="container">
+				<h2>Choose a Graph</h2>
 				<br>
 				<ul id="nav">
-					<li><a href="?page=graphs&graph=ageatdeath -%]">Average age at death</a></li>
-					<li><a href="?page=graphs&graph=birthmonth -%]">Birth month</a></li>
+					<li><a href="?page=graphs&graph=ageatdeath">Average age at death</a></li>
+					<li><a href="?page=graphs&graph=birthmonth">Birth month</a></li>
 				</ul>
 			</div>
 		[% END %]
