@@ -5,14 +5,12 @@
 		[% IF graph == 'ageatdeath' %]
 			<title>Age at death against birth date</title>
 		[% ELSIF graph == 'birthmonth' %]
-			<!--
 			<title>Birth month</title>
-			-->
 		[% END %]
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> 
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		[% IF graph == 'ageatdeath' %]
+			<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> 
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
 			<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" />
 		[% ELSIF graph == 'birthmonth' %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
@@ -53,7 +51,9 @@
 			[% IF graph == 'ageatdeath' %]
 				<h1>Age at death against birth date</h1>
 			[% ELSIF graph == 'birthmonth' %]
+				<!--
 				<h1>Birth month</h1>
+				-->
 			[% END %]
 			[ <a href="?page=people&home=1">Home</a> ] |
 			[ <a href="?page=censuses">Census Index</a> ] |
