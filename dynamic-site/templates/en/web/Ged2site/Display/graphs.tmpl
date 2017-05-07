@@ -2,11 +2,43 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
-		<title>Age at death against birth date</title>
+		[% IF graph == 'ageatdeath' %]
+			<title>Age at death against birth date</title>
+		[% ELSIF graph == 'birthmonth' %]
+			<!--
+			<title>Birth month</title>
+			-->
+		[% END %]
 		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> 
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
-		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" />
+		[% IF graph == 'ageatdeath' %]
+			<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" />
+		[% ELSIF graph == 'birthmonth' %]
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+			<script type="text/javascript">
+
+			window.onload = function () {
+				var chart = new CanvasJS.Chart("chartContainer", {
+					theme: "theme1",	//theme2
+					title:{
+						text: "Birth month"
+					},
+					animationEnabled: true,   // change to false
+					data: [              
+					{
+						// Change type to "bar", "area", "spline", "pie",etc.
+						type: "column",
+						dataPoints: [
+							[% datapoints %]
+						]
+					}
+					]
+				});
+				chart.render();
+			}
+			</script>
+		[% END %]
 		<!--
 		<style type="text/css">
 			body {
@@ -18,7 +50,11 @@
 
 	<body>
 		<center>
-			<h1>Age at death against birth date</h1>
+			[% IF graph == 'ageatdeath' %]
+				<h1>Age at death against birth date</h1>
+			[% ELSIF graph == 'birthmonth' %]
+				<h1>Birth month</h1>
+			[% END %]
 			[ <a href="?page=people&home=1">Home</a> ] |
 			[ <a href="?page=censuses">Census Index</a> ] |
 			[ <a href="?page=surnames">Surname Index</a> ] |
@@ -29,18 +65,22 @@
 		</center>
 		<p>
 
-		<div id="visualization"></div>
+		[% IF graph == 'ageatdeath' %]
+			<div id="visualization"></div>
 
-		<script type="text/javascript">
-			var container = document.getElementById('visualization');
-			var items = [
-				[% items %]
-			];
-			var dataset = new vis.DataSet(items);
-			var options = {
-				[% options %]
-			};
-			var Graph2d = new vis.Graph2d(container, dataset, options);
-		</script>
+			<script type="text/javascript">
+				var container = document.getElementById('visualization');
+				var items = [
+					[% items %]
+				];
+				var dataset = new vis.DataSet(items);
+				var options = {
+					[% options %]
+				};
+				var Graph2d = new vis.Graph2d(container, dataset, options);
+			</script>
+		[% ELSIF graph == 'birthmonth' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+		[% END %]
 	</body>
 </html>
