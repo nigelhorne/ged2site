@@ -70,14 +70,9 @@ sub html {
 		my $datapoints;
 		
 		foreach my $bucket(sort keys %counts) {
-			next if((!defined($datapoints)) && ($counts{$bucket} == 0));
-			my $average;
-			if($counts{$bucket}) {
-				$average = $totals{$bucket} / $counts{$bucket};
-				$average = floor($average);
-			} else {
-				$average = 0;
-			}
+			# next if((!defined($datapoints)) && ($counts{$bucket} == 0));
+			my $average = $totals{$bucket} / $counts{$bucket};
+			$average = floor($average);
 			
 			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
 		}
@@ -110,7 +105,8 @@ sub html {
 			updated => $people->updated()
 		});
 	} elsif($params{'graph'} eq 'infantdeaths') {
-		my %counts;
+		my %infantdeaths;
+		my %totals;
 
 		foreach my $person(@{$people->selectall_hashref()}) {
 			if($person->{'dob'} && $person->{'dod'}) {
@@ -122,7 +118,8 @@ sub html {
 				} else {
 					next;
 				}
-				next if($yob < 1800);
+				next if($yob < 1600);
+				next if($yob > 2000);
 				my $dod = $person->{'dod'};
 				my $yod;
 				if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
@@ -131,21 +128,30 @@ sub html {
 					next;
 				}
 				my $age = $yod - $yob;
-				next if ($age > 5);
 				$yob -= $yob % $AGEATDEATHBUCKETYEARS;
-				if($counts{$yob}) {
-					$counts{$yob}++;
+
+				if($totals{$yob}) {
+					$totals{$yob}++;
 				} else {
-					$counts{$yob} = 1;
+					$totals{$yob} = 1;
+				}
+				if($age <= 5) {
+					if($infantdeaths{$yob}) {
+						$infantdeaths{$yob}++;
+					} else {
+						$infantdeaths{$yob} = 1;
+					}
 				}
 			}
 		}
 
 		my $datapoints;
 		
-		foreach my $bucket(sort keys %counts) {
-			next if((!defined($datapoints)) && ($counts{$bucket} == 0));
-			$datapoints .= "{ label: \"$bucket\", y: $counts{$bucket} },\n";
+		foreach my $bucket(sort keys %totals) {
+			if($infantdeaths{$bucket}) {
+				my $percentage = floor(($infantdeaths{$bucket} * 100) / $totals{$bucket});
+				$datapoints .= "{ label: \"$bucket\", y: $percentage },\n";
+			}
 		}
 
 		return $self->SUPER::html({
