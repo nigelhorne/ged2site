@@ -2,12 +2,15 @@ package Ged2site::Display::graphs;
 
 use strict;
 use warnings;
+use POSIX;
 
 # Display some information about the family
 
 use Ged2site::Display::page;
 
 our @ISA = ('Ged2site::Display::page');
+
+our $AGEATDEATHBUCKETYEARS = 5;
 
 sub html {
 	my $self = shift;
@@ -16,7 +19,7 @@ sub html {
 	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'graphs',
-		'graph' => qr/^[A-Z][A-Z]/i,
+		'graph' => qr/^[a-z]+$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
@@ -29,9 +32,8 @@ sub html {
 	}
 
 	if($params{'graph'} eq 'ageatdeath') {
-		my $items;
-		my $start;
-		my $end;
+		my %counts;
+		my %totals;
 
 		foreach my $person(@{$people->selectall_hashref()}) {
 			if($person->{'dob'} && $person->{'dod'}) {
@@ -43,6 +45,8 @@ sub html {
 				} else {
 					next;
 				}
+				next if($yob < 1840);
+				next if($yob >= 1940);
 				my $dod = $person->{'dod'};
 				my $yod;
 				if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
@@ -51,25 +55,35 @@ sub html {
 					next;
 				}
 				my $age = $yod - $yob;
-				$items .= "{x: '$dob', y: $age},\n";
-				if((!defined($start)) || ($yob < $start)) {
-					$start = $yob;
-				}
-				if((!defined($end)) || ($yod > $end)) {
-					$end = $yod;
+				next if ($age < 20);
+				$yob -= $yob % $AGEATDEATHBUCKETYEARS;
+				if($counts{$yob}) {
+					$counts{$yob}++;
+					$totals{$yob} += $yod - $yob;
+				} else {
+					$counts{$yob} = 1;
+					$totals{$yob} = $yod - $yob;
 				}
 			}
 		}
-			
-		# drawpoints: false,
-		# interpolation: {
-		#	parametrization: 'centripetal'
-		# },
-		my $options = "start: '$start-01-01',\nend: '$end-12-31'\n";
 
+		my $datapoints;
+		
+		foreach my $decade(sort keys %counts) {
+			next if((!defined($datapoints)) && ($counts{$decade} == 0));
+			my $average;
+			if($counts{$decade}) {
+				$average = $totals{$decade} / $counts{$decade};
+				$average = floor($average);
+			} else {
+				$average = 0;
+			}
+			
+			$datapoints .= "{ label: \"$decade\", y: $average },\n";
+		}
+		
 		return $self->SUPER::html({
-			items => $items,
-			options => $options,
+			datapoints => $datapoints,
 			updated => $people->updated()
 		});
 	} elsif($params{'graph'} eq 'birthmonth') {
