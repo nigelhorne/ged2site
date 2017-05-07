@@ -1,5 +1,9 @@
 package Ged2site::Display::graphs;
 
+# Other ideas - age at first marriage (two lines M&F) vs. year of birth
+# Distance between birth&death places vs. year of birth
+# Time (in months) between frst marriage and first child
+
 use strict;
 use warnings;
 use POSIX;
