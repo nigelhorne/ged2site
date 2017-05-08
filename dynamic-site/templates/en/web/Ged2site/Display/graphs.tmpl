@@ -3,9 +3,11 @@
 <html lang="en">
 	<head>
 		[% IF graph == 'ageatdeath' %]
-			[% SET title = 'Average Age at death against birth year' %]
+			[% SET title = 'Average Age at Death Against Birth Year' %]
 		[% ELSIF graph == 'birthmonth' %]
 			[% SET title = 'Birth Month' %]
+		[% ELSIF graph == 'ageatmarriage' %]
+			[% SET title = 'Average Age at First Marriage' %]
 		[% ELSIF graph == 'infantdeaths' %]
 			[% SET title = 'Infant Deaths' %]
 		[% ELSE %]
@@ -13,7 +15,7 @@
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<title>[% title %]</title>
-		[% IF graph %]
+		[% IF datapoints %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
@@ -44,14 +46,80 @@
 				chart.render();
 			}
 			</script>
-			<!--
-			<style type="text/css">
-				body {
-					font: 10pt sans;
-				}
-			</style>
-			-->
+		[% ELSIF mdatapoints && fdatapoints %]
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+			<script type="text/javascript">
+
+			window.onload = function () {
+				var chart = new CanvasJS.Chart("chartContainer", {
+					theme: "theme1",	//theme2
+					title: {
+						text: "[% title %]"
+					},
+					axisY: {
+						gridThickness: 0
+					},
+					toolTip: {
+					  shared:true
+					},
+					legend: {
+						verticalAlign: "center",
+						horizontalAlign: "right"
+					},
+					animationEnabled: true,   // change to false
+					data: [              
+						{
+							// Change type to "bar", "area", "spline", "pie","column"etc.
+							[% IF graph == 'birthmonth' %]
+								type: "column",
+							[% ELSE %]
+								type: "line",
+							[% END %]
+							showInLegend: true,
+							name: "Male",
+							color: "#F08080",
+							dataPoints: [
+								[% mdatapoints %]
+							]
+						},
+						{
+							// Change type to "bar", "area", "spline", "pie","column"etc.
+							[% IF graph == 'birthmonth' %]
+								type: "column",
+							[% ELSE %]
+								type: "line",
+							[% END %]
+							showInLegend: true,
+							color: "#20B2AA",
+							name: "Female",
+							dataPoints: [
+								[% fdatapoints %]
+							]
+						},
+					],
+					legend: {
+						cursor: "pointer",
+						itemclick:function(e){
+							if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else{
+								e.dataSeries.visible = true;
+							}
+							chart.render();
+						}
+					}
+				});
+				chart.render();
+			}
+			</script>
 		[% END %]
+		<!--
+		<style type="text/css">
+			body {
+				font: 10pt sans;
+			}
+		</style>
+		-->
 	</head>
 
 	<body>
@@ -62,8 +130,8 @@
 			[ <a href="?page=history">Family History</a> ] |
 			[ <a href="?page=todo">To Do</a> ] |
 			[ <a href="?page=calendar">Calendar</a> ] |
-			[ <a href="/visjs.html">Timeline</a> ]
-			[ <a href="?page=graphs">Analytics</a> ] |
+			[ <a href="/visjs.html">Timeline</a> ] |
+			[ <a href="?page=graphs">Analytics</a> ]
 		</center>
 		<p>
 
@@ -71,6 +139,8 @@
 			<div id="chartContainer" style="height: 400px; width: 100%;"></div>
 			<p>This graph only includes those who lived past the age of 20.</p>
 		[% ELSIF graph == 'birthmonth' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'ageatmarriage' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'infantdeaths' %]
 			<div id="chartContainer" style="height: 400px; width: 100%;"></div>
@@ -83,6 +153,7 @@
 					<li><a href="?page=graphs&graph=ageatdeath">Average age at death</a></li>
 					<li><a href="?page=graphs&graph=birthmonth">Birth month</a></li>
 					<li><a href="?page=graphs&graph=infantdeaths">Infant deaths</a></li>
+					<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
 				</ul>
 			</div>
 		[% END %]

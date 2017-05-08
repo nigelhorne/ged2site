@@ -350,7 +350,7 @@ memoize('stepsabove');
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod!profile_thumbnail\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod!profile_thumbnail!marriages!sex\n";
 
 open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
 print $timeline_xml "<?xml version=\"1.0\"?>\n",
@@ -3769,6 +3769,28 @@ sub print_person
 		}
 		$fullbio =~ s/'/\&#39;/g;
 		print $visjs '<h2>', $person->as_string, "</h2><hr>$fullbio'\n},\n";
+	}
+
+	my $m;
+	foreach my $spouse(@spouses) {
+		my $date;
+		if(my $rec = $spouse->get_record('fams marriage')) {
+			$date = $rec->date();
+		} elsif($rec = $spouse->get_record('marriage')) {
+			$date = $rec->date();
+		}
+		if($date && (my $marriage_dt = date_to_datetime(date => $date))) {
+			if($marriage_dt->month() && $marriage_dt->day()) {
+				$m .= '---' if($m);
+				$m .= $marriage_dt->strftime('%Y/%m/%d');
+			}
+		}
+	}
+
+	if(defined($m)) {
+		print $csv "!$m!$sex";
+	} else {
+		print $csv "!!$sex";
 	}
 
 	$printed{$person->{'xref'}} = 1;

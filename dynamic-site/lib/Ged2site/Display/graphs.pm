@@ -1,8 +1,8 @@
 package Ged2site::Display::graphs;
 
-# Other ideas - age at first marriage (two lines M&F) vs. year of birth
-# Distance between birth&death places vs. year of birth
-# Time (in months) between frst marriage and first child
+# Other ideas:
+#	Distance between birth&death places vs. year of birth
+#	Time (in months) between first marriage and first child
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ use Ged2site::Display::page;
 
 our @ISA = ('Ged2site::Display::page');
 
-our $AGEATDEATHBUCKETYEARS = 5;
+our $BUCKETYEARS = 5;
 
 sub html {
 	my $self = shift;
@@ -35,6 +35,8 @@ sub html {
 		return $self->SUPER::html(updated => $people->updated());
 	}
 
+	my $datapoints;
+		
 	if($params{'graph'} eq 'ageatdeath') {
 		my %counts;
 		my %totals;
@@ -60,7 +62,7 @@ sub html {
 				}
 				my $age = $yod - $yob;
 				next if ($age < 20);
-				$yob -= $yob % $AGEATDEATHBUCKETYEARS;
+				$yob -= $yob % $BUCKETYEARS;
 				if($counts{$yob}) {
 					$counts{$yob}++;
 					$totals{$yob} += $yod - $yob;
@@ -71,8 +73,6 @@ sub html {
 			}
 		}
 
-		my $datapoints;
-		
 		foreach my $bucket(sort keys %counts) {
 			# next if((!defined($datapoints)) && ($counts{$bucket} == 0));
 			my $average = $totals{$bucket} / $counts{$bucket};
@@ -80,11 +80,6 @@ sub html {
 			
 			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
 		}
-
-		return $self->SUPER::html({
-			datapoints => $datapoints,
-			updated => $people->updated()
-		});
 	} elsif($params{'graph'} eq 'birthmonth') {
 		my @counts = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 		foreach my $person(@{$people->selectall_hashref()}) {
@@ -95,7 +90,6 @@ sub html {
 			}
 		}
 
-		my $datapoints;
 		my $index = 0;
 		my $dtl = DateTime::Locale->load($self->{'_lingua'}->language_code_alpha2());
 		while($index < 12) {
@@ -103,11 +97,6 @@ sub html {
 			$datapoints .= "{ label: \"$month\", y: " . $counts[$index] . " },\n";
 			$index++;
 		}
-
-		return $self->SUPER::html({
-			datapoints => $datapoints,
-			updated => $people->updated()
-		});
 	} elsif($params{'graph'} eq 'infantdeaths') {
 		my %infantdeaths;
 		my %totals;
@@ -132,7 +121,7 @@ sub html {
 					next;
 				}
 				my $age = $yod - $yob;
-				$yob -= $yob % $AGEATDEATHBUCKETYEARS;
+				$yob -= $yob % $BUCKETYEARS;
 
 				if($totals{$yob}) {
 					$totals{$yob}++;
@@ -149,20 +138,96 @@ sub html {
 			}
 		}
 
-		my $datapoints;
-		
 		foreach my $bucket(sort keys %totals) {
 			if($infantdeaths{$bucket}) {
 				my $percentage = floor(($infantdeaths{$bucket} * 100) / $totals{$bucket});
 				$datapoints .= "{ label: \"$bucket\", y: $percentage },\n";
 			}
 		}
+	} elsif($params{'graph'} eq 'ageatmarriage') {
+		my %mcounts;
+		my %mtotals;
+		my %fcounts;
+		my %ftotals;
+
+		foreach my $person(@{$people->selectall_hashref()}) {
+			if($person->{'dob'} && $person->{'marriages'}) {
+				my $dob = $person->{'dob'};
+				my $yob;
+				if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+					$dob =~ tr/\//-/;
+					$yob = $1;
+				} else {
+					next;
+				}
+				next if($yob < 1600);
+				my $dom = $person->{'marriages'};
+				if($dom =~ /^(.+?)-/) {
+					$dom = $1;	# use the first marriage
+				}
+				my $yom;
+				if($dom =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+					$yom = $1;
+				} else {
+					next;
+				}
+				my $age = $yom - $yob;
+				$yob -= $yob % $BUCKETYEARS;
+
+				if($person->{'sex'} eq 'M') {
+					if($mcounts{$yob}) {
+						$mcounts{$yob}++;
+					} else {
+						$mcounts{$yob} = 1;
+					}
+					if($mtotals{$yob}) {
+						$mtotals{$yob} += $age;
+					} else {
+						$mtotals{$yob} = $age;
+					}
+				} else {
+					if($fcounts{$yob}) {
+						$fcounts{$yob}++;
+					} else {
+						$fcounts{$yob} = 1;
+					}
+					if($ftotals{$yob}) {
+						$ftotals{$yob} += $age;
+					} else {
+						$ftotals{$yob} = $age;
+					}
+				}
+			}
+		}
+
+		my $mdatapoints;
+		my $fdatapoints;
+
+		foreach my $bucket(sort keys %mcounts) {
+			next if(!defined($fcounts{$bucket}));
+
+			my $average = $mtotals{$bucket} / $mcounts{$bucket};
+			$average = floor($average);
+			
+			$mdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+
+			$average = $ftotals{$bucket} / $fcounts{$bucket};
+			$average = floor($average);
+			
+			$fdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+		}
 
 		return $self->SUPER::html({
-			datapoints => $datapoints,
+			mdatapoints => $mdatapoints,
+			fdatapoints => $fdatapoints,
 			updated => $people->updated()
 		});
 	}
+
+	return $self->SUPER::html({
+		datapoints => $datapoints,
+		updated => $people->updated()
+	});
 }
 
 1;
