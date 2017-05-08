@@ -8,6 +8,7 @@ use strict;
 use warnings;
 use POSIX;
 use DateTime::Locale;
+use DateTime::Format::Natural;
 
 # Display some information about the family
 
@@ -16,6 +17,8 @@ use Ged2site::Display::page;
 our @ISA = ('Ged2site::Display::page');
 
 our $BUCKETYEARS = 5;
+our $date_parser;
+our $dfn;
 
 sub html {
 	my $self = shift;
@@ -147,6 +150,48 @@ sub html {
 				$datapoints .= "{ label: \"$bucket\", y: null },\n";
 			}
 		}
+	} elsif($params{'graph'} eq 'firstborn') {
+		my %months;
+
+		$dfn ||= DateTime::Format::Natural->new();
+		foreach my $person(@{$people->selectall_hashref()}) {
+			if($person->{'children'} && $person->{'marriages'}) {
+				my $dom = $person->{'marriages'};
+				if($dom =~ /^(.+?)-/) {
+					$dom = $1;	# use the first marriage
+				}
+				my $youngest;
+				CHILD: foreach my $child(split(/----/, $person->{'children'})) {
+					if($child =~ /page=people&entry=([IP]\d+)"/) {
+						$child = $people->fetchrow_hashref({ entry => $1 });
+						my $dob = $child->{'dob'};
+						next CHILD unless($dob);
+						if($dob =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/) {
+							$dob = "$3/$2/$1";
+						} else {
+							next CHILD;
+						}
+						if(defined($youngest)) {
+							my $candidate = $self->_date_to_datetime($dob);
+							if($candidate < $youngest) {
+								$youngest = $candidate;
+							}
+						} else {
+							$youngest = $self->_date_to_datetime($dob);
+						}
+					}
+				}
+				if(defined($youngest)) {
+					$dom = $self->_date_to_datetime($dom);
+					my $d = $youngest->subtract_datetime($dom);
+					$months{$d->months()}++;
+				}
+			}
+		}
+
+		foreach my $month(sort {$a <=> $b} keys %months) {
+			$datapoints .= "{ label: \"$month\", y: $months{$month} },\n";
+		}
 	} elsif($params{'graph'} eq 'ageatmarriage') {
 		my %mcounts;
 		my %mtotals;
@@ -231,6 +276,22 @@ sub html {
 		datapoints => $datapoints,
 		updated => $people->updated()
 	});
+}
+
+sub _date_to_datetime
+{
+	my $self = shift;
+	my %params;
+	
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'date'} = shift;
+	}
+
+	return $dfn->parse_datetime(string => $params{'date'});
 }
 
 1;
