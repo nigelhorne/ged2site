@@ -3,7 +3,7 @@
 <html lang="en">
 	<head>
 		[% IF graph == 'ageatdeath' %]
-			[% SET title = 'Average Age at Death Against Birth Year' %]
+			[% SET title = 'Adult Life Expectancy' %]
 		[% ELSIF graph == 'birthmonth' %]
 			[% SET title = 'Birth Month' %]
 		[% ELSIF graph == 'ageatmarriage' %]
@@ -26,10 +26,13 @@
 						text: "[% title %]"
 					},
 					axisY: {
+						[% IF graph == 'ageatdeath' %]
+							includeZero: false,
+						[% END %]
 						gridThickness: 0
 					},
-					animationEnabled: true,   // change to false
-					data: [              
+					animationEnabled: true,	// change to false
+					data: [
 					{
 						// Change type to "bar", "area", "spline", "pie","column"etc.
 						[% IF graph == 'birthmonth' %]
@@ -60,14 +63,14 @@
 						gridThickness: 0
 					},
 					toolTip: {
-					  shared:true
+						shared:true
 					},
 					legend: {
 						verticalAlign: "center",
 						horizontalAlign: "right"
 					},
-					animationEnabled: true,   // change to false
-					data: [              
+					animationEnabled: true,	// change to false
+					data: [
 						{
 							// Change type to "bar", "area", "spline", "pie","column"etc.
 							[% IF graph == 'birthmonth' %]
@@ -136,14 +139,14 @@
 		<p>
 
 		[% IF graph == 'ageatdeath' %]
-			<div id="chartContainer" style="height: 400px; width: 100%;"></div>
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes those who lived past the age of 20.</p>
 		[% ELSIF graph == 'birthmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'ageatmarriage' %]
-			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
-		[% ELSIF graph == 'infantdeaths' %]
 			<div id="chartContainer" style="height: 400px; width: 100%;"></div>
+		[% ELSIF graph == 'infantdeaths' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph shows percentage of those born who died aged 5 or younger.</p>
 		[% ELSE %]
 			<div id="container">
