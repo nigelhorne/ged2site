@@ -154,6 +154,7 @@ sub html {
 		my %months;
 
 		$dfn ||= DateTime::Format::Natural->new();
+		my $max;
 		foreach my $person(@{$people->selectall_hashref()}) {
 			if($person->{'children'} && $person->{'marriages'}) {
 				my $dom = $person->{'marriages'};
@@ -182,15 +183,22 @@ sub html {
 					}
 				}
 				if(defined($youngest)) {
-					$dom = $self->_date_to_datetime($dom);
-					my $d = $youngest->subtract_datetime($dom);
-					$months{$d->months()}++;
+					my $d = $youngest->subtract_datetime($self->_date_to_datetime($dom));
+					my $months = $d->months() + ($d->years() * 12) - 1;
+					$months{$months}++;
+					if($months > $max) {
+						$max = $months;
+					}
 				}
 			}
 		}
 
-		foreach my $month(sort {$a <=> $b} keys %months) {
-			$datapoints .= "{ label: \"$month\", y: $months{$month} },\n";
+		foreach my $month(0..$max) {
+			if($months{$month}) {
+				$datapoints .= "{ label: \"$month\", y: $months{$month} },\n";
+			} else {
+				$datapoints .= "{ label: \"$month\", y: 0 },\n";
+			}
 		}
 	} elsif($params{'graph'} eq 'ageatmarriage') {
 		my %mcounts;

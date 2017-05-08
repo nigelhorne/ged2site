@@ -33,6 +33,14 @@
 						[% END %]
 						gridThickness: 0
 					},
+					[% IF graph == 'firstborn' %]
+						axisX: {
+							title: "Months",
+							interval: 6,
+							intervalType: "month"
+						},
+						zoomEnabled: true,
+					[% END %]
 					animationEnabled: true,	// change to false
 					data: [
 					{
@@ -152,7 +160,8 @@
 			<p>This graph shows percentage of those born who died aged 5 or younger.</p>
 		[% ELSIF graph == 'firstborn' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
-			<p>This graph only includes data when the exact date of marriage and births are known</p>
+			<p>This graph only includes data when the exact date of marriage and births are known.</p>
+			<p>Select an area to zoom in.</p>
 		[% ELSE %]
 			<div id="container">
 				<h2>Choose a Graph</h2>
