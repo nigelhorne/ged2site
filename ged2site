@@ -1458,7 +1458,15 @@ sub print_person
 				$bio .= "<b>$firstname " .
 					$name_components{'surname_1'} .
 					'</b>';
-				$bio .= ',' if($relationship);
+				if($relationship) {
+					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {
+						$bio .= ',';
+					} elsif($opts{'l'} || $was_alive) {
+						$bio .= ' is';
+					} else {
+						$bio .= ' was';
+					}
+				}
 			}
 		}
 	} else {

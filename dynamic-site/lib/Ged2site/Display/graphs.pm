@@ -186,7 +186,7 @@ sub html {
 					my $d = $youngest->subtract_datetime($self->_date_to_datetime($dom));
 					my $months = $d->months() + ($d->years() * 12) - 1;
 					$months{$months}++;
-					if($months > $max) {
+					if((!defined($max)) || ($months > $max)) {
 						$max = $months;
 					}
 				}
