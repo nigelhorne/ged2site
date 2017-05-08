@@ -7,6 +7,7 @@ package Ged2site::Display::graphs;
 use strict;
 use warnings;
 use POSIX;
+use DateTime::Locale;
 
 # Display some information about the family
 
@@ -31,7 +32,7 @@ sub html {
 	my $people = $args{'people'};
 
 	if((!scalar(keys %params)) || !defined($params{'graph'})) {
-		# Display the main index page
+		# Display the list of graphs
 		return $self->SUPER::html(updated => $people->updated());
 	}
 
@@ -139,9 +140,11 @@ sub html {
 		}
 
 		foreach my $bucket(sort keys %totals) {
-			if($infantdeaths{$bucket}) {
+			if(($totals{$bucket} >= 5) && $infantdeaths{$bucket}) {	# Good data size
 				my $percentage = floor(($infantdeaths{$bucket} * 100) / $totals{$bucket});
 				$datapoints .= "{ label: \"$bucket\", y: $percentage },\n";
+			} elsif(defined($datapoints)) {
+				$datapoints .= "{ label: \"$bucket\", y: null },\n";
 			}
 		}
 	} elsif($params{'graph'} eq 'ageatmarriage') {
