@@ -2,7 +2,6 @@ package Ged2site::Display::graphs;
 
 # Other ideas:
 #	Distance between birth&death places vs. year of birth
-#	Time (in months) between first marriage and first child
 
 use strict;
 use warnings;
@@ -94,8 +93,18 @@ sub html {
 			}
 		}
 
+		my $locale;
+		if($self->{'_lingua'}) {
+			if(my $language = $self->{'_lingua'}->language_code_alpha2()) {
+				$locale = $language;
+			}
+		}
+		if(!defined($locale)) {
+			$locale = 'en';
+		}
+		my $dtl = DateTime::Locale->load($locale);
+
 		my $index = 0;
-		my $dtl = DateTime::Locale->load($self->{'_lingua'}->language_code_alpha2());
 		while($index < 12) {
 			my $month = @{$dtl->month_format_wide()}[$index];
 			$datapoints .= "{ label: \"$month\", y: " . $counts[$index] . " },\n";
