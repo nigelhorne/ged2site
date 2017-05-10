@@ -45,9 +45,10 @@ use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::OSM;
 use Geo::Coder::GooglePlaces;
-use Geo::Coder::List;
 use Geo::Coder::Google;
+use Geo::Coder::List;
 # use Geo::Coder::Canada;
+use Geo::Coder::CA;
 use HTML::GoogleMaps::V3 0.10;
 use Term::ANSIColor;
 use HTML::Entities;
@@ -124,15 +125,25 @@ if($opts{'J'}) {
 	$javascript_key = $config->{'google_maps_javascript_key'};
 }
 
-my $l = $ENV{'LANG'};
-if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
-	$gp_args{'language'} = lc($1);
+my $osm;
+my $geocoder;
+my $geocoder_ca;
+
+if($opts{'m'}) {
+	my $l = $ENV{'LANG'};
+	if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
+		$gp_args{'language'} = lc($1);
+	}
+	my $ua = LWP::UserAgent->new();
+	$ua->env_proxy(1);
+	$gp_args{'ua'} = $ua;
+	$osm = Geo::Coder::OSM->new();
+	$geocoder = Geo::Coder::List->new()
+		->push(Geo::Coder::Google->new())
+		->push($osm)
+		->push(Geo::Coder::GooglePlaces->new(%gp_args));
+	$geocoder_ca = Geo::Coder::CA->new();
 }
-my $osm = Geo::Coder::OSM->new();
-my $geocoder = Geo::Coder::List->new()
-	->push(Geo::Coder::Google->new())
-	->push($osm)
-	->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
 # TODO: BMAP_KEY for Geo::Coder::Bing
 
@@ -3587,7 +3598,7 @@ sub print_person
 	print $csv '!';
 
 	my @place_events = keys %place_records;
-	if($opts{'m'} && ($opts{'l'}|| !$was_alive) && scalar(@place_events)) {
+	if($opts{'m'} && ($opts{'l'} || !$was_alive) && scalar(@place_events)) {
 		print "Create map\n" if($opts{'v'});
 		my $map;
 		my $current_place;
@@ -3627,7 +3638,12 @@ sub print_person
 		if($current_place) {
 			if(!defined($map)) {
 				# my %args = (geocoder => $geocoder, z_index => -1);
-				my %args = (geocoder => $geocoder);
+				my %args;
+				if($current_place =~ /(Canada|USA)$/) {
+					$args{'geocoder'} = $geocoder_ca;
+				} else {
+					$args{'geocoder'} = $geocoder;
+				}
 				if($javascript_key) {
 					$args{'api_key'} = $javascript_key;
 				}
