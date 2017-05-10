@@ -151,10 +151,15 @@
 		[% IF graph == 'ageatdeath' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes those who lived past the age of 20.</p>
+			<p>
+				The data end at 1925, since anyone born after that date may be still
+				alive, which would affect the graph.
+			</p>
 		[% ELSIF graph == 'birthmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'ageatmarriage' %]
 			<div id="chartContainer" style="height: 400px; width: 100%;"></div>
+			<p>If the data size is not large anomolies can appear.</p>
 		[% ELSIF graph == 'infantdeaths' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph shows percentage of those born who died aged 5 or younger.</p>
