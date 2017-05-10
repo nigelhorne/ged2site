@@ -764,6 +764,14 @@ sub print_person
 
 	my $dob = get_value({ person => $person, value => 'birth date' });
 
+	if(defined($dob) && ($dob !~ /^[\d\sA-Z\/]+$/i)) {
+		if($opts{'f'}) {
+			die $person->as_string() . ": Invalid character in date of birth $dob"; 
+		}
+		red_warning({ person => $person, warning => "Invalid character in date of birth $dob" });
+		$dob = undef;
+	}
+
 	print 'Processing ', $person->as_string({ include_years => 1 }), "\n" if($opts{'v'});
 
 	my @siblings = $person->siblings();
