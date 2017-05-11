@@ -45,9 +45,10 @@ use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::OSM;
 use Geo::Coder::GooglePlaces;
-use Geo::Coder::List;
 use Geo::Coder::Google;
+use Geo::Coder::List;
 # use Geo::Coder::Canada;
+use Geo::Coder::CA;
 use HTML::GoogleMaps::V3 0.10;
 use Term::ANSIColor;
 use HTML::Entities;
@@ -124,15 +125,25 @@ if($opts{'J'}) {
 	$javascript_key = $config->{'google_maps_javascript_key'};
 }
 
-my $l = $ENV{'LANG'};
-if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
-	$gp_args{'language'} = lc($1);
+my $osm;
+my $geocoder;
+my $geocoder_ca;
+
+if($opts{'m'}) {
+	my $l = $ENV{'LANG'};
+	if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
+		$gp_args{'language'} = lc($1);
+	}
+	my $ua = LWP::UserAgent->new();
+	$ua->env_proxy(1);
+	$gp_args{'ua'} = $ua;
+	$osm = Geo::Coder::OSM->new();
+	$geocoder = Geo::Coder::List->new()
+		->push(Geo::Coder::Google->new())
+		->push($osm)
+		->push(Geo::Coder::GooglePlaces->new(%gp_args));
+	$geocoder_ca = Geo::Coder::CA->new();
 }
-my $osm = Geo::Coder::OSM->new();
-my $geocoder = Geo::Coder::List->new()
-	->push(Geo::Coder::Google->new())
-	->push($osm)
-	->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
 # TODO: BMAP_KEY for Geo::Coder::Bing
 
@@ -412,7 +423,7 @@ print $visjs <<'HEADER';
 HEADER
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
-# foreach my $person($ged->get_individual('Dorothy Cowell')) {
+# foreach my $person($ged->get_individual('Dolly Cowell')) {
 
 foreach my $person($ged->individuals()) {
 	$index++;
@@ -525,56 +536,58 @@ if($opts{'w'}) {
 	close $html;
 }
 
-print "Creating census index\n";
-open(my $html, '>', 'static-site/censuses.html');
-print $html "<html><head><title>Censuses in the Family Tree $name</title>",
-	"</head><body><center><h1>Censuses in the Family Tree $name</h1></center><br><ul>";
+if(scalar(%censuses)) {
+	print "Creating census index\n";
+	open(my $html, '>', 'static-site/censuses.html');
+	print $html "<html><head><title>Censuses in the Family Tree $name</title>",
+		"</head><body><center><h1>Censuses in the Family Tree $name</h1></center><br><ul>";
 
-open($csv, '>', 'dynamic-site/databases/censuses.csv');
-print $csv "entry!census!person\n";
+	open($csv, '>', 'dynamic-site/databases/censuses.csv');
+	print $csv "entry!census!person\n";
 
-$index = 1;
-foreach my $census(sort keys(%censuses)) {
-	my $filename = $census;
-	$filename =~ tr/ /_/;
-	print $html "<li><a href=\"$filename.html\">$census</a></li>";
+	$index = 1;
+	foreach my $census(sort keys(%censuses)) {
+		my $filename = $census;
+		$filename =~ tr/ /_/;
+		print $html "<li><a href=\"$filename.html\">$census</a></li>";
 
-	open(my $chtml, '>', "static-site/$filename.html");
-	print $chtml "<html><head><title>The Family Tree $name - $census</title>",
-		'</head>',
-		"<body><center><h1>The Family Tree $name - $census</h1>";
-	if($me) {
-		print $chtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		open(my $chtml, '>', "static-site/$filename.html");
+		print $chtml "<html><head><title>The Family Tree $name - $census</title>",
+			'</head>',
+			"<body><center><h1>The Family Tree $name - $census</h1>";
+		if($me) {
+			print $chtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		}
+		print $chtml ' | [ <a href="surnames.html">Surnames Index</a> ]';
+		if($opts{'w'}) {
+			print $chtml ' | [ <a href="todo.html">Errors</a> ]';
+		}
+		if($gedcal) {
+			print $chtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
+		}
+		print $chtml ' | [ <a href="censuses.html">Census Index</a> ]',
+			' | [ <a href="history.html">Family History</a> ]</center><br>',
+			'<ul>';
+
+		foreach my $name(sort keys %{$censuses{$census}}) {
+			print $chtml '<li>',
+				'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
+				$name,
+				'</a></li>';
+			print $csv "$index!$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
+			$index++;
+		}
+
+		print $chtml '</ul></body></html>';
+		close $chtml;
 	}
-	print $chtml ' | [ <a href="surnames.html">Surnames Index</a> ]';
-	if($opts{'w'}) {
-		print $chtml ' | [ <a href="todo.html">Errors</a> ]';
-	}
-	if($gedcal) {
-		print $chtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
-	}
-	print $chtml ' | [ <a href="censuses.html">Census Index</a> ]',
-		' | [ <a href="history.html">Family History</a> ]</center><br>',
-		'<ul>';
-
-	foreach my $name(sort keys %{$censuses{$census}}) {
-		print $chtml '<li>',
-			'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
-			$name,
-			'</a></li>';
-		print $csv "$index!$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
-		$index++;
-	}
-
-	print $chtml '</ul></body></html>';
-	close $chtml;
+	print $html '</ul></body></html>';
+	close $html;
+	close $csv;
 }
-print $html '</ul></body></html>';
-close $html;
-close $csv;
 
 print "Creating surname index\n";
-open($html, '>', 'static-site/surnames.html');
+open(my $html, '>', 'static-site/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree $name</title>",
 	"</head><body><center><h1>Surnames in the Family Tree $name</h1>";
 if($me) {
@@ -752,6 +765,14 @@ sub print_person
 	$fetcher = Data::Fetch->new();	# Throw away old values from the cache
 
 	my $dob = get_value({ person => $person, value => 'birth date' });
+
+	if(defined($dob) && ($dob !~ /^[\d\sA-Z\/]+$/i)) {
+		if($opts{'f'}) {
+			die $person->as_string() . ": Invalid character in date of birth $dob"; 
+		}
+		red_warning({ person => $person, warning => "Invalid character in date of birth $dob" });
+		$dob = undef;
+	}
 
 	print 'Processing ', $person->as_string({ include_years => 1 }), "\n" if($opts{'v'});
 
@@ -1843,7 +1864,7 @@ sub print_person
 				} else {
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
 					if($spouse_occupations[0]) {
-						$bio = ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
+						$bio .= ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
 						$parentheses = 1;
 					}
 				}
@@ -3587,7 +3608,7 @@ sub print_person
 	print $csv '!';
 
 	my @place_events = keys %place_records;
-	if($opts{'m'} && ($opts{'l'}|| !$was_alive) && scalar(@place_events)) {
+	if($opts{'m'} && ($opts{'l'} || !$was_alive) && scalar(@place_events)) {
 		print "Create map\n" if($opts{'v'});
 		my $map;
 		my $current_place;
@@ -3627,7 +3648,12 @@ sub print_person
 		if($current_place) {
 			if(!defined($map)) {
 				# my %args = (geocoder => $geocoder, z_index => -1);
-				my %args = (geocoder => $geocoder);
+				my %args;
+				if($current_place =~ /(Canada|USA)$/) {
+					$args{'geocoder'} = $geocoder_ca;
+				} else {
+					$args{'geocoder'} = $geocoder;
+				}
 				if($javascript_key) {
 					$args{'api_key'} = $javascript_key;
 				}
