@@ -587,7 +587,7 @@ if(scalar(%censuses)) {
 }
 
 print "Creating surname index\n";
-open($html, '>', 'static-site/surnames.html');
+open(my $html, '>', 'static-site/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree $name</title>",
 	"</head><body><center><h1>Surnames in the Family Tree $name</h1>";
 if($me) {
