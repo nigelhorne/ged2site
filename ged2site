@@ -423,7 +423,7 @@ print $visjs <<'HEADER';
 HEADER
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
-# foreach my $person($ged->get_individual('Dorothy Cowell')) {
+# foreach my $person($ged->get_individual('Dolly Cowell')) {
 
 foreach my $person($ged->individuals()) {
 	$index++;
@@ -536,53 +536,55 @@ if($opts{'w'}) {
 	close $html;
 }
 
-print "Creating census index\n";
-open(my $html, '>', 'static-site/censuses.html');
-print $html "<html><head><title>Censuses in the Family Tree $name</title>",
-	"</head><body><center><h1>Censuses in the Family Tree $name</h1></center><br><ul>";
+if(scalar(%censuses)) {
+	print "Creating census index\n";
+	open(my $html, '>', 'static-site/censuses.html');
+	print $html "<html><head><title>Censuses in the Family Tree $name</title>",
+		"</head><body><center><h1>Censuses in the Family Tree $name</h1></center><br><ul>";
 
-open($csv, '>', 'dynamic-site/databases/censuses.csv');
-print $csv "entry!census!person\n";
+	open($csv, '>', 'dynamic-site/databases/censuses.csv');
+	print $csv "entry!census!person\n";
 
-$index = 1;
-foreach my $census(sort keys(%censuses)) {
-	my $filename = $census;
-	$filename =~ tr/ /_/;
-	print $html "<li><a href=\"$filename.html\">$census</a></li>";
+	$index = 1;
+	foreach my $census(sort keys(%censuses)) {
+		my $filename = $census;
+		$filename =~ tr/ /_/;
+		print $html "<li><a href=\"$filename.html\">$census</a></li>";
 
-	open(my $chtml, '>', "static-site/$filename.html");
-	print $chtml "<html><head><title>The Family Tree $name - $census</title>",
-		'</head>',
-		"<body><center><h1>The Family Tree $name - $census</h1>";
-	if($me) {
-		print $chtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		open(my $chtml, '>', "static-site/$filename.html");
+		print $chtml "<html><head><title>The Family Tree $name - $census</title>",
+			'</head>',
+			"<body><center><h1>The Family Tree $name - $census</h1>";
+		if($me) {
+			print $chtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		}
+		print $chtml ' | [ <a href="surnames.html">Surnames Index</a> ]';
+		if($opts{'w'}) {
+			print $chtml ' | [ <a href="todo.html">Errors</a> ]';
+		}
+		if($gedcal) {
+			print $chtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
+		}
+		print $chtml ' | [ <a href="censuses.html">Census Index</a> ]',
+			' | [ <a href="history.html">Family History</a> ]</center><br>',
+			'<ul>';
+
+		foreach my $name(sort keys %{$censuses{$census}}) {
+			print $chtml '<li>',
+				'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
+				$name,
+				'</a></li>';
+			print $csv "$index!$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
+			$index++;
+		}
+
+		print $chtml '</ul></body></html>';
+		close $chtml;
 	}
-	print $chtml ' | [ <a href="surnames.html">Surnames Index</a> ]';
-	if($opts{'w'}) {
-		print $chtml ' | [ <a href="todo.html">Errors</a> ]';
-	}
-	if($gedcal) {
-		print $chtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
-	}
-	print $chtml ' | [ <a href="censuses.html">Census Index</a> ]',
-		' | [ <a href="history.html">Family History</a> ]</center><br>',
-		'<ul>';
-
-	foreach my $name(sort keys %{$censuses{$census}}) {
-		print $chtml '<li>',
-			'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
-			$name,
-			'</a></li>';
-		print $csv "$index!$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
-		$index++;
-	}
-
-	print $chtml '</ul></body></html>';
-	close $chtml;
+	print $html '</ul></body></html>';
+	close $html;
+	close $csv;
 }
-print $html '</ul></body></html>';
-close $html;
-close $csv;
 
 print "Creating surname index\n";
 open($html, '>', 'static-site/surnames.html');
@@ -1862,7 +1864,7 @@ sub print_person
 				} else {
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
 					if($spouse_occupations[0]) {
-						$bio = ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
+						$bio .= ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
 						$parentheses = 1;
 					}
 				}
