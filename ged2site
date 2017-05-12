@@ -133,15 +133,16 @@ if($opts{'m'}) {
 	if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 		$gp_args{'language'} = lc($1);
 	}
-	my $ua = LWP::UserAgent->new();
-	$ua->env_proxy(1);
-	$gp_args{'ua'} = $ua;
 	$osm = Geo::Coder::OSM->new();
 	$geocoder = Geo::Coder::List->new()
 		->push({ regex => qr/(Canada|USA|United States)$/, geocoder => Geo::Coder::CA->new() })
 		->push(Geo::Coder::Google->new())
 		->push($osm)
 		->push(Geo::Coder::GooglePlaces->new(%gp_args));
+
+	my $ua = LWP::UserAgent->new();
+	$ua->env_proxy(1);
+	$geocoder->ua($ua);
 }
 
 # TODO: BMAP_KEY for Geo::Coder::Bing
