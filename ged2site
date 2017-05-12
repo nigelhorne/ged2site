@@ -127,7 +127,6 @@ if($opts{'J'}) {
 
 my $osm;
 my $geocoder;
-my $geocoder_ca;
 
 if($opts{'m'}) {
 	my $l = $ENV{'LANG'};
@@ -139,10 +138,10 @@ if($opts{'m'}) {
 	$gp_args{'ua'} = $ua;
 	$osm = Geo::Coder::OSM->new();
 	$geocoder = Geo::Coder::List->new()
+		->push({ regex => qr/(Canada|USA|United States)$/, geocoder => Geo::Coder::CA->new() })
 		->push(Geo::Coder::Google->new())
 		->push($osm)
 		->push(Geo::Coder::GooglePlaces->new(%gp_args));
-	$geocoder_ca = Geo::Coder::CA->new();
 }
 
 # TODO: BMAP_KEY for Geo::Coder::Bing
@@ -3648,12 +3647,7 @@ sub print_person
 		if($current_place) {
 			if(!defined($map)) {
 				# my %args = (geocoder => $geocoder, z_index => -1);
-				my %args;
-				if($current_place =~ /(Canada|USA)$/) {
-					$args{'geocoder'} = $geocoder_ca;
-				} else {
-					$args{'geocoder'} = $geocoder;
-				}
+				my %args = (geocoder => $geocoder);
 				if($javascript_key) {
 					$args{'api_key'} = $javascript_key;
 				}
