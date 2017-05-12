@@ -1932,6 +1932,7 @@ sub print_person
 				}
 
 				my $spousenumber = 0;
+				my $previousplace;
 				foreach my $spouse(@spouses) {
 					print $html ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
 						$spouse->as_string() . '</a>';
@@ -1951,19 +1952,24 @@ sub print_person
 							$placeofmarriage = $marriage->place();
 						}
 					}
+					if($placeofmarriage) {
+						$placeofmarriage = place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed });
+						if($previousplace && ($placeofmarriage eq $previousplace)) {
+							if($placeofmarriage =~ /^(.+?),/) {
+								$placeofmarriage = " also$1";
+							}
+						} else {
+							$previousplace = $placeofmarriage;
+						}
+					}
+
 					if($dateofmarriage && $placeofmarriage) {
-						$bio = ' (' .
-							year({ string => $dateofmarriage }) .
-							place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed }) .
-							')';
+						$bio .= ' (' . year({ string => $dateofmarriage }) .
+							"$placeofmarriage)";
 					} elsif($placeofmarriage) {
-						$bio = ' (' .
-							place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed }) .
-							')';
+						$bio .= " ($placeofmarriage)";
 					} elsif($dateofmarriage) {
-						$bio = ' (' .
-							year({ string => $dateofmarriage }) .
-							')';
+						$bio .= ' (' . year({ string => $dateofmarriage }) . ')';
 					}
 					$spousenumber++;
 					if($spousenumber == (scalar(@spouses) - 1)) {
