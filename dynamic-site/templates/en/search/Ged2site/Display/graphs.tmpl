@@ -12,6 +12,8 @@
 			[% SET title = 'Infant Deaths' %]
 		[% ELSIF graph == 'firstborn' %]
 			[% SET title = 'Months between marriage and first born' %]
+		[% ELSIF graph == 'sex' %]
+			[% SET title = 'Sex of people born in each year' %]
 		[% ELSE %]
 			[% SET title = 'Family Tree Analytics' %]
 		[% END %]
@@ -47,6 +49,7 @@
 			<li><a href="?page=graphs&graph=infantdeaths">Infant deaths</a></li>
 			<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
 			<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
+			<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
 		</ul>
 
 		<p align="right">

@@ -209,6 +209,67 @@ sub html {
 				$datapoints .= "{ label: \"$month\", y: 0 },\n";
 			}
 		}
+	} elsif($params{'graph'} eq 'sex') {
+		my %totals;
+		my %mcounts;
+		my %fcounts;
+
+		foreach my $person(@{$people->selectall_hashref()}) {
+			next if($person->{'sex'} !~ /[MF]/);
+			next if(!(defined($person->{'dob'})));
+
+			my $dob = $person->{'dob'};
+			my $yob;
+			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+				$dob =~ tr/\//-/;
+				$yob = $1;
+			} else {
+				next;
+			}
+			$yob -= $yob % $BUCKETYEARS;
+
+			if($person->{'sex'} eq 'M') {
+				if($mcounts{$yob}) {
+					$mcounts{$yob}++;
+				} else {
+					$mcounts{$yob} = 1;
+				}
+			} else {
+				if($fcounts{$yob}) {
+					$fcounts{$yob}++;
+				} else {
+					$fcounts{$yob} = 1;
+				}
+			}
+			if($totals{$yob}) {
+				$totals{$yob}++;
+			} else {
+				$totals{$yob} = 1;
+			}
+		}
+
+
+		my $mdatapoints;
+		my $fdatapoints;
+
+		foreach my $bucket(sort keys %totals) {
+			if(($totals{$bucket} >= 25) && defined($fcounts{$bucket}) && defined($mcounts{$bucket})) {
+				my $percentage = $mcounts{$bucket} * 100 / $totals{$bucket};
+				$mdatapoints .= "{ label: \"$bucket\", y: $percentage },\n";
+
+				$percentage = $fcounts{$bucket} * 100 / $totals{$bucket};
+				$fdatapoints .= "{ label: \"$bucket\", y: $percentage },\n";
+			} elsif(defined($mdatapoints)) {
+				$mdatapoints .= "{ label: \"$bucket\", y: null },\n";
+				$fdatapoints .= "{ label: \"$bucket\", y: null },\n";
+			}
+		}
+
+		return $self->SUPER::html({
+			mdatapoints => $mdatapoints,
+			fdatapoints => $fdatapoints,
+			updated => $people->updated()
+		});
 	} elsif($params{'graph'} eq 'ageatmarriage') {
 		my %mcounts;
 		my %mtotals;

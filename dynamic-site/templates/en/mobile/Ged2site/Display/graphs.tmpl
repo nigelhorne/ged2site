@@ -12,6 +12,8 @@
 			[% SET title = 'Infant Deaths' %]
 		[% ELSIF graph == 'firstborn' %]
 			[% SET title = 'Months between marriage and first born' %]
+		[% ELSIF graph == 'sex' %]
+			[% SET title = 'Sex of people born in each year' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
@@ -147,6 +149,9 @@
 		[% ELSIF graph == 'infantdeaths' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph shows percentage of those born who died aged 5 or younger.</p>
+		[% ELSIF graph == 'sex' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>This graph only includes data when each 5 year period contains at least 25 births.</p>
 		[% ELSIF graph == 'firstborn' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the exact date of marriage and births are known.</p>
@@ -159,6 +164,7 @@
 				<li><a href="?page=graphs&graph=infantdeaths">Infant deaths</a></li>
 				<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
 				<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
+				<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
 			</ul>
 		[% END %]
 		<center><font size="+2">

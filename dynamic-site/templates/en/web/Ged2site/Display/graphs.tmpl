@@ -12,6 +12,8 @@
 			[% SET title = 'Infant Deaths' %]
 		[% ELSIF graph == 'firstborn' %]
 			[% SET title = 'Months between marriage and first born' %]
+		[% ELSIF graph == 'sex' %]
+			[% SET title = 'Sex of people born in each year' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
@@ -69,7 +71,15 @@
 					title: {
 						text: "[% title %]"
 					},
+					[% IF graph == 'sex' %]
+						zoomEnabled: true,
+					[% END %]
 					axisY: {
+						[% IF graph == 'sex' %]
+							title: 'Percentage',
+							minimum: 0,
+							maximum: 100,
+						[% END %]
 						gridThickness: 0
 					},
 					toolTip: {
@@ -83,11 +93,7 @@
 					data: [
 						{
 							// Change type to "bar", "area", "spline", "pie","column"etc.
-							[% IF graph == 'birthmonth' %]
-								type: "column",
-							[% ELSE %]
-								type: "line",
-							[% END %]
+							type: "line",
 							showInLegend: true,
 							name: "Male",
 							color: "#F08080",
@@ -97,11 +103,7 @@
 						},
 						{
 							// Change type to "bar", "area", "spline", "pie","column"etc.
-							[% IF graph == 'birthmonth' %]
-								type: "column",
-							[% ELSE %]
-								type: "line",
-							[% END %]
+							type: "line",
 							showInLegend: true,
 							color: "#20B2AA",
 							name: "Female",
@@ -163,6 +165,10 @@
 		[% ELSIF graph == 'infantdeaths' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph shows percentage of those born who died aged 5 or younger.</p>
+		[% ELSIF graph == 'sex' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>This graph only includes data when each 5 year period contains at least 25 births.</p>
+			<p>Select an area to zoom in.</p>
 		[% ELSIF graph == 'firstborn' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the exact date of marriage and births are known.</p>
@@ -177,6 +183,7 @@
 					<li><a href="?page=graphs&graph=infantdeaths">Infant deaths</a></li>
 					<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
 					<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
+					<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
 				</ul>
 			</div>
 		[% END %]
