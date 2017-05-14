@@ -30,11 +30,17 @@ conf directory (use example.com as a template),
 then modify the contents of the template tree so that the site looks as you
 want it.
 The configration file can be in any number of formats including INI and XML.
+
+    memory_cache: where short-term volatile information is stored, such as the country of origin of the client.
+    disc_cache: where long-term information is stored, such as copies of output to see is HTTP 304 can be returned. 
+
 Then upload the dynamic-site directory to your webserver.
 The databases are in CSV format. To speed up access you can convert to SQLite
 format with using
 [csv2sqlite](http://search.cpan.org/~rwstauner/App-csv2sqlite/),
 which you should run on each of the .csv files.
+Every time you upload a new site ensure that you remove the "save_to" directory and the disc cache,
+since they contain cached copies of pages that will be inconsistent with the new site.
 
     csv2sqlite -o sep_char='!' -o allow_loose_quotes=1 people.csv people.sql
 
