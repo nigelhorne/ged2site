@@ -467,7 +467,6 @@ sub _dist
 		next if(!defined($counts{$bucket}));
 		if($counts{$bucket} >= 10) {
 			my $average = floor($totals{$bucket} / $counts{$bucket});
-print "$bucket: $average from $totals{$bucket} readings\n";
 
 			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
 		} elsif($datapoints) {
