@@ -474,7 +474,7 @@ sub _dist
 		}
 	}
 
-	return { datapoints => $datapoints, units => ($units == 'K') ? 'Kilometres' : 'Miles' };
+	return { datapoints => $datapoints, units => ($units eq 'K') ? 'Kilometres' : 'Miles' };
 }
 
 sub _date_to_datetime
