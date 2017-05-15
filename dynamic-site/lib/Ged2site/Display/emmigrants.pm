@@ -3,7 +3,7 @@ package Ged2site::Display::emmigrants;
 # Display the emmigrants page
 
 use Ged2site::Display::page;
-use Geo::Coder::XYZ;
+use Geo::Coder::OSM;
 
 our @ISA = ('Ged2site::Display::page');
 our $geocoder;
@@ -32,7 +32,7 @@ print STDERR "000000000\n";
 	my $everyone = $people->selectall_hashref($params);
 
 print STDERR "11111111\n";
-	$geocoder ||= Geo::Coder::XYZ->new();
+	$geocoder ||= Geo::Coder::OSM->new();
 print STDERR "222222222\n";
 
 	my @emmigrants;
