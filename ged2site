@@ -43,10 +43,10 @@ use Lingua::EN::Inflect;
 use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
+use Geo::Coder::List;
 use Geo::Coder::OSM;
 use Geo::Coder::GooglePlaces;
 use Geo::Coder::Google;
-use Geo::Coder::List;
 use Geo::Coder::CA;
 use HTML::GoogleMaps::V3 0.10;
 use Term::ANSIColor;
@@ -364,7 +364,7 @@ memoize('stepsabove');
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod!profile_thumbnail!marriages!sex!birth-coords!death-coords\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords\n";
 
 open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
 print $timeline_xml "<?xml version=\"1.0\"?>\n",
