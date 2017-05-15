@@ -18,6 +18,7 @@ our @ISA = ('Ged2site::Display::page');
 our $BUCKETYEARS = 5;
 our $date_parser;
 our $dfn;
+our $pi = atan2(1,1) * 4;
 
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
@@ -26,6 +27,7 @@ our $mapper = {
 	'firstborn' => \&_firstborn,
 	'sex' => \&_sex,
 	'ageatmarriage' => \&_ageatmarriage,
+	'dist' => \&_dist,
 };
 
 sub html {
@@ -416,6 +418,66 @@ sub _ageatmarriage
 	return { mdatapoints => $mdatapoints, fdatapoints => $fdatapoints };
 }
 
+sub _dist
+{
+	my $self = shift;
+	my $args = shift;
+	my %months;
+
+	my $people = $args->{'people'};
+
+	my $units = 'K';
+
+	if($self->{'_lingua'}) {
+		if(my $country = $self->{'_lingua'}->country()) {
+			if(($country eq 'us') || ($country eq 'uk')) {
+				$units = 'M';
+			}
+		}
+	}
+
+	my %totals;
+	my %counts;
+	foreach my $person(@{$people->selectall_hashref()}) {
+		next unless($person->{'birth_coords'} && $person->{'death_coords'} && $person->{'dob'});
+		my $dob = $person->{'dob'};
+		my $yob;
+		if($dob =~ /^(\d{3,4})/) {
+			$yob = $1;
+		} else {
+			next;
+		}
+		$yob -= $yob % $BUCKETYEARS;
+
+		my ($blat, $blong) = split(/,/, $person->{'birth_coords'});
+		my ($dlat, $dlong) = split(/,/, $person->{'death_coords'});
+
+		$counts{$yob}++;
+
+		if((($blat - $dlat) >= 1e-6) && (($blong - $dlong) >= 1e-6)) {
+			$totals{$yob} += $self->_distance($blat, $blong, $dlat, $dlong, $units);
+		} elsif(!defined($totals{$yob})) {
+			$totals{$yob} = 0;
+		}
+	}
+
+	my $datapoints;
+
+	foreach my $bucket(sort keys %counts) {
+		next if(!defined($counts{$bucket}));
+		if($counts{$bucket} >= 10) {
+			my $average = floor($totals{$bucket} / $counts{$bucket});
+print "$bucket: $average from $totals{$bucket} readings\n";
+
+			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($datapoints) {
+			$datapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+
+	return { datapoints => $datapoints, units => ($units == 'K') ? 'Kilometres' : 'Miles' };
+}
+
 sub _date_to_datetime
 {
 	my $self = shift;
@@ -430,6 +492,48 @@ sub _date_to_datetime
 	}
 
 	return $dfn->parse_datetime(string => $params{'date'});
+}
+
+# From http://www.geodatasource.com/developers/perl
+# FIXME:  use Math::Trig
+sub _distance {
+	my ($self, $lat1, $lon1, $lat2, $lon2, $unit) = @_;
+	my $theta = $lon1 - $lon2;
+	my $dist = sin($self->_deg2rad($lat1)) * sin($self->_deg2rad($lat2)) + cos($self->_deg2rad($lat1)) * cos($self->_deg2rad($lat2)) * cos($self->_deg2rad($theta));
+	$dist = $self->_acos($dist);
+	$dist = $self->_rad2deg($dist);
+	$dist = $dist * 60 * 1.1515;
+	if ($unit eq "K") {
+		$dist = $dist * 1.609344;
+	} elsif ($unit eq "N") {
+		$dist = $dist * 0.8684;
+	}
+	return ($dist);
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function get the arccos function using arctan function   :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _acos {
+	my ($self, $rad) = @_;
+	my $ret = atan2(sqrt(1 - $rad**2), $rad);
+	return $ret;
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function converts decimal degrees to radians             :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _deg2rad {
+	my ($self, $deg) = @_;
+	return ($deg * $pi / 180);
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function converts radians to decimal degrees             :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _rad2deg {
+	my ($self, $rad) = @_;
+	return ($rad * 180 / $pi);
 }
 
 1;

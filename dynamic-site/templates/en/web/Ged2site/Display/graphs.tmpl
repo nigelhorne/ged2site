@@ -14,6 +14,8 @@
 			[% SET title = 'Months between marriage and first born' %]
 		[% ELSIF graph == 'sex' %]
 			[% SET title = 'Sex of people born in each year' %]
+		[% ELSIF graph == 'dist' %]
+			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
@@ -30,7 +32,9 @@
 						text: "[% title %]"
 					},
 					axisY: {
-						[% IF graph == 'ageatdeath' %]
+						[% IF graph == 'dist' %]
+							title: '[% units %]',
+						[% ELSIF graph == 'ageatdeath' %]
 							includeZero: false,
 						[% END %]
 						gridThickness: 0
@@ -167,12 +171,15 @@
 			<p>This graph shows percentage of those born who died aged 5 or younger.</p>
 		[% ELSIF graph == 'sex' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
-			<p>This graph only includes data when each 5 year period contains at least 25 births.</p>
+			<p>This graph only includes data from 5 year periods that contain at least 25 births.</p>
 			<p>Select an area to zoom in.</p>
 		[% ELSIF graph == 'firstborn' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the exact date of marriage and births are known.</p>
 			<p>Select an area to zoom in.</p>
+		[% ELSIF graph == 'dist' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>This graph only includes data from 5 year periods that contain at least 10 births.</p>
 		[% ELSE %]
 			<div id="container">
 				<h2>Choose a Graph</h2>
@@ -184,6 +191,7 @@
 					<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
 					<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
 					<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
+					<li><a href="?page=graphs&graph=dist">Average distance between birth and death</a></li>
 				</ul>
 			</div>
 		[% END %]

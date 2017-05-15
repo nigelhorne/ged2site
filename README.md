@@ -31,8 +31,9 @@ then modify the contents of the template tree so that the site looks as you
 want it.
 The configration file can be in any number of formats including INI and XML.
 
-    memory_cache: where short-term volatile information is stored, such as the country of origin of the client.
-    disc_cache: where long-term information is stored, such as copies of output to see is HTTP 304 can be returned. 
+    rootdir: /full/path/to/website directory
+    memory_cache: where short-term volatile information is stored, such as the country of origin of the client
+    disc_cache: where long-term information is stored, such as copies of output to see is HTTP 304 can be returned
 
 Then upload the dynamic-site directory to your webserver.
 The databases are in CSV format. To speed up access you can convert to SQLite
