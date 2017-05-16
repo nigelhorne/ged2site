@@ -23,19 +23,19 @@ You will then have two sites created in sub directories
 - dynamic-site is a [VWF](//github.com/nigelhorne/vwf) based website which uses templates to support more than one
 language and present different content to mobile/web/search-engine clients.
 
-If you decide to use the static site, just copy files in the static-site directory to your webserver.
+If you decide to use the static site, just copy files in the static-site directory to your web-server.
 
 If you decide to use the dynamic site first create a $hostname.com file in the
 conf directory (use example.com as a template),
 then modify the contents of the template tree so that the site looks as you
 want it.
-The configration file can be in any number of formats including INI and XML.
+The configuration file can be in any number of formats including INI and XML.
 
     rootdir: /full/path/to/website directory
     memory_cache: where short-term volatile information is stored, such as the country of origin of the client
     disc_cache: where long-term information is stored, such as copies of output to see is HTTP 304 can be returned
 
-Then upload the dynamic-site directory to your webserver.
+Then upload the dynamic-site directory to your web-server.
 The databases are in CSV format. To speed up access you can convert to SQLite
 format with using
 [csv2sqlite](http://search.cpan.org/~rwstauner/App-csv2sqlite/),
@@ -51,7 +51,7 @@ The options are:
 | ---- | ------- |
 | -c   | Give citations |
 | -d   | Download copies of objects and media and include them on the generated website rather than link to them, useful if the objects are on pay sites such as FMP |
-| -f   | treat warnings as fatals, implies -w |
+| -f   | treat warnings as fatal, implies -w |
 | -F   | print a family tree (requires GraphViz) |
 | -g   | Generate Google verification file - see www.google.com/webmasters/verification Don't include the .html at the end of the code |
 | -h   | set the home person |
@@ -72,6 +72,21 @@ Some of the options can be stored in *ged2site.conf*:
 | -g   |  google_verification |
 | -G   |  google_maps_geolocation_key (also can be stored in the `GMAP_KEY` environment variable) |
 | -J   |  google_maps_javascript_key |
+
+Debugging and Developing
+========================
+
+Because the dynamic ged2site site uses VWF,
+it is possible to run the scripts from the command
+line simulating different environments and thus test the look and feel of your
+site before you deploy. Be aware that you will also see debugging messages.
+
+    cd dynamic-site/bin && ./tosqlite
+    cd ../cgi-bin
+    ./page.fcgi page=people home=1 # Look at your home entry from the -h option
+    ./page.fcgi page=surnames surname=horne # List people whose surname is Horne
+    ./page.fcgi page=surnames surname=horne lang=fr # List people whose surname is Horne, in French
+    ./page.fcgi --mobile page=surnames surname=horne # List people whose surname is Horne, as it would appear on a smart-phone
 
 Ancestry on Windows
 ===================
@@ -99,7 +114,7 @@ output format.
 * Run ged2site on that saved Gedcom file.
 
 * -F may not work because it depends on Graphviz being found,
-but could work under Cygwin. On the otherhand, I've been hit by a Cygwin bug
+but could work under Cygwin. On the other hand, I've been hit by a Cygwin bug
 when trying to call Graphviz from ged2site.  This may be because ged2site
 pipes output to Graphviz, perhaps it would work if it used a temporary file
 as input.
