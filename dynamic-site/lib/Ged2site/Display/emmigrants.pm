@@ -1,9 +1,13 @@
 package Ged2site::Display::emmigrants;
 
 # Display the emmigrants page
+# FIXME:  This is slow because of the reverse_geocode calls.  Would be better to use the original
+#	data, but that can't always be trusted to be of normalised form.  Need to find a way of
+#	speeding this up.
 
 use Ged2site::Display::page;
 use Geo::Coder::XYZ;
+use POSIX;
 
 our @ISA = ('Ged2site::Display::page');
 our $geocoder;
@@ -44,20 +48,32 @@ sub html {
 
 		my @b = split(/,/, $person->{'birth_coords'});
 		my @d = split(/,/, $person->{'death_coords'});
-		next if(::distance($b[0], $b[1], $d[0], $d[1], 'M') <= 100);
+		next if(::distance($b[0], $b[1], $d[0], $d[1], 'M') <= 150);	# TODO: optimise min. distance
 
-		my $birth = $cache{$person->{'birth_coords'}};
+		# The co-ordinates can be approximate since we're interested in getting it close
+		# enough to be in the correct country, and by doing this rounding there should be
+		# more cache hits.
+
+		my $birth_coords = floor($b[0]) . ',' . floor($b[1]);
+		my $birth = $cache{$birth_coords};
 		if(!defined($birth)) {
-			$birth = $geocoder->reverse_geocode(latlng => $person->{'birth_coords'});
-			$cache{$person->{'birth_coords'}} = $birth;
+			$birth = $geocoder->reverse_geocode(latlng => $birth_coords);
+			if(!defined($birth)) {
+				$birth = { 'error' => 'location not found' };
+			}
+			$cache{$birth_coords} = $birth;
 		}
 		next unless($birth);
 		next if($birth->{error});
 
-		my $death = $cache{$person->{'death_coords'}};
+		my $death_coords = floor($d[0]) . ',' . floor($d[1]);
+		my $death = $cache{$death_coords};
 		if(!defined($death)) {
-			$death = $geocoder->reverse_geocode(latlng => $person->{'death_coords'});
-			$cache{$person->{'death_coords'}} = $death;
+			$death = $geocoder->reverse_geocode(latlng => $death_coords);
+			if(!defined($death)) {
+				$death = { 'error' => 'location not found' };
+			}
+			$cache{$death_coords} = $death;
 		}
 		next unless($death);
 		next if($death->{error});

@@ -46,6 +46,8 @@
 							intervalType: "month"
 						},
 						zoomEnabled: true,
+					[% ELSIF graph == 'dist' %]
+						zoomEnabled: true,
 					[% END %]
 					animationEnabled: true,	// change to false
 					data: [
@@ -180,6 +182,7 @@
 		[% ELSIF graph == 'dist' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data from 5 year periods that contain at least 10 births.</p>
+			<p>Select an area to zoom in.</p>
 		[% ELSE %]
 			<div id="container">
 				<h2>Choose a Graph</h2>

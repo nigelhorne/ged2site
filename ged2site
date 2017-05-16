@@ -3625,7 +3625,7 @@ sub print_person
 		foreach my $event(sort @place_events) {
 			my $record = $place_records{$event};
 			my $place = place({ record => $record });
-			if($place =~ /,.+,/) {
+			if(defined($place) && ($place =~ /,.+,/)) {
 				$place =~ s/^\s(at|in)\s//;
 				if(defined($current_place) && ($place ne $current_place)) {
 					if(!defined($map)) {
@@ -3833,23 +3833,19 @@ sub print_person
 	if($geocoder && ($placeofbirth || $placeofdeath)) {
 		if($placeofbirth) {
 			if(my $location = $geocoder->geocode($placeofbirth)) {
-				unless($location->{geometry}{location}{lat} && $location->{geometry}{location}{lng}) {
-					use Data::Dumper;
-					die Data::Dumper->new([$location])->Dump();
+				if(!defined($location->{'error'})) {
+					print $csv $location->{geometry}{location}{lat}, ',',
+						$location->{geometry}{location}{lng};
 				}
-				print $csv $location->{geometry}{location}{lat}, ',',
-					$location->{geometry}{location}{lng};
 			}
 		}
 		print $csv '!';
 		if($placeofdeath) {
 			if(my $location = $geocoder->geocode($placeofdeath)) {
-				unless($location->{geometry}{location}{lat} && $location->{geometry}{location}{lng}) {
-					use Data::Dumper;
-					die Data::Dumper->new([$location])->Dump();
+				if(!defined($location->{'error'})) {
+					print $csv $location->{geometry}{location}{lat}, ',',
+						$location->{geometry}{location}{lng};
 				}
-				print $csv $location->{geometry}{location}{lat}, ',',
-					$location->{geometry}{location}{lng};
 			}
 		}
 	} else {
