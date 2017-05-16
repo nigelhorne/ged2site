@@ -3,7 +3,7 @@ package Ged2site::Display::emmigrants;
 # Display the emmigrants page
 
 use Ged2site::Display::page;
-use Geo::Coder::OSM;
+use Geo::Coder::XYZ;
 
 our @ISA = ('Ged2site::Display::page');
 our $geocoder;
@@ -28,40 +28,44 @@ sub html {
 
 	# Look in the people.csv for the name given as the CGI argument and
 	# find their details
-print STDERR "000000000\n";
 	my $everyone = $people->selectall_hashref($params);
 
-print STDERR "11111111\n";
-	$geocoder ||= Geo::Coder::OSM->new();
-print STDERR "222222222\n";
+	if(!defined($geocoder)) {
+		my $ua = LWP::UserAgent->new();
+		$ua->env_proxy(1);
+		$geocoder = Geo::Coder::XYZ->new(ua => $ua);
+	}
 
 	my @emmigrants;
 
 	foreach my $person(@{$everyone}) {
-print STDERR $person->{'title'}, "\n";
-print STDERR $person->{'birth_coords'}, "\n";
 		next unless($person->{'birth_coords'} && $person->{'death_coords'});
 		next if($person->{'birth_coords'} eq $person->{'death_coords'});
 
+		my @b = split(/,/, $person->{'birth_coords'});
+		my @d = split(/,/, $person->{'death_coords'});
+		next if(::distance($b[0], $b[1], $d[0], $d[1], 'M') <= 100);
+
 		my $birth = $cache{$person->{'birth_coords'}};
-print STDERR 'b', $person->{'birth_coords'}, "\n";
 		if(!defined($birth)) {
 			$birth = $geocoder->reverse_geocode(latlng => $person->{'birth_coords'});
 			$cache{$person->{'birth_coords'}} = $birth;
 		}
-		die unless($birth);
 		next unless($birth);
+		next if($birth->{error});
 
 		my $death = $cache{$person->{'death_coords'}};
-print STDERR 'd', $person->{'death_coords'}, "\n";
 		if(!defined($death)) {
 			$death = $geocoder->reverse_geocode(latlng => $person->{'death_coords'});
 			$cache{$person->{'death_coords'}} = $death;
 		}
 		next unless($death);
+		next if($death->{error});
 
-print STDERR "Compare $birth->{address}{country} with $death->{address}{country}\n";
-		if($birth->{'address'}{'country'} ne $death->{'address'}{'country'}) {
+		my $bcountry = $birth->{'country'} || $birth->{'address'}{'country'};
+		my $dcountry = $death->{'country'} || $death->{'address'}{'country'};
+
+		if($dcountry ne $bcountry) {
 			push @emmigrants, $person;
 		}
 	}

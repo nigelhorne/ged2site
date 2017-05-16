@@ -18,7 +18,6 @@ our @ISA = ('Ged2site::Display::page');
 our $BUCKETYEARS = 5;
 our $date_parser;
 our $dfn;
-our $pi = atan2(1,1) * 4;
 
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
@@ -455,7 +454,7 @@ sub _dist
 		$counts{$yob}++;
 
 		if((($blat - $dlat) >= 1e-6) && (($blong - $dlong) >= 1e-6)) {
-			$totals{$yob} += $self->_distance($blat, $blong, $dlat, $dlong, $units);
+			$totals{$yob} += ::distance($blat, $blong, $dlat, $dlong, $units);
 		} elsif(!defined($totals{$yob})) {
 			$totals{$yob} = 0;
 		}
@@ -492,47 +491,4 @@ sub _date_to_datetime
 
 	return $dfn->parse_datetime(string => $params{'date'});
 }
-
-# From http://www.geodatasource.com/developers/perl
-# FIXME:  use Math::Trig
-sub _distance {
-	my ($self, $lat1, $lon1, $lat2, $lon2, $unit) = @_;
-	my $theta = $lon1 - $lon2;
-	my $dist = sin($self->_deg2rad($lat1)) * sin($self->_deg2rad($lat2)) + cos($self->_deg2rad($lat1)) * cos($self->_deg2rad($lat2)) * cos($self->_deg2rad($theta));
-	$dist = $self->_acos($dist);
-	$dist = $self->_rad2deg($dist);
-	$dist = $dist * 60 * 1.1515;
-	if ($unit eq "K") {
-		$dist = $dist * 1.609344;
-	} elsif ($unit eq "N") {
-		$dist = $dist * 0.8684;
-	}
-	return ($dist);
-}
-
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#:::  This function get the arccos function using arctan function   :::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-sub _acos {
-	my ($self, $rad) = @_;
-	my $ret = atan2(sqrt(1 - $rad**2), $rad);
-	return $ret;
-}
-
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#:::  This function converts decimal degrees to radians             :::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-sub _deg2rad {
-	my ($self, $deg) = @_;
-	return ($deg * $pi / 180);
-}
-
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#:::  This function converts radians to decimal degrees             :::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-sub _rad2deg {
-	my ($self, $rad) = @_;
-	return ($rad * 180 / $pi);
-}
-
 1;

@@ -5,9 +5,10 @@ package main;
 
 use strict;
 use warnings;
-
 use CHI;
 use Error;
+
+my $pi = atan2(1,1) * 4;
 
 sub create_disc_cache {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -132,6 +133,48 @@ sub create_memory_cache {
 		$chi_args{'redis_options'} = \%redis_options;
 	}
 	return CHI->new(%chi_args);
+}
+
+# From http://www.geodatasource.com/developers/perl
+# FIXME:  use Math::Trig
+sub distance {
+	my ($lat1, $lon1, $lat2, $lon2, $unit) = @_;
+	my $theta = $lon1 - $lon2;
+	my $dist = sin(_deg2rad($lat1)) * sin(_deg2rad($lat2)) + cos(_deg2rad($lat1)) * cos(_deg2rad($lat2)) * cos(_deg2rad($theta));
+	$dist = _acos($dist);
+	$dist = _rad2deg($dist);
+	$dist = $dist * 60 * 1.1515;
+	if ($unit eq "K") {
+		$dist = $dist * 1.609344;
+	} elsif ($unit eq "N") {
+		$dist = $dist * 0.8684;
+	}
+	return ($dist);
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function get the arccos function using arctan function   :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _acos {
+	my ($rad) = @_;
+	my $ret = atan2(sqrt(1 - $rad**2), $rad);
+	return $ret;
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function converts decimal degrees to radians             :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _deg2rad {
+	my ($deg) = @_;
+	return ($deg * $pi / 180);
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function converts radians to decimal degrees             :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _rad2deg {
+	my ($rad) = @_;
+	return ($rad * 180 / $pi);
 }
 
 1;
