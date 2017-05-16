@@ -3636,12 +3636,12 @@ sub print_person
 						}
 						$map = HTML::GoogleMaps::V3->new(%args);
 						$map->center($current_place);
-						Time::HiRes::usleep(100000) unless($javascript_key);
+						Time::HiRes::usleep(100000) unless($geolocation_key);
 					}
 					add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
 					$current_place = $place;
 					$annotation = undef;
-					Time::HiRes::usleep(100000) unless($javascript_key);
+					Time::HiRes::usleep(100000) unless($geolocation_key);
 				} elsif(!defined($current_place)) {
 					$current_place = $place;
 				}
@@ -3662,7 +3662,7 @@ sub print_person
 				}
 				$map = HTML::GoogleMaps::V3->new(%args);
 				$map->center($current_place);
-				Time::HiRes::usleep(100000) unless($javascript_key);
+				Time::HiRes::usleep(100000) unless($geolocation_key);
 			}
 			add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
 			Time::HiRes::usleep(100000) unless($javascript_key);
