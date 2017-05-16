@@ -2106,7 +2106,7 @@ sub print_person
 				$bio .= " $pronoun";
 			}
 			$bio .= ' had ' .
-				($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ";
+				(($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ");
 			if($numberofchildren == 1) {
 				$bio .= $children[0]->given_names();
 			} else {
