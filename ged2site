@@ -69,6 +69,7 @@ use Time::HiRes;
 use File::Copy;
 use Data::Fetch;
 use Config::Auto;
+use Locale::Object::Country;
 
 no lib '.';
 
@@ -364,7 +365,7 @@ memoize('stepsabove');
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country\n";
 
 open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
 print $timeline_xml "<?xml version=\"1.0\"?>\n",
@@ -3848,8 +3849,64 @@ sub print_person
 				}
 			}
 		}
-	} else {
 		print $csv '!';
+	} else {
+		print $csv '!!';
+	}
+
+	if($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
+		my $c = $1;
+		if($c eq 'England') {
+			$c = 'United Kingdom'
+		} elsif($c eq 'USA') {
+			$c = 'United States';
+		} elsif($c eq 'Scotland') {
+			$c = 'United Kingdom';
+		} elsif($c eq 'Wales') {
+			$c = 'United Kingdom';
+		} elsif($c eq 'Isle of Man') {
+			$c = 'United Kingdom';
+		}
+		my $b;
+		eval {
+			$b = Locale::Object::Country->new(name => $c);
+		};
+		if(defined($b)) {
+			print $csv $b->code_alpha2();
+		} elsif($opts{'w'}) {
+			if($opts{'f'}) {
+				die $person->as_string(), ": Unknown birth country '$c'";
+			}
+			red_warning({ person => $person, warning => "Unknown birth country: '$c'" });
+		}
+	}
+	print $csv '!';
+
+	if($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
+		my $c = $1;
+		if($c eq 'England') {
+			$c = 'United Kingdom'
+		} elsif($c eq 'USA') {
+			$c = 'United States';
+		} elsif($c eq 'Scotland') {
+			$c = 'United Kingdom';
+		} elsif($c eq 'Wales') {
+			$c = 'United Kingdom';
+		} elsif($c eq 'Isle of Man') {
+			$c = 'United Kingdom';
+		}
+		my $d;
+		eval {
+			$d = Locale::Object::Country->new(name => $c);
+		};
+		if(defined($d)) {
+			print $csv $d->code_alpha2();
+		} elsif($opts{'w'}) {
+			if($opts{'f'}) {
+				die $person->as_string(), ": Unknown death country '$c'";
+			}
+			red_warning({ person => $person, warning => "Unknown death country: '$c'" });
+		}
 	}
 
 	$printed{$person->{'xref'}} = 1;
