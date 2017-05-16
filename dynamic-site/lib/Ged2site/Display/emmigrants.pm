@@ -35,7 +35,7 @@ sub html {
 	my $everyone = $people->selectall_hashref($params);
 
 	if(!defined($geocoder)) {
-		my $ua = LWP::UserAgent->new();
+		my $ua = LWP::UserAgent->new(agent => 'ged2site');
 		$ua->env_proxy(1);
 		$geocoder = Geo::Coder::XYZ->new(ua => $ua);
 	}
@@ -50,11 +50,7 @@ sub html {
 		my @d = split(/,/, $person->{'death_coords'});
 		next if(::distance($b[0], $b[1], $d[0], $d[1], 'M') <= 150);	# TODO: optimise min. distance
 
-		# The co-ordinates can be approximate since we're interested in getting it close
-		# enough to be in the correct country, and by doing this rounding there should be
-		# more cache hits.
-
-		my $birth_coords = floor($b[0]) . ',' . floor($b[1]);
+		my $birth_coords = $person->{'birth_coords'};
 		my $birth = $cache{$birth_coords};
 		if(!defined($birth)) {
 			$birth = $geocoder->reverse_geocode(latlng => $birth_coords);
@@ -66,7 +62,7 @@ sub html {
 		next unless($birth);
 		next if($birth->{error});
 
-		my $death_coords = floor($d[0]) . ',' . floor($d[1]);
+		my $death_coords = $person->{'death_coords'};
 		my $death = $cache{$death_coords};
 		if(!defined($death)) {
 			$death = $geocoder->reverse_geocode(latlng => $death_coords);
