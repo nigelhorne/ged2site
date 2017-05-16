@@ -1638,6 +1638,9 @@ sub print_person
 			if($dateofbaptism || $placeofbaptism) {
 				$bio .= ' ';
 				unless($dateofbirth || $placeofbirth) {
+					if($numberofchildren == 0) {
+						$bio .= 'and ';
+					}
 					$bio .= 'was ';
 				}
 				if($ENV{'LANG'} =~ /^en_US/) {
