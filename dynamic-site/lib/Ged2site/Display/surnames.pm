@@ -35,7 +35,7 @@ sub html {
 	# find their details
 	my $surname = $surnames->selectall_hashref(\%params);
 	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$surname};
-	@people = sort @people;
+	@people = sort { $a->{'title'} cmp $b->{'title'} } @people;
 
 	# TODO: handle situation where look up fails
 	return $self->SUPER::html({ people => \@people, updated => $surnames->updated() });

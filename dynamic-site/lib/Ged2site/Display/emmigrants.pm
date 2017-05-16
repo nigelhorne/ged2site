@@ -89,6 +89,8 @@ sub html {
 		}
 	}
 
+	@emmigrants = sort { $a->{'title'} cmp $b->{'title'} } @emmigrants;
+
 	return $self->SUPER::html({ emmigrants => \@emmigrants, updated => $people->updated() });
 }
 
