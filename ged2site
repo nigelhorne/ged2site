@@ -3833,6 +3833,10 @@ sub print_person
 	if($geocoder && ($placeofbirth || $placeofdeath)) {
 		if($placeofbirth) {
 			if(my $location = $geocoder->geocode($placeofbirth)) {
+				unless($location->{geometry}{location}{lat} && $location->{geometry}{location}{lng}) {
+					use Data::Dumper;
+					die Data::Dumper->new([$location])->Dump();
+				}
 				print $csv $location->{geometry}{location}{lat}, ',',
 					$location->{geometry}{location}{lng};
 			}
@@ -3840,6 +3844,10 @@ sub print_person
 		print $csv '!';
 		if($placeofdeath) {
 			if(my $location = $geocoder->geocode($placeofdeath)) {
+				unless($location->{geometry}{location}{lat} && $location->{geometry}{location}{lng}) {
+					use Data::Dumper;
+					die Data::Dumper->new([$location])->Dump();
+				}
 				print $csv $location->{geometry}{location}{lat}, ',',
 					$location->{geometry}{location}{lng};
 			}
