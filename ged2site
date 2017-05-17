@@ -1583,7 +1583,7 @@ sub print_person
 				}
 				$bio .= cite(@birthcitations);
 				if($dateofbaptism || $placeofbaptism) {
-					if(scalar(@spouses)) {
+					if(scalar(@spouses) && ($numberofchildren > 0)) {
 						$bio .= ', was';
 					} else {
 						$bio .= ' and';
