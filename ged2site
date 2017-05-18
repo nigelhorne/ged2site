@@ -64,6 +64,7 @@ use Sort::Key::DateTime;
 use String::ProgressBar;
 use Text::Names;
 use MIME::Base64;
+use Text::Names;
 use Memoize;
 use Time::HiRes;
 use File::Copy;
@@ -1169,6 +1170,16 @@ sub print_person
 	my $pronoun = $fetcher->get(object => $person, message => 'pronoun');
 	my $sex = $fetcher->get(object => $person, message => 'sex');
 
+	if($opts{'w'} && $firstname) {
+		# Warning - this throws up a number of false positives
+		my $guess = Text::Names::guessGender($firstname);
+		if($sex && $guess && ($sex ne $guess)) {
+			if($opts{'f'}) {
+				die $person->name(), ': Check the gender of the record';
+			}
+			red_warning({ person => $person, warning => 'Check the gender of the record' });
+		}
+	}
 	my @occupations = $person->get_value('occupation');
 
 	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
