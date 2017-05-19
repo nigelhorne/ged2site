@@ -16,16 +16,15 @@ sub html {
 		'census' => undef,	# TODO: regex of allowable name formats
 		'lang' => qr/^[A-Z][A-Z]/i,
 	};
-	my $params = $info->params({ allow => $allowed });
-	if($params && $params->{'page'}) {
-		delete $params->{'page'};
-	}
+	my %params = %{$info->params({ allow => $allowed })};
+
+	delete $params{'page'};
 
 	# Handles into the databases
 	my $censuses = $args{'censuses'};
 	my $people = $args{'people'};
 
-	unless($params && scalar(keys %{$params})) {
+	if(scalar(keys %params) == 0) {
 		# Display list of censuses
 		my @c = $censuses->census();
 		@c = sort @c;
@@ -34,7 +33,7 @@ sub html {
 
 	# Look in the censuses.csv for the name given as the CGI argument and
 	# find their details
-	my $census = $censuses->selectall_hashref($params);
+	my $census = $censuses->selectall_hashref(\%params);
 
 	my @people = sort map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$census};
 

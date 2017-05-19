@@ -22,9 +22,7 @@ sub html {
 		'lang' => qr/^[A-Z][A-Z]/i,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
-	if($params{'page'}) {
-		delete $params{'page'};
-	}
+	delete $params{'page'};
 
 	# Handle into the database
 	my $people = $args{'people'};
