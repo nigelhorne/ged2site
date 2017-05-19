@@ -73,7 +73,9 @@ sub _build_nodes {
 		$bio = '<img src="/' . $person->{'profile_thumbnail'} . "\"><p><h2>$title</h2><hr>$bio";
 	}
 	$bio =~ s/"/\\"/g;
-	my $nodes = "{\"id\": \"$id\", \"label\": \"$title\", \"level\": $level, \"title\": \"$bio\" },\n";
+	# my $nodes = "{\"id\": \"$id\", \"label\": \"$title\", \"level\": $level, \"title\": \"$bio\" },\n";
+	my $entry = $person->{'entry'};
+	my $nodes = "{\"id\": \"$id\", \"label\": \"$title\", \"level\": $level, \"title\": \"$bio\", \"URL\": \"/cgi-bin/page.fcgi?page=people&entry=$entry\" },\n";
 	my $count = 1;
 	my $edges = '';
 
