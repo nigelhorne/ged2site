@@ -2828,7 +2828,7 @@ sub print_person
 			if($type eq 'Arrival') {
 				$bio .= ' ' . $person->pronoun() . ' arrived';
 				if(my $p = place({ person => $person, record => $events[0] })) {
-					$bio .= " $p";
+					$bio .= $p;
 				} else {
 					if($opts{'f'}) {
 						die $person->as_string() . ": arrival record with no place";
@@ -2856,7 +2856,7 @@ sub print_person
 							   ($event->place() eq $sevent->place())) {
 								$bio .= ' with ' .
 									lcfirst($person->possessive()) . ' ' .
-									($sex eq 'M') ? 'wife' : 'husband' .
+									(($sex eq 'M') ? 'wife' : 'husband') .
 									' ' . $spouse->given_names();
 							}
 						}
