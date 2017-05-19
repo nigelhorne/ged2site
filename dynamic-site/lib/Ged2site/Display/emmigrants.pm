@@ -21,15 +21,15 @@ sub html {
 		'page' => 'emmigrants',
 		'lang' => qr/^[A-Z][A-Z]/i,
 	};
-	my $params = $info->params({ allow => $allowed });
-	if($params && $params->{'page'}) {
-		delete $params->{'page'};
+	my %params = %{$info->params({ allow => $allowed })};
+	if($params{'page'}) {
+		delete $params{'page'};
 	}
 
 	# Handle into the database
 	my $people = $args{'people'};
 
-	my $everyone = $people->selectall_hashref($params);
+	my $everyone = $people->selectall_hashref(\%params);
 
 	my @emmigrants;
 
