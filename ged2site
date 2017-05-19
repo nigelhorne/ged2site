@@ -2357,7 +2357,7 @@ sub print_person
 						} else {
 							$bio .= '<p>During ' .
 								lc($person->possessive()) .
-								' life ' . lcfirst($pronoun) . ' was living';
+								' life, ' . lcfirst($pronoun) . ' was living';
 						}
 						$have_printed = 1;
 					}
@@ -3012,7 +3012,7 @@ sub print_person
 							} else {
 								$bio .= $year;
 							}
-							$bio .= ' ' . lcfirst($person->pronoun()) . " arrived $place.";
+							$bio .= ' ' . lcfirst($person->pronoun()) . " arrived$place.";
 						} elsif($opts{'f'}) {
 							die $person->as_string(), "Can't determine $type date";
 						} elsif($opts{'w'}) {
