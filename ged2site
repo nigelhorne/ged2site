@@ -3081,6 +3081,7 @@ sub print_person
 									' arrived' .
 									place({ person => $person, record => $event }) . '.';
 							}
+						}
 						$previous = undef;
 					} elsif(my $place = place({ person => $person, record => $event })) {
 						if(my $year = year({ person => $person, record => $event })) {
