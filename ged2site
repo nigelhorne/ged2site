@@ -2723,6 +2723,7 @@ sub print_person
 		my $yoa;
 		my $dod = $departure->date();
 		my $doa = $arrival->date();
+		my $only_have_departure_year;
 		if($doa && $dod && ($doa =~ /(\d{3,4})/)) {
 			$yoa = $1;
 			$doa =~ s/\s?\d{3,4}//;
@@ -2732,7 +2733,8 @@ sub print_person
 				if($dod =~ /^\d/) {
 					$dod = "on $dod";
 				} else {
-					$dod = "during $dod";
+					$dod = "during $yod";
+					$only_have_departure_year = 1;
 				}
 				if($doa =~ /^\d/) {
 					$doa = "on $doa";
@@ -2778,7 +2780,7 @@ sub print_person
 				}
 			}
 
-			if(defined($dod)) {
+			if(defined($dod) && !$only_have_departure_year) {
 				$bio .= ", departing $dod and";
 			}
 
@@ -2828,7 +2830,7 @@ sub print_person
 			if($type eq 'Arrival') {
 				$bio .= ' ' . $person->pronoun() . ' arrived';
 				if(my $p = place({ person => $person, record => $events[0] })) {
-					$bio .= " $p";
+					$bio .= $p;
 				} else {
 					if($opts{'f'}) {
 						die $person->as_string() . ": arrival record with no place";
@@ -2856,7 +2858,7 @@ sub print_person
 							   ($event->place() eq $sevent->place())) {
 								$bio .= ' with ' .
 									lcfirst($person->possessive()) . ' ' .
-									($sex eq 'M') ? 'wife' : 'husband' .
+									(($sex eq 'M') ? 'wife' : 'husband') .
 									' ' . $spouse->given_names();
 							}
 						}
