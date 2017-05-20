@@ -2407,7 +2407,7 @@ sub print_person
 								foreach my $sr(@srs) {
 									if((ref($sr) eq 'Gedcom::Record') &&
 									   $sr->date() && ($sr->date() eq $rdate) &&
-									   places_are_the_same({ first => $residence, second => $sr })) {
+									   places_are_the_same({ person => $sibling, first => $residence, second => $sr })) {
 										$bio .= ' when ' .
 											lcfirst($person->pronoun()) .
 											' was living with ' .
@@ -2454,7 +2454,7 @@ sub print_person
 									}
 									if((ref($event) eq 'Gedcom::Record') &&
 									   $event->date() && ($event->date() eq $rdate) &&
-									   places_are_the_same({ first => $residence, second => $event })) {
+									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
 										$bio .= ' when ' . lcfirst($person->pronoun()) .
 											' was living with ' .
 											lcfirst($person->possessive()) .
