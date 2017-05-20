@@ -377,7 +377,7 @@ print $visjs <<'HEADER';
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-  <title>Blood Relatives' Timeline</title>
+	<title>Blood Relatives' Timeline</title>
 
   <link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
   <style type="text/css">
@@ -424,7 +424,7 @@ print $visjs <<'HEADER';
   var container = document.getElementById('visualization');
 
   // Create a DataSet (allows two way data-binding)
-  var items = new vis.DataSet([
+	var items = new vis.DataSet([
 HEADER
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
@@ -454,7 +454,7 @@ print $timeline_xml "</data>\n";
 close $timeline_xml;
 
 print $visjs <<'FOOTER';
-  ]);
+	]);
 
   // Configuration for the Timeline
   // var options = { zoomable: false, horizontalScroll: true, verticalScroll: true, autoResize: true, height: '500px', min: '1500', max: '2017' };
@@ -488,7 +488,7 @@ var options = {
     document.getElementById('zoomIn').onclick    = function () { timeline.zoomIn( 0.2); };
     document.getElementById('zoomOut').onclick   = function () { timeline.zoomOut( 0.2); };
     document.getElementById('moveLeft').onclick  = function () { move( 0.2); };
-    document.getElementById('moveRight').onclick = function () { move(-0.2); };
+	document.getElementById('moveRight').onclick = function () { move(-0.2); };
 </script>
 </body>
 </html>
@@ -773,7 +773,7 @@ sub print_person
 
 	if(defined($dob) && ($dob !~ /^[\d\sA-Z\/]+$/i)) {
 		if($opts{'f'}) {
-			die $person->as_string() . ": Invalid character in date of birth $dob"; 
+			die $person->as_string() . ": Invalid character in date of birth $dob";
 		}
 		red_warning({ person => $person, warning => "Invalid character in date of birth $dob" });
 		$dob = undef;
@@ -2388,8 +2388,10 @@ sub print_person
 							red_warning({ person => $person, warning => "Two residence records for $rdate" });
 						}
 						if($print_year_only) {
-							# $bio .= $rdate;
-							# $print_year_only = 0;
+							if($count == (scalar(@residencelist) - 1)) {
+								$bio .= $rdate;
+								# $print_year_only = 0;
+							}
 						} else {
 							$bio .= " $this_date";
 						}
@@ -2456,16 +2458,14 @@ sub print_person
 										$bio .= ' when ' . lcfirst($person->pronoun()) .
 											' was living with ' .
 											lcfirst($person->possessive()) .
-											($child->sex() eq 'F') ? ' daughter ' : ' son ' .
+											(($child->sex() eq 'F') ? ' daughter ' : ' son ') .
 											$child->given_names() .
 											' following the death of ' .
-											$person->pronoun() eq 'She' ? 'her' : 'his' .
-											($sex eq 'M') ? ' wife ' : ' husband ' .
+											($sex eq 'M') ? 'his wife ' : 'her husband ' .
 											year(date => get_value({ person => $spouses[0], value => 'death date' }));
 										$spdeath_dt = undef;
 										last CHILD;
 									}
-									
 								}
 							}
 						}
@@ -2515,7 +2515,10 @@ sub print_person
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						$peek = $residencelist[$count + 1];
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-							if(($rdate =~ /^\d{4}$/) && ($peek->date() =~ /^\d{4}$/)) {
+							# Don't do the print_year_only code (which condenses "in 1841, in 1842 and in 1843"
+							# to "in 1841-1842") when citations are enabled since each year will likely have
+							# a separate citation
+							if((!$opts{'c'}) && ($rdate =~ /^\d{4}$/) && ($peek->date() =~ /^\d{4}$/)) {
 								if(!$print_year_only) {
 									$bio .= '-';
 									$print_year_only = 1;
@@ -3006,7 +3009,7 @@ sub print_person
 							}
 							if($previous->date()) {
 								if($yod && $yoa && ($yod == $yoa)) {
-									$bio .= "During $yod " . lc($person->pronoun());
+									$bio .= " During $yod " . lc($person->pronoun());
 								} else {
 									$bio .= $person->pronoun();
 
@@ -3086,7 +3089,7 @@ sub print_person
 					} elsif(my $place = place({ person => $person, record => $event })) {
 						if(my $year = year({ person => $person, record => $event })) {
 							if($end_of_sentence) {
-								$bio .= '  ' . ucfirst($year);
+								$bio .= ucfirst($year);
 							} else {
 								$bio .= $year;
 							}
@@ -3520,7 +3523,7 @@ sub print_person
 									next OBJE;
 								}
 								$downloadhistory{$file} = 1;
-									
+
 								# Get and stash a local copy
 								if($file =~ /ancestry.com.+guid=.+&tid=/) {
 									# Ancestry's Gedcoms are broken, perhaps pointing to an old
@@ -4239,7 +4242,7 @@ sub Gedcom::Individual::as_string
 	}
 
 	$rc =~ tr/"/'/;	# fix issues with Graphviz and others
-		
+
 	return $rc;
 }
 
@@ -5253,7 +5256,7 @@ sub make_filename_from_object
 sub date_parser_cached
 {
 	my %params;
-	
+
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
 	} elsif(scalar(@_) % 2 == 0) {
@@ -5283,7 +5286,7 @@ sub date_parser_cached
 sub date_to_datetime
 {
 	my %params;
-	
+
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
 	} elsif(scalar(@_) % 2 == 0) {
@@ -5347,7 +5350,7 @@ sub cite
 	# my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my %params;
-	
+
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
 	} elsif((scalar(@_) % 2 == 0) && defined($_[0]) && ($_[0] !~ /^\d+$/)) {
@@ -5361,5 +5364,5 @@ sub cite
 	return '' unless($citations[0]);
 	return '' unless(scalar(@citations));
 
-	return '<span class="citation">' . join(',', sort(@citations)) . '</span>';
+	return '<span class="citation">' . join(',', sort { $a <=> $b } (@citations)) . '</span>';
 }
