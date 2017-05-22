@@ -2157,7 +2157,7 @@ sub print_person
 		}
 		if($same_occupation_as_father) {
 			$bio .= '. ' if(!$end_of_sentence);
-			$bio .= ' Like is father, ' . lcfirst($pronoun) .
+			$bio .= ' Like his father, ' . lcfirst($pronoun) .
 				(was_alive(person => $person) ? ' is a' : ' was a');
 			if($same_occupation_as_father =~ /^[aeiou]/i) {
 				$bio .= 'n';
