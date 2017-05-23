@@ -771,7 +771,8 @@ sub print_person
 
 	my $dob = get_value({ person => $person, value => 'birth date' });
 
-	if(defined($dob) && ($dob !~ /^[\d\sA-Z\/]+$/i)) {
+	# ACOM starts approximate dates with "Abt." instead of "ABT".
+	if(defined($dob) && (($dob !~ /^[\d\sA-Z\/]+$/i) && ($dob !~ /^Abt\./))) {
 		if($opts{'f'}) {
 			die $person->as_string() . ": Invalid character in date of birth $dob";
 		}
