@@ -27,6 +27,7 @@ our $mapper = {
 	'sex' => \&_sex,
 	'ageatmarriage' => \&_ageatmarriage,
 	'dist' => \&_dist,
+	'ageatfirstborn' => \&_ageatfirstborn,
 };
 
 sub html {
@@ -226,7 +227,7 @@ sub _firstborn
 			if($dom =~ /^(.+?)-/) {
 				$dom = $1;	# use the first marriage
 			}
-			my $youngest;
+			my $eldest;
 			CHILD: foreach my $child(split(/----/, $person->{'children'})) {
 				if($child =~ /page=people&entry=([IP]\d+)"/) {
 					$child = $people->fetchrow_hashref({ entry => $1 });
@@ -237,18 +238,18 @@ sub _firstborn
 					} else {
 						next CHILD;
 					}
-					if(defined($youngest)) {
+					if(defined($eldest)) {
 						my $candidate = $self->_date_to_datetime($dob);
-						if($candidate < $youngest) {
-							$youngest = $candidate;
+						if($candidate < $eldest) {
+							$eldest = $candidate;
 						}
 					} else {
-						$youngest = $self->_date_to_datetime($dob);
+						$eldest = $self->_date_to_datetime($dob);
 					}
 				}
 			}
-			if(defined($youngest)) {
-				my $d = $youngest->subtract_datetime($self->_date_to_datetime($dom));
+			if(defined($eldest)) {
+				my $d = $eldest->subtract_datetime($self->_date_to_datetime($dom));
 				my $months = $d->months() + ($d->years() * 12) - 1;
 				$months{$months}++;
 				if((!defined($max)) || ($months > $max)) {
@@ -474,6 +475,80 @@ sub _dist
 	}
 
 	return { datapoints => $datapoints, units => ($units eq 'K') ? 'Kilometres' : 'Miles' };
+}
+
+sub _ageatfirstborn
+{
+	my $self = shift;
+	my $args = shift;
+	my %mtotals;
+	my %mcounts;
+	my %ftotals;
+	my %fcounts;
+
+	my $people = $args->{'people'};
+
+	$dfn ||= DateTime::Format::Natural->new();
+	foreach my $person(@{$people->selectall_hashref()}) {
+		if($person->{'dob'} && $person->{'children'}) {
+			my $dob = $person->{'dob'};
+			my $yob;
+			my $bucket;
+			if($dob =~ /^(\d{3,4})/) {
+				$yob = $1;
+			} else {
+				next;
+			}
+			$bucket = $yob - ($yob % $BUCKETYEARS);
+
+			my $firstborn;
+			CHILD: foreach my $child(split(/----/, $person->{'children'})) {
+				if($child =~ /page=people&entry=([IP]\d+)"/) {
+					$child = $people->fetchrow_hashref({ entry => $1 });
+					my $cdob = $child->{'dob'};
+					next CHILD unless($cdob);
+					if($cdob =~ /^(\d{3,4})/) {
+						my $cyob = $1;
+						if((!defined($firstborn)) || ($cyob < $firstborn)) {
+							$firstborn = $cyob;
+						}
+					}
+				}
+			}
+			if(defined($firstborn)) {
+				my $age = $firstborn - $yob;
+				if($person->{'sex'} eq 'M') {
+					$mtotals{$bucket} += $age;
+					$mcounts{$bucket}++;
+				} else {
+					$ftotals{$bucket} += $age;
+					$fcounts{$bucket}++;
+				}
+			}
+		}
+	}
+
+	my $mdatapoints;
+	my $fdatapoints;
+
+	foreach my $bucket(sort keys %mcounts) {
+		if($mcounts{$bucket} >= 5) {
+			my $average = ceil($mtotals{$bucket} / $mcounts{$bucket});
+			$mdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($mdatapoints) {
+			$mdatapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+	foreach my $bucket(sort keys %fcounts) {
+		if($fcounts{$bucket} >= 5) {
+			my $average = ceil($ftotals{$bucket} / $fcounts{$bucket});
+			$fdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($fdatapoints) {
+			$fdatapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+
+	return { mdatapoints => $mdatapoints, fdatapoints => $fdatapoints };
 }
 
 sub _date_to_datetime
