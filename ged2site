@@ -1947,7 +1947,16 @@ sub print_person
 					}
 				}
 				if($all_marriages_have_date) {
-					@spouses = Sort::Key::DateTime::dtkeysort { date_to_datetime(date => (($_->get_record('fams marriage')->date()) || ($_->get_record('marriage')->date()))) } @spouses;
+					@spouses = Sort::Key::DateTime::dtkeysort {
+						my $date;
+						if(my $rec = $_->get_record('fams marriage')) {
+							$date = $rec->date();
+						}
+						if((!defined($date)) && (my $rec = $_->get_record('marriage'))) {
+							$date = $rec->date();
+						}
+						date_to_datetime(date => $date);
+					} @spouses;
 				}
 
 				my $spousenumber = 0;
@@ -2519,7 +2528,7 @@ sub print_person
 							# Don't do the print_year_only code (which condenses "in 1841, in 1842 and in 1843"
 							# to "in 1841-1842") when citations are enabled since each year will likely have
 							# a separate citation
-							if((!$opts{'c'}) && ($rdate =~ /^\d{4}$/) && ($peek->date() =~ /^\d{4}$/)) {
+							if((!$opts{'c'}) && $rdate && ($rdate =~ /^\d{4}$/) && $peek->date() && ($peek->date() =~ /^\d{4}$/)) {
 								if(!$print_year_only) {
 									$bio .= '-';
 									$print_year_only = 1;
