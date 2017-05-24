@@ -2,13 +2,20 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+		<meta http-equiv="Content-Language" content="en">
+		<meta name="robots" content="INDEX,FOLLOW">
+		<meta name="language" content="ENGLISH">
+		<meta name="object" content="Index">
+		<meta name="owner" content="Nigel Horne">
+		<meta name="Author" content="Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2017 Nigel Horne, all rights reserved">
 		[% IF person %]
 			<title>[% person.title %]</title>
 		[% ELSE %]
 			<title>[% SiteTitle.join(' ') %]</title>
 			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=people&home=1">
 		[% END %]
-		<meta http-equiv="Content-Language" content="English">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->

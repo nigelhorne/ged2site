@@ -14,6 +14,8 @@
 			[% SET title = 'Months between marriage and first born' %]
 		[% ELSIF graph == 'sex' %]
 			[% SET title = 'Sex of people born in each year' %]
+		[% ELSIF graph == 'ageatfirstborn' %]
+			[% SET title = 'Age of Parents on Birth of First Born' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSE %]
@@ -163,6 +165,10 @@
 		[% ELSIF graph == 'dist' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data from 5 year periods that contain at least 10 births.</p>
+		[% ELSIF graph == 'ageatfirstborn' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>This graph only includes data when the year of births of parents and children are known.</p>
+			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
 		[% ELSE %]
 			<h2>Choose a Graph</h2>
 			<ul>
@@ -173,12 +179,10 @@
 				<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
 				<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
 				<li><a href="?page=graphs&graph=dist">Average distance between birth and death</a></li>
+				<li><a href="?page=graphs&graph=ageatfirstborn">Age of Parents on Birth of First Born</a></li>
 			</ul>
 		[% END %]
 		<center><font size="+2">
-			[% UNLESS home %]
-				[ <a href="?page=people&home=1">Home</a> ]<br>
-			[% END %]
 			[ <a href="?page=censuses">Census Index</a> ]<br>
 			[ <a href="?page=surnames">Surname Index</a> ]<br>
 			[ <a href="?page=history">Family History</a> ]<br>
