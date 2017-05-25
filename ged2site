@@ -2660,7 +2660,7 @@ sub print_person
 				}
 			} elsif($placeofdeath && ($placeofburial eq $placeofdeath) &&
 			   $burial->address() && !$death->address()) {
-				$bio .= ' and is buried there at ', $burial->address();
+				$bio .= ' and is buried there at ' . $burial->address();
 			} else {
 				$bio .= ' and is buried' . place($opts);
 			}
