@@ -45,6 +45,7 @@ use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::List;
 use Geo::Coder::OSM;
+use Geo::Coder::XYZ;
 use Geo::Coder::GooglePlaces;
 use Geo::Coder::Google;
 use Geo::Coder::CA;
@@ -137,12 +138,14 @@ if($opts{'m'}) {
 	$osm = Geo::Coder::OSM->new();
 	$geocoder = Geo::Coder::List->new()
 		->push({ regex => qr/(Canada|USA|United States)$/, geocoder => Geo::Coder::CA->new() })
+		->push(Geo::Coder::XYZ->new())
 		->push(Geo::Coder::Google->new())
 		->push($osm)
 		->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
 	my $ua = LWP::UserAgent->new();
 	$ua->env_proxy(1);
+	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
 } elsif($opts{'w'}) {
 	my $ua = LWP::UserAgent->new();
