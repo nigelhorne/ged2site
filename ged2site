@@ -60,14 +60,13 @@ use File::Basename;
 use Image::Info;
 use URI;
 use URI::Find::Schemeless;
-use LWP::UserAgent;
+use LWP::UserAgent::Throttled;
 use Sort::Key::DateTime;
 use String::ProgressBar;
 use Text::Names;
 use MIME::Base64;
 use Text::Names;
 use Memoize;
-use Time::HiRes;
 use File::Copy;
 use Data::Fetch;
 use Config::Auto;
@@ -143,8 +142,9 @@ if($opts{'m'}) {
 		->push($osm)
 		->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
-	my $ua = LWP::UserAgent->new();
+	my $ua = LWP::UserAgent::Throttled->new();
 	$ua->env_proxy(1);
+	$ua->load(0.1) unless($geolocation_key);
 	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
 } elsif($opts{'w'}) {
@@ -3804,12 +3804,10 @@ sub print_person
 						}
 						$map = HTML::GoogleMaps::V3->new(%args);
 						$map->center($current_place);
-						Time::HiRes::usleep(100000) unless($geolocation_key);
 					}
 					add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
 					$current_place = $place;
 					$annotation = undef;
-					Time::HiRes::usleep(100000) unless($geolocation_key);
 				} elsif(!defined($current_place)) {
 					$current_place = $place;
 				}
@@ -3830,10 +3828,8 @@ sub print_person
 				}
 				$map = HTML::GoogleMaps::V3->new(%args);
 				$map->center($current_place);
-				Time::HiRes::usleep(100000) unless($geolocation_key);
 			}
 			add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
-			Time::HiRes::usleep(100000) unless($javascript_key);
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
