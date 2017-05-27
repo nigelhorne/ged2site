@@ -144,7 +144,10 @@ if($opts{'m'}) {
 
 	my $ua = LWP::UserAgent::Throttled->new();
 	$ua->env_proxy(1);
-	$ua->load(0.1) unless($geolocation_key);
+
+	# TODO: throttle other geocoders
+	$ua->throttle({ 'nominatim.openstreetmap.org' => 1 });
+	# $ua->load(0.1) unless($geolocation_key);	# TODO
 	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
 } elsif($opts{'w'}) {
