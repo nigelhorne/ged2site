@@ -146,8 +146,12 @@ if($opts{'m'}) {
 	$ua->env_proxy(1);
 
 	# TODO: throttle other geocoders
-	$ua->throttle({ 'nominatim.openstreetmap.org' => 1 });
-	# $ua->load(0.1) unless($geolocation_key);	# TODO
+	$ua->throttle({
+		'nominatim.openstreetmap.org' => 1,
+		'geocode.xyz' => 1,
+		'geocoder.ca' => 1,
+	});
+	$ua->throttle({ 'maps.googleapis.com' => 0.1 }) unless($geolocation_key);
 	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
 } elsif($opts{'w'}) {
