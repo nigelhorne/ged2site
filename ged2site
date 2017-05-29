@@ -129,7 +129,7 @@ if($opts{'J'}) {
 my $osm;
 my $geocoder;
 
-if($opts{'m'}) {
+if($opts{'m'} || $opts{'w'}) {
 	my $l = $ENV{'LANG'};
 	if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 		$gp_args{'language'} = lc($1);
@@ -154,10 +154,6 @@ if($opts{'m'}) {
 	$ua->throttle({ 'maps.googleapis.com' => 0.1 }) unless($geolocation_key);
 	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
-} elsif($opts{'w'}) {
-	my $ua = LWP::UserAgent->new();
-	$ua->env_proxy(1);
-	$osm = Geo::Coder::OSM->new(ua => $ua);
 }
 
 # TODO: BMAP_KEY for Geo::Coder::Bing
@@ -376,7 +372,7 @@ memoize('stepsabove');
 # open(my $xml, '>', 'dynamic-site/databases/people.xml');
 # print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
-print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!warnings!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country\n";
+print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country!warnings\n";
 
 open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
 print $timeline_xml "<?xml version=\"1.0\"?>\n",
@@ -2268,7 +2264,7 @@ sub print_person
 						} else {
 							red_warning({
 								person => $person,
-								warning => "address set to $address but place is empty"
+								warning => "Address set to $address but place is empty"
 							});
 						}
 					}
@@ -3855,26 +3851,6 @@ sub print_person
 	} else {
 		print $csv '!!';
 	}
-	if($person->{'warnings'}) {
-		print "Create warnings\n" if($opts{'v'});
-		my $ufinder = URI::Find::Schemeless->new(sub {
-			my($uri, $orig_uri) = @_;
-
-			my $u = URI->new($orig_uri);
-			if($u && (ref($u) ne 'URI::_generic')) {
-				$uri =~ s/:$//;
-				return "<a href=\"$uri\">" .
-					$u->host() .
-					'</a>';
-			}
-			return $orig_uri;
-		});
-		print $html "<h2>Known Issues</h2>",
-			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
-		print $csv
-			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
-	}
-	print $csv '!';
 
 	if($birth_dt) {
 		print $csv $birth_dt->strftime('%Y/%m/%d');
@@ -4077,6 +4053,26 @@ sub print_person
 			}
 			red_warning({ person => $person, warning => "Unknown death country: '$c'" });
 		}
+	}
+	print $csv '!';
+	if($person->{'warnings'}) {
+		print "Create warnings\n" if($opts{'v'});
+		my $ufinder = URI::Find::Schemeless->new(sub {
+			my($uri, $orig_uri) = @_;
+
+			my $u = URI->new($orig_uri);
+			if($u && (ref($u) ne 'URI::_generic')) {
+				$uri =~ s/:$//;
+				return "<a href=\"$uri\">" .
+					$u->host() .
+					'</a>';
+			}
+			return $orig_uri;
+		});
+		print $html "<h2>Known Issues</h2>",
+			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
+		print $csv
+			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
 	}
 
 	$printed{$person->{'xref'}} = 1;
@@ -4882,7 +4878,7 @@ sub validate_place
 			# Use only the town part
 			$town = $1;
 		}
-		if(!$osm->geocode($town)) {
+		if(!$geocoder->geocode($town)) {
 			# Don't die because there are many
 			# false positives as locations
 			# may no longer exist
