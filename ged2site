@@ -3874,9 +3874,6 @@ sub print_person
 		# $dt->day(), ' ', $dt->month_name(), ' ', $dt->year(),
 		'</i></p>';
 
-	print $html '</body></html>';
-	close $html;
-
 	if($birth_dt && ($opts{'l'} || !$was_alive) && $me && ($relationship || ($person eq $me))) {
 		print $timeline_xml '<event start="', $birth_dt->year();
 		if($birth_dt->month() && $birth_dt->day()) {
@@ -4074,6 +4071,9 @@ sub print_person
 		print $csv
 			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
 	}
+
+	print $html '</body></html>';
+	close $html;
 
 	$printed{$person->{'xref'}} = 1;
 
