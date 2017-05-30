@@ -191,24 +191,28 @@ sub doit
 		logger => $logger,
 	});
 
-	my $fb = FCGI::Buffer->new();
-	$fb->init({
+	my $args = {
 		info => $info,
 		optimise_content => 1,
 		lint_content => 0,
 		logger => $logger,
-		lingua => $lingua,
-	});
+		lingua => $lingua
+	};
 	if(!$ENV{'REMOTE_ADDR'}) {
-		$fb->init(lint_content => 1);
+		$args->{'lint_content'} = 1;
 	}
 	if(!$info->is_search_engine()) {
-		$fb->init(save_to => {
+		$args->{'save_to'} = {
 			directory => File::Spec->catfile($config->rootdir(), 'save_to'),
 			ttl => 3600 * 24,
 			create_table => 1
-		});
+		};
 	}
+
+	my $fb = FCGI::Buffer->new();
+	
+	$fb->init($args);
+
 	if($fb->can_cache()) {
 		$buffercache ||= create_disc_cache(config => $config, logger => $logger, namespace => $script_name, root_dir => $cachedir);
 		$fb->init(
@@ -223,7 +227,7 @@ sub doit
 
 	my $display;
 	my $invalidpage;
-	my $args = {
+	$args = {
 		info => $info,
 		logger => $logger,
 		lingua => $lingua,
