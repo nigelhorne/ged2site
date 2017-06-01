@@ -19,9 +19,13 @@ our $BUCKETYEARS = 5;
 our $date_parser;
 our $dfn;
 
+# TODO: Average number of children vs. year
+#	Number of children vs. count of number of children
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
 	'birthmonth' => \&_birthmonth,
+	'deathmonth' => \&_deathmonth,
+	'marriagemonth' => \&_marriagemonth,
 	'infantdeaths' => \&_infantdeaths,
 	'firstborn' => \&_firstborn,
 	'sex' => \&_sex,
@@ -123,6 +127,83 @@ sub _birthmonth
 	foreach my $person(@{$people->selectall_hashref()}) {
 		if(my $dob = $person->{'dob'}) {
 			if($dob =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
+				$counts[$1 - 1]++;
+			}
+		}
+	}
+
+	my $locale;
+	if($self->{'_lingua'}) {
+		if(my $language = $self->{'_lingua'}->language_code_alpha2()) {
+			$locale = $language;
+		}
+	}
+	if(!defined($locale)) {
+		$locale = 'en';
+	}
+
+	my $datapoints;
+	my $index = 0;
+	my $dtl = DateTime::Locale->load($locale);
+
+	while($index < 12) {
+		my $month = @{$dtl->month_format_wide()}[$index];
+		$datapoints .= "{ label: \"$month\", y: " . $counts[$index] . " },\n";
+		$index++;
+	}
+
+	return { datapoints => $datapoints };
+}
+
+sub _marriagemonth
+{
+	my $self = shift;
+	my $args = shift;
+
+	my $people = $args->{'people'};
+	my @counts = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	foreach my $person(@{$people->selectall_hashref()}) {
+		# TODO: Handle more than one marriage
+		if(my $marriages = $person->{'marriages'}) {
+			if($marriages =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
+				$counts[$1 - 1]++;
+			}
+		}
+	}
+
+	my $locale;
+	if($self->{'_lingua'}) {
+		if(my $language = $self->{'_lingua'}->language_code_alpha2()) {
+			$locale = $language;
+		}
+	}
+	if(!defined($locale)) {
+		$locale = 'en';
+	}
+
+	my $datapoints;
+	my $index = 0;
+	my $dtl = DateTime::Locale->load($locale);
+
+	while($index < 12) {
+		my $month = @{$dtl->month_format_wide()}[$index];
+		$datapoints .= "{ label: \"$month\", y: " . $counts[$index] . " },\n";
+		$index++;
+	}
+
+	return { datapoints => $datapoints };
+}
+
+sub _deathmonth
+{
+	my $self = shift;
+	my $args = shift;
+
+	my $people = $args->{'people'};
+	my @counts = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	foreach my $person(@{$people->selectall_hashref()}) {
+		if(my $dod = $person->{'dod'}) {
+			if($dod =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
 				$counts[$1 - 1]++;
 			}
 		}

@@ -13,7 +13,9 @@
 		[% IF graph == 'ageatdeath' %]
 			[% SET title = 'Adult Life Expectancy' %]
 		[% ELSIF graph == 'birthmonth' %]
-			[% SET title = 'Birth Month' %]
+			[% SET title = 'Month of Birth' %]
+		[% ELSIF graph == 'deathmonth' %]
+			[% SET title = 'Month of Death' %]
 		[% ELSIF graph == 'ageatmarriage' %]
 			[% SET title = 'Average Age at First Marriage' %]
 		[% ELSIF graph == 'infantdeaths' %]
@@ -63,7 +65,8 @@
 		<h2>Choose a Graph</h2>
 		<ul>
 			<li><a href="?page=graphs&graph=ageatdeath">Average age at death</a></li>
-			<li><a href="?page=graphs&graph=birthmonth">Birth month</a></li>
+			<li><a href="?page=graphs&graph=birthmonth">Month of Birth</a></li>
+			<li><a href="?page=graphs&graph=deathmonth">Month of Death</a></li>
 			<li><a href="?page=graphs&graph=infantdeaths">Infant deaths</a></li>
 			<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
 			<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
