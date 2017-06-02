@@ -8,6 +8,7 @@ use warnings;
 use POSIX;
 use DateTime::Locale;
 use DateTime::Format::Natural;
+use Statistics::LineFit;
 
 # Display some information about the family
 
@@ -105,6 +106,7 @@ sub _ageatdeath
 	}
 
 	my $datapoints;
+	my(@x, @y);
 
 	foreach my $bucket(sort keys %counts) {
 		# next if((!defined($datapoints)) && ($counts{$bucket} == 0));
@@ -112,6 +114,24 @@ sub _ageatdeath
 		$average = floor($average);
 
 		$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+		push @x, $bucket;
+		push @y, $average;
+	}
+	my $lineFit = Statistics::LineFit->new();
+	if($lineFit->setData(\@x, \@y)) {
+		@y = $lineFit->predictedYs();
+		my $x = shift @x;
+		my $y = shift @y;
+		my $bestfit = "{ label: \"$x\", y: $y },\n";
+		while($x = shift @x) {
+			$y = shift @y;
+			if($x[0]) {
+				$bestfit .= "{ label: \"$x\", y: $y, markerSize: 1 },\n";
+			} else {
+				$bestfit .= "{ label: \"$x\", y: $y },\n";
+			}
+		}
+		return { mdatapoints => $datapoints, fdatapoints => $bestfit };
 	}
 
 	return { datapoints => $datapoints };

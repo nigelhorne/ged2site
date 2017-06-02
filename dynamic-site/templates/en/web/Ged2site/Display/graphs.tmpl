@@ -103,6 +103,8 @@
 							title: 'Percentage',
 							minimum: 0,
 							maximum: 100,
+						[% ELSIF graph == 'ageatdeath' %]
+							includeZero: false,
 						[% END %]
 						gridThickness: 0
 					},
@@ -119,7 +121,11 @@
 							// Change type to "bar", "area", "spline", "pie","column"etc.
 							type: "line",
 							showInLegend: true,
-							name: "Male",
+							[% IF graph == 'ageatdeath' %]
+								name: "Values",
+							[% ELSE %]
+								name: "Male",
+							[% END %]
 							color: "#F08080",
 							dataPoints: [
 								[% mdatapoints %]
@@ -128,9 +134,16 @@
 						{
 							// Change type to "bar", "area", "spline", "pie","column"etc.
 							type: "line",
+							[% IF graph == 'ageatdeath' %]
+								lineDashType: "dash",
+								connectNullData: true,
+								nullDataLineDashType: "dot",
+								name: "Trend",
+							[% ELSE %]
+								name: "Female",
+							[% END %]
 							showInLegend: true,
 							color: "#20B2AA",
-							name: "Female",
 							dataPoints: [
 								[% fdatapoints %]
 							]
