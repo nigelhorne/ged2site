@@ -1,8 +1,5 @@
 package Ged2site::Display::graphs;
 
-# Other ideas:
-#	Distance between birth&death places vs. year of birth
-
 use strict;
 use warnings;
 use POSIX;
@@ -20,6 +17,7 @@ our $BUCKETYEARS = 5;
 our $date_parser;
 our $dfn;
 
+# TODO: age of people dying vs. year (is that a good idea?)
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
 	'birthmonth' => \&_birthmonth,

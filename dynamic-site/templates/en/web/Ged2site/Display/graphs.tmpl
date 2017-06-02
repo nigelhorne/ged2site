@@ -62,6 +62,10 @@
 						zoomEnabled: true,
 					[% ELSIF graph == 'dist' %]
 						zoomEnabled: true,
+					[% ELSIF graph == 'ageatdeath' %]
+						axisX: {
+							title: "Year of Birth",
+						},
 					[% ELSIF graph == 'motherchildren' %]
 						axisX: {
 							title: "Number of Children",
