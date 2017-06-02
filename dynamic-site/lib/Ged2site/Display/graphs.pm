@@ -620,7 +620,7 @@ sub _distcount
 		if($counts{$bucket}) {
 			my $count = $counts{$bucket};
 
-			$datapoints .= "{ label: \"$bucket\", y: $count },\n";
+			$datapoints .= "{ label: \"$bucket\", y: $count, markerSize: 1 },\n";
 		} elsif($datapoints) {
 			$datapoints .= "{ label: \"$bucket\", y: null },\n";
 		}
