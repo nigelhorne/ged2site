@@ -24,8 +24,8 @@
 			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSIF graph == 'familysizetime' %]
 			[% SET title = 'How Family Size Changes over Time' %]
-		[% ELSIF graph == 'familysize' %]
-			[% SET title = 'Family Sizes' %]
+		[% ELSIF graph == 'motherchildren' %]
+			[% SET title = 'Number of Children by Women' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
@@ -44,6 +44,10 @@
 					axisY: {
 						[% IF graph == 'dist' %]
 							title: '[% units %]',
+						[% ELSIF graph == 'familysizetime' %]
+							title: "Number of Children",
+						[% ELSIF graph == 'motherchildren' %]
+							title: "Number of Mothers",
 						[% ELSIF graph == 'ageatdeath' %]
 							includeZero: false,
 						[% END %]
@@ -58,7 +62,7 @@
 						zoomEnabled: true,
 					[% ELSIF graph == 'dist' %]
 						zoomEnabled: true,
-					[% ELSIF graph == 'familysize' %]
+					[% ELSIF graph == 'motherchildren' %]
 						axisX: {
 							title: "Number of Children",
 						},
@@ -67,7 +71,7 @@
 					data: [
 					{
 						// Change type to "bar", "area", "spline", "pie","column"etc.
-						[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' || graph == 'firstborn' || graph == 'familysize' %]
+						[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' || graph == 'firstborn' || graph == 'motherchildren' %]
 							type: "column",
 						[% ELSE %]
 							type: "line",
@@ -179,11 +183,11 @@
 			</p>
 		[% ELSIF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
-		[% ELSIF graph == 'familysize' %]
+		[% ELSIF graph == 'motherchildren' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
 				This graph depends a lot on all children being recorded.
-				To make that more likely, families of people marrying before 1840 are not included.
+				To make that more likely, families of women born before 1820 are not included.
 			</p>
 		[% ELSIF graph == 'ageatmarriage' %]
 			<div id="chartContainer" style="height: 400px; width: 100%;"></div>
@@ -229,7 +233,7 @@
 					<li><a href="?page=graphs&graph=dist">Average distance between birth and death</a></li>
 					<li><a href="?page=graphs&graph=ageatfirstborn">Age of Parents on Birth of First Born</a></li>
 					<li><a href="?page=graphs&graph=familysizetime">How Family Size Changes over Time</a></li>
-					<li><a href="?page=graphs&graph=familysize">Family Size</a></li>
+					<li><a href="?page=graphs&graph=motherchildren">Number of Children by Women</a></li>
 				</ul>
 			</div>
 		[% END %]

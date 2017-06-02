@@ -31,7 +31,7 @@ our $mapper = {
 	'dist' => \&_dist,
 	'ageatfirstborn' => \&_ageatfirstborn,
 	'familysizetime' => \&_familysizetime,
-	'familysize' => \&_familysize,
+	'motherchildren' => \&_motherchildren,
 };
 
 sub html {
@@ -634,7 +634,7 @@ sub _ageatfirstborn
 	return { mdatapoints => $mdatapoints, fdatapoints => $fdatapoints };
 }
 
-sub _familysize
+sub _motherchildren
 {
 	my $self = shift;
 	my $args = shift;
@@ -644,13 +644,10 @@ sub _familysize
 	my $people = $args->{'people'};
 
 	foreach my $person(@{$people->selectall_hashref({ 'sex' => 'F' })}) {
-		if($person->{'children'} && $person->{'marriages'}) {
-			my $dom = $person->{'marriages'};
-			if($dom =~ /^(.+?)-/) {
-				$dom = $1;	# use the first marriage
-			}
-			if($dom =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
-				next if($1 < 1840);
+		if($person->{'children'} && $person->{'dob'}) {
+			my $dob = $person->{'dob'};
+			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+				next if($1 < 1820);
 			} else {
 				next;
 			}
