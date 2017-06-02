@@ -17,6 +17,7 @@ use Ged2site::Display::page;
 our @ISA = ('Ged2site::Display::page');
 
 our $BUCKETYEARS = 5;
+our $BUCKETDISTANCE = 5;
 our $date_parser;
 our $dfn;
 
@@ -30,6 +31,7 @@ our $mapper = {
 	'sex' => \&_sex,
 	'ageatmarriage' => \&_ageatmarriage,
 	'dist' => \&_dist,
+	'distcount' => \&_distcount,
 	'ageatfirstborn' => \&_ageatfirstborn,
 	'familysizetime' => \&_familysizetime,
 	'motherchildren' => \&_motherchildren,
@@ -526,7 +528,6 @@ sub _dist
 {
 	my $self = shift;
 	my $args = shift;
-	my %months;
 
 	my $people = $args->{'people'};
 
@@ -573,6 +574,53 @@ sub _dist
 			my $average = floor($totals{$bucket} / $counts{$bucket});
 
 			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($datapoints) {
+			$datapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+
+	return { datapoints => $datapoints, units => ($units eq 'K') ? 'Kilometres' : 'Miles' };
+}
+
+sub _distcount
+{
+	my $self = shift;
+	my $args = shift;
+
+	my $units = 'K';
+
+	if($self->{'_lingua'}) {
+		if(my $country = $self->{'_lingua'}->country()) {
+			if(($country eq 'us') || ($country eq 'uk')) {
+				$units = 'M';
+			}
+		}
+	}
+
+	my $people = $args->{'people'};
+	my %counts;
+	foreach my $person(@{$people->selectall_hashref()}) {
+		next unless($person->{'birth_coords'} && $person->{'death_coords'});
+		my $dist;
+		if($person->{'birth_coords'} eq $person->{'death_coords'}) {
+			$dist = 0;
+		} else {
+			my ($blat, $blong) = split(/,/, $person->{'birth_coords'});
+			my ($dlat, $dlong) = split(/,/, $person->{'death_coords'});
+
+			$dist = floor(::distance($blat, $blong, $dlat, $dlong, $units));
+		}
+		my $bucket = $dist - ($dist % $BUCKETDISTANCE);
+		$counts{$bucket}++;
+	}
+
+	my $datapoints;
+
+	foreach my $bucket(sort { $a <=> $b } keys %counts) {
+		if($counts{$bucket}) {
+			my $count = $counts{$bucket};
+
+			$datapoints .= "{ label: \"$bucket\", y: $count },\n";
 		} elsif($datapoints) {
 			$datapoints .= "{ label: \"$bucket\", y: null },\n";
 		}

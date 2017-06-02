@@ -22,6 +22,8 @@
 			[% SET title = 'Age of Parents on Birth of First Born' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Average distance between places of birth and death' %]
+		[% ELSIF graph == 'distcount' %]
+			[% SET title = 'Distance between places of birth and death' %]
 		[% ELSIF graph == 'familysizetime' %]
 			[% SET title = 'How Family Size Changes over Time' %]
 		[% ELSIF graph == 'motherchildren' %]
@@ -50,6 +52,8 @@
 							title: "Number of Mothers",
 						[% ELSIF graph == 'ageatdeath' %]
 							includeZero: false,
+						[% ELSIF graph == 'distcount' %]
+							title: "Number of People",
 						[% END %]
 						gridThickness: 0
 					},
@@ -62,6 +66,11 @@
 						zoomEnabled: true,
 					[% ELSIF graph == 'dist' %]
 						zoomEnabled: true,
+					[% ELSIF graph == 'distcount' %]
+						zoomEnabled: true,
+						axisX: {
+							title: '[% units %]'
+						},
 					[% ELSIF graph == 'motherchildren' %]
 						axisX: {
 							title: "Number of Children",
@@ -196,6 +205,9 @@
 			</p>
 		[% ELSIF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'distcount' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>Select an area to zoom in.</p>
 		[% ELSIF graph == 'motherchildren' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
@@ -244,6 +256,7 @@
 					<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
 					<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
 					<li><a href="?page=graphs&graph=dist">Average distance between birth and death</a></li>
+					<li><a href="?page=graphs&graph=distcount">Distance count</a></li>
 					<li><a href="?page=graphs&graph=ageatfirstborn">Age of Parents on Birth of First Born</a></li>
 					<li><a href="?page=graphs&graph=familysizetime">How Family Size Changes over Time</a></li>
 					<li><a href="?page=graphs&graph=motherchildren">Number of Children by Women</a></li>
