@@ -3146,8 +3146,12 @@ sub print_person
 					}
 					my $place = place({ person => $person, record => $event });
 					$place =~ s/^\sin/ from/;
-					$bio .= "$place " .
-						year({ person => $person, record => $event });
+					if($event->date()) {
+						$bio .= "$place " .
+							year({ person => $person, record => $event });
+					} else {
+						$bio .= $place;
+					}
 					if(my $notes = notes({ record => $event })) {
 						$notes = lcfirst($notes);
 						$bio .= " ($notes)";
