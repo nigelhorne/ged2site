@@ -19,8 +19,6 @@ our $BUCKETYEARS = 5;
 our $date_parser;
 our $dfn;
 
-# TODO: Average number of children vs. year
-#	Number of children vs. count of number of children
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
 	'birthmonth' => \&_birthmonth,
@@ -32,6 +30,8 @@ our $mapper = {
 	'ageatmarriage' => \&_ageatmarriage,
 	'dist' => \&_dist,
 	'ageatfirstborn' => \&_ageatfirstborn,
+	'familysizetime' => \&_familysizetime,
+	'familysize' => \&_familysize,
 };
 
 sub html {
@@ -164,8 +164,11 @@ sub _marriagemonth
 	my @counts = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	foreach my $person(@{$people->selectall_hashref()}) {
 		# TODO: Handle more than one marriage
-		if(my $marriages = $person->{'marriages'}) {
-			if($marriages =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
+		if(my $dom = $person->{'marriages'}) {
+			if($dom =~ /^(.+?)-/) {
+				$dom = $1;	# use the first marriage
+			}
+			if($dom =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
 				$counts[$1 - 1]++;
 			}
 		}
@@ -574,13 +577,12 @@ sub _ageatfirstborn
 		if($person->{'dob'} && $person->{'children'}) {
 			my $dob = $person->{'dob'};
 			my $yob;
-			my $bucket;
 			if($dob =~ /^(\d{3,4})/) {
 				$yob = $1;
 			} else {
 				next;
 			}
-			$bucket = $yob - ($yob % $BUCKETYEARS);
+			my $bucket = $yob - ($yob % $BUCKETYEARS);
 
 			my $firstborn;
 			CHILD: foreach my $child(split(/----/, $person->{'children'})) {
@@ -630,6 +632,104 @@ sub _ageatfirstborn
 	}
 
 	return { mdatapoints => $mdatapoints, fdatapoints => $fdatapoints };
+}
+
+sub _familysize
+{
+	my $self = shift;
+	my $args = shift;
+
+	my %counts;
+
+	my $people = $args->{'people'};
+
+	foreach my $person(@{$people->selectall_hashref({ 'sex' => 'F' })}) {
+		if($person->{'children'} && $person->{'marriages'}) {
+			my $dom = $person->{'marriages'};
+			if($dom =~ /^(.+?)-/) {
+				$dom = $1;	# use the first marriage
+			}
+			if($dom =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+				next if($1 < 1840);
+			} else {
+				next;
+			}
+			my $count;
+			foreach my $child(split(/----/, $person->{'children'})) {
+				$count++;
+			}
+			if($count) {
+				$counts{$count}++;
+			}
+		}
+	}
+
+	my $datapoints;
+
+	foreach my $col(sort { $a <=> $b } keys %counts) {
+		$datapoints .= "{ label: \"$col\", y: $counts{$col} },\n";
+	}
+
+	return { datapoints => $datapoints };
+}
+
+sub _familysizetime
+{
+	my $self = shift;
+	my $args = shift;
+
+	my %totals;
+	my %counts;
+
+	my $people = $args->{'people'};
+	$dfn ||= DateTime::Format::Natural->new();
+
+	foreach my $person(@{$people->selectall_hashref({ 'sex' => 'F' })}) {
+		my $count;
+		my $eldest;
+		CHILD: foreach my $child(split(/----/, $person->{'children'})) {
+			if($child =~ /page=people&entry=([IP]\d+)"/) {
+				$child = $people->fetchrow_hashref({ entry => $1 });
+				my $dob = $child->{'dob'};
+				next CHILD unless($dob);
+				if($dob =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/) {
+					$dob = "$3/$2/$1";
+				} else {
+					next CHILD;
+				}
+				if(defined($eldest)) {
+					my $candidate = $self->_date_to_datetime($dob);
+					if($candidate < $eldest) {
+						$eldest = $candidate;
+					}
+				} else {
+					$eldest = $self->_date_to_datetime($dob);
+				}
+				$count++;
+			}
+		}
+		if(defined($eldest)) {
+			my $yob = $eldest->year();
+			my $bucket = $yob - ($yob % $BUCKETYEARS);
+			$totals{$bucket} += $count;
+			$counts{$bucket}++;
+		}
+	}
+
+	my $datapoints;
+
+	foreach my $bucket(sort keys %totals) {
+		if($counts{$bucket} >= 5) {
+			my $average = $totals{$bucket} / $counts{$bucket};
+			$average = floor($average);
+
+			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif(defined($datapoints)) {
+			$datapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+
+	return { datapoints => $datapoints };
 }
 
 sub _date_to_datetime

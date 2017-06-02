@@ -22,6 +22,10 @@
 			[% SET title = 'Age of Parents on Birth of First Born' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Average distance between places of birth and death' %]
+		[% ELSIF graph == 'familysizetime' %]
+			[% SET title = 'How Family Size Changes over Time' %]
+		[% ELSIF graph == 'familysize' %]
+			[% SET title = 'Family Sizes' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
@@ -54,12 +58,16 @@
 						zoomEnabled: true,
 					[% ELSIF graph == 'dist' %]
 						zoomEnabled: true,
+					[% ELSIF graph == 'familysize' %]
+						axisX: {
+							title: "Number of Children",
+						},
 					[% END %]
 					animationEnabled: true,	// change to false
 					data: [
 					{
 						// Change type to "bar", "area", "spline", "pie","column"etc.
-						[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' || graph == 'firstborn' %]
+						[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' || graph == 'firstborn' || graph == 'familysize' %]
 							type: "column",
 						[% ELSE %]
 							type: "line",
@@ -171,9 +179,21 @@
 			</p>
 		[% ELSIF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'familysize' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>
+				This graph depends a lot on all children being recorded.
+				To make that more likely, families of people marrying before 1840 are not included.
+			</p>
 		[% ELSIF graph == 'ageatmarriage' %]
 			<div id="chartContainer" style="height: 400px; width: 100%;"></div>
 			<p>If the data size is not large anomolies can appear.</p>
+		[% ELSIF graph == 'familysizetime' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>
+				The time period is set by the 5 year period of the birth of the first child.
+				Only 5 year periods that contain at least 5 families are shown.
+			</p>
 		[% ELSIF graph == 'infantdeaths' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph shows percentage of those born who died aged 5 or younger.</p>
@@ -208,6 +228,8 @@
 					<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
 					<li><a href="?page=graphs&graph=dist">Average distance between birth and death</a></li>
 					<li><a href="?page=graphs&graph=ageatfirstborn">Age of Parents on Birth of First Born</a></li>
+					<li><a href="?page=graphs&graph=familysizetime">How Family Size Changes over Time</a></li>
+					<li><a href="?page=graphs&graph=familysize">Family Size</a></li>
 				</ul>
 			</div>
 		[% END %]
