@@ -507,18 +507,32 @@ sub _ageatmarriage
 	my $mdatapoints;
 	my $fdatapoints;
 
-	foreach my $bucket(sort keys %mcounts) {
-		next if(!defined($fcounts{$bucket}));
+	foreach my $bucket(keys %mcounts) {
+		if(!defined($fcounts{$bucket})) {
+			$fcounts{$bucket} = 0;
+		}
+	}
+	foreach my $bucket(keys %fcounts) {
+		if(!defined($mcounts{$bucket})) {
+			$mcounts{$bucket} = 0;
+		}
+	}
 
-		my $average = $mtotals{$bucket} / $mcounts{$bucket};
-		$average = floor($average);
-
-		$mdatapoints .= "{ label: \"$bucket\", y: $average },\n";
-
-		$average = $ftotals{$bucket} / $fcounts{$bucket};
-		$average = floor($average);
-
-		$fdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+	foreach my $bucket(sort { $a <=> $b } keys %mcounts) {
+		if($mcounts{$bucket}) {
+			my $average = floor($mtotals{$bucket} / $mcounts{$bucket});
+			$mdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($mdatapoints) {
+			$mdatapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+	foreach my $bucket(sort { $a <=> $b } keys %fcounts) {
+		if($fcounts{$bucket}) {
+			my $average = floor($ftotals{$bucket} / $fcounts{$bucket});
+			$fdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($fdatapoints) {
+			$fdatapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
 	}
 
 	return { mdatapoints => $mdatapoints, fdatapoints => $fdatapoints };

@@ -33,6 +33,7 @@
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<title>[% title %]</title>
+		<meta http-equiv="Content-Language" content="English">
 		[% IF datapoints %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
@@ -192,7 +193,10 @@
 			[ <a href="?page=todo">To Do</a> ] |
 			[ <a href="?page=calendar">Calendar</a> ] |
 			[ <a href="/visjs.html">Timeline</a> ] |
-			[ <a href="?page=graphs">Analytics</a> ]
+			[% IF graph %]
+				[ <a href="?page=graphs">Analytics</a> ]
+			[% END %]
+			[ <a href="?page=emmigrants">Emigrants</a> ] |
 		</center>
 		<p>
 
