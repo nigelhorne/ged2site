@@ -22,6 +22,8 @@
 			[% SET title = 'Age of Parents on Birth of First Born' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Average distance between places of birth and death' %]
+		[% ELSIF graph == 'distcount' %]
+			[% SET title = 'Distance between places of birth and death' %]
 		[% ELSIF graph == 'familysizetime' %]
 			[% SET title = 'How Family Size Changes over Time' %]
 		[% ELSIF graph == 'motherchildren' %]
@@ -31,6 +33,7 @@
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<title>[% title %]</title>
+		<meta http-equiv="Content-Language" content="English">
 		[% IF datapoints %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
@@ -50,6 +53,8 @@
 							title: "Number of Mothers",
 						[% ELSIF graph == 'ageatdeath' %]
 							includeZero: false,
+						[% ELSIF graph == 'distcount' %]
+							title: "Number of People",
 						[% END %]
 						gridThickness: 0
 					},
@@ -65,6 +70,10 @@
 					[% ELSIF graph == 'ageatdeath' %]
 						axisX: {
 							title: "Year of Birth",
+					[% ELSIF graph == 'distcount' %]
+						zoomEnabled: true,
+						axisX: {
+							title: '[% units %]'
 						},
 					[% ELSIF graph == 'motherchildren' %]
 						axisX: {
@@ -112,6 +121,11 @@
 						[% END %]
 						gridThickness: 0
 					},
+					[% IF graph == 'ageatmarriage' %]
+					axisX: {
+						title: 'Year of Marriage'
+					},
+					[% END %]
 					toolTip: {
 						shared:true
 					},
@@ -187,7 +201,10 @@
 			[ <a href="?page=todo">To Do</a> ] |
 			[ <a href="?page=calendar">Calendar</a> ] |
 			[ <a href="/visjs.html">Timeline</a> ] |
-			[ <a href="?page=graphs">Analytics</a> ]
+			[% IF graph %]
+				[ <a href="?page=graphs">Analytics</a> ]
+			[% END %]
+			[ <a href="?page=emmigrants">Emigrants</a> ] |
 		</center>
 		<p>
 
@@ -200,6 +217,9 @@
 			</p>
 		[% ELSIF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'distcount' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>Select an area to zoom in.</p>
 		[% ELSIF graph == 'motherchildren' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
@@ -239,18 +259,19 @@
 				<h2>Choose a Graph</h2>
 				<br>
 				<ul id="nav">
-					<li><a href="?page=graphs&graph=ageatdeath">Average age at death</a></li>
-					<li><a href="?page=graphs&graph=birthmonth">Month of Birth</a></li>
-					<li><a href="?page=graphs&graph=marriagemonth">Month of Marriage</a></li>
-					<li><a href="?page=graphs&graph=deathmonth">Month of Death</a></li>
+					<li><a href="?page=graphs&graph=birthmonth">Month of birth</a></li>
+					<li><a href="?page=graphs&graph=marriagemonth">Month of marriage</a></li>
+					<li><a href="?page=graphs&graph=deathmonth">Month of death</a></li>
 					<li><a href="?page=graphs&graph=infantdeaths">Infant deaths</a></li>
 					<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
+					<li><a href="?page=graphs&graph=ageatdeath">Average age at death</a></li>
 					<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
 					<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
 					<li><a href="?page=graphs&graph=dist">Average distance between birth and death</a></li>
-					<li><a href="?page=graphs&graph=ageatfirstborn">Age of Parents on Birth of First Born</a></li>
-					<li><a href="?page=graphs&graph=familysizetime">How Family Size Changes over Time</a></li>
-					<li><a href="?page=graphs&graph=motherchildren">Number of Children by Women</a></li>
+					<li><a href="?page=graphs&graph=distcount">Distance count</a></li>
+					<li><a href="?page=graphs&graph=ageatfirstborn">Age of Parents on birth of first born</a></li>
+					<li><a href="?page=graphs&graph=familysizetime">How family size changes over time</a></li>
+					<li><a href="?page=graphs&graph=motherchildren">Number of children by women</a></li>
 				</ul>
 			</div>
 		[% END %]

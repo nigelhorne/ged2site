@@ -14,6 +14,7 @@ use Ged2site::Display::page;
 our @ISA = ('Ged2site::Display::page');
 
 our $BUCKETYEARS = 5;
+our $BUCKETDISTANCE = 5;
 our $date_parser;
 our $dfn;
 
@@ -28,6 +29,7 @@ our $mapper = {
 	'sex' => \&_sex,
 	'ageatmarriage' => \&_ageatmarriage,
 	'dist' => \&_dist,
+	'distcount' => \&_distcount,
 	'ageatfirstborn' => \&_ageatfirstborn,
 	'familysizetime' => \&_familysizetime,
 	'motherchildren' => \&_motherchildren,
@@ -447,6 +449,8 @@ sub _ageatmarriage
 	my %mtotals;
 	my %fcounts;
 	my %ftotals;
+	my %mentries;
+	my %fentries;
 
 	my $people = $args->{'people'};
 
@@ -472,30 +476,35 @@ sub _ageatmarriage
 				next;
 			}
 			my $age = $yom - $yob;
-			$yob -= $yob % $BUCKETYEARS;
+			$yom -= $yom % $BUCKETYEARS;
 
 			if($person->{'sex'} eq 'M') {
-				if($mcounts{$yob}) {
-					$mcounts{$yob}++;
+				if($mcounts{$yom}) {
+					$mcounts{$yom}++;
+					push @{$mentries{$yom}}, $person->{'entry'};
 				} else {
-					$mcounts{$yob} = 1;
+					$mcounts{$yom} = 1;
+					@{$mentries{$yom}} = ($person->{'entry'});
 				}
-				if($mtotals{$yob}) {
-					$mtotals{$yob} += $age;
+				if($mtotals{$yom}) {
+					$mtotals{$yom} += $age;
 				} else {
-					$mtotals{$yob} = $age;
+					$mtotals{$yom} = $age;
 				}
 			} else {
-				if($fcounts{$yob}) {
-					$fcounts{$yob}++;
+				if($fcounts{$yom}) {
+					$fcounts{$yom}++;
+					push @{$fentries{$yom}}, $person->{'entry'};
 				} else {
-					$fcounts{$yob} = 1;
+					$fcounts{$yom} = 1;
+					@{$fentries{$yom}} = ($person->{'entry'});
 				}
-				if($ftotals{$yob}) {
-					$ftotals{$yob} += $age;
+				if($ftotals{$yom}) {
+					$ftotals{$yom} += $age;
 				} else {
-					$ftotals{$yob} = $age;
+					$ftotals{$yom} = $age;
 				}
+				push @{$fentries{$yom}}, $person->{'entry'};
 			}
 		}
 	}
@@ -503,18 +512,58 @@ sub _ageatmarriage
 	my $mdatapoints;
 	my $fdatapoints;
 
-	foreach my $bucket(sort keys %mcounts) {
-		next if(!defined($fcounts{$bucket}));
+	foreach my $bucket(keys %mcounts) {
+		if(!defined($fcounts{$bucket})) {
+			$fcounts{$bucket} = 0;
+		}
+	}
+	foreach my $bucket(keys %fcounts) {
+		if(!defined($mcounts{$bucket})) {
+			$mcounts{$bucket} = 0;
+		}
+	}
 
-		my $average = $mtotals{$bucket} / $mcounts{$bucket};
-		$average = floor($average);
+	foreach my $bucket(sort { $a <=> $b } keys %mcounts) {
+		if($mcounts{$bucket}) {
+			my $average = floor($mtotals{$bucket} / $mcounts{$bucket});
 
-		$mdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+			my $tooltip = "\"<span style=\\\"color:#F08080\\\">Male (average age {y}):</span> ";
+			my $first = 1;
+			foreach my $entry(@{$mentries{$bucket}}) {
+				if($first) {
+					$first = 0;
+				} else {
+					$tooltip .= ', ';
+				}
+				my $husband = $people->fetchrow_hashref({ entry => $entry });
+				$tooltip .= $husband->{'title'};
+			}
+			$tooltip .= '"';
+			$mdatapoints .= "{ label: \"$bucket\", y: $average, toolTipContent: $tooltip },\n";
+		} elsif($mdatapoints) {
+			$mdatapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+	foreach my $bucket(sort { $a <=> $b } keys %fcounts) {
+		if($fcounts{$bucket}) {
+			my $average = floor($ftotals{$bucket} / $fcounts{$bucket});
 
-		$average = $ftotals{$bucket} / $fcounts{$bucket};
-		$average = floor($average);
-
-		$fdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+			my $tooltip = "\"<span style=\\\"color:#20B2AA\\\">Female (average age {y}):</span> ";
+			my $first = 1;
+			foreach my $entry(@{$fentries{$bucket}}) {
+				if($first) {
+					$first = 0;
+				} else {
+					$tooltip .= ', ';
+				}
+				my $wife = $people->fetchrow_hashref({ entry => $entry });
+				$tooltip .= $wife->{'title'};
+			}
+			$tooltip .= '"';
+			$fdatapoints .= "{ label: \"$bucket\", y: $average, toolTipContent: $tooltip },\n";
+		} elsif($fdatapoints) {
+			$fdatapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
 	}
 
 	return { mdatapoints => $mdatapoints, fdatapoints => $fdatapoints };
@@ -524,7 +573,6 @@ sub _dist
 {
 	my $self = shift;
 	my $args = shift;
-	my %months;
 
 	my $people = $args->{'people'};
 
@@ -571,6 +619,53 @@ sub _dist
 			my $average = floor($totals{$bucket} / $counts{$bucket});
 
 			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($datapoints) {
+			$datapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+
+	return { datapoints => $datapoints, units => ($units eq 'K') ? 'Kilometres' : 'Miles' };
+}
+
+sub _distcount
+{
+	my $self = shift;
+	my $args = shift;
+
+	my $units = 'K';
+
+	if($self->{'_lingua'}) {
+		if(my $country = $self->{'_lingua'}->country()) {
+			if(($country eq 'us') || ($country eq 'uk')) {
+				$units = 'M';
+			}
+		}
+	}
+
+	my $people = $args->{'people'};
+	my %counts;
+	foreach my $person(@{$people->selectall_hashref()}) {
+		next unless($person->{'birth_coords'} && $person->{'death_coords'});
+		my $dist;
+		if($person->{'birth_coords'} eq $person->{'death_coords'}) {
+			$dist = 0;
+		} else {
+			my ($blat, $blong) = split(/,/, $person->{'birth_coords'});
+			my ($dlat, $dlong) = split(/,/, $person->{'death_coords'});
+
+			$dist = floor(::distance($blat, $blong, $dlat, $dlong, $units));
+		}
+		my $bucket = $dist - ($dist % $BUCKETDISTANCE);
+		$counts{$bucket}++;
+	}
+
+	my $datapoints;
+
+	foreach my $bucket(sort { $a <=> $b } keys %counts) {
+		if($counts{$bucket}) {
+			my $count = $counts{$bucket};
+
+			$datapoints .= "{ label: \"$bucket\", y: $count, markerSize: 1 },\n";
 		} elsif($datapoints) {
 			$datapoints .= "{ label: \"$bucket\", y: null },\n";
 		}
