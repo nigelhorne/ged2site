@@ -451,6 +451,8 @@ sub _ageatmarriage
 	my %mtotals;
 	my %fcounts;
 	my %ftotals;
+	my %mentries;
+	my %fentries;
 
 	my $people = $args->{'people'};
 
@@ -476,30 +478,35 @@ sub _ageatmarriage
 				next;
 			}
 			my $age = $yom - $yob;
-			$yob -= $yob % $BUCKETYEARS;
+			$yom -= $yom % $BUCKETYEARS;
 
 			if($person->{'sex'} eq 'M') {
-				if($mcounts{$yob}) {
-					$mcounts{$yob}++;
+				if($mcounts{$yom}) {
+					$mcounts{$yom}++;
+					push @{$mentries{$yom}}, $person->{'entry'};
 				} else {
-					$mcounts{$yob} = 1;
+					$mcounts{$yom} = 1;
+					@{$mentries{$yom}} = ($person->{'entry'});
 				}
-				if($mtotals{$yob}) {
-					$mtotals{$yob} += $age;
+				if($mtotals{$yom}) {
+					$mtotals{$yom} += $age;
 				} else {
-					$mtotals{$yob} = $age;
+					$mtotals{$yom} = $age;
 				}
 			} else {
-				if($fcounts{$yob}) {
-					$fcounts{$yob}++;
+				if($fcounts{$yom}) {
+					$fcounts{$yom}++;
+					push @{$fentries{$yom}}, $person->{'entry'};
 				} else {
-					$fcounts{$yob} = 1;
+					$fcounts{$yom} = 1;
+					@{$fentries{$yom}} = ($person->{'entry'});
 				}
-				if($ftotals{$yob}) {
-					$ftotals{$yob} += $age;
+				if($ftotals{$yom}) {
+					$ftotals{$yom} += $age;
 				} else {
-					$ftotals{$yob} = $age;
+					$ftotals{$yom} = $age;
 				}
+				push @{$fentries{$yom}}, $person->{'entry'};
 			}
 		}
 	}
@@ -521,7 +528,20 @@ sub _ageatmarriage
 	foreach my $bucket(sort { $a <=> $b } keys %mcounts) {
 		if($mcounts{$bucket}) {
 			my $average = floor($mtotals{$bucket} / $mcounts{$bucket});
-			$mdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+
+			my $tooltip = "\"<span style=\\\"color:#F08080\\\">Male (average age {y}):</span> ";
+			my $first = 1;
+			foreach my $entry(@{$mentries{$bucket}}) {
+				if($first) {
+					$first = 0;
+				} else {
+					$tooltip .= ', ';
+				}
+				my $husband = $people->fetchrow_hashref({ entry => $entry });
+				$tooltip .= $husband->{'title'};
+			}
+			$tooltip .= '"';
+			$mdatapoints .= "{ label: \"$bucket\", y: $average, toolTipContent: $tooltip },\n";
 		} elsif($mdatapoints) {
 			$mdatapoints .= "{ label: \"$bucket\", y: null },\n";
 		}
@@ -529,7 +549,20 @@ sub _ageatmarriage
 	foreach my $bucket(sort { $a <=> $b } keys %fcounts) {
 		if($fcounts{$bucket}) {
 			my $average = floor($ftotals{$bucket} / $fcounts{$bucket});
-			$fdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+
+			my $tooltip = "\"<span style=\\\"color:#20B2AA\\\">Female (average age {y}):</span> ";
+			my $first = 1;
+			foreach my $entry(@{$fentries{$bucket}}) {
+				if($first) {
+					$first = 0;
+				} else {
+					$tooltip .= ', ';
+				}
+				my $wife = $people->fetchrow_hashref({ entry => $entry });
+				$tooltip .= $wife->{'title'};
+			}
+			$tooltip .= '"';
+			$fdatapoints .= "{ label: \"$bucket\", y: $average, toolTipContent: $tooltip },\n";
 		} elsif($fdatapoints) {
 			$fdatapoints .= "{ label: \"$bucket\", y: null },\n";
 		}
