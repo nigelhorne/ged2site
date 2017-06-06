@@ -53,6 +53,8 @@
 							title: "Number of Mothers",
 						[% ELSIF graph == 'ageatdeath' %]
 							includeZero: false,
+						[% ELSIF graph == 'infantdeaths' %]
+							title: 'Percentage',
 						[% ELSIF graph == 'distcount' %]
 							title: "Number of People",
 						[% END %]

@@ -527,15 +527,9 @@ sub _ageatmarriage
 			my $average = floor($mtotals{$bucket} / $mcounts{$bucket});
 
 			my $tooltip = "\"<span style=\\\"color:#F08080\\\">Male (average age {y}):</span> ";
-			my $first = 1;
 			foreach my $entry(@{$mentries{$bucket}}) {
-				if($first) {
-					$first = 0;
-				} else {
-					$tooltip .= ', ';
-				}
 				my $husband = $people->fetchrow_hashref({ entry => $entry });
-				$tooltip .= $husband->{'title'};
+				$tooltip .= '<br>' . $husband->{'title'};
 			}
 			$tooltip .= '"';
 			$mdatapoints .= "{ label: \"$bucket\", y: $average, toolTipContent: $tooltip },\n";
@@ -548,15 +542,9 @@ sub _ageatmarriage
 			my $average = floor($ftotals{$bucket} / $fcounts{$bucket});
 
 			my $tooltip = "\"<span style=\\\"color:#20B2AA\\\">Female (average age {y}):</span> ";
-			my $first = 1;
 			foreach my $entry(@{$fentries{$bucket}}) {
-				if($first) {
-					$first = 0;
-				} else {
-					$tooltip .= ', ';
-				}
 				my $wife = $people->fetchrow_hashref({ entry => $entry });
-				$tooltip .= $wife->{'title'};
+				$tooltip .= '<br>' . $wife->{'title'};
 			}
 			$tooltip .= '"';
 			$fdatapoints .= "{ label: \"$bucket\", y: $average, toolTipContent: $tooltip },\n";
