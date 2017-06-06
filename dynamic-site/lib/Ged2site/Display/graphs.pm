@@ -504,7 +504,6 @@ sub _ageatmarriage
 				} else {
 					$ftotals{$yom} = $age;
 				}
-				push @{$fentries{$yom}}, $person->{'entry'};
 			}
 		}
 	}
