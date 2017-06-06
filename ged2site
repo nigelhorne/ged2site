@@ -3957,17 +3957,19 @@ sub print_person
 	}
 
 	my $m;
-	foreach my $spouse(@spouses) {
-		my $date;
-		if(my $rec = $spouse->get_record('fams marriage')) {
-			$date = $rec->date();
-		} elsif($rec = $spouse->get_record('marriage')) {
-			$date = $rec->date();
-		}
-		if($date && (my $marriage_dt = date_to_datetime(date => $date))) {
-			if($marriage_dt->month() && $marriage_dt->day()) {
-				$m .= '---' if($m);
-				$m .= $marriage_dt->strftime('%Y/%m/%d');
+	if(!$was_alive) {
+		foreach my $spouse(@spouses) {
+			my $date;
+			if(my $rec = $spouse->get_record('fams marriage')) {
+				$date = $rec->date();
+			} elsif($rec = $spouse->get_record('marriage')) {
+				$date = $rec->date();
+			}
+			if($date && (my $marriage_dt = date_to_datetime(date => $date))) {
+				if($marriage_dt->month() && $marriage_dt->day()) {
+					$m .= '---' if($m);
+					$m .= $marriage_dt->strftime('%Y/%m/%d');
+				}
 			}
 		}
 	}
