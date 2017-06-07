@@ -481,13 +481,13 @@ var options = {
      * @param {Number} percentage   For example 0.1 (left) or -0.1 (right)
      */
     function move (percentage) {
-        var range = timeline.getWindow();
-        var interval = range.end - range.start;
+	var range = timeline.getWindow();
+	var interval = range.end - range.start;
 
-        timeline.setWindow({
-            start: range.start.valueOf() - interval * percentage,
-            end:   range.end.valueOf()   - interval * percentage
-        });
+	timeline.setWindow({
+	    start: range.start.valueOf() - interval * percentage,
+	    end:   range.end.valueOf()   - interval * percentage
+	});
     }
 
     // attach events to the navigation buttons
@@ -871,7 +871,8 @@ sub print_person
 
 	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
 	# print $xml '<entry>', $person->{'xref'}, "</entry><title>$title</title>";
-	print $csv $person->{'xref'}, "!$title!";
+	print $csv $person->{'xref'}, '!',
+		$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
 
 	if($me && ($person eq $me)) {
 		my $name = $person->as_string(nee => 1);
