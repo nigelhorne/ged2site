@@ -3288,6 +3288,7 @@ sub print_person
 				return $orig_uri;
 			});
 
+			my %census_years;
 			foreach my $citation(1..$citationcount) {
 				if(!$citations{$citation}) {
 					if($opts{'f'}) {
@@ -3348,12 +3349,35 @@ sub print_person
 					$citationnotes{$citation} =~ s/\.$//;
 					$c .= " ($citationnotes{$citation})";
 				}
+				if(($title =~ /census/i) && ($title =~ /(\d{3,4})/)) {
+					$census_years{$1} = $title;
+				}
 
 				print $html "<li>$c</li>";
 				print $csv '----' if($citation > 1);
 				print $csv $c;
 			}
 			print $html '</ol>';
+
+			if($opts{'w'}) {
+				foreach my $event(@events) {
+					if((ref($event) eq 'Gedcom::Record') &&
+					   ($event->type() =~ /^Census U[KS] (\d{4})$/)) {
+						$census_years{$1} = $event->type();
+					}
+				}
+				foreach my $year(sort { $a <=> $b } keys(%census_years)) {
+					if($census_years{$year + 20} && !$census_years{$year + 10}) {
+						if($opts{'f'}) {
+							die 'Census citation missing between ', $census_years{$year}, ' and ', $census_years{$year + 20};
+						}
+						red_warning({
+							person => $person,
+							warning => 'Census citation missing between ' . $census_years{$year} . ' and ' . $census_years{$year + 20}
+						});
+					}
+				}
+			}
 		}
 
 		print $csv '!';
