@@ -14,10 +14,10 @@ perl:
   - "5.18-extras"
 
 install:
-  - cpanm --skip-satisfied -q -n Moo~2.002004 Gedcom Genealogy::Gedcom::Date Date::Parse Getopt::Std Geo::Coder::OSM Term::ANSIColor Lingua::EN::NameParse Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Tie::Static DateTime::Format::Natural HTML::Entities B::Lint HTTP::Cache::Transparent Image::Info URI::Find::Schemeless URI LWP::Simple LWP::UserAgent::Throttled HTML::GoogleMaps::V3 Sort::Key::DateTime String::ProgressBar Text::Names IPC::System::Simple autodie Memoize Lingua::EN::ABC warnings::unused File::Copy Data::Fetch Geo::Coder::GooglePlaces Geo::Coder::List Config::Auto Lingua::EN::Inflect Geo::Coder::CA DBD::SQLite Locale::Object::Country
+  - cpanm --skip-satisfied -q -n Moo~2.002004 Gedcom Genealogy::Gedcom::Date Date::Parse Getopt::Std Geo::Coder::OSM Term::ANSIColor Lingua::EN::NameParse Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Tie::Static DateTime::Format::Natural HTML::Entities B::Lint HTTP::Cache::Transparent Image::Info URI::Find::Schemeless URI LWP::Simple LWP::UserAgent::Throttled HTML::GoogleMaps::V3 Sort::Key::DateTime String::ProgressBar Text::Names IPC::System::Simple autodie Memoize Lingua::EN::ABC warnings::unused File::Copy Data::Fetch Geo::Coder::GooglePlaces Geo::Coder::List Config::Auto Lingua::EN::Inflect Geo::Coder::CA DBD::SQLite Locale::Object::Country FCGI
 
 script:
   - perl -c -MO=Lint ./ged2site
   - perl -c -Mwarnings::unused ./ged2site
-  - perl -c -MO=Lint ./ged2site/cgi-bin/page.fcgi ''
-  - perl -c -Mwarnings::unused ./ged2site/cgi-bin/page.fcgi ''
+  - perl -c -MO=Lint ./ged2site/dynamic-site/cgi-bin/page.fcgi ''
+  - perl -c -Mwarnings::unused ./ged2site/dynamic-site/cgi-bin/page.fcgi ''
