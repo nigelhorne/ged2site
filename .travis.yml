@@ -19,3 +19,5 @@ install:
 script:
   - perl -c -MO=Lint ./ged2site
   - perl -c -Mwarnings::unused ./ged2site
+  - perl -c -MO=Lint ./ged2site/cgi-bin/page.fcgi ''
+  - perl -c -Mwarnings::unused ./ged2site/cgi-bin/page.fcgi ''
