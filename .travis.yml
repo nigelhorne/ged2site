@@ -19,5 +19,5 @@ install:
 script:
   - perl -c -MO=Lint ./ged2site
   - perl -c -Mwarnings::unused ./ged2site
-  - cd dynamic-site && perl -c -MO=Lint cgi-bin/page.fcgi ''
-  - cd dynamic-site && perl -c -Mwarnings::unused cgi-bin/page.fcgi ''
+  - cd dynamic-site/cgi-bin && perl -c -MO=Lint ./page.fcgi ''
+  - cd dynamic-site/cgi-bin && perl -c -Mwarnings::unused ./page.fcgi ''
