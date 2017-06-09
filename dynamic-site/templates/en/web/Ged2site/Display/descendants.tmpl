@@ -76,7 +76,7 @@ See http://stackoverflow.com/questions/39096205/family-chart-with-horizontal-and
                   };
                 var network = new vis.Network(document.getElementById("network"), graph, options);
                 network.on("click", function(params) {
-			var node = graph.nodes..get(params.nodes[0], 'URL');
+			var node = graph.nodes.get(params.nodes[0], 'URL');
 			window.open(node.URL,'_blank');
                 });
             }
