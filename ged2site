@@ -3990,10 +3990,15 @@ sub print_person
 			} elsif($rec = $spouse->get_record('marriage')) {
 				$date = $rec->date();
 			}
-			if($date && (my $marriage_dt = date_to_datetime(date => $date))) {
-				if($marriage_dt->month() && $marriage_dt->day()) {
+			if($date) {
+				if(my $marriage_dt = date_to_datetime(date => $date)) {
+					if($marriage_dt->month() && $marriage_dt->day()) {
+						$m .= '---' if($m);
+						$m .= $marriage_dt->strftime('%Y/%m/%d');
+					}
+				} elsif($date =~ /^\d{3,4}/) {
 					$m .= '---' if($m);
-					$m .= $marriage_dt->strftime('%Y/%m/%d');
+					$m .= $date;
 				}
 			}
 		}

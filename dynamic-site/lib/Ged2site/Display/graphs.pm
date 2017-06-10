@@ -461,6 +461,8 @@ sub _ageatmarriage
 			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
 				$dob =~ tr/\//-/;
 				$yob = $1;
+			} elsif($dob =~ /^\d{3,4}$/) {
+				$yob = $dob;
 			} else {
 				next;
 			}
@@ -472,6 +474,8 @@ sub _ageatmarriage
 			my $yom;
 			if($dom =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
 				$yom = $1;
+			} elsif($dom =~ /^\d{3,4}$/) {
+				$yom = $dom;
 			} else {
 				next;
 			}
