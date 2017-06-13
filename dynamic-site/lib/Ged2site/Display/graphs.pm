@@ -461,6 +461,8 @@ sub _ageatmarriage
 			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
 				$dob =~ tr/\//-/;
 				$yob = $1;
+			} elsif($dob =~ /^\d{3,4}$/) {
+				$yob = $dob;
 			} else {
 				next;
 			}
@@ -472,6 +474,8 @@ sub _ageatmarriage
 			my $yom;
 			if($dom =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
 				$yom = $1;
+			} elsif($dom =~ /^\d{3,4}$/) {
+				$yom = $dom;
 			} else {
 				next;
 			}
@@ -526,7 +530,7 @@ sub _ageatmarriage
 		if($mcounts{$bucket}) {
 			my $average = floor($mtotals{$bucket} / $mcounts{$bucket});
 
-			my $tooltip = "\"<span style=\\\"color:#F08080\\\">Male (average age {y}):</span> ";
+			my $tooltip = "\"<span style=\\\"color:#F08080\\\">Male (average age {y}, sample size $mcounts{$bucket}):</span> ";
 			foreach my $entry(@{$mentries{$bucket}}) {
 				my $husband = $people->fetchrow_hashref({ entry => $entry });
 				$tooltip .= '<br>' . $husband->{'title'};
@@ -541,7 +545,7 @@ sub _ageatmarriage
 		if($fcounts{$bucket}) {
 			my $average = floor($ftotals{$bucket} / $fcounts{$bucket});
 
-			my $tooltip = "\"<span style=\\\"color:#20B2AA\\\">Female (average age {y}):</span> ";
+			my $tooltip = "\"<span style=\\\"color:#20B2AA\\\">Female (average age {y}, sample size $fcounts{$bucket}):</span> ";
 			foreach my $entry(@{$fentries{$bucket}}) {
 				my $wife = $people->fetchrow_hashref({ entry => $entry });
 				$tooltip .= '<br>' . $wife->{'title'};
