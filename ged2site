@@ -4092,15 +4092,14 @@ sub print_person
 			if($u && (ref($u) ne 'URI::_generic')) {
 				$uri =~ s/:$//;
 				return "<a href=\"$uri\">" .
-					$u->host() .
+					HTML::Entities::encode($u->host()) .
 					'</a>';
 			}
 			return $orig_uri;
 		});
-		print $html "<h2>Known Issues</h2>",
-			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
-		print $csv
-			map { $ufinder->find(\$_); '<p>' . HTML::Entities::encode($_) . '</p>' } @{$person->{'warnings'}};
+		my @issues = map { my $s = HTML::Entities::decode($_); if($s =~ /<a href="/i) { $s } else { $ufinder->find(\$s); "<p>$s</p>" } } @{$person->{'warnings'}};
+		print $html "<h2>Known Issues</h2>@issues";
+		print $csv @issues;
 	}
 
 	print $html '</body></html>';
