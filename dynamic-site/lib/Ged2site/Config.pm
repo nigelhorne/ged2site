@@ -91,9 +91,13 @@ sub new {
 		if($args{logger}) {
 			$args{logger}->debug("Configuration path: $path/", $info->domain_name());
 		}
-		# my $ca = Config::Auto->new(source => $info->domain_name(), path => $path);
-		# $config = $ca->parse();
-		$config = Config::Auto::parse($info->domain_name(), path => $path);
+		if(-r File::Spec->catdir($path, $info->domain_name())) {
+			$config = Config::Auto::parse($info->domain_name(), path => $path);
+		} elsif (-r File::Spec->catdir($path, 'default')) {
+			$config = Config::Auto::parse('default', path => $path);
+		} else {
+			die 'no suitable config file found';
+		}
 	};
 	if($@ || !defined($config)) {
 		throw Error::Simple("Configuration error: $@" . $path . '/' . $info->domain_name());

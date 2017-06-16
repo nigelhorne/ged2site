@@ -56,7 +56,7 @@ sub create_disc_cache {
 			}
 		}
 		$chi_args{'servers'} = \@servers;
-	} elsif($driver ne 'DBI') {
+	} elsif(($driver ne 'DBI') && ($driver ne 'Null')) {
 		$chi_args{'root_dir'} = $args{'root_dir'} || $config->{disc_cache}->{root_dir};
 		throw Error::Simple('root_dir is not optional') unless($chi_args{'root_dir'});
 		if($logger) {
@@ -119,7 +119,7 @@ sub create_memory_cache {
 			}
 		}
 		$chi_args{'servers'} = \@servers;
-	} else {
+	} elsif($driver ne 'Null') {
 		$chi_args{'root_dir'} = $args{'root_dir'} || $config->{memory_cache}->{root_dir};
 		throw Error::Simple('root_dir is not optional') unless($chi_args{'root_dir'});
 		if($logger) {
