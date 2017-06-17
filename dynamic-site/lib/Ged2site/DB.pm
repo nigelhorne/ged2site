@@ -71,7 +71,8 @@ sub _open {
 			$self->{'logger'}->debug("read in $table from SQLite $slurp_file");
 		}
 	} else {
-		my ($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv:db');
+		my $fin;
+		($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv:db');
 		close($fin);
 		if(-r $slurp_file) {
 			my $sep_char = $args{'sep_char'};
