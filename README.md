@@ -3,15 +3,15 @@ ged2site
 
 Convert a Gedcom file to HTML to create a family tree website.
 
+An example genealogy website that was produced by ged2site is available
+at https://genealogy.nigelhorne.com.
+
 This is quite complex software, so if you are a genealogist looking to create
 a website and aren't an IT guru,
 it would be better to e-mail me on `<njh at nigelhorne.com>` for help.
 
-An example genealogy website that was produced by ged2site is available
-at https://genealogy.nigelhorne.com.
-
 It's been tested more extensively with GedComs exported and downloaded from
-FindMyPast, Family Tree Maker, though it should work fine with other systems
+FindMyPast and Family Tree Maker, though it should work fine with other systems
 such as GenesReunited and Ancestry.
 
 Typical usage:
@@ -21,7 +21,8 @@ Typical usage:
 You will then have two sites created in sub directories
 - static-site is static HTML,
 - dynamic-site is a [VWF](//github.com/nigelhorne/vwf) based website which uses templates to support more than one
-language and present different content to mobile/web/search-engine clients.
+language and present different content to mobile/web/search-engine clients. This is much more easily customisable
+by you to create the look and feel of the website that you want.
 
 If you decide to use the static site, just copy files in the static-site directory to your web-server.
 
@@ -32,6 +33,7 @@ want it.
 The configuration file can be in any number of formats including INI and XML.
 
     rootdir: /full/path/to/website directory
+    SiteTitle: The title of your website
     memory_cache: where short-term volatile information is stored, such as the country of origin of the client
     disc_cache: where long-term information is stored, such as copies of output to see is HTTP 304 can be returned
 
@@ -40,10 +42,11 @@ The databases are in CSV format. To speed up access you can convert to SQLite
 format with using
 [csv2sqlite](http://search.cpan.org/~rwstauner/App-csv2sqlite/),
 which you should run on each of the .csv files.
-Every time you upload a new site ensure that you remove the "save_to" directory and the disc cache,
-since they contain cached copies of pages that will be inconsistent with the new site.
 
     csv2sqlite -o sep_char='!' -o allow_loose_quotes=1 people.csv people.sql
+
+Every time you upload a new site ensure that you remove the "save_to" directory and the disc cache,
+since they contain cached copies of pages that will be inconsistent with the new site.
 
 The options are:
 

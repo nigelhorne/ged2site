@@ -12,9 +12,11 @@
 		<meta name="Copyright" content="Copyright (C) 2017 Nigel Horne, all rights reserved">
 		[% IF person %]
 			<title>[% person.title %]</title>
+			<meta name="description" content="About [% person.title %] - A ged2site webpage">
 		[% ELSE %]
 			<title>[% SiteTitle.join(' ') %]</title>
 			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=people&home=1">
+			<meta name="description" content="[% SiteTitle.join(' ') %] - A ged2site webpage">
 		[% END %]
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
