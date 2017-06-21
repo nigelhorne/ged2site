@@ -48,6 +48,9 @@ which you should run on each of the .csv files.
 Every time you upload a new site ensure that you remove the "save_to" directory and the disc cache,
 since they contain cached copies of pages that will be inconsistent with the new site.
 
+Finally, for the dynamic site, set-up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
+
+
 The options are:
 
 | Flag | Meaning |
