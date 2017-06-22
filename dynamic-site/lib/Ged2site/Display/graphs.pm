@@ -632,7 +632,7 @@ sub _dist
 					if($d <= $limit) {
 						$count++;
 						$total += $d;
-						print "\tAdding $d\n";
+						# print "\tAdding $d\n";
 					}
 				}
 				if($count) {
