@@ -6,6 +6,7 @@ use POSIX;
 use DateTime::Locale;
 use DateTime::Format::Natural;
 use Statistics::LineFit;
+use Statistics::Lite;
 
 # Display some information about the family
 
@@ -579,6 +580,7 @@ sub _dist
 
 	my %totals;
 	my %counts;
+	my %dists;
 	foreach my $person(@{$people->selectall_hashref()}) {
 		next unless($person->{'birth_coords'} && $person->{'death_coords'} && $person->{'dob'});
 		my $dob = $person->{'dob'};
@@ -596,9 +598,14 @@ sub _dist
 		$counts{$yob}++;
 
 		if((($blat - $dlat) >= 1e-6) && (($blong - $dlong) >= 1e-6)) {
-			$totals{$yob} += ::distance($blat, $blong, $dlat, $dlong, $units);
+			my $dist = ::distance($blat, $blong, $dlat, $dlong, $units);
+			$totals{$yob} += $dist;
+			push @{$dists{$yob}}, $dist;
 		} elsif(!defined($totals{$yob})) {
 			$totals{$yob} = 0;
+			push @{$dists{$yob}}, 0;
+		} else {
+			push @{$dists{$yob}}, 0;
 		}
 	}
 
@@ -607,9 +614,39 @@ sub _dist
 	foreach my $bucket(sort keys %counts) {
 		next if(!defined($counts{$bucket}));
 		if($counts{$bucket} >= 10) {
-			my $average = floor($totals{$bucket} / $counts{$bucket});
+			my $average;
+			if(defined($dists{$bucket})) {
+				# Dispence with any people who moved more than 3/4 of
+				# a standard deviation, since they are likely to bias the
+				# data rather heavily.  For example one family of 4
+				# who emigrate thousands of miles will have an unduly large
+				# effect, especially if the data size is very small 
+				my %info = Statistics::Lite::statshash(@{$dists{$bucket}});
+				# print "$bucket:\n", join(',', @{$dists{$bucket}}), "\n",
+					# Statistics::Lite::statsinfo(@{$dists{$bucket}}), "\n";
+				my $limit = $info{'mean'} + ($info{'stddev'} * (1 / 4));
+				# print "\tLimit: $limit\n";
+				my $count;
+				my $total;
+				foreach my $d(@{$dists{$bucket}}) {
+					if($d <= $limit) {
+						$count++;
+						$total += $d;
+						print "\tAdding $d\n";
+					}
+				}
+				if($count) {
+					$average = floor($total / $count);
+				}
+			} else {
+				$average = floor($totals{$bucket} / $counts{$bucket});
+			}
 
-			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+			if(defined($average)) {
+				$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+			} else {
+				$datapoints .= "{ label: \"$bucket\", y: 0 },\n";
+			}
 		} elsif($datapoints) {
 			$datapoints .= "{ label: \"$bucket\", y: null },\n";
 		}
