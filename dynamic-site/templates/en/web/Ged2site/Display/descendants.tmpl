@@ -17,8 +17,7 @@ See http://stackoverflow.com/questions/39096205/family-chart-with-horizontal-and
 
           #network {
               width: 100%;
-              height: 600px;
-	      // height: Math.round($(window).height() * 0.80) + 'px';
+              height: 100%;
               background: white;
               border: 1px solid lightgray;
           }
@@ -73,13 +72,25 @@ See http://stackoverflow.com/questions/39096205/family-chart-with-horizontal-and
 		  interaction: {
 			navigationButtons: true,
 			keyboard: true
-		}
-                  };
-                var network = new vis.Network(document.getElementById("network"), graph, options);
+		  }
+                };
+		var network = new vis.Network(document.getElementById("network"), graph, options);
                 network.on("click", function(params) {
-			var node = graph.nodes.get(params.nodes[0], 'URL');
-			window.open(node.URL,'_blank');
+                        var node = graph.nodes.get(params.nodes[0], 'URL');
+                        window.open(node.URL,'_blank');
                 });
+
+                // Get the new height from the window height
+                var height = Math.round(window.innerHeight * 0.70) + 'px';     // The DOM way
+                //var height = Math.round($(window).height() * 0.70) + 'px';    // The jQuery way
+
+                // Now, resize the container (and not the canvas)
+                document.getElementById('network').style.height = height;
+
+		// Try to make the nodes a standard size - I can't get this to work
+		// What I want is to mimic the navigation "zoom extent" button
+		// network.fit({nodes: graph.nodes, animation: true});
+		// network.moveTo({ scale: 1 )}
             }
         </script>
     </head>
