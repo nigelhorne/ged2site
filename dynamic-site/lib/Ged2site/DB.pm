@@ -190,8 +190,8 @@ sub AUTOLOAD {
 
 	my $self = shift or return undef;
 
-	if(!defined(wantarray)) {
-		throw Error::Simple("$self->$column called in scalar context");
+	unless(wantarray()) {
+		throw Error::Simple("$self->$column must be called in list context");
 	}
 
 	my $table = ref($self);
