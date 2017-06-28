@@ -179,7 +179,8 @@ sub updated {
 	return $self->{'_updated'};
 }
 
-# Returns an array of the matches
+# Return the contents of an arbiratary column in the database which match the given criteria
+# Returns an array of the matches, or just the first entry when called in scalar context
 sub AUTOLOAD {
 	our $AUTOLOAD;
 	my $column = $AUTOLOAD;
@@ -212,7 +213,10 @@ sub AUTOLOAD {
 	my $sth = $self->{$table}->prepare($query) || throw Error::Simple($query);
 	$sth->execute(@args) || throw Error::Simple($query);
 
-	return map { $_->[0] } @{$sth->fetchall_arrayref()};
+	if(wantarray()) {
+		return map { $_->[0] } @{$sth->fetchall_arrayref()};
+	}
+	return $sth->fetchrow_array();	# Return the first match only
 }
 
 1;
