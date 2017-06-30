@@ -1287,7 +1287,7 @@ sub print_person
 			} else {
 				$bio .= HTML::Entities::encode(lc($occupations[0]));
 			}
-			if(!($father || $mother || $spouserelationship)) {
+			if(!($father || $mother || $spouserelationship || $occupations[0])) {
 				$bio .= ', ';
 			}
 		}
