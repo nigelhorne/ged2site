@@ -1374,7 +1374,7 @@ sub print_person
 				}
 				if($all_siblings_have_dob) {
 					if(scalar(@siblings) && ($count == (scalar(@siblings) + 1))) {
-						$bio .= ((scalar(@siblings) > 1) ? 'eldest' : 'eldest');
+						$bio .= ((scalar(@siblings) > 1) ? 'eldest' : 'older');
 					} elsif(scalar(@siblings) && ($count == 1)) {
 						$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
 					} else {
