@@ -272,6 +272,8 @@ sub _infantdeaths
 			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
 				$dob =~ tr/\//-/;
 				$yob = $1;
+			} elsif($dob =~ /^\d{3,4}$/) {
+				$yob = $dob;
 			} else {
 				next;
 			}
@@ -281,6 +283,8 @@ sub _infantdeaths
 			my $yod;
 			if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
 				$yod = $1;
+			} elsif($dod =~ /^\d{3,4}$/) {
+				$yod = $dod;
 			} else {
 				next;
 			}
@@ -397,6 +401,8 @@ sub _sex
 		if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
 			$dob =~ tr/\//-/;
 			$yob = $1;
+		} elsif($dob =~ /^\d{3,4}$/) {
+			$yob = $dob;
 		} else {
 			next;
 		}
