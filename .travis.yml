@@ -8,7 +8,7 @@ os:
   # - docker
 
 perl:
-  - "5.26-extras"
+  # - "5.26-extras"
   - "5.24-extras"
   - "5.22-extras"
   - "5.20-extras"
