@@ -2224,6 +2224,10 @@ sub print_person
 			}
 			if(ref($event) eq 'Gedcom::Record') {
 				my $type = $event->type();
+				if(!defined($type)) {
+					red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
+					next;
+				}
 
 				if(($type =~ /^Census U[KS] (\d{4})$/) || ($type eq 'Register UK 1939')) {
 					my $newresidence = 1;
@@ -2728,7 +2732,11 @@ sub print_person
 			} else {
 				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
-					if(my $place = place({ person => $person, record => $death, places_printed => \%places_printed })) {
+					my $place = place({ person => $person, record => $death, places_printed => \%places_printed });
+					if(!defined($place)) {
+						$place = place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
+					}
+					if(defined($place)) {
 						$bio .= $place;
 					} elsif($opts{'f'}) {
 						die $person->as_string(), "Place of death ($placeofdeath) can't be parsed";
@@ -2875,7 +2883,9 @@ sub print_person
 		}
 		if(ref($event) eq 'Gedcom::Record') {
 			my $type = $event->type();
-			if($type eq 'Arrival') {
+			if(!defined($type)) {
+				red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
+			} elsif($type eq 'Arrival') {
 				$bio .= ' ' . $person->pronoun() . ' arrived';
 				if(my $p = place({ person => $person, record => $events[0] })) {
 					$bio .= $p;
@@ -2900,7 +2910,10 @@ sub print_person
 				if(my $spouse = $person->spouse()) {
 					foreach my $sevent($spouse->event()) {
 						if(ref($sevent) eq 'Gedcom::Record') {
-							if(($sevent->type() eq 'Arrival') &&
+							my $type = $event->type();
+							if(!defined($type)) {
+								red_warning({ person => $spouse, warning => "Can't determine type of event, or the event type is empty" });
+							} elsif($sevent->place() && ($type eq 'Arrival') &&
 							   $event->date() && $sevent->date() &&
 							   ($event->date() eq $sevent->date()) &&
 							   ($event->place() eq $sevent->place())) {
