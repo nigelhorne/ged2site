@@ -64,6 +64,7 @@ use Ged2site::Display::descendants;
 use Ged2site::Display::graphs;
 use Ged2site::Display::emmigrants;
 use Ged2site::Display::ww1;
+use Ged2site::Display::reports;
 
 use Ged2site::DB::people;
 use Ged2site::DB::censuses;
@@ -257,6 +258,8 @@ sub doit
 			$display = Ged2site::Display::emmigrants->new($args);
 		} elsif($info->param('page') eq 'ww1') {
 			$display = Ged2site::Display::ww1->new($args);
+		} elsif($info->param('page') eq 'reports') {
+			$display = Ged2site::Display::reports->new($args);
 		} else {
 			$invalidpage = 1;
 		}
@@ -322,5 +325,6 @@ sub choose
 			"/cgi-bin/page.fcgi?page=graphs\n",
 			"/cgi-bin/page.fcgi?page=emmigrants\n",
 			"/cgi-bin/page.fcgi?page=ww1\n",
+			"/cgi-bin/page.fcgi?page=reports\n",
 	}
 }

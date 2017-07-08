@@ -96,17 +96,14 @@
 						[% UNLESS home %]
 							[ <a href="?page=people&home=1">Home</a> ] |
 						[% END %]
-						[ <a href="?page=censuses">Census Index</a> ] |
-						[ <a href="?page=surnames">Surname Index</a> ] |
-						[ <a href="?page=history">Family History</a> ] |
-						[ <a href="?page=todo">To Do</a> ] |
-						[ <a href="?page=calendar">Calendar</a> ] |
 						[% IF person.children && !person.alive %]
 							[ <a href="?page=descendants&entry=[% entry %]">Descendants</a> ] |
 						[% END %]
-						[ <a href="?page=graphs">Analytics</a> ] |
-						[ <a href="?page=emmigrants">Emigrants</a> ] |
-						[ <a href="?page=ww1">WW1 Fatalaties</a> ] |
+						[ <a href="?page=censuses">Census Index</a> ] |
+						[ <a href="?page=surnames">Surname Index</a> ] |
+						[ <a href="?page=history">Family History</a> ] |
+						[ <a href="?page=calendar">Calendar</a> ] |
+						[ <a href="?page=reports">Reports</a> ]
 						[ <a href="/visjs.html">Timeline</a> ]
 					</center>
 				</div>
