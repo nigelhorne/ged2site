@@ -4607,6 +4607,19 @@ sub year
 		$to =~ s/^(in|on|c.) //;
 		return "from $from to $to";
 	}
+
+	if($string =~ /(.+)\s(\d{4})\/\d{2}/) {
+		my $year = $2 + 1;
+		if($opts{'w'}) {
+			my $person = $params{'person'};
+			if($opts{'f'}) {
+				die $person->as_string(), ": old-style date ($string) should be in $year";
+			}
+			red_warning({ person => $person, warning => "old-style date ($string) should be in $year" });
+		}
+		$string = "$1 $year";
+	}
+
 	if(($string =~ /^\d/) && ($string !~ /[a-z]$/i)) {
 		my $person = $params{'person'};
 		if($string =~ /^31 Nov/) {
