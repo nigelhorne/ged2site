@@ -64,6 +64,7 @@ sub html {
 	return $self->SUPER::html(updated => $updated);
 }
 
+# TODO: have separate graphs for male and female
 sub _ageatdeath
 {
 	my $self = shift;
