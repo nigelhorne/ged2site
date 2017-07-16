@@ -1721,6 +1721,18 @@ sub print_person
 					}
 				}
 				if($dateofbaptism) {
+					if($opts{'w'} && $yob && ($dateofbaptism =~ /(\d{3,4})$/)) {
+						# must_predate doesn't work when only years are known
+						if($1 < $yob) {
+							if($opts{'f'}) {
+								die $person->as_string(), ": Year of baptism $1 is before the year of birth $yob";
+							}
+							red_warning({
+								person => $person,
+								warning => "Year of baptism $1 is before the year of birth $yob"
+							});
+						}
+					}
 					$bio .= ' ' . year({
 						person => $person,
 						date => $dateofbaptism,
@@ -4633,8 +4645,7 @@ sub year
 		}
 		if(my $d = date_parser_cached(date => $string)) {
 			$d = $dfn->parse_datetime($d->{'canonical'});
-			my $must_postdate = $params{'must_postdate'};
-			if($must_postdate) {
+			if(my $must_postdate = $params{'must_postdate'}) {
 				if($opts{'f'}) {
 					die $person->as_string(), ": Something is wrong with the date $string which should be after ", $must_postdate->strftime('%x') if($d < $must_postdate);
 				}
@@ -4642,8 +4653,7 @@ sub year
 					red_warning({ person => $person, warning => "something is wrong with the date $string which should be after " . $must_postdate->strftime('%x') }) if($d < $must_postdate);
 				}
 			}
-			my $must_predate = $params{'must_predate'};
-			if($must_predate) {
+			if(my $must_predate = $params{'must_predate'}) {
 				if($opts{'f'}) {
 					die $person->as_string(), ": Something is wrong with the date $string which should be before ", $must_predate->strftime('%x') if($d > $must_predate);
 				}
