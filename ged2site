@@ -2387,7 +2387,11 @@ sub print_person
 							}
 						}
 					} elsif(my $dor = $residence->date()) {
-						red_warning({ person => $person, warning => "Residence record for $dor contains no location" });
+						if(my $type = $residence->type()) {
+							if($type ne 'Military service') {
+								red_warning({ person => $person, warning => "Residence record for $dor contains no location" });
+							}
+						}
 					} else {
 						red_warning({ person => $person, warning => 'Residence record contains no location' });
 					}
