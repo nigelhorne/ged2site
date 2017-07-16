@@ -1460,6 +1460,10 @@ sub print_person
 					print $html ' and';
 					print $csv ' and';
 					$fullbio .= ' and';
+				} else {
+					print $html ', ';
+					print $csv ', ';
+					$fullbio .= ', ';
 				}
 			}
 			if($mother) {
