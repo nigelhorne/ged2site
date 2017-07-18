@@ -534,11 +534,14 @@ if($opts{'w'}) {
 			print $html '<h2>',
 				'<a href="', make_filename_from_person(person => $person), '">', $person->as_string(include_years => 1), '</a></h2>',
 				map { HTML::Entities::encode($_) . '<br>' } @{$person->{'warnings'}};
+			my %seen_warnings;
 			foreach my $warning(@{$person->{'warnings'}}) {
+				next if($seen_warnings{$warning});
 				print $csv "$index!",
 					$person->{'xref'}, '!',
 					$person->as_string(include_years => 1), '!',
 					HTML::Entities::encode($warning), "\n";
+				$seen_warnings{$warning} = $index;
 				$index++;
 			}
 		}
