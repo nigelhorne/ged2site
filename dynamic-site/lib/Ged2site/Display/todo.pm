@@ -19,12 +19,11 @@ sub html {
 
 	my $todos = $todo->selectall_hashref();
 	foreach my $t(@{$todos}) {
-		push @{$todohash->{$t->{'title'}}}, $t;
+		push @{$todohash->{$t->{'error'}}}, $t;
 	}
 
 	# use Data::Dumper;
-	# my $d = Data::Dumper->new([$todohash]);
-	# print $d->Dump();
+	# print Data::Dumper->new([$todohash])->Dump();
 	# return $self->SUPER::html();
 
 	return $self->SUPER::html({ todos => $todohash });
