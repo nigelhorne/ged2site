@@ -5247,13 +5247,19 @@ sub red_warning
 			} elsif($warning =~ /^Check the gender of the record/) {
 				$warning = 'Possibly Wrong Gender';
 			} elsif($warning =~ /^Two residence records for/) {
-				$warning = 'Possibly Duplicate Residence Records';
+				$warning = 'Duplicate Residence Records';
 			} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
 				$warning = 'Baptism Before Birth';
 			} elsif($warning =~ /^Born less than 10 months before sibling /) {
-				$warning = 'Born Less Than 10 Months Before Sibling';
+				$warning = 'Born Under 10 Months Before Sibling';
 			} elsif($warning =~ /^married when less than 16 years old/) {
 				$warning = 'Under Age 16 When Married';
+			} elsif($warning =~ /^unknown sex/) {
+				$warning = 'Sex Not Specified';
+			} elsif($warning =~ /^married, but not husband relationship/) {
+				$warning = 'Husband Relationship Missing';
+			} elsif($warning =~ /^Departure record without destination/) {
+				$warning = 'Departure Without Destination';
 			}
 			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
