@@ -17,8 +17,10 @@ sub html {
 
 	# TODO: handle situation where look up fails
 
-	my $todos = $todo->selectall_hashref();
-	foreach my $t(@{$todos}) {
+	my @todos = sort { $a->{'title'} cmp $b->{'title'} }
+		@{$todo->selectall_hashref()};
+
+	foreach my $t(@todos) {
 		push @{$todohash->{$t->{'error'}}}, $t;
 	}
 

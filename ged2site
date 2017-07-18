@@ -1386,12 +1386,12 @@ sub print_person
 							  ($d > ($birth_dt - $tenmonths))) {
 								if($opts{'f'}) {
 									die $sibling->as_string(),
-										' was born less than 10 months before ',
+										' was born less than 10 months before sibling ',
 										$person->as_string();
 								}
 								red_warning({
 									person => $sibling,
-									warning => 'Born less than 10 months before ' . $person->as_string()
+									warning => 'Born less than 10 months before sibling ' . $person->as_string()
 								});
 							}
 							$count++ if($d && ($d < $birth_dt));
@@ -5237,7 +5237,7 @@ sub red_warning
 			if($warning =~ /^\[\d+\]: no citation title/) {
 				$warning = 'Citation Title Missing';
 			} elsif($warning =~ /^Contains a residence .+ without a date/) {
-				$warning = 'Contains a Residence Without a Date';
+				$warning = 'Residence Without a Date';
 			} elsif($warning =~ /.+in notes is not found$/) {
 				$warning = 'URL in notes not found';
 			} elsif($warning =~ /^Unhandled event type:/) {
@@ -5249,7 +5249,11 @@ sub red_warning
 			} elsif($warning =~ /^Two residence records for/) {
 				$warning = 'Possibly Duplicate Residence Records';
 			} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
-				$warning = 'Year of Baptism Before Year of Birth';
+				$warning = 'Baptism Before Birth';
+			} elsif($warning =~ /^Born less than 10 months before sibling /) {
+				$warning = 'Born Less Than 10 Months Before Sibling';
+			} elsif($warning =~ /^married when less than 16 years old/) {
+				$warning = 'Under Age 16 When Married';
 			}
 			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
