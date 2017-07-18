@@ -7,22 +7,19 @@
 		<!--
 		<meta name="msvalidate.01" content="deadbeef" />
 		-->
-		<style>
-			body {
-				margin: 40px 10px;
-				padding: 0;
-				font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-				font-size: 14px;
-			}
-		</style>
+		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 	</head>
 	<body>
-		<div id="container">
+		<div id="header_container">
 			<center>
 				<h1>Errors in the [% SiteTitle.join(' ') %]</h1>
 				[% IF error %]
 					<p><font color="red" size="+2">[% error %]</font></p>
 				[% END %]
+			</center>
+		</div>
+		<div id="container">
+			<center>
 				[ <a href="?page=people&home=1">Home</a> ] |
 					[ <a href="?page=censuses">Census Index</a> ] |
 					[ <a href="?page=surnames">Surname Index</a> ] |
