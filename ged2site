@@ -5234,6 +5234,23 @@ sub red_warning
 		if($params{'person'}) {
 			my @call_details = caller(0);
 			warn colored(['red'], $params{'person'}->as_string(), ": $warning at line ", $call_details[2]);
+			if($warning =~ /^\[\d+\]: no citation title/) {
+				$warning = 'Citation Title Missing';
+			} elsif($warning =~ /^Contains a residence .+ without a date/) {
+				$warning = 'Contains a Residence Without a Date';
+			} elsif($warning =~ /.+in notes is not found$/) {
+				$warning = 'URL in notes not found';
+			} elsif($warning =~ /^Unhandled event type:/) {
+				$warning = 'Unhandled Event Type';
+			} elsif($warning =~ /^Census citation missing between /) {
+				$warning = 'Missing Census';
+			} elsif($warning =~ /^Check the gender of the record/) {
+				$warning = 'Possibly Wrong Gender';
+			} elsif($warning =~ /^Two residence records for/) {
+				$warning = 'Possibly Duplicate Residence Records';
+			} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
+				$warning = 'Year of Baptism Before Year of Birth';
+			}
 			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
 			warn colored(lcfirst($warning), 'red');

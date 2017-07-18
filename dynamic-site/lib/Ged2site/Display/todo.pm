@@ -26,7 +26,7 @@ sub html {
 	# print Data::Dumper->new([$todohash])->Dump();
 	# return $self->SUPER::html();
 
-	return $self->SUPER::html({ todos => $todohash });
+	return $self->SUPER::html({ todos => $todohash, updated => $todo->updated() });
 }
 
 1;
