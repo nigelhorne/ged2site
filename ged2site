@@ -2800,6 +2800,7 @@ sub print_person
 				$d =~ tr/\r//;
 				$d =~ tr/\n/ /;
 				$d =~ s/\.$//;
+				$d = lcfirst($d);
 				$bio .= " ($d)";
 			}
 			my $opts = {
