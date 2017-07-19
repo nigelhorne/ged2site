@@ -2310,6 +2310,12 @@ sub print_person
 							last;
 						}
 					}
+					if(!$dateofbirth) {
+						if($opts{'f'}) {
+							die $person->as_string(), ': census information not used to approximate a date of birth';
+						}
+						red_warning({ person => $person, warning => 'Census information not used to approximate a date of birth' });
+					}
 					push @residences, $event if($newresidence);
 				} elsif($type eq 'Hospitalisation') {	# Find My Past
 					push @residences, $event;
@@ -5263,6 +5269,8 @@ sub red_warning
 				$warning = 'Husband Relationship Missing';
 			} elsif($warning =~ /^Departure record without destination/) {
 				$warning = 'Departure Without Destination';
+			} elsif($warning =~ /^Census information not used to approximate a date of birth/) {
+				$warning = 'Date of Birth not Calulated';
 			}
 			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
