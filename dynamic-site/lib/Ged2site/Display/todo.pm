@@ -21,7 +21,7 @@ sub html {
 		@{$todo->selectall_hashref()};
 
 	foreach my $t(@todos) {
-		push @{$todohash->{$t->{'error'}}}, $t;
+		push @{$todohash->{$t->{'summary'}}}, $t;
 	}
 
 	# use Data::Dumper;

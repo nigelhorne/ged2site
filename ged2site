@@ -526,7 +526,7 @@ if($opts{'w'}) {
 		' | [ <a href="history.html">Family History</a> ]</center><br>';
 
 	open(my $csv, '>', 'dynamic-site/databases/todo.csv');
-	print $csv "entry!person!title!error\n";
+	print $csv "entry!person!title!summary!error\n";
 	my $index = 1;
 
 	foreach my $person($ged->individuals()) {
@@ -537,10 +537,44 @@ if($opts{'w'}) {
 			my %seen_warnings;
 			foreach my $warning(@{$person->{'warnings'}}) {
 				next if($seen_warnings{$warning});
+				my $summary;
+				if($warning =~ /^\[\d+\]: no citation title/) {
+					$summary = 'Citation Title Missing';
+				} elsif($warning =~ /^Contains a residence .+ without a date/) {
+					$summary = 'Residence Without a Date';
+				} elsif($warning =~ /.+in notes is not found$/) {
+					$summary = 'URL in notes not found';
+				} elsif($warning =~ /^Unhandled event type:/) {
+					$summary = 'Unhandled Event Type';
+				} elsif($warning =~ /^Census citation missing between /) {
+					$summary = 'Missing Census';
+				} elsif($warning =~ /^Check the gender of the record/) {
+					$summary = 'Possibly Wrong Gender';
+				} elsif($warning =~ /^Two residence records for/) {
+					$summary = 'Duplicate Residence Records';
+				} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
+					$summary = 'Baptism Before Birth';
+				} elsif($warning =~ /^Born less than 10 months before sibling /) {
+					$summary = 'Born Under 10 Months Before Sibling';
+				} elsif($warning =~ /^married when less than 16 years old/) {
+					$summary = 'Under Age 16 When Married';
+				} elsif($warning =~ /^unknown sex/) {
+					$summary = 'Sex Not Specified';
+				} elsif($warning =~ /^married, but not husband relationship/) {
+					$summary = 'Husband Relationship Missing';
+				} elsif($warning =~ /^Departure record without destination/) {
+					$summary = 'Departure Without Destination';
+				} elsif($warning =~ /^Census information not used to approximate a date of birth/) {
+					$summary = 'Date of Birth not Calulated';
+				} else {
+					$summary = $warning;
+				}
 				print $csv "$index!",
 					$person->{'xref'}, '!',
-					$person->as_string(include_years => 1), '!',
-					HTML::Entities::encode($warning), "\n";
+					$person->as_string(include_years => 1),
+					"!$summary!",
+					HTML::Entities::encode($warning),
+					"\n";
 				$seen_warnings{$warning} = $index;
 				$index++;
 			}
@@ -5243,35 +5277,6 @@ sub red_warning
 		if($params{'person'}) {
 			my @call_details = caller(0);
 			warn colored(['red'], $params{'person'}->as_string(), ": $warning at line ", $call_details[2]);
-			if($warning =~ /^\[\d+\]: no citation title/) {
-				$warning = 'Citation Title Missing';
-			} elsif($warning =~ /^Contains a residence .+ without a date/) {
-				$warning = 'Residence Without a Date';
-			} elsif($warning =~ /.+in notes is not found$/) {
-				$warning = 'URL in notes not found';
-			} elsif($warning =~ /^Unhandled event type:/) {
-				$warning = 'Unhandled Event Type';
-			} elsif($warning =~ /^Census citation missing between /) {
-				$warning = 'Missing Census';
-			} elsif($warning =~ /^Check the gender of the record/) {
-				$warning = 'Possibly Wrong Gender';
-			} elsif($warning =~ /^Two residence records for/) {
-				$warning = 'Duplicate Residence Records';
-			} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
-				$warning = 'Baptism Before Birth';
-			} elsif($warning =~ /^Born less than 10 months before sibling /) {
-				$warning = 'Born Under 10 Months Before Sibling';
-			} elsif($warning =~ /^married when less than 16 years old/) {
-				$warning = 'Under Age 16 When Married';
-			} elsif($warning =~ /^unknown sex/) {
-				$warning = 'Sex Not Specified';
-			} elsif($warning =~ /^married, but not husband relationship/) {
-				$warning = 'Husband Relationship Missing';
-			} elsif($warning =~ /^Departure record without destination/) {
-				$warning = 'Departure Without Destination';
-			} elsif($warning =~ /^Census information not used to approximate a date of birth/) {
-				$warning = 'Date of Birth not Calulated';
-			}
 			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
 			warn colored(lcfirst($warning), 'red');
