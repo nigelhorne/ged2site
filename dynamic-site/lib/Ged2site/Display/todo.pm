@@ -17,11 +17,15 @@ sub html {
 
 	# TODO: handle situation where look up fails
 
+	# Create a list of entries in the TODO table, sorted by title
 	my @todos = sort { $a->{'title'} cmp $b->{'title'} }
 		@{$todo->selectall_hashref()};
 
+	# Now create a list of hashes, each list is a list of entries in the todo table with the same summary field, the earlier
+	# sort ensures that the list will be sorted by title
 	foreach my $t(@todos) {
-		push @{$todohash->{$t->{'summary'}}}, $t;
+		# Ensure only list a person once per summary
+		push(@{$todohash->{$t->{'summary'}}}, $t) if(!grep($_->{'title'} eq $t->{'title'}, @{$todohash->{$t->{'summary'}}}));
 	}
 
 	# use Data::Dumper;
@@ -30,5 +34,3 @@ sub html {
 
 	return $self->SUPER::html({ todos => $todohash, updated => $todo->updated() });
 }
-
-1;
