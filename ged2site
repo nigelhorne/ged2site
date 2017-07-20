@@ -64,6 +64,7 @@ use LWP::UserAgent::Throttled;
 use Sort::Key::DateTime;
 use String::ProgressBar;
 use Text::Names;
+use Text::Names::GB;
 use MIME::Base64;
 use Text::Names;
 use Memoize;
@@ -1246,7 +1247,12 @@ sub print_person
 
 	if($opts{'w'} && $firstname) {
 		# Warning - this throws up a number of false positives
-		my $guess = Text::Names::guessGender($firstname);
+		my $guess;
+		if($placeofbirth && ($placeofbirth =~ /, USA$/)) {
+			$guess = Text::Names::guessGender($firstname);
+		} else {
+			$guess = Text::Names::::GB::guessGender($firstname);
+		}
 		if($sex && $guess && ($sex ne $guess)) {
 			if($opts{'f'}) {
 				die $person->name(), ': Check the gender of the record';
