@@ -1335,6 +1335,7 @@ sub print_person
 	}
 
 	my $same_occupation_as_father;
+	my $printed_comma = 0;
 
 	if($occupations[0]) {
 		if($father && $father->occupation() && ($occupations[0] eq $father->occupation())) {
@@ -1361,6 +1362,7 @@ sub print_person
 			}
 			if(!($father || $mother || $spouserelationship)) {
 				$bio .= ', ';
+				$printed_comma = 1;
 			}
 		}
 	} elsif(scalar(@occupations)) {
@@ -1507,6 +1509,7 @@ sub print_person
 					print $html ', ';
 					print $csv ', ';
 					$fullbio .= ', ';
+					$printed_comma = 1;
 				}
 			}
 			if($mother) {
@@ -1570,9 +1573,7 @@ sub print_person
 		if((!$was_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
 			if($opts{'l'} || $was_alive) {
 				if($relationship) {
-					if($father || $mother || $occupations[0]) {
-						$bio .= ', ';
-					}
+					$bio .= ', ' unless($printed_comma);
 					$bio .= "<b>$firstname</b>";
 					if(($dob || $marriage) && (!($was_alive || $opts{'l'}))) {
 						$bio .= ',';
@@ -1584,7 +1585,7 @@ sub print_person
 				}
 			} else {
 				if($father || $mother || $occupations[0]) {
-					$bio .= ', ';
+					$bio .= ', ' unless($printed_comma);
 				}
 				$bio .= "<b>$firstname " .
 					$name_components{'surname_1'} .
