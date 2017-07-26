@@ -1950,7 +1950,19 @@ sub print_person
 					my $spouse = $spouses[0];
 					foreach my $child(@children) {
 						if($sex eq 'F') {
-							my $father = $child->father();
+							# Check through all possible fathers, since there could be a biologial and
+							# and adoptive one listed
+							# FIXME: this assumes that the spouse is the biological father, which is not
+							#	a good assumption to make
+							my @candidates = $child->father();
+							my $father;
+							foreach (@candidates) {
+								if($_ eq $spouse) {
+									$father = $_;
+									last;
+								}
+								print "!!!!!", $child->as_string(), "/", $_->as_string(), "\n";
+							}
 							if((!defined($father)) || ($father ne $spouse)) {
 								push @childrenunknownparent, $child;
 								$numberofchildrenwiththisspouse--;
