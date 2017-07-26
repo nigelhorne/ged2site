@@ -5301,15 +5301,18 @@ sub get_value
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $args = {
-		object => $params{'person'},
-		message => 'get_value',
-		arg => $params{'value'}
-	};
+	if($fetcher) {
+		my $args = {
+			object => $params{'person'},
+			message => 'get_value',
+			arg => $params{'value'}
+		};
 
-	# Doesn't use the prefetching feature, but will automatically cache which is nice
-	# $fetcher->prime($args);
-	return $fetcher->get($args);
+		# Doesn't use the prefetching feature, but will automatically cache which is nice
+		# $fetcher->prime($args);
+		return $fetcher->get($args);
+	}
+	return $params{'person'}->get_value($params{'value'});
 }
 
 sub get_source
