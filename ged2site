@@ -1417,7 +1417,7 @@ sub print_person
 					}
 				}
 				if($all_siblings_have_dob) {
-					@siblings = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => get_value({ person => $_, value => 'birth date'}))}[0]->{'canonical'}) } @siblings;
+					@siblings = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => get_value({ person => $_, value => 'birth date' }))}[0]->{'canonical'}) } @siblings;
 				}
 				my $count = 1;
 				$print_sibling_count = 1;
