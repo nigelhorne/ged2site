@@ -40,6 +40,8 @@ use Lingua::EN::Numbers::Ordinate;
 use Lingua::EN::ABC;
 use Lingua::EN::Inflect;
 # use Lingua::EN::AddressParse;
+use Geo::StreetAddress::US;
+use Locale::US;
 use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
@@ -362,7 +364,13 @@ my $index = 0;
 my $dtl = DateTime::Locale->load($ENV{'LANG'});
 
 my $pr;
-if(!$opts{'w'}) {
+my $us;
+if($opts{'w'}) {
+	require Locale::US;
+	Locale::US->import();
+
+	$us = Locale::US->new();
+} else {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
 
@@ -5115,6 +5123,32 @@ sub validate_place
 			$place = "$1$2";
 		}
 		$place =~ s/^(in|at)\s//;
+		if($places{$place}) {
+			return $places{$place};
+		}
+		# my $ap;
+		# my $p = $place;
+		# if(($place =~ /USA$/) || ($place =~ /United States$/)) {
+			# $ap = Lingua::EN::AddressParse->new(country => 'US', auto_clean => 1, force_case => 1, force_post_code_flag => 0);
+		# } elsif($place =~ /England$/) {
+			# $ap = Lingua::EN::AddressParse->new(country => 'GB', auto_clean => 1, force_case => 1, force_post_code_flag => 0);
+			# $p .= ', United Kingdom';
+		# }
+		# if($ap) {
+			# my $error = $ap->parse("$address, $p");
+			# print $ap->report();
+		# }
+		if(($place =~ /USA$/) || ($place =~ /United States$/)) {
+			if(my $href = Geo::StreetAddress::US->parse_location($place)) {
+				if($href->{'state'} && !$us->{code2state}{$href->{'state'}}) {
+					my $person = $params{'place'};
+					if($opts{'f'}) {
+						die $person->as_string, ": Unknown state in $place";
+					}
+					red_warning({ person => $person, warning => "Unknown state in $place" });
+				}
+			}
+		}
 		my $town = $place;
 		if($place =~ /,\s*(.+,.+,.+,.+)$/) {
 			# Use only the town part
