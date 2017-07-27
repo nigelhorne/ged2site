@@ -3214,8 +3214,10 @@ sub print_person
 									}
 									if($doa =~ /^\d/) {
 										$doa = "on $doa";
+									} elsif($yoa == $yod) {
+										$doa = 'later that same year';
 									} else {
-										$doa = "during $doa";
+										$doa = "during $yoa";
 									}
 								}
 							}
