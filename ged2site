@@ -5143,9 +5143,9 @@ sub validate_place
 		if(($place =~ /USA$/) || ($place =~ /United States$/)) {
 			if(my $href = Geo::StreetAddress::US->parse_location($place)) {
 				if($href->{'state'} && !$us->{code2state}{$href->{'state'}}) {
-					my $person = $params{'place'};
+					my $person = $params{'person'};
 					if($opts{'f'}) {
-						die $person->as_string, ": Unknown state in $place";
+						die $person->as_string(), ": Unknown state in $place";
 					}
 					red_warning({ person => $person, warning => "Unknown state in $place" });
 				}
