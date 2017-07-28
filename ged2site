@@ -575,6 +575,8 @@ if($opts{'w'}) {
 					$summary = 'Departure Without Destination';
 				} elsif($warning =~ /^Census information not used to approximate a date of birth/) {
 					$summary = 'Date of Birth not Calulated';
+				} elsif($warning =~ /^Unknown state in/) {
+					$summary = 'Unknown US State';
 				} else {
 					$summary = $warning;
 				}
