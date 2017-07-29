@@ -3636,6 +3636,8 @@ sub print_person
 
 			my %downloadhistory;
 
+			my $browser = LWP::UserAgent->new();
+			$browser->env_proxy(1);
 			# Two passes, the first one where the links are pictures, the second where they are not
 			for(my $pass = 1; $pass <= 2; $pass++) {
 				print "Media pass $pass\n" if($opts{'v'});
@@ -3685,8 +3687,6 @@ sub print_person
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							# FIXME: It should check if the remote image is newer than the local image
 							if(!-r $localfile) {
-								my $browser = LWP::UserAgent->new();
-								$browser->env_proxy(1);
 								print "Download non-image $file\n" if($opts{'v'});
 								my $resp = $browser->get($file);
 								if($resp->is_success() && ($resp->content_type() eq 'image/jpeg')) {
