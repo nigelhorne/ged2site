@@ -65,9 +65,9 @@ The options are:
 | -m   | Generate a Google map on each page showing events |
 | -J   | Google Maps JavaScript API key (used to display the map) |
 | -G   | Google Maps geolocation API key (used to populate the map) |
-| -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcal](//github.com/nigelhorne/gedcal)* |
+| -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcom](//github.com/nigelhorne/gedcom)* |
 
-If gedcal is installed, ged2site will also create a calendar of births and
+If gedcom is installed, ged2site will also create a calendar of births and
 deaths, one page for each month in the current year.
 
 Some of the options can be stored in *ged2site.conf*:
@@ -193,6 +193,11 @@ and code to use as a template
 
 So many Perl CPAN modules that if I list them all I'll miss one, but special
 mention goes to the Gedcom module.
+
+## See Also
+
+[gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files
+[gedcmp](https://github.com/nigelhorne/gedcmp) - compare two Gedcoms
 
 # LICENSE AND COPYRIGHT
 
