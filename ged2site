@@ -939,13 +939,13 @@ sub print_person
 	# my $surname = $name_components{'surname_2'} || $name_components{'surname_1'};
 	my $surname = ucfirst(lc($person->surname())); # RT109786
 
-	if($firstname =~ /\d/) {
+	if($firstname && ($firstname =~ /\d/)) {
 		if($opts{'f'}) {
 			die $person->as_string(), ': First name contains a digit';
 		}
 		red_warning({ person => $person, warning => 'First name contains a digit' });
 	}
-	if($surname =~ /\d/) {
+	if($surname && ($surname =~ /\d/)) {
 		if($opts{'f'}) {
 			die $person->as_string(), ': Last name contains a digit';
 		}
@@ -1269,7 +1269,7 @@ sub print_person
 	my $sex = $fetcher->get(object => $person, message => 'sex');
 
 	if($opts{'w'} && $firstname) {
-		# Warning - this throws up a number of false positives
+		# FIXME: This throws up a number of false positives
 		my $guess;
 		if($placeofbirth && ($placeofbirth =~ /, USA$/)) {
 			$guess = Text::Names::guessGender($firstname);
@@ -1277,10 +1277,23 @@ sub print_person
 			$guess = Text::Names::GB::guessGender($firstname);
 		}
 		if($sex && $guess && ($sex ne $guess)) {
-			if($opts{'f'}) {
-				die $person->name(), ': Check the gender of the record';
+			my $error = 1;
+			if(my $middle_name = $name_components{'middle_name'}) {
+				if($placeofbirth && ($placeofbirth =~ /, USA$/)) {
+					$guess = Text::Names::guessGender($middle_name);
+				} else {
+					$guess = Text::Names::GB::guessGender($middle_name);
+				}
+				if($guess && ($sex eq $guess)) {
+					$error = 0;
+				}
 			}
-			red_warning({ person => $person, warning => 'Check the gender of the record' });
+			if($error) {
+				if($opts{'f'}) {
+					die $person->name(), ': Check the gender of the record';
+				}
+				red_warning({ person => $person, warning => 'Check the gender of the record' });
+			}
 		}
 	}
 	my @occupations = $person->get_value('occupation');
