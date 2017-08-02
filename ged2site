@@ -330,12 +330,12 @@ if($dot || $opts{'d'}) {
 }
 
 my $gedcal;
-if(-x '/usr/bin/gedcal') {
-	$gedcal = '/usr/bin/gedcal';
-} elsif(-x '/usr/local/bin/gedcal') {
-	$gedcal = '/usr/local/bin/gedcal';
-} elsif(-x '../gedcal/gedcal') {
-	$gedcal = '../gedcal/gedcal';
+if(-x '/usr/bin/gedcom') {
+	$gedcal = '/usr/bin/gedcom';
+} elsif(-x '/usr/local/bin/gedcom') {
+	$gedcal = '/usr/local/bin/gedcom';
+} elsif(-x '../gedcom/gedcom') {
+	$gedcal = '../gedcom/gedcom';
 }
 
 if($gedcal) {
