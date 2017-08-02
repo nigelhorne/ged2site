@@ -945,7 +945,7 @@ sub print_person
 		}
 		red_warning({ person => $person, warning => 'First name contains a digit' });
 	}
-	if($lastname =~ /\d/) {
+	if($surname =~ /\d/) {
 		if($opts{'f'}) {
 			die $person->as_string(), ': Last name contains a digit';
 		}
