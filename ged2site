@@ -939,6 +939,19 @@ sub print_person
 	# my $surname = $name_components{'surname_2'} || $name_components{'surname_1'};
 	my $surname = ucfirst(lc($person->surname())); # RT109786
 
+	if($firstname =~ /\d/) {
+		if($opts{'f'}) {
+			die $person->as_string(), ': First name contains a digit';
+		}
+		red_warning({ person => $person, warning => 'First name contains a digit' });
+	}
+	if($lastname =~ /\d/) {
+		if($opts{'f'}) {
+			die $person->as_string(), ': Last name contains a digit';
+		}
+		red_warning({ person => $person, warning => 'Last name contains a digit' });
+	}
+
 	my $was_alive = was_alive(person => $person, year => $year);
 	if($was_alive && !$opts{'l'}) {
 		$title = $firstname;
