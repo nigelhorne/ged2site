@@ -3387,6 +3387,15 @@ sub print_person
 					($type ne 'Register UK 1939') &&
 					($type ne 'Race') &&
 					($type ne 'Hospitalisation')) {
+					if(my $notes = notes({ record => $event })) {
+						$notes =~ s/\.$//;
+						if($end_of_sentence) {
+							$bio .= ' ' . ucfirst($notes) . '. ';
+						} else {
+							$notes = lcfirst($notes);
+							$bio .= " ($notes)";
+						}
+					}
 					red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				}
 			}
