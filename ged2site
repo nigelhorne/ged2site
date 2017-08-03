@@ -2948,6 +2948,16 @@ sub print_person
 	$bio .= '.' if(!$end_of_sentence);
 	$end_of_sentence = 1;
 
+	my $all_events_have_date = 1;
+	foreach my $event(@events) {
+		if(!$event->date()) {
+			$all_events_have_date = 0;
+			last;
+		}
+	}
+	if($all_events_have_date) {
+		@events = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @events;
+	}
 	if((scalar(@events) == 2) &&
 	   (ref($events[0]) eq 'Gedcom::Record') &&
 	   (ref($events[1]) eq 'Gedcom::Record') &&
@@ -3310,8 +3320,13 @@ sub print_person
 							}
 							$bio .= '.  ' if(!$end_of_sentence);
 							if(defined($year1) && defined($year2) && ($year1 == $year2)) {
+								if($date1 eq 'in ') {
+									$date1 = '';
+								} else {
+									$date1 = " $date1";
+								}
 								$bio .= "During $year1 " . lcfirst($pronoun) . ' arrived' .
-									place({ person => $person, record => $previous, nopreposition => 1 }) .
+									place({ person => $person, record => $previous }) .
 									" $date1 and" .
 									place({ person => $person, record => $event, nopreposition => 1 }) .
 									" $date2.";
@@ -3387,16 +3402,25 @@ sub print_person
 					($type ne 'Register UK 1939') &&
 					($type ne 'Race') &&
 					($type ne 'Hospitalisation')) {
-					if(my $notes = notes({ record => $event })) {
+					red_warning({ person => $person, warning => "Unknown event type: $type" });
+					if(my $notes = notes(record => $event)) {
 						$notes =~ s/\.$//;
+						my $date = year(record => $event);
 						if($end_of_sentence) {
-							$bio .= ' ' . ucfirst($notes) . '. ';
+							if($date) {
+								$bio .= ' ' . ucfirst($notes) . " $date. ";
+							} else {
+								$bio .= ' ' . ucfirst($notes) . '. ';
+							}
 						} else {
 							$notes = lcfirst($notes);
-							$bio .= " ($notes)";
+							if($date) {
+								$bio .= " ($date, $notes)";
+							} else {
+								$bio .= " ($notes)";
+							}
 						}
 					}
-					red_warning({ person => $person, warning => "Unhandled event type: $type" });
 				}
 			}
 		}
