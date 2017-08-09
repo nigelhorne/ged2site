@@ -1954,11 +1954,10 @@ sub print_person
 				if($numberofchildren) {
 					if($parentheses || ((!$placeofmarriage) && (!$dateofmarriage))) {
 						$bio .= ', ';
-					} else {
-						$bio .= ' (';
-						$parentheses = 1;
 					}
 					if(my $soccupation = $spouses[0]->occupation()) {
+						$bio .= ' (';
+						$parentheses = 1;
 						if(ref($soccupation) eq 'Gedcom::Record') {
 							my @items = $soccupation->items();
 							$soccupation = $items[0]->value();
@@ -1972,14 +1971,6 @@ sub print_person
 							}
 							$bio .= ' ' . lc($soccupation) . ' ';
 						}
-					}
-					$bio .= 'with whom ' . lcfirst($pronoun);
-					if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
-						$bio .= ' had ';
-					} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
-						$bio .= ' has had ';
-					} else {
-						$bio .= $dateofdeath || $dateofburial ? ' had ' : ' has ';
 					}
 					my @childrenofthisspouse;
 					my $numberofchildrenwiththisspouse = $numberofchildren;
@@ -2014,34 +2005,49 @@ sub print_person
 							}
 						}
 					}
-					if($numberofchildrenwiththisspouse == 1) {
-						if($all_children_are_alive) {
-							$bio .= '1 surviving child, ';
-						} else {
-							$bio .= '1 child, ';
+					if(scalar(@childrenunknownparent) < $numberofchildren) {
+						if(!$parentheses) {
+							$bio .= ' (';
+							$parentheses = 1;
 						}
-					} else {
-						if($all_children_are_alive) {
-							$bio .= "$numberofchildrenwiththisspouse surviving children: ";
+						$bio .= 'with whom ' . lcfirst($pronoun);
+						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
+							$bio .= ' had ';
+						} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
+							$bio .= ' has had ';
 						} else {
-							$bio .= "$numberofchildrenwiththisspouse children: ";
+							$bio .= $dateofdeath || $dateofburial ? ' had ' : ' has ';
 						}
-					}
-					if($numberofchildrenwiththisspouse == 1) {
-						$bio .= $children[0]->given_names();
-					} elsif($numberofchildrenwiththisspouse > 1) {
-						my $childnames = join(', ', map {
-							'<a href="' . make_filename_from_person(person => $_) . '">'.
-								$_->given_names() . '</a>'
-						} @childrenofthisspouse);
-						substr($childnames, rindex($childnames, ', '), 2, ' and ');
-						print $html $childnames;
-						$childnames = join(', ', map {
-							'<a href="?page=people&entry=' . $_->{'xref'} . '">'.
-								$_->given_names() . '</a>'
-						} @childrenofthisspouse);
-						substr($childnames, rindex($childnames, ', '), 2, ' and ');
-						$bio .= $childnames;
+
+						if($numberofchildrenwiththisspouse == 1) {
+							if($all_children_are_alive) {
+								$bio .= '1 surviving child, ';
+							} else {
+								$bio .= '1 child, ';
+							}
+						} else {
+							if($all_children_are_alive) {
+								$bio .= "$numberofchildrenwiththisspouse surviving children: ";
+							} else {
+								$bio .= "$numberofchildrenwiththisspouse children: ";
+							}
+						}
+						if($numberofchildrenwiththisspouse == 1) {
+							$bio .= $children[0]->given_names();
+						} elsif($numberofchildrenwiththisspouse > 1) {
+							my $childnames = join(', ', map {
+								'<a href="' . make_filename_from_person(person => $_) . '">'.
+									$_->given_names() . '</a>'
+							} @childrenofthisspouse);
+							substr($childnames, rindex($childnames, ', '), 2, ' and ');
+							print $html $childnames;
+							$childnames = join(', ', map {
+								'<a href="?page=people&entry=' . $_->{'xref'} . '">'.
+									$_->given_names() . '</a>'
+							} @childrenofthisspouse);
+							substr($childnames, rindex($childnames, ', '), 2, ' and ');
+							$bio .= $childnames;
+						}
 					}
 				} else {
 					my @spouse_occupations = $spouses[0]->get_value('occupation');
@@ -2343,6 +2349,7 @@ sub print_person
 				' is unknown';
 			$end_of_sentence = 0;
 		}
+
 		if($same_occupation_as_father) {
 			$bio .= '. ' if(!$end_of_sentence);
 			$bio .= ' Like his father, ' . lcfirst($pronoun) .
