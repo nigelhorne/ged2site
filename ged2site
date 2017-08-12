@@ -5581,6 +5581,9 @@ sub was_alive
 	if(($dob =~ /^\d{3,4}$/) && ($dob < ($year - 100))) {
 		return 0;
 	}
+	if($dob =~ /^abt (\d{4})$/i) {
+		$dob = $1;
+	}
 	if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
 		if(my $d = date_parser_cached(date => $dob)) {
 			$d = $dfn->parse_datetime($d->{'canonical'});
