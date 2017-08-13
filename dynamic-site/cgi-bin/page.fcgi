@@ -179,7 +179,19 @@ sub doit
 	CGI::Info->reset();
 	$config ||= Ged2site::Config->new({ logger => $logger, info => $info });
 	$infocache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
-	my $info = CGI::Info->new({ cache => $infocache, logger => $logger });
+
+	my $options = {
+		cache => $infocache,
+		logger => $logger
+	};
+
+	if(my $syslog = $config->syslog()) {
+		if($syslog->{'server'}) {
+			$syslog->{'host'} = delete $syslog->{'server'};
+		}
+		$options->{'syslog'} = $syslog;
+	}
+	$info = CGI::Info->new($options);
 
 	if(!defined($info->param('page'))) {
 		choose();
@@ -205,7 +217,7 @@ sub doit
 	if(!$ENV{'REMOTE_ADDR'}) {
 		$args->{'lint_content'} = 1;
 	}
-	if(!$info->is_search_engine()) {
+	if(!$info->is_search_engine() && $config->rootdir()) {
 		$args->{'save_to'} = {
 			directory => File::Spec->catfile($config->rootdir(), 'save_to'),
 			ttl => 3600 * 24,
