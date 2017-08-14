@@ -185,7 +185,8 @@ sub doit
 		logger => $logger
 	};
 
-	if(my $syslog = $config->syslog()) {
+	my $syslog;
+	if($syslog = $config->syslog()) {
 		if($syslog->{'server'}) {
 			$syslog->{'host'} = delete $syslog->{'server'};
 		}
@@ -205,6 +206,7 @@ sub doit
 		info => $info,
 		logger => $logger,
 		debug => $args{'debug'},
+		syslog => $syslog,
 	});
 
 	my $args = {
