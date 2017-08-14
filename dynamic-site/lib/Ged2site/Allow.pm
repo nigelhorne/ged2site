@@ -42,13 +42,9 @@ our %blacklist_agents = (
 	'iodc' => 'Mozilla/5.0 (compatible; IODC-Odysseus Survey 21796-100-051215155936-107; +https://iodc.co.uk)',
 );
 
-our $status = -1;
+our %status;
 
 sub allow {
-	unless($status == -1) {
-		# Cache the value
-		return $status;
-	}
 	if(!defined($ENV{'REMOTE_ADDR'})) {
 		# Not running as a CGI
 		$status = 1;
@@ -58,7 +54,15 @@ sub allow {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $logger = $args{'logger'};
+	my $addr = $ENV{'REMOTE_ADDR'};
 
+	if(defined($status{$addr})) {
+		# Cache the value
+		if($logger) {
+			$logger->info("$addr: cached value " . $status{$addr});
+		}
+		return $status{$addr};
+	}
 	if($logger) {
 		$logger->trace('In ', __PACKAGE__);
 	}
@@ -69,8 +73,8 @@ sub allow {
 			if($logger) {
 				$logger->info("$blocked blacklisted");
 			}
-			$status = 0;
-			throw Error::Simple("$ENV{'REMOTE_ADDR'}: $blocked is blacklisted", 1);
+			$status{$addr} = 0;
+			throw Error::Simple("$addr: $blocked is blacklisted", 1);
 		}
 	}
 
@@ -81,7 +85,7 @@ sub allow {
 		} else {
 			carp('Info not given');
 		}
-		$status = 1;
+		$status{$addr} = 1;
 		return 1;
 	}
 
@@ -106,8 +110,8 @@ sub allow {
 					# Recommend you send HTTP 429 at this point
 					$logger->warn("$ENV{REMOTE_ADDR} throttled");
 				}
-				$status = 0;
-				throw Error::Simple("$ENV{REMOTE_ADDR} has been throttled");
+				$status{$addr} = 0;
+				throw Error::Simple("$addr has been throttled");
 			}
 		};
 		if($@) {
@@ -123,7 +127,7 @@ sub allow {
 				if($logger) {
 					$logger->warn("$ENV{REMOTE_ADDR} blocked connexion from ", $lingua->country());
 				}
-				$status = 0;
+				$status{$addr} = 0;
 				throw Error::Simple("$ENV{REMOTE_ADDR}: blocked connexion from " . $lingua->country(), 0);
 			}
 		}
@@ -138,10 +142,10 @@ sub allow {
 				$ids->set_scan_keys(scan_keys => 1);
 				if($ids->detect_attacks(request => $params) > 0) {
 					if($logger) {
-						$logger->warn("$ENV{REMOTE_ADDR}: IDS blocked connexion for ", $info->as_string());
+						$logger->warn("$addr: IDS blocked connexion for ", $info->as_string());
 					}
-					$status = 0;
-					throw Error::Simple("$ENV{REMOTE_ADDR}: IDS blocked connexion for " . $info->as_string());
+					$status{$addr} = 0;
+					throw Error::Simple("$addr: IDS blocked connexion for " . $info->as_string());
 				}
 			}
 		}
@@ -156,7 +160,7 @@ sub allow {
 				if($logger) {
 					$logger->warn("$ENV{REMOTE_ADDR}: Blocked shellshocker for $ENV{HTTP_REFERER}");
 				}
-				$status = 0;
+				$status{$addr} = 0;
 				throw Error::Simple("$ENV{REMOTE_ADDR}: Blocked shellshocker for $ENV{HTTP_REFERER}");
 			}
 			if(($ENV{'HTTP_REFERER'} =~ /^http:\/\/keywords-monitoring-your-success.com\/try.php/) ||
@@ -165,7 +169,7 @@ sub allow {
 				if($logger) {
 					$logger->warn("$ENV{REMOTE_ADDR}: Blocked trawler");
 				}
-				$status = 0;
+				$status{$addr} = 0;
 				throw Error::Simple("$ENV{REMOTE_ADDR}: Blocked trawler");
 			}
 		}
@@ -234,7 +238,7 @@ sub allow {
 		if($logger) {
 			$logger->warn("Dshield blocked connexion from $ENV{REMOTE_ADDR}");
 		}
-		$status = 0;
+		$status{$addr} = 0;
 		throw Error::Simple("Dshield blocked connexion from $ENV{REMOTE_ADDR}");
 	}
 
@@ -242,7 +246,7 @@ sub allow {
 		if($logger) {
 			$logger->warn('Blocking possible jqic');
 		}
-		$status = 0;
+		$status{$addr} = 0;
 		throw Error::Simple('Blocking possible jqic');
 	}
 
@@ -250,7 +254,7 @@ sub allow {
 		$logger->trace("Allowing connexion from $ENV{REMOTE_ADDR}");
 	}
 
-	$status = 1;
+	$status{$addr} = 1;
 	return 1;
 }
 
