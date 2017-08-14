@@ -47,7 +47,6 @@ our %status;
 sub allow {
 	if(!defined($ENV{'REMOTE_ADDR'})) {
 		# Not running as a CGI
-		$status = 1;
 		return 1;
 	}
 
