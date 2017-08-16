@@ -85,18 +85,18 @@ sub get_template_path {
 		my $lingua = $self->{_lingua};
 		my $candidate;
 
-		$self->_log({ message => 'Requested language: ' . $lingua->requested_language() });
+		$self->_debug({ message => 'Requested language: ' . $lingua->requested_language() });
 
 		if($lingua->sublanguage_code_alpha2()) {
 			$candidate = "$dir/" . $lingua->code_alpha2() . '/' . $lingua->sublanguage_code_alpha2();
-			$self->_log({ message => "check for directory $candidate" });
+			$self->_debug({ message => "check for directory $candidate" });
 			if(!-d $candidate) {
 				$candidate = undef;
 			}
 		}
 		if((!defined($candidate)) && defined($lingua->code_alpha2())) {
 			$candidate = "$dir/" . $lingua->code_alpha2();
-			$self->_log({ message => "check for directory $candidate" });
+			$self->_debug({ message => "check for directory $candidate" });
 			if(!-d $candidate) {
 				$candidate = undef;
 			}
@@ -113,7 +113,7 @@ sub get_template_path {
 	# mobile variant
 	$prefix .= "$dir/web:$dir";
 
-	$self->_log({ message => "prefix: $prefix" });
+	$self->_debug({ message => "prefix: $prefix" });
 
         my $modulepath = $args{'modulepath'} || ref($self);
 	$modulepath =~ s/::/\//g;
@@ -122,7 +122,7 @@ sub get_template_path {
 	if((!defined($filename)) || (!-f $filename) || (!-r $filename)) {
 		throw Error::Simple("Can't find suitable $modulepath html or tmpl file in $prefix in $dir or a subdir");
 	}
-	$self->_log({ message => "using $filename" });
+	$self->_debug({ message => "using $filename" });
 	$self->{_filename} = $filename;
 	return $filename;
 }
@@ -239,7 +239,7 @@ sub html {
 
 	if(($filename !~ /.txt$/) && ($rc =~ /\smailto:(.+?)>/)) {
 		unless($1 =~ /^&/) {
-			$self->_log({ message => "Found mailto link $1, you should remove it or use " . obfuscate($1) . ' instead' });
+			$self->_debug({ message => "Found mailto link $1, you should remove it or use " . obfuscate($1) . ' instead' });
 		}
 	}
 
@@ -296,7 +296,7 @@ sub _pfopen {
 		$candidate = "$prefix;$path";
 	}
 	if($savedpaths->{$candidate}) {
-		$self->_log({ message => "remembered $savedpaths->{$candidate}" });
+		$self->_debug({ message => "remembered $savedpaths->{$candidate}" });
 		return $savedpaths->{$candidate};
 	}
 
@@ -304,7 +304,7 @@ sub _pfopen {
 		next unless(-d $dir);
 		if($suffixes) {
 			foreach my $suffix(split(/:/, $suffixes)) {
-				$self->_log({ message => "check for file $dir/$prefix.$suffix" });
+				$self->_debug({ message => "check for file $dir/$prefix.$suffix" });
 				my $rc = "$dir/$prefix.$suffix";
 				if(-r $rc) {
 					$savedpaths->{$candidate} = $rc;
@@ -314,21 +314,21 @@ sub _pfopen {
 		} elsif(-r "$dir/$prefix") {
 			my $rc = "$dir/$prefix";
 			$savedpaths->{$candidate} = $rc;
-			$self->_log({ message => "using $rc" });
+			$self->_debug({ message => "using $rc" });
 			return $rc;
 		}
 	}
 }
 
-sub _log {
+sub _debug {
 	my $self = shift;
 
 	if($self->{_logger}) {
 		my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 		if($ENV{'REMOTE_ADDR'}) {
-			$self->{_logger}->info("$ENV{'REMOTE_ADDR'}: $params{'message'}");
+			$self->{_logger}->debug("$ENV{'REMOTE_ADDR'}: $params{'message'}");
 		} else {
-			$self->{_logger}->info($params{'message'});
+			$self->{_logger}->debug($params{'message'});
 		}
 	}
 }
@@ -364,7 +364,7 @@ sub _append_browser_type {
 		}
 		$rc .= "$directory/web:";
 
-		$self->_log({ message => "_append_directory_type: $directory=>$rc" });
+		$self->_debug({ message => "_append_directory_type: $directory=>$rc" });
 		return $rc;
 	}
 
