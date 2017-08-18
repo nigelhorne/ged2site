@@ -58,7 +58,7 @@ sub allow {
 	if(defined($status{$addr})) {
 		# Cache the value
 		if($logger) {
-			$logger->info("$addr: cached value " . $status{$addr});
+			$logger->debug("$addr: cached value " . $status{$addr});
 		}
 		return $status{$addr};
 	}
