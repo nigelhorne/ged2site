@@ -229,7 +229,7 @@ sub allow {
 				$ip =~ s/0*(\d+)/$1/g;	# Perl interprets numbers leading with 0 as octal
 				push @ips, $ip;
 			}
-			if(defined($cache) && $pis[0] && !$readfromcache) {
+			if(defined($cache) && $ips[0] && !$readfromcache) {
 				my $cachecontent = join(',', @ips);
 				if($logger) {
 					$logger->info("Setting DShield cache for $today to $cachecontent");
