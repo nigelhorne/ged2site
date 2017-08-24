@@ -224,12 +224,12 @@ sub allow {
 		unless($@ || !defined($xml)) {
 			foreach my $source ($xml->findnodes('/sources/data')) {
 				my $lastseen = $source->findnodes('./lastseen')->to_literal();
-				next unless($lastseen eq $today);  # FIXME: Should be today or yesterday to avoid midnight rush
+				next if($readfromcache && ($lastseen ne $today));  # FIXME: Should be today or yesterday to avoid midnight rush
 				my $ip = $source->findnodes('./ip')->to_literal();
 				$ip =~ s/0*(\d+)/$1/g;	# Perl interprets numbers leading with 0 as octal
 				push @ips, $ip;
 			}
-			if(defined($cache) && !$readfromcache) {
+			if(defined($cache) && $pis[0] && !$readfromcache) {
 				my $cachecontent = join(',', @ips);
 				if($logger) {
 					$logger->info("Setting DShield cache for $today to $cachecontent");
