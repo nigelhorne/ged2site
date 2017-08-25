@@ -39,6 +39,12 @@ sub create_disc_cache {
 		namespace => $args{'namespace'}
 	);
 
+	if($logger) {
+		Log::Any::Adapter->set('Log4perl');
+		$chi_args{'on_set_error'} = 'log';
+		$chi_args{'on_get_error'} = 'log';
+	}
+
 	if($config->{disc_cache}->{server}) {
 		my @servers;
 		if($config->{disc_cache}->{server} =~ /,/) {
@@ -101,6 +107,12 @@ sub create_memory_cache {
 		driver => $driver,
 		namespace => $args{'namespace'}
 	);
+
+	if($logger) {
+		Log::Any::Adapter->set('Log4perl');
+		$chi_args{'on_set_error'} = 'log';
+		$chi_args{'on_get_error'} = 'log';
+	}
 
 	if($config->{memory_cache}->{server}) {
 		my @servers;
