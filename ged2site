@@ -101,6 +101,7 @@ if($ARGV[1]) {
 }
 my $dfn = DateTime::Format::Natural->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
+my $oneday = DateTime::Duration->new(days => 1);
 my $tenmonths = DateTime::Duration->new(months => 10);
 my $sixteenyears = DateTime::Duration->new(years => 16);
 my $fetcher;
@@ -1464,6 +1465,7 @@ sub print_person
 							if($opts{'w'} &&
 							  ($dob =~ /^\d/) && ($dob !~ /[a-z]$/i) &&
 							  ($d < $birth_dt) &&
+							  ($d < ($birth_dt - $oneday)) &&
 							  ($d > ($birth_dt - $tenmonths))) {
 								if($opts{'f'}) {
 									die $sibling->as_string(),
@@ -1850,7 +1852,44 @@ sub print_person
 						birthdate => $dateofbirth,
 					});
 				}
+			} elsif($birth_dt) {
+				my @twins;
+				foreach my $s(@siblings) {
+					if(my $dob = get_value({ person => $s, value => 'birth date' })) {
+						if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
+							my $d;
+							eval {
+								$d = $date_parser->parse(date => $dob);
+							};
+							if($d) {
+								$d = @{$d}[0];
+							}
+							if($d) {
+								$d = $dfn->parse_datetime($d->{'canonical'});
+								if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
+									push @twins, { sibling => $s, dob => $d };
+								}
+							}
+						}
+					}
+				}
+				if(scalar(@twins) == 1) {	# TODO triplets and higher order
+					my $t = pop(@twins);
+					my $sibling = $t->{'sibling'};
+					my $dob = $t->{'dob'};
+					if($dob == $birth_dt) {
+						$bio .= ', the same day as ';
+					} elsif($dob == ($birth_dt + $oneday)) {
+						$bio .= ', a day before ';
+					} else {
+						$bio .= ', a day after ';
+					}
+					$bio .= ($sex eq 'M' ? 'his' : 'her') . ' twin ' .
+						(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+						$sibling->given_names();
+				}
 			}
+
 			if(scalar(@spouses) && ($numberofchildren > 0) && !$all_children_are_alive) {
 				$bio .= ' and';
 			} else {
@@ -5385,28 +5424,27 @@ sub sibling_baptism_string
 		return ', the same day as ', lcfirst($person->possessive()), ' ',
 			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters '),
 			Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @onsameday), {final_sep => ''});
-	} else {
-		my $count = 0;
-		my $rc = '';
-		foreach my $sibling(@onsameday) {
-			if($count == 0) {
-				$rc = ', the same day as ';
-			} elsif($count < (scalar(@onsameday) - 1)) {
-				$rc .= ', ';
-			} elsif($count == (scalar(@onsameday) - 1)) {
-				$rc .= ' and ';
-			}
-			$rc .= lcfirst($person->possessive()) . ' ';
-			my $dateofsiblingbirth = get_value({ person => $sibling, value => 'birth date' });
-			if($dateofsiblingbirth && $birthdate && ($dateofsiblingbirth eq $birthdate)) {
-				$rc .= 'twin ';
-			}
-			$rc .= ($sibling->sex() eq 'M' ? 'brother ' : 'sister ') .
-				$sibling->given_names();
-			$count++;
-		}
-		return $rc;
 	}
+	my $count = 0;
+	my $rc = '';
+	foreach my $sibling(@onsameday) {
+		if($count == 0) {
+			$rc = ', the same day as ';
+		} elsif($count < (scalar(@onsameday) - 1)) {
+			$rc .= ', ';
+		} elsif($count == (scalar(@onsameday) - 1)) {
+			$rc .= ' and ';
+		}
+		$rc .= lcfirst($person->possessive()) . ' ';
+		my $dateofsiblingbirth = get_value({ person => $sibling, value => 'birth date' });
+		if($dateofsiblingbirth && $birthdate && ($dateofsiblingbirth eq $birthdate)) {
+			$rc .= 'twin ';
+		}
+		$rc .= ($sibling->sex() eq 'M' ? 'brother ' : 'sister ') .
+			$sibling->given_names();
+		$count++;
+	}
+	return $rc;
 }
 
 sub red_warning
