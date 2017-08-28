@@ -5,6 +5,7 @@ use warnings;
 use File::Glob;
 use File::Basename;
 use DBI;
+use File::Spec;
 use File::pfopen 0.02;
 
 our @databases;
@@ -28,6 +29,9 @@ sub init {
 
 	$directory ||= $args{'directory'};
 	$logger ||= $args{'logger'};
+	if($args{'databases'}) {
+		@databases = $args{'databases'};
+	}
 	throw Error::Simple('directory not given') unless($directory);
 }
 
@@ -61,8 +65,8 @@ sub _open {
 	my $dbh;
 
 	my $directory = $self->{'directory'} || $directory;
-
 	my $slurp_file = File::Spec->catfile($directory, "$table.sql");
+
 	if(-r $slurp_file) {
 		$dbh = DBI->connect("dbi:SQLite:dbname=$slurp_file", undef, undef, {
 			sqlite_open_flags => SQLITE_OPEN_READONLY,
