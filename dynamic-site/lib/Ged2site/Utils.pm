@@ -8,6 +8,7 @@ use warnings;
 use CHI;
 use Error;
 use POSIX;
+use Log::Any::Adapter;
 
 my $pi = atan2(1,1) * 4;
 
