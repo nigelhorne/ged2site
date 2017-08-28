@@ -1,0 +1,22 @@
+<html>
+<head>
+	<title>Test</title>
+</head>
+<body>
+	[% IF twins %]
+		<br>
+		<ul id="nav">
+			[% FOREACH person IN twins %]
+				<li>
+					<a href="?page=people&entry=[%- person.entry %]">[% person.title %]</a>
+				</li>
+			[% END %]
+		</ul>
+		<p>
+			This page lists twins, triplets and so on.
+		</p>
+	[% ELSE %]
+		<p>There are no twins in your family tree.</p>
+	[% END %]
+</body>
+</html>

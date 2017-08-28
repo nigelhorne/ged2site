@@ -64,6 +64,7 @@ use Ged2site::Display::descendants;
 use Ged2site::Display::graphs;
 use Ged2site::Display::emmigrants;
 use Ged2site::Display::ww1;
+use Ged2site::Display::twins;
 use Ged2site::Display::reports;
 
 use Ged2site::DB::people;
@@ -171,12 +172,15 @@ if($buffercache) {
 	$buffercache->purge();
 }
 CHI->stats->flush();
+exit(0);
 
 sub doit
 {
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
-
 	CGI::Info->reset();
+
+	$logger->debug('In doit - domain is ', $info->domain_name());
+
+	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 	$config ||= Ged2site::Config->new({ logger => $logger, info => $info });
 	$infocache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
 
@@ -272,6 +276,8 @@ sub doit
 			$display = Ged2site::Display::emmigrants->new($args);
 		} elsif($info->param('page') eq 'ww1') {
 			$display = Ged2site::Display::ww1->new($args);
+		} elsif($info->param('page') eq 'twins') {
+			$display = Ged2site::Display::twins->new($args);
 		} elsif($info->param('page') eq 'reports') {
 			$display = Ged2site::Display::reports->new($args);
 		} else {
@@ -339,6 +345,7 @@ sub choose
 			"/cgi-bin/page.fcgi?page=graphs\n",
 			"/cgi-bin/page.fcgi?page=emmigrants\n",
 			"/cgi-bin/page.fcgi?page=ww1\n",
+			"/cgi-bin/page.fcgi?page=twins\n",
 			"/cgi-bin/page.fcgi?page=reports\n",
 	}
 }

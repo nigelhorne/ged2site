@@ -172,6 +172,30 @@ sub fetchrow_hashref {
 	return $sth->fetchrow_hashref();
 }
 
+# Execute the given SQL on the data
+sub execute {
+	my $self = shift;
+	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $table = ref($self);
+	$table =~ s/.*:://;
+
+	$self->_open() if(!$self->{table});
+
+	my $query = $args{'query'};
+	if($self->{'logger'}) {
+		$self->{'logger'}->debug("fetchrow_hashref $query: " . join(' ', @args));
+	}
+	my $sth = $self->{$table}->prepare($query);
+	$sth->execute() || throw Error::Simple($query);
+	my @rc;
+	while (my $href = $sth->fetchrow_hashref()) {
+		push @rc, $href;
+	}
+
+	return \@rc;
+}
+
 # Time that the database was last updated
 sub updated {
 	my $self = shift;
