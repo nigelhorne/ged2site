@@ -10,6 +10,10 @@ use Error;
 use POSIX;
 use Log::Any::Adapter;
 
+BEGIN {
+	Log::Any::Adapter->set('Log4perl');
+}
+
 my $pi = atan2(1,1) * 4;
 
 sub create_disc_cache {
@@ -41,7 +45,6 @@ sub create_disc_cache {
 	);
 
 	if($logger) {
-		Log::Any::Adapter->set('Log4perl');
 		$chi_args{'on_set_error'} = 'log';
 		$chi_args{'on_get_error'} = 'log';
 	}
@@ -110,7 +113,6 @@ sub create_memory_cache {
 	);
 
 	if($logger) {
-		Log::Any::Adapter->set('Log4perl');
 		$chi_args{'on_set_error'} = 'log';
 		$chi_args{'on_get_error'} = 'log';
 	}
