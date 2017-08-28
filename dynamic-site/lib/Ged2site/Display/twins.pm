@@ -1,7 +1,6 @@
 package Ged2site::Display::twins;
 
 # Display the twins in the database
-# FIXME:  Don't include living people
 
 use Ged2site::Display::page;
 
@@ -22,12 +21,9 @@ sub html {
 	# Handle into the database
 	my $people = $args{'people'};
 
-	# TODO: work out to include common mother
-	# FIXME: only prints one of the twins
-	my $query = 'SELECT * FROM people GROUP BY dob HAVING (count(dob) > 1)';
-	my @twins = @{$people->execute(query => $query)};
+	my $query = 'SELECT DISTINCT p1.* FROM people p1, people p2 WHERE (p1.dob IS NOT NULL) AND (p1.dob <> "") AND (p1.dob = p2.dob) AND (p1.mother = p2.mother) AND (p1.title <> p2.title) AND (p1.alive = 0)';
 
-	@twins = sort { $a->{'title'} cmp $b->{'title'} } @twins;
+	my @twins = sort { $a->{'title'} cmp $b->{'title'} } @{$people->execute(query => $query)};
 
 	return $self->SUPER::html({ twins => \@twins, updated => $people->updated() });
 }
