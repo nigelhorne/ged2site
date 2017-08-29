@@ -24,12 +24,12 @@
 	</head>
 	<body>
 		[% IF person %]
-			<h1>[% person.title %]</h1>
-			[% IF error %]
-				<center>
+			<center>
+				<h1>[% person.title %]</h1>
+				[% IF error %]
 					<p><font color="red" size="+2">[% error %]</font></p>
-				</center>
-			[% END %]
+				[% END %]
+			</center>
 			<h2>Biography</h2>
 			[% IF person.profile_thumbnail %]
 				<center><img src="/[% person.profile_thumbnail %]"></center>
