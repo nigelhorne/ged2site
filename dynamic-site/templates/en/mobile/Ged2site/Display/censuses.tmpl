@@ -2,10 +2,10 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
-		[% IF surname %]
-			<title>Entries for the Surname [% surname %] in [% SiteTitle.join(' ') %]</title>
+		[% IF census %]
+			<title>[% census.0.census %] entries in [% SiteTitle.join(' ') %]</title>
 		[% ELSE %]
-			<title>Surnames for [% SiteTitle.join(' ') %]</title>
+			<title>Censuses for [% SiteTitle.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
@@ -16,37 +16,32 @@
 	</head>
 	<body>
 		<center>
-			[% IF surname %]
-				<h1>Entries for the Surname [% surname %] in [% SiteTitle.join(' ') %]</h1>
+			[% IF census %]
+				<h1>[% census.0.census %] entries in [% SiteTitle.join(' ') %]</h1>
 			[% ELSE %]
-				<h1>Surnames for [% SiteTitle.join(' ') %]</h1>
+				<h1>Censuses for [% SiteTitle.join(' ') %]</h1>
 			[% END %]
 			[% IF error %]
 				<p><font color="red" size="+2">[% error %]</font></p>
 			[% END %]
 			[ <a href="?page=people&home=1">Home</a> ]<br>
-			[ <a href="?page=censuses">Census Index</a> ]<br>
+			[% IF people %]
+				[ <a href="?page=censuses">Census Index</a> ]<br>
+			[% END %]
+			[ <a href="?page=surnames">Surname Index</a> ]<br>
 			[ <a href="?page=history">Family History</a> ]<br>
 			[ <a href="?page=reports">Reports</a> ]<br>
 			[ <a href="?page=calendar">Calendar</a> ]
 		</center>
-		[% IF surnames %]
-			<dl>
-				[% FOREACH surname IN surnames %]
-					[% IF surname.substr(0,1) != initial %]
-						[% IF initial %]
-							</dd>
-						[% END %]
-						[% IF surname == 'UNKNOWN' %]
-							[% initial = '?' %]
-						[% ELSE %]
-							[% initial = surname.substr(0,1) %]
-						[% END %]
-						<dt>[% initial %]</dt><dd>
-					[% END %]
-					<a href="?page=surnames&surname=[%- surname | uri -%]">[% surname %]</a>
+		<br>
+		[% IF censuses %]
+			<ul>
+				[% FOREACH census IN censuses %]
+					<li>
+						<a href="?page=censuses&census=[%- census | uri -%]">[% census %]</a>
+					</li>
 				[% END %]
-			</dd></dl>
+			</ul>
 		[% ELSIF people %]
 			<ul>
 				[% FOREACH person IN people %]

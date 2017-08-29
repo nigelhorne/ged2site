@@ -37,8 +37,8 @@
 				[ <a href="?page=todo">To Do</a> ] |
 				[ <a href="?page=calendar">Calendar</a> ]
 			</center>
+			<br>
 			[% IF censuses %]
-				<br>
 				<ul id="nav">
 					[% FOREACH census IN censuses %]
 						<li>
@@ -47,7 +47,6 @@
 					[% END %]
 				</ul>
 			[% ELSIF people %]
-				<br>
 				<ul id="nav">
 					[% FOREACH person IN people %]
 						<li>
