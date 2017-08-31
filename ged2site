@@ -1960,7 +1960,6 @@ sub print_person
 				} else {
 					$bio .= ' was married to ';
 				}
-				my $parentheses = 0;
 				if($haveprintedspousename) {
 					$nameparser->parse($spouses[0]->name());
 
@@ -1990,10 +1989,11 @@ sub print_person
 					}
 					$haveprintedspousename = 1;
 				}
+				my $parentheses = 0;
 				if($numberofchildren) {
-					if($parentheses || ((!$placeofmarriage) && (!$dateofmarriage))) {
-						$bio .= ', ';
-					}
+					# if((!$placeofmarriage) && !$dateofmarriage) {
+						# $bio .= ', ';
+					# }
 					if(my $soccupation = $spouses[0]->occupation()) {
 						$bio .= ' (';
 						$parentheses = 1;
