@@ -20,17 +20,14 @@ sub html {
 	};
 	my $params = $info->params({ allow => $allowed });
 
-	my $mailto = $args{'mailto'};
+	# my $mailto = $args{'mailto'};
+	my $contact = $self->{_config}->{'contact'};
 
 	if(!defined($params->{'action'})) {
 		# First time through
-		my $rc = $mailto->selectall_hashref();
-		print Data::Dumper->new([\$rc])->Dump();
-		# if(my $name = $params->{'entry'}) {
-			# if(my $to = ($mailto->email({ entry => lc($name) }))[0]) {
-				# return $self->SUPER::html({ to => $to });
-			# }
-		# }
+		if(my $name = $contact->{'name'}) {
+			return $self->SUPER::html({ name => $name });
+		}
 		return $self->SUPER::html({ error => 'Recipient not given' });
 	}
 
@@ -62,22 +59,19 @@ sub html {
 		return $self->SUPER::html($copy);
 	}
 
-	# Handles into the databases
-	my $links = $args{'links'};
-
 	my $to;
-	if($params->{'entry'}) {
-		my $name = lc($params->{'entry'});
-		$to = ($mailto->email({ entry => $name }))[0];
-		if(!defined($to)) {
-			$name =~ tr/+/ /;
-			$to = ($mailto->email({ entry => $name }))[0];
-			if(!defined($to)) {
-				$name =~ tr/ /_/;
-				$to = ($mailto->email({ entry => $name }))[0];
-			}
-		}
-	}
+	# if($params->{'entry'}) {
+		# my $name = lc($params->{'entry'});
+		# $to = ($mailto->email({ entry => $name }))[0];
+		# if(!defined($to)) {
+			# $name =~ tr/+/ /;
+			# $to = ($mailto->email({ entry => $name }))[0];
+			# if(!defined($to)) {
+				# $name =~ tr/ /_/;
+				# $to = ($mailto->email({ entry => $name }))[0];
+			# }
+		# }
+	# }
 
 	if(!defined($to)) {
 		$copy->{'error'} = 'Can\'t find ' . $params->{'entry'} . ' in the database';
@@ -103,10 +97,10 @@ sub html {
 	print $fout "Sender: $site_title\n",
 		'Return-Receipt-To: ', $yemail, "\n";
 
-	if((!defined($params->{'entry'})) || ($params->{'entry'} !~ /Nigel.Horne/i)) {
-		# For testing
-		print $fout "Bcc: njh\@bandsman.co.uk\n";
-	}
+	# if((!defined($params->{'entry'})) || ($params->{'entry'} !~ /Nigel.Horne/i)) {
+		# # For testing
+		# print $fout "Bcc: njh\@bandsman.co.uk\n";
+	# }
 
 	print $fout $args{'subject'} ? "Subject: $args{subject}\n\n" : "Subject: Mail sent via $site_title\n\n";
 

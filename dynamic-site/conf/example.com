@@ -5,3 +5,4 @@ memory_cache: driver=File, root_dir=/tmp/cache
 # disc_cache: driver=File, root_dir=/tmp/cache
 disc_cache: driver=DBI, connect=dbi:SQLite:dbname=/tmp/cache/genealogy.sqlite
 twitter: yourtwitterhandle
+contact: name=Your Name Goes Here, email=you@example.com
