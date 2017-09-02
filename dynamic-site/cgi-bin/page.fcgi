@@ -66,12 +66,14 @@ use Ged2site::Display::emmigrants;
 use Ged2site::Display::ww1;
 use Ged2site::Display::twins;
 use Ged2site::Display::reports;
+use Ged2site::Display::mailto;
 
 use Ged2site::DB::people;
 use Ged2site::DB::censuses;
 use Ged2site::DB::surnames;
 use Ged2site::DB::history;
 use Ged2site::DB::todo;
+use Ged2site::DB::mailto;
 
 my $database_dir = "$script_dir/../databases";
 Ged2site::DB::init({ directory => $database_dir, logger => $logger });
@@ -85,6 +87,7 @@ my $censuses = Ged2site::DB::censuses->new();
 my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::DB::history->new();
 my $todo = Ged2site::DB::todo->new();
+my $mailto = Ged2site::DB::mailto->new();
 
 # open STDERR, ">&STDOUT";
 close STDERR;
@@ -280,6 +283,8 @@ sub doit
 			$display = Ged2site::Display::twins->new($args);
 		} elsif($info->param('page') eq 'reports') {
 			$display = Ged2site::Display::reports->new($args);
+		} elsif($info->param('page') eq 'mailto') {
+			$display = Ged2site::Display::mailto->new($args);
 		} else {
 			$invalidpage = 1;
 		}
@@ -295,6 +300,7 @@ sub doit
 			surnames => $surnames,
 			history => $history,
 			todo => $todo,
+			mailto => $mailto,
 			cachedir => $cachedir
 		});
 	} elsif($invalidpage) {
@@ -347,5 +353,6 @@ sub choose
 			"/cgi-bin/page.fcgi?page=ww1\n",
 			"/cgi-bin/page.fcgi?page=twins\n",
 			"/cgi-bin/page.fcgi?page=reports\n",
+			"/cgi-bin/page.fcgi?page=mailto\n",
 	}
 }

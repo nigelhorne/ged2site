@@ -77,8 +77,8 @@ sub _open {
 	} else {
 		my $fin;
 		($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv:db');
-		close($fin);
-		if(-r $slurp_file) {
+		if(defined($slurp_file) && (-r $slurp_file)) {
+			close($fin);
 			my $sep_char = $args{'sep_char'};
 			$dbh = DBI->connect("dbi:CSV:csv_sep_char=$sep_char");
 			$dbh->{'RaiseError'} = 1;
