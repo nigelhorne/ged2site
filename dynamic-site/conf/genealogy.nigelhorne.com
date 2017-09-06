@@ -11,4 +11,8 @@
 		<server>127.0.0.1</server>
 		<port>11211</port>
 	</memory_cache>
+	<contact>
+		<name>Nigel Horne</name>
+		<email>njh@bandsman.co.uk</email>
+	</contact>
 </config>
