@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-    "http://www.w3.org/TR/html4/loose.dtd">
+	"http://www.w3.org/TR/html4/loose.dtd">
 <!--
 	Typify by TEMPLATED
 	templated.co @templatedco
@@ -13,45 +13,57 @@
 			<title>Send an e-mail to [% name.ucfirst %]</title>
 		[% END %]
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
-		<link rel="stylesheet" type="text/css" href="https://www.bandsman.co.uk/css/main.css">
+		<style>
+			label {
+				display: inline-block;
+				width: 10em
+			}
+			textarea {
+				vertical-align: middle
+			}
+		</style>
 	</head>
 	<body>
 		[% IF error %]
 			<p><center><font color="red" size="+2">[% error %]</font></center></p>
 		[% END %]
 
-		[% IF action == 'sent' %]
-			<h1>E-mail sent</h1>
-			<p>Your e-mail has sent to [% name.ucfirst %]</p>
-			<a href="/index.htm" class="myButton">Continue</a>
-		[% ELSE %]
-			<h2>Send an e-mail to [% name.ucfirst %]</h2>
-			<form class="myform" method="post" action="#">
-				<!-- <input name="name" value="[%- name -%]" type="hidden"> -->
-				<input name="action" value="send" type="hidden">
-				<div class="form-control narrow">
+		<div id="container">
+			[% IF action == 'sent' %]
+				<h1>E-mail sent</h1>
+				<p>Your e-mail has sent to [% name.ucfirst %]</p>
+				<a href="/index.htm" class="myButton">Continue</a>
+			[% ELSE %]
+			<div id="container">
+				<h2>Send an e-mail to [% name.ucfirst %]</h2>
+				<form method="post" action="#">
 					<label for="yname">Your Name</label>
 					<input name="yname" id="yname" type="text" value="[%- yname %]">
-				</div>
-				<div class="form-control narrow">
+					<br>
+					<br>
 					<label for="yemail">Your E-Mail Address</label>
 					<input name="yemail" id="yemail" type="email" value="[%- yemail %]">
-				</div>
-				<div class="form-control">
+					<br>
+					<br>
 					<label for="message">Message</label>
 					[% IF message %]
 						<textarea name="message" id="message" rows="4" value="[%- message %]"></textarea>
 					[% ELSE %]
 						<textarea name="message" id="message" rows="4"></textarea>
 					[% END %]
-				</div>
-				<!-- <ul class="actions">
-					<li><input value="Send Message" type="submit"></li>
-				</ul> -->
-				<button type="submit" class="myButton" value="submit">
-					Send E-mail
-				</button>
-			</form>
-		[% END %]
+					<br>
+					<br>
+					<!-- <ul class="actions">
+						<li><input value="Send Message" type="submit"></li>
+					</ul> -->
+					<center>
+					<button type="submit" class="myButton" value="submit">
+						Send E-mail
+					</button>
+					</center>
+				</form>
+			</div>
+			[% END %]
+		</div>
 	</body>
 </html>
