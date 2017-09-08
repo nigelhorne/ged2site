@@ -38,12 +38,17 @@
 				<h2>Send an e-mail to [% name.ucfirst %]</h2>
 				<form method="post" action="#">
 					<input name="action" value="send" type="hidden">
+					<input name="page" value="mailto" type="hidden">
 					<label for="yname">Your Name</label>
 					<input name="yname" id="yname" type="text" value="[%- yname %]">
 					<br>
 					<br>
 					<label for="yemail">Your E-Mail Address</label>
 					<input name="yemail" id="yemail" type="email" value="[%- yemail %]">
+					<br>
+					<br>
+					<label for="subject">Subject</label>
+					<input name="subject" id="subject" type="text" value="[%- subject %]">
 					<br>
 					<br>
 					<label for="message">Message</label>

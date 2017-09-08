@@ -15,7 +15,12 @@ sub html {
 
 	my $info = $self->{_info};
 	my $allowed = {
+		'subject' => undef,
 		'page' => 'mailto',
+		'action' => 'send',
+		'message' => undef,
+		'yemail' => undef,
+		'yname' => undef,
 		'lang' => qr/^[A-Z][A-Z]/i,
 	};
 	my $params = $info->params({ allow => $allowed });
@@ -42,8 +47,8 @@ sub html {
 		$copy->{'error'} = 'Please enter your e-mail address';
 	} elsif(!defined($params->{'message'})) {
 		$copy->{'error'} = 'Please enter the message';
-	} elsif(!defined($params->{'entry'})) {
-		$copy->{'error'} = 'Recipient not given';
+	} elsif(!defined($params->{'subject'})) {
+		$copy->{'error'} = 'Please enter the subject';
 	} 
 	my $yemail = $params->{'yemail'};
 	my $yname = $params->{'yname'};
@@ -59,31 +64,21 @@ sub html {
 		return $self->SUPER::html($copy);
 	}
 
-	my $to;
-	# if($params->{'entry'}) {
-		# my $name = lc($params->{'entry'});
-		# $to = ($mailto->email({ entry => $name }))[0];
-		# if(!defined($to)) {
-			# $name =~ tr/+/ /;
-			# $to = ($mailto->email({ entry => $name }))[0];
-			# if(!defined($to)) {
-				# $name =~ tr/ /_/;
-				# $to = ($mailto->email({ entry => $name }))[0];
-			# }
-		# }
-	# }
+	my $name = $self->{_config}->{'contact'}->{'name'};
+	my $email = $self->{_config}->{'contact'}->{'email'};
 
-	if(!defined($to)) {
-		$copy->{'error'} = 'Can\'t find ' . $params->{'entry'} . ' in the database';
+	if(!(defined($name) && defined($email))) {
+		$copy->{'error'} = 'Can\'t find contact details in the configuration file';
 		return $self->SUPER::html($copy);
 	}
 
-	$self->{_logger}->debug("sending e-mail to $to");
+	$self->{_logger}->debug("sending e-mail to $name");
 
 	open(my $fout, '|-', '/usr/sbin/sendmail -t');
 
-	print $fout "To: $to\n",
-		'From: "', $yname, '" <', $yemail, ">\n";
+	print $fout "To: \"$name\" <$email>\n",
+		"From: \"$yname\" <$yemail>\n",
+		"Cc: \"$yname\" <$yemail>\n";
 
 	my $site_title = $self->{_config}->{'SiteTitle'};
 
@@ -113,7 +108,7 @@ sub html {
 
 	close($fout);
 
-	$self->{_logger}->trace('E-mail sent from ', $yemail, " to $to");
+	$self->{_logger}->info("E-mail sent from $yemail to $email");
 
 	return $self->SUPER::html({ action => 'sent' });
 }
