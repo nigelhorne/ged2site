@@ -97,13 +97,13 @@ sub html {
 		# print $fout "Bcc: njh\@bandsman.co.uk\n";
 	# }
 
-	print $fout $args{'subject'} ? "Subject: $args{subject}\n\n" : "Subject: Mail sent via $site_title\n\n";
+	print $fout $params->{'subject'} ? "Subject: $params->{subject}\n\n" : "Subject: Mail sent via $site_title\n\n";
 
 	print $fout $params->{'message'}, "\n\n", '-' x 50, "\n";
 
 	print $fout "Sent from $site_title, ", $self->{_info}->domain_name(), ".\n",
 		"This service is provided to allow 3rd parties to contact\n",
-		"you without your email address appearing on our website.\n",
+		"you without your email address appearing on your website.\n",
 		"Please report any abuse of this service to us.\n";
 
 	close($fout);
