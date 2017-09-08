@@ -257,31 +257,33 @@ sub doit
 		config => $config,
 	};
 	eval {
-		if($info->param('page') eq 'people') {
+		my $page = $info->param('page');
+		$page =~ s/#.*$//;
+		if($page eq 'people') {
 			$display = Ged2site::Display::people->new($args);
-		} elsif($info->param('page') eq 'censuses') {
+		} elsif($page eq 'censuses') {
 			$display = Ged2site::Display::censuses->new($args);
-		} elsif($info->param('page') eq 'surnames') {
+		} elsif($page eq 'surnames') {
 			$display = Ged2site::Display::surnames->new($args);
-		} elsif($info->param('page') eq 'history') {
+		} elsif($page eq 'history') {
 			$display = Ged2site::Display::history->new($args);
-		} elsif($info->param('page') eq 'todo') {
+		} elsif($page eq 'todo') {
 			$display = Ged2site::Display::todo->new($args);
-		} elsif($info->param('page') eq 'calendar') {
+		} elsif($page eq 'calendar') {
 			$display = Ged2site::Display::calendar->new($args);
-		} elsif($info->param('page') eq 'descendants') {
+		} elsif($page eq 'descendants') {
 			$display = Ged2site::Display::descendants->new($args);
-		} elsif($info->param('page') eq 'graphs') {
+		} elsif($page eq 'graphs') {
 			$display = Ged2site::Display::graphs->new($args);
-		} elsif($info->param('page') eq 'emmigrants') {
+		} elsif($page eq 'emmigrants') {
 			$display = Ged2site::Display::emmigrants->new($args);
-		} elsif($info->param('page') eq 'ww1') {
+		} elsif($page eq 'ww1') {
 			$display = Ged2site::Display::ww1->new($args);
-		} elsif($info->param('page') eq 'twins') {
+		} elsif($page eq 'twins') {
 			$display = Ged2site::Display::twins->new($args);
-		} elsif($info->param('page') eq 'reports') {
+		} elsif($page eq 'reports') {
 			$display = Ged2site::Display::reports->new($args);
-		} elsif($info->param('page') eq 'mailto') {
+		} elsif($page eq 'mailto') {
 			$display = Ged2site::Display::mailto->new($args);
 		} else {
 			$invalidpage = 1;

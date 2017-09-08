@@ -37,6 +37,7 @@
 			<div id="container">
 				<h2>Send an e-mail to [% name.ucfirst %]</h2>
 				<form method="post" action="#">
+					<input name="action" value="send" type="hidden">
 					<label for="yname">Your Name</label>
 					<input name="yname" id="yname" type="text" value="[%- yname %]">
 					<br>
