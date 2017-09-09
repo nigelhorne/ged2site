@@ -4276,7 +4276,8 @@ sub print_person
 		print $visjs "{\ncontent: '<a href=\"cgi-bin/page.fcgi?page=people&entry=",
 			$person->{'xref'}, '">', $person->as_string(), "</a>',\n",
 			'start: \'', $birth_dt->year();
-			if($birth_dt->month() && $birth_dt->day()) {
+
+		if($birth_dt->month() && $birth_dt->day()) {
 			printf $visjs '-%02d', $birth_dt->month();
 			if($birth_dt->day()) {
 				printf $visjs '-%02d', $birth_dt->day();
@@ -4297,11 +4298,11 @@ sub print_person
 
 		print $visjs ",\ntitle: '";
 		if($profile_thumbnail) {
-			print $visjs "<img src=\"/$profile_thumbnail\"><p>";
+			print $visjs "<img src=\"/$profile_thumbnail\" alt=\"", $person->as_string(), "\"><p>";
 			print $csv $profile_thumbnail;
 		}
 		$fullbio =~ s/'/\&#39;/g;
-		print $visjs '<h2>', $person->as_string, "</h2><hr>$fullbio'\n},\n";
+		print $visjs '<h2>', $person->as_string(), "</h2><hr>$fullbio'\n},\n";
 	}
 
 	my $m;
