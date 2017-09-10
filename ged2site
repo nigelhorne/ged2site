@@ -1070,7 +1070,7 @@ sub print_person
 						$citations{$citationcount} = $src;
 					}
 				}
-			} elsif($opts{'w'}) {
+			} elsif($opts{'w'} && ($opts{'l'} || !$was_alive)) {
 				if($dateofbirth) {
 					red_warning({ person => $person, warning => "Birth date ($dateofbirth) has no citations" });
 				} else {
@@ -1096,7 +1096,7 @@ sub print_person
 						$citations{$citationcount} = $src;
 					}
 				}
-			} elsif($opts{'w'}) {
+			} elsif($opts{'w'} && ($opts{'l'} || !$was_alive)) {
 				if($dateofdeath) {
 					red_warning({ person => $person, warning => "Death date ($dateofdeath) has no citations" });
 				} else {
@@ -1247,7 +1247,7 @@ sub print_person
 					$marriagecitation = ++$citationcount;
 					$citations{$marriagecitation} = $src;
 				}
-			} elsif($opts{'w'}) {
+			} elsif($opts{'w'} && ($opts{'l'} || !$was_alive)) {
 				if($dateofmarriage) {
 					red_warning({ person => $person, warning => "Marriage date ($dateofmarriage) has no citations" });
 				} else {
@@ -1288,7 +1288,7 @@ sub print_person
 						}
 					}
 				}
-			} elsif($opts{'w'}) {
+			} elsif($opts{'w'} && ($opts{'l'} || !$was_alive)) {
 				if($dateofburial) {
 					red_warning({ person => $person, warning => "Burial date ($dateofburial) has no citations" });
 				} else {
