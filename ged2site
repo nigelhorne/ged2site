@@ -550,6 +550,8 @@ if($opts{'w'}) {
 				my $summary;
 				if($warning =~ /^\[\d+\]: no citation title/) {
 					$summary = 'Citation Title Missing';
+				} elsif($warning =~ /^(.+) date .+ has no citations/) {
+					$summary = "$1 date without citation";
 				} elsif($warning =~ /^Contains a residence .+ without a date/) {
 					$summary = 'Residence Without a Date';
 				} elsif($warning =~ /.+in notes is not found$/) {
