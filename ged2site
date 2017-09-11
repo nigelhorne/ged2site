@@ -552,6 +552,8 @@ if($opts{'w'}) {
 					$summary = 'Citation Title Missing';
 				} elsif($warning =~ /^(.+) date .+ has no citations/) {
 					$summary = "$1 date without citation";
+				} elsif($warning =~ /^(.+) place .+ has no citations/) {
+					$summary = "$1 place without citation";
 				} elsif($warning =~ /^Contains a residence .+ without a date/) {
 					$summary = 'Residence Without a Date';
 				} elsif($warning =~ /.+in notes is not found$/) {
