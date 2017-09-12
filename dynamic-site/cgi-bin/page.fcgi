@@ -25,7 +25,7 @@ use File::HomeDir;
 use Log::Any::Adapter;
 use Error qw(:try);
 use File::Spec;
-use Log::WarnDie;
+use Log::WarnDie 0.09;
 use autodie qw(:all);
 
 # use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
