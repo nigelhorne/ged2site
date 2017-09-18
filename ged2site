@@ -847,7 +847,7 @@ sub print_person
 				$dob = "ABT$1";
 				if(place({ peron => $person, place => $2 })) {
 					if($opts{'f'}) {
-						die $person->as_string(), ": Unexpected text ($2) after the date $1  - should be in the location record";
+						die $person->as_string(), ": Unexpected text ($2) after the date $1 - should be in the location record";
 					}
 					red_warning({ person => $person, warning => "Unexpected text ($2) after the date $1 - should be in the location record" });
 				} else {
