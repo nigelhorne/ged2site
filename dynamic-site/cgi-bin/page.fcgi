@@ -125,7 +125,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 			$lang =~ tr/_/-/;
 			$ENV{'HTTP_ACCEPT_LANGUAGE'} = lc($lang);
 		}
-		Log::Any::Adapter->set('Stdout', log_level => 'debug');
+		Log::Any::Adapter->set('Stdout', log_level => 'trace');
 		$logger = Log::Any->get_logger(category => $script_name);
 		Log::WarnDie->dispatcher($logger);
 		$people->set_logger($logger);
