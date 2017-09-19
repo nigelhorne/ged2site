@@ -233,10 +233,6 @@ sub AUTOLOAD {
 
 	my $self = shift or return undef;
 
-	unless(wantarray()) {
-		throw Error::Simple("$self->$column must be called in list context");
-	}
-
 	my $table = ref($self);
 	$table =~ s/.*:://;
 
