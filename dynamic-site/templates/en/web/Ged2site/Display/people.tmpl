@@ -1,5 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-    "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html lang="en">
 	<head>
 		[% IF person %]
@@ -25,8 +24,8 @@
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
-		<link rel="stylesheet" type="text/css" href="/css/sprite.css">
+		<link async rel="stylesheet" href="/css/print.css" type="text/css" media="print">
+		<link async rel="stylesheet" type="text/css" href="/css/sprite.css">
 	</head>
 	[% IF person.map_body %]
 		<body onload="html_googlemaps_initialize()">
