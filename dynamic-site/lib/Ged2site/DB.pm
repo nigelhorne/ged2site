@@ -85,7 +85,7 @@ sub _open {
 			$dbh->{'RaiseError'} = 1;
 
 			if($self->{'logger'}) {
-				$self->{'logger'}->debug("read in $table from CVS $slurp_file");
+				$self->{'logger'}->debug("read in $table from CSV $slurp_file");
 			}
 
 			my %options = (
@@ -112,7 +112,7 @@ sub _open {
 				$dbh = DBI->connect('dbi:AnyData(RaiseError=>1):');
 				$dbh->{'RaiseError'} = 1;
 				if($self->{'logger'}) {
-					$self->{'logger'}->debug("read in $table from $slurp_file");
+					$self->{'logger'}->debug("read in $table from XML $slurp_file");
 				}
 				$dbh->func($table, 'XML', $slurp_file, 'ad_import');
 			} else {
