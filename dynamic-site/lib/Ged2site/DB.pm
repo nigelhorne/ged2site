@@ -7,7 +7,6 @@ use File::Basename;
 use DBI;
 use File::Spec;
 use File::pfopen 0.02;
-use Text::CSV::Slurp;
 
 our @databases;
 our $directory;
@@ -99,9 +98,32 @@ sub _open {
 			);
 
 			$dbh->{csv_tables}->{$table} = \%options;
-			delete $options{f_file};
+			# delete $options{f_file};
 
-			$self->{'data'} = Text::CSV::Slurp->load(file => $slurp_file, %options);
+			# require Text::CSV::Slurp;
+			# Text::CSV::Slurp->import();
+
+			# $self->{'data'} = Text::CSV::Slurp->load(file => $slurp_file, %options);
+
+			require Text::xSV::Slurp;
+			Text::xSV::Slurp->import();
+
+			my @data = @{xsv_slurp(
+				shape => 'aoh',
+				text_csv => {
+					sep_char => $sep_char,
+					allow_loose_quotes => 1,
+					blank_is_undef => 1,
+					empty_is_undef => 1,
+					binary => 1,
+					escape_char => '\\',
+				},
+				# string => \join('', grep(!/^\s*(#|$)/, <DATA>))
+				file => $slurp_file
+			)};
+
+			# Don't use blank lines or comments
+			$self->{'data'} = grep { $_->{'entry'} !~ /^#/ } grep { defined($_->{'entry'}) } @data;
 		} else {
 			$slurp_file = File::Spec->catfile($directory, "$table.xml");
 			if(-r $slurp_file) {
