@@ -59,7 +59,10 @@ sub _open {
 	my $table = ref($self);
 	$table =~ s/.*:://;
 
-	return if($self->{table});
+	if($self->{'logger'}) {
+		$self->{'logger'}->trace("_open $table");
+	}
+	return if($self->{$table});
 
 	# Read in the database
 	my $dbh;
@@ -123,7 +126,13 @@ sub _open {
 			)};
 
 			# Don't use blank lines or comments
-			$self->{'data'} = grep { $_->{'entry'} !~ /^#/ } grep { defined($_->{'entry'}) } @data;
+			@data = grep { $_->{'entry'} !~ /^#/ } grep { defined($_->{'entry'}) } @data;
+			# $self->{'data'} = @data;
+			my $i = 0;
+			$self->{'data'} = ();
+			foreach my $d(@data) {
+				$self->{'data'}[$i++] = $d;
+			}
 		} else {
 			$slurp_file = File::Spec->catfile($directory, "$table.xml");
 			if(-r $slurp_file) {
@@ -175,7 +184,7 @@ sub selectall_hashref {
 	}
 	$query .= ' ORDER BY entry';
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("selectall_hashref $query: " . join(' ', @args));
+		$self->{'logger'}->debug("selectall_hashref $query: " . join(', ', @args));
 	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute(@args) || throw Error::Simple("$query: @args");
@@ -205,7 +214,7 @@ sub fetchrow_hashref {
 	}
 	$query .= ' ORDER BY entry';
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("fetchrow_hashref $query: " . join(' ', @args));
+		$self->{'logger'}->debug("fetchrow_hashref $query: " . join(', ', @args));
 	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute(@args) || throw Error::Simple("$query: @args");
@@ -224,7 +233,7 @@ sub execute {
 
 	my $query = $args{'query'};
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("fetchrow_hashref $query: " . join(' ', @args));
+		$self->{'logger'}->debug("fetchrow_hashref $query: " . join(', ', @args));
 	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute() || throw Error::Simple($query);
