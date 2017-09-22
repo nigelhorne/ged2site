@@ -2720,12 +2720,14 @@ sub print_person
 									}
 								}
 								foreach my $residence(@mr) {
-									my $date = $residence->date();
-									if($date =~ /(\d{3,4})$/) {
-										my $d = $1;
-										if($1 == $yoe) {
-											$found_parent = $residence;
-											last;
+									if(ref($residence) eq 'Gedcom::Record') {
+										my $date = $residence->date();
+										if($date =~ /(\d{3,4})$/) {
+											my $d = $1;
+											if($1 == $yoe) {
+												$found_parent = $residence;
+												last;
+											}
 										}
 									}
 								}
@@ -2756,16 +2758,20 @@ sub print_person
 									}
 								}
 								foreach my $residence(@fr) {
-									my $date = $residence->date();
-									if($date =~ /(\d{3,4})$/) {
-										my $d = $1;
-										if($1 == $yoe) {
-											$found_parent = $residence;
+									if(ref($residence) eq 'Gedcom::Record') {
+										my $date = $residence->date();
+										if($date =~ /(\d{3,4})$/) {
+											my $d = $1;
+											if($1 == $yoe) {
+												$found_parent = $residence;
+												last;
+											}
 										}
 									}
 								}
 							}
-							if(!$found_parent) {
+							if(($father || $mother) && !$found_parent) {
+								# FIXME: both parents could be dead
 								if($opts{'f'}) {
 									die $person->name(), "Residence information in $yoe, but no residence information found for either parent";
 								}
