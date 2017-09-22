@@ -582,6 +582,8 @@ if($opts{'w'}) {
 					$summary = 'Date of Birth not Calulated';
 				} elsif($warning =~ /^Unknown state in/) {
 					$summary = 'Unknown US State';
+				} elsif($warning =~ /^Residence information in/) {
+					$summary = 'Child census not in a parent';
 				} else {
 					$summary = $warning;
 				}
@@ -2667,25 +2669,108 @@ sub print_person
 					$place_records{"Residence/$count"} = $residence;
 				}
 				if($rdate) {	# residence has a date?
-					if($opts{'w'} && $yod && ($rdate =~ /(\d{3,4})$/)) {
-						if($1 > $yod) {
-							if($opts{'f'}) {
-								die $person->as_string(), ": Year of residence $1 is after the year of death $yod";
-							}
-							red_warning({
-								person => $person,
-								warning => "Year of residence $1 is after the year of death $yod"
-							});
-						} elsif($death_dt && (my $rdate_dt = date_to_datetime($rdate))) {
-							if($rdate_dt > $death_dt) {
+					if($opts{'w'} && ($rdate =~ /(\d{3,4})$/)) {
+						my $yoe = $1;
+						if($yod) {
+							if($yoe > $yod) {
 								if($opts{'f'}) {
-									die $person->as_string(), ": Date of residence $rdate is after date of death ", $death_dt->strftime('x');
+									die $person->as_string(), ": Year of residence $yoe is after the year of death $yod";
 								}
 								red_warning({
 									person => $person,
-									warning => "Date of residence $rdate is after date of death " . $death_dt->strftime('x')
+									warning => "Year of residence $yoe is after the year of death $yod"
 								});
+							} elsif($death_dt && (my $rdate_dt = date_to_datetime($rdate))) {
+								if($rdate_dt > $death_dt) {
+									if($opts{'f'}) {
+										die $person->as_string(), ": Date of residence $rdate is after date of death ", $death_dt->strftime('x');
+									}
+									red_warning({
+										person => $person,
+										warning => "Date of residence $rdate is after date of death " . $death_dt->strftime('x')
+									});
+								}
 							}
+						}
+						if($yob && (($yoe - $yob) <= 10)) {
+							my $found_parent = 0;
+							if($mother) {
+								my @mr = $mother->residence();
+								my @me = $mother->event();
+								my $index = 0;
+								foreach my $event(@me) {
+									$index++;
+									if(!ref($event)) {
+										my $e = $mother->tag_record('EVEN', $index);
+										if(ref($e) eq 'Gedcom::Record') {
+											$event = $e;
+										} else {
+											next;
+										}
+									}
+									if(ref($event) eq 'Gedcom::Record') {
+										my $type = $event->type();
+										if(!defined($type)) {
+											next;
+										}
+
+										if(($type =~ /^Census U[KS] (\d{4})$/) || ($type eq 'Register UK 1939')) {
+											push @mr, $event;
+										}
+									}
+								}
+								foreach my $residence(@mr) {
+									my $date = $residence->date();
+									if($date =~ /(\d{3,4})$/) {
+										my $d = $1;
+										if($1 == $yoe) {
+											$found_parent = $residence;
+											last;
+										}
+									}
+								}
+							}
+							if($father && !$found_parent) {
+								my @fr = $father->residence();
+								my @fe = $father->event();
+								my $index = 0;
+								foreach my $event(@fe) {
+									$index++;
+									if(!ref($event)) {
+										my $e = $father->tag_record('EVEN', $index);
+										if(ref($e) eq 'Gedcom::Record') {
+											$event = $e;
+										} else {
+											next;
+										}
+									}
+									if(ref($event) eq 'Gedcom::Record') {
+										my $type = $event->type();
+										if(!defined($type)) {
+											next;
+										}
+
+										if(($type =~ /^Census U[KS] (\d{4})$/) || ($type eq 'Register UK 1939')) {
+											push @fr, $event;
+										}
+									}
+								}
+								foreach my $residence(@fr) {
+									my $date = $residence->date();
+									if($date =~ /(\d{3,4})$/) {
+										my $d = $1;
+										if($1 == $yoe) {
+											$found_parent = $residence;
+										}
+									}
+								}
+							}
+							if(!$found_parent) {
+								if($opts{'f'}) {
+									die $person->name(), "Residence information in $yoe, but no residence information found for either parent";
+								}
+								red_warning({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
+							}	# TODO: else warn if both parents locations are different
 						}
 					}
 					if(scalar(@residencelist) > 1) {
@@ -3721,6 +3806,12 @@ sub print_person
 					if((ref($event) eq 'Gedcom::Record') &&
 					   ($event->type() =~ /^Census U[KS] (\d{4})$/)) {
 						$census_years{$1} = $event->type();
+					   	if(!$event->date()) {
+							if($opts{'f'}) {
+								die $person->as_person(), "Census for $1 is missing a date";
+							}
+							red_warning({ person => $person, warning => "Census for $1 is missing a date" });
+						}
 					}
 				}
 				foreach my $year(sort { $a <=> $b } keys(%census_years)) {
