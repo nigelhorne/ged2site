@@ -106,6 +106,45 @@ sub _open {
 			# require Text::CSV::Slurp;
 			# Text::CSV::Slurp->import();
 
+		} else {
+			$slurp_file = File::Spec->catfile($directory, "$table.xml");
+			if(-r $slurp_file) {
+				# You'll need to install XML::Twig and
+				# AnyData::Format::XML
+				# The DBD::AnyData in CPAN doesn't work - grab a
+				# patched version from https://github.com/nigelhorne/DBD-AnyData.git
+				$dbh = DBI->connect('dbi:AnyData(RaiseError=>1):');
+				$dbh->{'RaiseError'} = 1;
+				if($self->{'logger'}) {
+					$self->{'logger'}->debug("read in $table from XML $slurp_file");
+				}
+				$dbh->func($table, 'XML', $slurp_file, 'ad_import');
+			} else {
+				throw Error::Simple("Can't open $directory/$table");
+			}
+		}
+	}
+
+	push @databases, $table;
+
+	$self->{$table} = $dbh;
+	my @statb = stat($slurp_file);
+	$self->{'_updated'} = $statb[9];
+}
+
+# Returns a reference to an array of hash references of all the data meeting
+# the given criteria
+sub selectall_hashref {
+	my $self = shift;
+	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $table = ref($self);
+	$table =~ s/.*:://;
+
+	$self->_open() if(!$self->{$table});
+
+	if(scalar(keys %args) == 0) {
+		if(!$self->{'data'}) {
 			# $self->{'data'} = Text::CSV::Slurp->load(file => $slurp_file, %options);
 
 			require Text::xSV::Slurp;
@@ -133,44 +172,7 @@ sub _open {
 			foreach my $d(@data) {
 				$self->{'data'}[$i++] = $d;
 			}
-		} else {
-			$slurp_file = File::Spec->catfile($directory, "$table.xml");
-			if(-r $slurp_file) {
-				# You'll need to install XML::Twig and
-				# AnyData::Format::XML
-				# The DBD::AnyData in CPAN doesn't work - grab a
-				# patched version from https://github.com/nigelhorne/DBD-AnyData.git
-				$dbh = DBI->connect('dbi:AnyData(RaiseError=>1):');
-				$dbh->{'RaiseError'} = 1;
-				if($self->{'logger'}) {
-					$self->{'logger'}->debug("read in $table from XML $slurp_file");
-				}
-				$dbh->func($table, 'XML', $slurp_file, 'ad_import');
-			} else {
-				throw Error::Simple("Can't open $slurp_file");
-			}
 		}
-	}
-
-	push @databases, $table;
-
-	$self->{$table} = $dbh;
-	my @statb = stat($slurp_file);
-	$self->{'_updated'} = $statb[9];
-}
-
-# Returns a reference to an array of hash references of all the data meeting
-# the given criteria
-sub selectall_hashref {
-	my $self = shift;
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
-
-	my $table = ref($self);
-	$table =~ s/.*:://;
-
-	$self->_open() if(!$self->{$table});
-
-	if($self->{'data'} && (scalar(keys %args) == 0)) {
 		if($self->{'logger'}) {
 			$self->{'logger'}->trace("$table: selectall_hashref fast track return");
 		}
