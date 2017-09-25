@@ -3,13 +3,17 @@ package Ged2site::Display::page;
 # Display a page. Certain variables are available to all templates, such as
 # the stuff in the configuration file
 
-use Config::Auto;
-use CGI::Info;
-use File::Spec;
-use Template::Filters;
-use Template::Plugin::EnvHash;
+use strict;
+use warnings;
+
 use Ged2site::Config;
 use Ged2site::Allow;
+use CGI::Info;
+use Error;
+use Fatal qw(:void open);
+
+use Template::Filters;
+use Template::Plugin::EnvHash;
 use HTML::SocialMedia;
 
 our $sm;
@@ -49,6 +53,10 @@ sub new {
 		# _page => $info->param('page'),
 	};
 
+	if(my $key = $info->param('key')) {
+		$self->{'_key'} = $key;
+	}
+
 	if(my $twitter = $config->{'twitter'}) {
 		$smcache ||= ::create_memory_cache(config => $config, logger => $args{'logger'}, namespace => 'HTML::SocialMedia');
 		$sm ||= HTML::SocialMedia->new({ twitter => $twitter, cache => $smcache, lingua => $args{lingua}, logger => $args{logger} });
@@ -83,10 +91,10 @@ sub get_template_path {
 	# Look in .../en/gb/web, then .../en/web then /web
 	if($self->{_lingua}) {
 		my $lingua = $self->{_lingua};
-		my $candidate;
 
 		$self->_debug({ message => 'Requested language: ' . $lingua->requested_language() });
 
+		my $candidate;
 		if($lingua->sublanguage_code_alpha2()) {
 			$candidate = "$dir/" . $lingua->code_alpha2() . '/' . $lingua->sublanguage_code_alpha2();
 			$self->_debug({ message => "check for directory $candidate" });
@@ -115,7 +123,7 @@ sub get_template_path {
 
 	$self->_debug({ message => "prefix: $prefix" });
 
-        my $modulepath = $args{'modulepath'} || ref($self);
+	my $modulepath = $args{'modulepath'} || ref($self);
 	$modulepath =~ s/::/\//g;
 
 	my $filename = $self->_pfopen($prefix, $modulepath, 'tmpl:tt:html:htm:txt');
@@ -202,11 +210,11 @@ sub html {
 		# the values in info, then the values in params
 		my $vals;
 		if(defined($self->{_config})) {
-                        if($info->params()) {
-                                $vals = { %{$self->{_config}}, %{$info->params()} };
-                        } else {
-                                $vals = $self->{_config};
-                        }
+			if($info->params()) {
+				$vals = { %{$self->{_config}}, %{$info->params()} };
+			} else {
+				$vals = $self->{_config};
+			}
 			if(defined($params)) {
 				$vals = { %{$vals}, %{$params} };
 			}
@@ -226,7 +234,7 @@ sub html {
 		$template->process($filename, $vals, \$rc) ||
 			throw Error::Simple($template->error());
 	} elsif($filename =~ /\.(html?|txt)$/) {
-		open(my $fin, '<', $filename) || die "$filename: $!";
+		open(my $fin, '<', $filename);
 
 		my @lines = <$fin>;
 
@@ -234,7 +242,7 @@ sub html {
 
 		$rc = join('', @lines);
 	} else {
-		warn "Unhandled file type $filename";
+		throw Error::Simple("Unhandled file type $filename");
 	}
 
 	if(($filename !~ /.txt$/) && ($rc =~ /\smailto:(.+?)>/)) {
@@ -355,12 +363,12 @@ sub _append_browser_type {
 	my $rc;
 
 	if(-d $directory) {
-                if($self->{_info}->is_mobile()) {
-                        $rc = "$directory/mobile:";
-                } elsif($self->{_info}->is_search_engine()) {
-                        $rc = "$directory/search:$directory/web:$directory/robot:";
-                } elsif($self->{_info}->is_robot()) {
-                        $rc = "$directory/robot:";
+		if($self->{_info}->is_mobile()) {
+			$rc = "$directory/mobile:";
+		} elsif($self->{_info}->is_search_engine()) {
+			$rc = "$directory/search:$directory/web:$directory/robot:";
+		} elsif($self->{_info}->is_robot()) {
+			$rc = "$directory/robot:";
 		}
 		$rc .= "$directory/web:";
 
