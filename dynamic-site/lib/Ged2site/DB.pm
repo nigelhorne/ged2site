@@ -151,6 +151,7 @@ sub _open {
 			}
 		}
 	}
+
 	push @databases, $table;
 
 	$self->{$table} = $dbh;
@@ -169,7 +170,7 @@ sub selectall_hashref {
 
 	$self->_open() if(!$self->{$table});
 
-	if($self->{'data'} && (scalar(@args) == 0)) {
+	if($self->{'data'} && (scalar(keys %args) == 0)) {
 		if($self->{'logger'}) {
 			$self->{'logger'}->trace("$table: selectall_hashref fast track return");
 		}
