@@ -223,7 +223,7 @@ sub doit
 	if(!$ENV{'REMOTE_ADDR'}) {
 		$args->{'lint_content'} = 1;
 	}
-	if(!$info->is_search_engine() && $config->rootdir()) {
+	if(!$info->is_search_engine() && $config->rootdir() && ((!defined($info->param('action'))) || ($info->param('action') ne 'send_message'))) {
 		$args->{'save_to'} = {
 			directory => File::Spec->catfile($config->rootdir(), 'save_to'),
 			ttl => 3600 * 24,
