@@ -105,7 +105,33 @@ sub _open {
 
 			# require Text::CSV::Slurp;
 			# Text::CSV::Slurp->import();
+			# $self->{'data'} = Text::CSV::Slurp->load(file => $slurp_file, %options);
 
+			require Text::xSV::Slurp;
+			Text::xSV::Slurp->import();
+
+			my @data = @{xsv_slurp(
+				shape => 'aoh',
+				text_csv => {
+					sep_char => $sep_char,
+					allow_loose_quotes => 1,
+					blank_is_undef => 1,
+					empty_is_undef => 1,
+					binary => 1,
+					escape_char => '\\',
+				},
+				# string => \join('', grep(!/^\s*(#|$)/, <DATA>))
+				file => $self->{'slurp_file'}
+			)};
+
+			# Don't use blank lines or comments
+			@data = grep { $_->{'entry'} !~ /^#/ } grep { defined($_->{'entry'}) } @data;
+			# $self->{'data'} = @data;
+			my $i = 0;
+			$self->{'data'} = ();
+			foreach my $d(@data) {
+				$self->{'data'}[$i++] = $d;
+			}
 		} else {
 			$slurp_file = File::Spec->catfile($directory, "$table.xml");
 			if(-r $slurp_file) {
@@ -143,36 +169,7 @@ sub selectall_hashref {
 
 	$self->_open() if(!$self->{$table});
 
-	if(scalar(keys %args) == 0) {
-		if(!$self->{'data'}) {
-			# $self->{'data'} = Text::CSV::Slurp->load(file => $slurp_file, %options);
-
-			require Text::xSV::Slurp;
-			Text::xSV::Slurp->import();
-
-			my @data = @{xsv_slurp(
-				shape => 'aoh',
-				text_csv => {
-					sep_char => $sep_char,
-					allow_loose_quotes => 1,
-					blank_is_undef => 1,
-					empty_is_undef => 1,
-					binary => 1,
-					escape_char => '\\',
-				},
-				# string => \join('', grep(!/^\s*(#|$)/, <DATA>))
-				file => $slurp_file
-			)};
-
-			# Don't use blank lines or comments
-			@data = grep { $_->{'entry'} !~ /^#/ } grep { defined($_->{'entry'}) } @data;
-			# $self->{'data'} = @data;
-			my $i = 0;
-			$self->{'data'} = ();
-			foreach my $d(@data) {
-				$self->{'data'}[$i++] = $d;
-			}
-		}
+	if((scalar(keys %args) == 0) && $self->{'data'}) {
 		if($self->{'logger'}) {
 			$self->{'logger'}->trace("$table: selectall_hashref fast track return");
 		}
