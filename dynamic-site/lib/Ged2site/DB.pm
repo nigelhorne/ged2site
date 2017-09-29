@@ -121,7 +121,7 @@ sub _open {
 					escape_char => '\\',
 				},
 				# string => \join('', grep(!/^\s*(#|$)/, <DATA>))
-				file => $self->{'slurp_file'}
+				file => $slurp_file
 			)};
 
 			# Don't use blank lines or comments
