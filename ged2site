@@ -916,6 +916,11 @@ sub print_person
 		$dateofdeath = $death->date();
 	}
 
+	my $yod;	# Year of death
+	if($dateofdeath && ($dateofdeath =~ /.*?(\d{3,4})/)) {
+		$yod = $1;
+	}
+
 	my $person2;
 	if($ged2) {
 		$person2 = $ged2->get_individual($person->as_string());
@@ -1811,8 +1816,8 @@ sub print_person
 					}
 				}
 				if($death_dt || ($dateofdeath && ($dateofdeath =~ /^\d{3,4}$/))) {
-					# TODO: Add more checking
 					my $yod;
+					# TODO: Add more checking
 					if($death_dt) {
 						$yod = $death_dt->year();
 					} elsif($dateofdeath =~ /^(\d{3,4})$/) {
@@ -3809,14 +3814,39 @@ sub print_person
 
 			if($opts{'w'}) {
 				foreach my $event(@events) {
-					if((ref($event) eq 'Gedcom::Record') &&
-					   ($event->type() =~ /^Census U[KS] (\d{4})$/)) {
-						$census_years{$1} = $event->type();
-					   	if(!$event->date()) {
-							if($opts{'f'}) {
-								die $person->as_person(), "Census for $1 is missing a date";
+					if(ref($event) eq 'Gedcom::Record') {
+						my $type = $event->type();
+						my $year;
+						if($type =~ /^Census U[KS] (\d{4})$/) {
+							$year = $1;
+							if(!$event->date()) {
+								if($opts{'f'}) {
+									die $person->as_person(), "Census for $year is missing a date";
+								}
+								red_warning({ person => $person, warning => "Census for $year missing a date" });
 							}
-							red_warning({ person => $person, warning => "Census for $1 is missing a date" });
+						} elsif($type eq 'Register UK 1939') {
+							if(!$event->date()) {
+								if($opts{'f'}) {
+									die $person->as_person(), '1939 UK register is missing the date 29 Sep 1939';
+								}
+								red_warning({ person => $person, warning => '1939 UK register is missing the date 29 Sep 1939' });
+							}
+							$year = 1939;
+						} else {
+							next;
+						}
+						$census_years{$year} = $type;
+						if(defined($yod) && ($year > $yod)) {
+							if($opts{'f'}) {
+								die $person->as_person(), "Census for $year is after year of death ($yod)";
+							}
+							red_warning({ person => $person, warning => "Census for $year after year of death ($yod)" });
+						} elsif(defined($yob) && ($year < $yob)) {
+							if($opts{'f'}) {
+								die $person->as_person(), "Census for $year is after year of birth ($yob)";
+							}
+							red_warning({ person => $person, warning => "Census for $year after year of birth ($yob)" });
 						}
 					}
 				}
