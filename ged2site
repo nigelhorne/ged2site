@@ -1670,7 +1670,7 @@ sub print_person
 					$name_components{'surname_1'} .
 					'</b>';
 				if($relationship) {
-					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {
+					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || scalar(@spouses)) {
 						$bio .= ',';
 					} elsif($opts{'l'} || $was_alive) {
 						$bio .= ' is';
