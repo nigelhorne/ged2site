@@ -324,7 +324,12 @@ sub doit
 				"Pragma: no-cache\n\n";
 
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "There is a problem with your connection. Please contact your ISP.\n";
+				if($error =~ /Can\'t locate .* in \@INC/) {
+					$logger->fatal($error);
+					print "Software error - contact the webmaster\n";
+				} else {
+					print "There is a problem with your connection. Please contact your ISP.\n";
+				}
 			}
 		}
 		throw Error::Simple($error ? $error : $info->as_string());
