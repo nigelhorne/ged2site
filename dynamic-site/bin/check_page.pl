@@ -37,8 +37,10 @@ my ($premature, @results) = run_tests(
 	}
 );
 
-# diag $options{'header'};
-# diag $options{'body'};
+# diag($options{'header'});
+if($options{'body'} =~ /Can\'t locate .* in \@INC/s) {
+	diag($options{'body'});
+}
 
 ok (!$premature, 'no premature diagnostics');
 foreach my $result(@results) {

@@ -327,7 +327,8 @@ sub doit
 				"Pragma: no-cache\n\n";
 
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "Software error - contact the webmaster\n";
+				print "Software error - contact the webmaster\n",
+					"$error\n";;
 			}
 		} else {
 			# No permission to show this page
