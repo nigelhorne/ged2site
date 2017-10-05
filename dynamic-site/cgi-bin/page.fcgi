@@ -290,6 +290,10 @@ sub doit
 	};
 
 	my $error = $@;
+	if($error) {
+		$logger->error($error);
+		$display = undef;
+	}
 
 	if(defined($display)) {
 		# Pass in handles to the databases
@@ -317,6 +321,14 @@ sub doit
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 				print "I don't know what you want me to display.\n";
 			}
+		} elsif($error =~ /Can\'t locate .* in \@INC/) {
+			print "Status: 500 Internal Server Error\n",
+				"Content-type: text/plain\n",
+				"Pragma: no-cache\n\n";
+
+			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
+				print "Software error - contact the webmaster\n";
+			}
 		} else {
 			# No permission to show this page
 			print "Status: 403 Forbidden\n",
@@ -324,12 +336,7 @@ sub doit
 				"Pragma: no-cache\n\n";
 
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				if($error =~ /Can\'t locate .* in \@INC/) {
-					$logger->fatal($error);
-					print "Software error - contact the webmaster\n";
-				} else {
-					print "There is a problem with your connection. Please contact your ISP.\n";
-				}
+				print "There is a problem with your connection. Please contact your ISP.\n";
 			}
 		}
 		throw Error::Simple($error ? $error : $info->as_string());
