@@ -25,6 +25,7 @@ my %options;
 
 $t->do_compression_test(1);
 
+$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en';
 $options{'REQUEST_METHOD'} = 'GET';
 $options{'QUERY_STRING'} = 'page=people&home=1';
 $t->run(\%options);
@@ -32,17 +33,14 @@ $t->run(\%options);
 
 $options{'QUERY_STRING'} = 'page=mailto';
 $t->run(\%options);
-
-$options{'QUERY_STRING'} = 'page=mailto&lang=en';
-$t->run(\%options);
 # diag($options{'body'});
 
-$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en';
 $options{'QUERY_STRING'} = 'page=mailto&lang=en';
-diag($options{'body'});
+$t->run(\%options);
 
 $ENV{'HTTP_ACCEPT_LANGUAGE'} = 'fr';
-$options{'QUERY_STRING'} = 'page=people&home=1&lang=fr';
+$options{'QUERY_STRING'} = 'page=mailto&lang=fr';
 $t->run(\%options);
+# diag($options{'body'});
 
 done_testing();
