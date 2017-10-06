@@ -129,6 +129,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		$logger = Log::Any->get_logger(category => $script_name);
 		Log::WarnDie->dispatcher($logger);
 		$people->set_logger($logger);
+		$info->set_logger($logger);
 		$Error::Debug = 1;
 		try {
 			doit(debug => 1);
@@ -144,6 +145,8 @@ while($handling_request = ($request->Accept() >= 0)) {
 	Log::Any::Adapter->set( { category => $script_name }, 'Log4perl');
 	$logger = Log::Any->get_logger(category => $script_name);
 	$logger->info("Request $requestcount: ", $ENV{'REMOTE_ADDR'});
+	$people->set_logger($logger);
+	$info->set_logger($logger);
 
 	try {
 		doit(debug => 0);
