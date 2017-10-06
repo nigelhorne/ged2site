@@ -25,6 +25,7 @@ sub new {
 
 	my $class = ref($proto) || $proto;
 
+print '>>>>>Requested language: ', $args{lingua}->requested_language(), "\n";
 	my $info = $args{info} || CGI::Info->new();
 	my $config = $args{config} || Ged2site::Config->new({ logger => $args{logger}, info => $info, lingua => $args{lingua} });
 

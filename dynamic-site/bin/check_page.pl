@@ -5,7 +5,6 @@ use warnings;
 
 no lib '.';
 
-use Test::Tester;
 use Test::More;
 use Test::CGI::External; # https://metacpan.org/pod/release/BKB/Test-CGI-External-0.02/lib/Test/CGI/External.pod
 use FindBin;
@@ -13,6 +12,7 @@ use autodie qw(:all);
 
 $ENV{'GATEWAY_INTERFACE'} = 'CGI/1.1';
 $ENV{'SERVER_PORT'} = 443;
+$ENV{'NO_CACHE'} = 1;
 
 my $t = Test::CGI::External->new();
 
@@ -23,28 +23,26 @@ $t->set_cgi_executable("$FindBin::Bin/../cgi-bin/page.fcgi");
 
 my %options;
 
-# $options{'QUERY_STRING'} = 'address=njh@bandsman.co.uk&redir=www.google.com';
-# $options{no_check_content} = 1;	# It'll just set a location header
-# $t->set_no_check_content(1);
+$t->do_compression_test(1);
 
-my ($premature, @results) = run_tests(
-	sub {
-		$t->do_compression_test(1);
+$options{'REQUEST_METHOD'} = 'GET';
+$options{'QUERY_STRING'} = 'page=people&home=1';
+$t->run(\%options);
+# diag($options{'body'});
 
-		$options{'REQUEST_METHOD'} = 'GET';
-		$options{'QUERY_STRING'} = 'page=people&home=1';
-		$t->run(\%options);
-	}
-);
+$options{'QUERY_STRING'} = 'page=mailto';
+$t->run(\%options);
 
-# diag($options{'header'});
-if($options{'body'} =~ /Can\'t locate .* in \@INC/s) {
-	diag($options{'body'});
-}
+$options{'QUERY_STRING'} = 'page=mailto&lang=en';
+$t->run(\%options);
+# diag($options{'body'});
 
-ok (!$premature, 'no premature diagnostics');
-foreach my $result(@results) {
-	ok($result->{'ok'}, "passed $result->{name}");
-}
+$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en';
+$options{'QUERY_STRING'} = 'page=mailto&lang=en';
+diag($options{'body'});
+
+$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'fr';
+$options{'QUERY_STRING'} = 'page=people&home=1&lang=fr';
+$t->run(\%options);
 
 done_testing();
