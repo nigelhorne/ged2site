@@ -139,9 +139,9 @@ if($opts{'m'} || $opts{'w'}) {
 	}
 	$geocoder = Geo::Coder::List->new()
 		->push({ regex => qr/(Canada|USA|United States)$/, geocoder => Geo::Coder::CA->new() })
-		->push(Geo::Coder::XYZ->new())
-		->push(Geo::Coder::Google->new())
 		->push(Geo::Coder::OSM->new())
+		->push(Geo::Coder::Google->new())
+		->push(Geo::Coder::XYZ->new())
 		->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
 	my $ua = LWP::UserAgent::Throttled->new();
