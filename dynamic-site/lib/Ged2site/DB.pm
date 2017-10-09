@@ -269,16 +269,19 @@ sub AUTOLOAD {
 
 	$self->_open() if(!$self->{$table});
 
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	my @args;
-	foreach my $c1(keys(%args)) {
+	foreach my $c1(keys(%params)) {
 		# $query .= " AND $c1 LIKE ?";
 		$query .= " AND $c1 = ?";
-		push @args, $args{$c1};
+		push @args, $params{$c1};
 	}
 	$query .= " ORDER BY $column";
+	if($self->{'logger'}) {
+		$self->{'logger'}->debug("AUTOLOAD $query: " . join(', ', @args));
+	}
 	my $sth = $self->{$table}->prepare($query) || throw Error::Simple($query);
 	$sth->execute(@args) || throw Error::Simple($query);
 
