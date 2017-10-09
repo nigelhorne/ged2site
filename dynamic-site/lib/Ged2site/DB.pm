@@ -7,6 +7,8 @@ use File::Basename;
 use DBI;
 use File::Spec;
 use File::pfopen 0.02;
+use File::Temp;
+use Gzip::Faster;
 
 our @databases;
 our $directory;
@@ -78,8 +80,15 @@ sub _open {
 			$self->{'logger'}->debug("read in $table from SQLite $slurp_file");
 		}
 	} else {
-		my $fin;
-		($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv:db');
+		($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv.gz:db.gz');
+		if(defined($slurp_file) && (-r $slurp_file)) {
+			$fin = File::Temp->new(SUFFIX => '.csv', UNLINK => 0);
+			print $fin gunzip_file($slurp_file);
+			$slurp_file = $fin->filename();
+			$self->{'temp'} = $slurp_file;
+		} else {
+			($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv:db');
+		}
 		if(defined($slurp_file) && (-r $slurp_file)) {
 			close($fin);
 			my $sep_char = $args{'sep_char'};
@@ -289,6 +298,17 @@ sub AUTOLOAD {
 		return map { $_->[0] } @{$sth->fetchall_arrayref()};
 	}
 	return $sth->fetchrow_array();	# Return the first match only
+}
+
+sub DESTROY {
+	if(defined($^V) && ($^V ge 'v5.14.0')) {
+		return if ${^GLOBAL_PHASE} eq 'DESTRUCT';	# >= 5.14.0 only
+	}
+	my $self = shift;
+
+	if($self->{'temp'}) {
+		unlink $self->{'temp'};
+	}
 }
 
 1;
