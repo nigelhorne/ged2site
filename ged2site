@@ -130,7 +130,6 @@ if($opts{'J'}) {
 	$javascript_key = $config->{'google_maps_javascript_key'};
 }
 
-my $osm;
 my $geocoder;
 
 if($opts{'m'} || $opts{'w'}) {
@@ -138,12 +137,11 @@ if($opts{'m'} || $opts{'w'}) {
 	if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 		$gp_args{'language'} = lc($1);
 	}
-	$osm = Geo::Coder::OSM->new();
 	$geocoder = Geo::Coder::List->new()
 		->push({ regex => qr/(Canada|USA|United States)$/, geocoder => Geo::Coder::CA->new() })
 		->push(Geo::Coder::XYZ->new())
 		->push(Geo::Coder::Google->new())
-		->push($osm)
+		->push(Geo::Coder::OSM->new())
 		->push(Geo::Coder::GooglePlaces->new(%gp_args));
 
 	my $ua = LWP::UserAgent::Throttled->new();
