@@ -84,6 +84,7 @@ sub _open {
 			$self->{'logger'}->debug("read in $table from SQLite $slurp_file");
 		}
 	} else {
+		my $fin;
 		($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv.gz:db.gz');
 		if(defined($slurp_file) && (-r $slurp_file)) {
 			$fin = File::Temp->new(SUFFIX => '.csv', UNLINK => 0);
