@@ -144,8 +144,8 @@ if($opts{'m'} || $opts{'w'}) {
 			->push({ regex => qr/(Canada|USA|United States)$/i, geocoder => Geo::Coder::CA->new() })
 			->push({ regex => qr/^\w+,\s*\w+,\s*(UK|United Kingdom|England)$/i, geocoder => Geo::Coder::Postcodes->new() })
 			->push(Geo::Coder::GooglePlaces->new(%gp_args))
-			->push(Geo::Coder::OSM->new())
 			->push(Geo::Coder::XYZ->new())
+			->push(Geo::Coder::OSM->new())
 			->push(Geo::Coder::Google->new());
 	} else {
 		$geocoder = Geo::Coder::List->new()
@@ -4082,6 +4082,7 @@ sub print_person
 											die "BUG: update ACOM mapping for $file";
 										}
 										red_warning({ person => $person, warning => "BUG: update ACOM mapping for $file" });
+										next OBJE;
 									}
 								}
 								print "Download image $file\n" if($opts{'v'});
@@ -4092,7 +4093,12 @@ sub print_person
 									my $info = Image::Info::image_info("static-site/$localfile");
 									my ($w, $h) = Image::Info::dim($info);
 									if(!defined($w)) {
-										die "static-site/$localfile";
+										if($opts{'f'}) {
+											die "Can't get image information for static-site/$localfile";
+										}
+										red_warning({ person => $person, "Can't get image information for static-site/$localfile" });
+										# unlink "static-site/$localfile";
+										next OBJE;
 									}
 									$h *= 175 / $w;
 									$h = int($h);
@@ -4516,6 +4522,11 @@ sub print_person
 					print $csv $location->{geometry}{location}{lat}, ',',
 						$location->{geometry}{location}{lng};
 				}
+			} elsif($opts{'w'}) {
+				if($opts{'f'}) {
+					die $person->as_string(), ": Unknown birth location $placeofbirth";
+				}
+				red_warning({ person => $person, warning => "Unknown birth location $placeofbirth" });
 			}
 		}
 		print $csv '!';
@@ -4525,6 +4536,11 @@ sub print_person
 					print $csv $location->{geometry}{location}{lat}, ',',
 						$location->{geometry}{location}{lng};
 				}
+			} elsif($opts{'w'}) {
+				if($opts{'f'}) {
+					die $person->as_string(), ": Unknown death location $placeofdeath";
+				}
+				red_warning({ person => $person, warning => "Unknown death location $placeofdeath" });
 			}
 		}
 		print $csv '!';
@@ -5458,7 +5474,7 @@ sub validate_place
 			# Use only the town part
 			$town = $1;
 		}
-		if(!$geocoder->geocode($town)) {
+		if($opts{'f'} && !$geocoder->geocode($town)) {
 			# Don't die because there are many
 			# false positives as locations
 			# may no longer exist
