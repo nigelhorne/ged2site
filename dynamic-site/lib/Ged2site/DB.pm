@@ -258,7 +258,7 @@ sub execute {
 
 	my $query = $args{'query'};
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("fetchrow_hashref $query: ");
+		$self->{'logger'}->debug("fetchrow_hashref $query");
 	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute() || throw Error::Simple($query);
