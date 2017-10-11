@@ -80,6 +80,8 @@ Some of the options can be stored in *ged2site.conf*:
 | -G   |  google_maps_geolocation_key (also can be stored in the `GMAP_KEY` environment variable) |
 | -J   |  google_maps_javascript_key |
 
+You can get free API keys from Google at https://console.developers.google.com/apis/credentials.
+
 Debugging and Developing
 ========================
 
