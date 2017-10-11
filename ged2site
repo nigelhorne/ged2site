@@ -5474,7 +5474,7 @@ sub validate_place
 			# Use only the town part
 			$town = $1;
 		}
-		if($opts{'f'} && !$geocoder->geocode($town)) {
+		if($opts{'w'} && !$geocoder->geocode($town)) {
 			# Don't die because there are many
 			# false positives as locations
 			# may no longer exist
