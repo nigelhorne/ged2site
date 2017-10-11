@@ -165,7 +165,7 @@ if($opts{'m'} || $opts{'w'}) {
 		'nominatim.openstreetmap.org' => 1,
 		'geocode.xyz' => 1,
 		'geocoder.ca' => 1,
-		'postcodes.io' => 1,
+		'api.postcodes.io' => 1,
 	});
 
 	# G::C::GooglePlaces
