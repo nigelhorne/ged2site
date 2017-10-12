@@ -2738,7 +2738,12 @@ sub print_person
 										}
 									}
 								}
+								$index = 0;
 								foreach my $residence(@mr) {
+									$index++;
+									if(ref($residence) ne 'Gedcom::Record') {
+										$residence = $person->record(['residence', $index]);
+									}
 									if(ref($residence) eq 'Gedcom::Record') {
 										my $date = $residence->date();
 										if(defined($date) && ($date =~ /(\d{3,4})$/)) {
@@ -2776,7 +2781,12 @@ sub print_person
 										}
 									}
 								}
+								$index = 0;
 								foreach my $residence(@fr) {
+									$index++;
+									if(ref($residence) ne 'Gedcom::Record') {
+										$residence = $person->record(['residence', $index]);
+									}
 									if(ref($residence) eq 'Gedcom::Record') {
 										my $date = $residence->date();
 										if($date =~ /(\d{3,4})$/) {
