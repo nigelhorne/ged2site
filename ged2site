@@ -5613,8 +5613,8 @@ sub sibling_baptism_string
 	}
 
 	if($allsamesex) {
-		return ', the same day as ', lcfirst($person->possessive()), ' ',
-			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters '),
+		return ', the same day as ' . lcfirst($person->possessive()), ' ' .
+			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ') .
 			Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @onsameday), {final_sep => ''});
 	}
 	my $count = 0;
