@@ -1874,6 +1874,9 @@ sub print_person
 					if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 						$bio .= ' there';
 						if(my $address = $baptism->address()) {
+							if($address =~ /(.+),\s*$placeofbirth$/) {
+								$address = $1;
+							}
 							$bio .= " at $address";
 						}
 					} else {
