@@ -3077,7 +3077,11 @@ sub print_person
 			if($dateofburial) {
 				$bio .= ' and was buried';
 				if($placeofburial) {
-					$bio .= place($opts);
+					if(($placeofburial eq $placeofdeath) && (!$burial->address()) && (!$death->address())) {
+						$bio .= ' there';
+					} else {
+						$bio .= place($opts);
+					}
 				}
 				$bio .= ' ' . year({ person => $person, date => $dateofburial });
 				if(my $b = notes({ person => $person, record => $burial, paragraph => 0 })) {
