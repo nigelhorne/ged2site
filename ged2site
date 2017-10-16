@@ -3070,14 +3070,14 @@ sub print_person
 				places_printed => \%places_printed,
 				must_postdate => $birth_dt,
 			};
-			# if(my $address = $burial->address()) {
-			if(my $address = get_value({ person => $person, value => 'burial address' })) {
+			my $address;
+			if($address = get_value({ person => $person, value => 'burial address' })) {
 				$opts->{'address'} = $address;
 			}
 			if($dateofburial) {
 				$bio .= ' and was buried';
 				if($placeofburial) {
-					if(($placeofburial eq $placeofdeath) && (!$burial->address()) && (!$death->address())) {
+					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && (!$address) && (!$death->address())) {
 						$bio .= ' there';
 					} else {
 						$bio .= place($opts);
