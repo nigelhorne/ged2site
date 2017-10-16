@@ -872,7 +872,7 @@ sub print_person
 					}
 					red_warning({ person => $person, warning => "Unexpected text ($2) after the date $1 - should be in the note field" });
 				}
-			} else {
+			} elsif($dob !~ /\d{1,2}$/) {	# Dates can begin with a letter in the US
 				if($opts{'f'}) {
 					die $person->as_string(), ": Invalid character in date of birth $dob";
 				}
