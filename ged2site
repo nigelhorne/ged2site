@@ -75,6 +75,7 @@ use File::Copy;
 use Data::Fetch;
 use Config::Auto;
 use Locale::Object::Country;
+use List::Util;
 
 no lib '.';
 
@@ -5995,5 +5996,5 @@ sub cite
 	return '' unless($citations[0]);
 	return '' unless(scalar(@citations));
 
-	return '<span class="citation">' . join(',', sort { $a <=> $b } (@citations)) . '</span>';
+	return '<span class="citation">' . join(',', List::Util::uniq(sort { $a <=> $b } (@citations))) . '</span>';
 }
