@@ -306,7 +306,11 @@ sub AUTOLOAD {
 	}
 	$query .= " ORDER BY $column";
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("AUTOLOAD $query: " . join(', ', @args));
+		if(scalar(@args)) {
+			$self->{'logger'}->debug("AUTOLOAD $query: " . join(', ', @args));
+		} else {
+			$self->{'logger'}->debug("AUTOLOAD $query);
+		}
 	}
 	my $sth = $self->{$table}->prepare($query) || throw Error::Simple($query);
 	$sth->execute(@args) || throw Error::Simple($query);
