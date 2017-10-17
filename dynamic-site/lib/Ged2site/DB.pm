@@ -309,7 +309,7 @@ sub AUTOLOAD {
 		if(scalar(@args)) {
 			$self->{'logger'}->debug("AUTOLOAD $query: " . join(', ', @args));
 		} else {
-			$self->{'logger'}->debug("AUTOLOAD $query);
+			$self->{'logger'}->debug("AUTOLOAD $query");
 		}
 	}
 	my $sth = $self->{$table}->prepare($query) || throw Error::Simple($query);
