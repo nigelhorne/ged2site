@@ -35,12 +35,12 @@ The configuration file can be in any number of formats including INI and XML.
     rootdir: /full/path/to/website directory
     SiteTitle: The title of your website
     memory_cache: where short-term volatile information is stored, such as the country of origin of the client
-    disc_cache: where long-term information is stored, such as copies of output to see is HTTP 304 can be returned
+    disc_cache: where long-term information is stored, such as copies of output to see if HTTP 304 can be returned
     contact: your name and e-mail address
 
 Then upload the dynamic-site directory to your web-server.
 The databases are in CSV format. To speed up access you can convert to SQLite
-format with using
+format using
 [csv2sqlite](http://search.cpan.org/~rwstauner/App-csv2sqlite/),
 which you should run on each of the .csv files.
 
@@ -51,8 +51,7 @@ since they contain cached copies of pages that will be inconsistent with the new
 
 Finally, for the dynamic site, set-up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
 
-
-The options are:
+The options to ged2site are:
 
 | Flag | Meaning |
 | ---- | ------- |
@@ -104,16 +103,15 @@ I use FindMyPast on Linux, because export of images is better on FMP and
 because Linux.  I recognise that many folks use Ancestry on Windows, so I
 have this rough guide which works for me, but understand that you'll still
 need to be an advanced Windows user, this is not for the Novice.  If you
-still need help, e-mail me, or put an issue on github.com/nigelhorne/ged2site.
+still need help, e-mail me or put an issue on github.com/nigelhorne/ged2site.
 
 * Firstly install a Perl, either ActiveState or Strawberry will work fine. I
 have also had success using Cygwin's Perl.
 
 * Load in all the CPAN modules that ged2site uses.
 
-* Install Family Tree Maker.  Sorry, there's no alternative, you'll just have
-to find a copy and buy it.  Yes, I know it no longer supports syncing, hopefully
-this will be addressed soon.
+* Install Family Tree Maker.  Sorry; there's no alternative so you'll just have
+to find a copy and buy it.
 
 * Sync your ACOM tree to FTM, ensuring you also sync all of the media.
 
@@ -199,13 +197,14 @@ mention goes to the Gedcom module.
 
 ## See Also
 
-[gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files
+[gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files  
 [gedcmp](https://github.com/nigelhorne/gedcmp) - compare two Gedcoms
 
 # LICENSE AND COPYRIGHT
 
 Copyright 2015-2017 Nigel Horne.
 
-This program is released under the following licence: GPL for personal use on a single computer.
-All other users (including Commercial, Charity, Educational, Government)
+This program is released under the following licence: GPL2 for personal use on
+a single computer.
+All other users (for example Commercial, Charity, Educational, Government)
 must apply in writing for a licence for use from Nigel Horne at `<njh at nigelhorne.com>`.
