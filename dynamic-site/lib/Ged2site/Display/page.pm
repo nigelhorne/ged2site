@@ -119,7 +119,7 @@ sub get_template_path {
 
 	# Fall back to .../web, or if that fails, assume no web, robot or
 	# mobile variant
-	$prefix .= "$dir/web:$dir";
+	$prefix .= "$dir/web:$dir/default/web:$dir/default:$dir";
 
 	$self->_debug({ message => "prefix: $prefix" });
 
