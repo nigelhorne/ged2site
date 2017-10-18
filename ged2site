@@ -3076,8 +3076,11 @@ sub print_person
 			if($dateofburial) {
 				$bio .= ' and was buried';
 				if($placeofburial) {
-					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && (!$address) && (!$death->address())) {
+					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && !$death->address()) {
 						$bio .= ' there';
+						if($address) {
+							$bio .= " at $address";
+						}
 					} else {
 						$bio .= place($opts);
 					}
