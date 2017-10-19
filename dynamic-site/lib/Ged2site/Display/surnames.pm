@@ -2,9 +2,9 @@ package Ged2site::Display::surnames;
 
 # Display the surnames page
 
-use Ged2site::Display::page;
+use Ged2site::Display;
 
-our @ISA = ('Ged2site::Display::page');
+our @ISA = ('Ged2site::Display');
 
 sub html {
 	my $self = shift;

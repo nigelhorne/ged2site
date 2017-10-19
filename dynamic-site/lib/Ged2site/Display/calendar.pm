@@ -5,11 +5,11 @@ use warnings;
 
 # Display the calendar page
 
-use Ged2site::Display::page;
+use Ged2site::Display;
 use DateTime;
 use DateTime::Locale;
 
-our @ISA = ('Ged2site::Display::page');
+our @ISA = ('Ged2site::Display');
 
 sub html {
 	my $self = shift;

@@ -5,11 +5,9 @@ package Ged2site::Display::ww1;
 #	data, but that can't always be trusted to be of normalised form.  Need to find a way of
 #	speeding this up.
 
-use Ged2site::Display::page;
+use Ged2site::Display;
 
-our @ISA = ('Ged2site::Display::page');
-our $geocoder;
-our %cache;
+our @ISA = ('Ged2site::Display');
 
 sub html {
 	my $self = shift;

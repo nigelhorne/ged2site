@@ -1,9 +1,12 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
     "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="en">
+<html lang="en" dir="rtl">
 	<head>
+		<meta charset="utf8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		[% IF person %]
 			<title>[% person.title %]</title>
+			<meta name="description" content="About [% person.title %] - A ged2site webpage">
 		[% ELSE %]
 			<title>[% SiteTitle.join(' ') %]</title>
 			<script language="JavaScript">
@@ -14,13 +17,13 @@
 				//STOP HIDING-->
 			</script>
 			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=people&home=1">
+			<meta name="description" content="[% SiteTitle.join(' ') %] - A ged2site webpage">
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 		<link rel="stylesheet" href="/css/mobile.css" text="/text/css" media="screen">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
 	</head>
 	<body>
 		[% IF person %]

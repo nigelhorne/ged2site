@@ -5,10 +5,10 @@ package Ged2site::Display::emmigrants;
 #	data, but that can't always be trusted to be of normalised form.  Need to find a way of
 #	speeding this up.
 
-use Ged2site::Display::page;
+use Ged2site::Display;
 # use Geo::Coder::XYZ;
 
-our @ISA = ('Ged2site::Display::page');
+our @ISA = ('Ged2site::Display');
 our $geocoder;
 our %cache;
 

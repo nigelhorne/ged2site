@@ -332,7 +332,7 @@ sub doit
 
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 				print "Software error - contact the webmaster\n",
-					"$error\n";;
+					"$error\n";
 			}
 		} else {
 			# No permission to show this page

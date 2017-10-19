@@ -2,10 +2,9 @@ package Ged2site::Display::history;
 
 # Display the history page
 
-use Ged2site::Display::page;
-use MIME::Base64;
+use Ged2site::Display;
 
-our @ISA = ('Ged2site::Display::page');
+our @ISA = ('Ged2site::Display');
 sub html {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;

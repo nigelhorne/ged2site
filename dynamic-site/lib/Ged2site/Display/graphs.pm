@@ -10,9 +10,9 @@ use Statistics::Lite;
 
 # Display some information about the family
 
-use Ged2site::Display::page;
+use Ged2site::Display;
 
-our @ISA = ('Ged2site::Display::page');
+our @ISA = ('Ged2site::Display');
 
 our $BUCKETYEARS = 5;
 our $BUCKETDISTANCE = 5;

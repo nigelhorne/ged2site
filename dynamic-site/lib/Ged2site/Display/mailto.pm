@@ -5,9 +5,9 @@ use warnings;
 
 # Send an e-mail to the owner
 
-use Ged2site::Display::page;
+use Ged2site::Display;
 
-our @ISA = ('Ged2site::Display::page');
+our @ISA = ('Ged2site::Display');
 
 sub html {
 	my $self = shift;

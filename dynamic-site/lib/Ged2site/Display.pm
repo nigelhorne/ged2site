@@ -1,4 +1,4 @@
-package Ged2site::Display::page;
+package Ged2site::Display;
 
 # Display a page. Certain variables are available to all templates, such as
 # the stuff in the configuration file

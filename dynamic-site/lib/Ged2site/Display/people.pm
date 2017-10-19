@@ -2,10 +2,10 @@ package Ged2site::Display::people;
 
 # Display the people page
 
-use Ged2site::Display::page;
+use Ged2site::Display;
 use MIME::Base64;
 
-our @ISA = ('Ged2site::Display::page');
+our @ISA = ('Ged2site::Display');
 
 sub html {
 	my $self = shift;
