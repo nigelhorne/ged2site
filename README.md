@@ -195,6 +195,8 @@ and code to use as a template
 So many Perl CPAN modules that if I list them all I'll miss one, but special
 mention goes to the Gedcom module.
 
+Magnigic Popup http://dimsemenov.com/plugins/magnific-popup/
+
 ## See Also
 
 [gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files  
