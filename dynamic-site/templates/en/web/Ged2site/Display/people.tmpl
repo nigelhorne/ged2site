@@ -22,16 +22,17 @@
 		[% IF person.map_head %]
 			[% decode_base64url(person.map_head) %]
 		[% END %]
+		[% IF twitter %]
+			<meta name="twitter:site" content="@[% twitter %]">
+			<meta name="twitter:title" content="[% SiteTitle %]">
+		[% END %]
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<link async rel="stylesheet" href="/css/print.css" type="text/css" media="print">
 		<link async rel="stylesheet" href="/css/sprite.css" type="text/css">
-		[% IF twitter %]
-			<meta name="twitter:site" content="@[% twitter %]">
-			<meta name="twitter:title" content="[% SiteTitle %]">
-		[% END %]
+		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
 	</head>
 	[% IF person.map_body %]
 		<body onload="html_googlemaps_initialize()">
