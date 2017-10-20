@@ -190,7 +190,8 @@ sub http {
 }
 
 sub html {
-	my ($self, $params) = @_;
+	my $self = shift;
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $filename = $self->get_template_path();
 	my $rc;
@@ -215,11 +216,11 @@ sub html {
 			} else {
 				$vals = $self->{_config};
 			}
-			if(defined($params)) {
-				$vals = { %{$vals}, %{$params} };
+			if(scalar(keys %params)) {
+				$vals = { %{$vals}, %params };
 			}
-		} elsif(defined($params)) {
-			$vals = { %{$info->params()}, %{$params} };
+		} elsif(scalar(keys %params)) {
+			$vals = { %{$info->params()}, %params };
 		} else {
 			$vals = $info->params();
 		}
