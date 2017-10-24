@@ -11,6 +11,7 @@
 #	above e-mail.
 
 # TODO: Move from CSV to XML
+# TODO: Parse notes for locations using Geo::Parser::Text
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
