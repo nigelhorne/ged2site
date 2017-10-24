@@ -11,6 +11,7 @@ use File::pfopen 0.02;
 use File::Temp;
 use Gzip::Faster;
 use DBD::SQLite::Constants qw/:file_open/;	# For SQLITE_OPEN_READONLY
+use Error::Simple;
 
 our @databases;
 our $directory;
