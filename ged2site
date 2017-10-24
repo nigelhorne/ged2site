@@ -407,11 +407,14 @@ print $timeline_xml "<?xml version=\"1.0\"?>\n",
 open(my $visjs, '>', 'dynamic-site/visjs.html');
 print $visjs <<'HEADER';
 <!DOCTYPE HTML>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
+	<meta charset="utf8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="description" content="Blood relatives timeline - A ged2site webpage">
 	<title>Blood Relatives' Timeline</title>
 
-  <link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
   <style type="text/css">
     body, html {
       font-family: sans-serif;
@@ -420,7 +423,7 @@ print $visjs <<'HEADER';
   </style>
 
   <script async type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <script async src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
   <link async href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" />
   <style type="text/css">
 	/* Limit the width of the biography box */
