@@ -12,6 +12,7 @@
 
 # TODO: Move from CSV to XML
 # TODO: Parse notes for locations using Geo::Parser::Text
+# TODO: Geo::Coder::US::Census when full postal address, including street number, is known
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
