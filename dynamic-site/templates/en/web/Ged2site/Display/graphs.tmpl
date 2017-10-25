@@ -218,6 +218,12 @@
 				The data end at 1925, since anyone born after that date may be still
 				alive, which would affect the graph.
 			</p>
+			The sameple sizes are:
+			<ul>
+				[% FOREACH sample IN samples %]
+					<li>[% sample.bucket %]: [% sample.size %]</li>
+				[% END %]
+			</ul>
 		[% ELSIF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'distcount' %]

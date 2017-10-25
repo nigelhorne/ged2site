@@ -108,7 +108,7 @@ sub _ageatdeath
 	}
 
 	my $datapoints;
-	my(@x, @y);
+	my(@x, @y, @samples);
 
 	foreach my $bucket(sort keys %counts) {
 		# next if((!defined($datapoints)) && ($counts{$bucket} == 0));
@@ -118,6 +118,7 @@ sub _ageatdeath
 		$datapoints .= "{ label: \"$bucket\", y: $average },\n";
 		push @x, $bucket;
 		push @y, $average;
+		push @samples, { bucket => $bucket, size => $counts{$bucket} };
 	}
 	my $lineFit = Statistics::LineFit->new();
 	if($lineFit->setData(\@x, \@y)) {
@@ -133,10 +134,10 @@ sub _ageatdeath
 				$bestfit .= "{ label: \"$x\", y: $y },\n";
 			}
 		}
-		return { mdatapoints => $datapoints, fdatapoints => $bestfit };
+		return { mdatapoints => $datapoints, fdatapoints => $bestfit, samples => \@samples };
 	}
 
-	return { datapoints => $datapoints };
+	return { datapoints => $datapoints, samples => @samples };
 }
 
 sub _birthmonth
