@@ -15,6 +15,7 @@
 # TODO: Geo::Coder::US::Census when full postal address, including street number, is known
 # TODO: Geo::Coder::Ovi
 # TODO: Geo::Coder::GeocodeFarm, once github issue 1 has been fixed
+# TODO: Geo::Coder::RandMcnally for the US
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
