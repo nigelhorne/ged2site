@@ -628,6 +628,12 @@ if($opts{'w'}) {
 					$summary = 'Unknown US State';
 				} elsif($warning =~ /^Residence information in/) {
 					$summary = 'Child census not in a parent';
+				} elsif($warning =~ /^Unknown birth location/) {
+					$summary = 'Birth location not found';
+				} elsif($warning =~ /^Unknown death location/) {
+					$summary = 'Death location not found';
+				} elsif($warning =~ / isn't found$/) {
+					$summary = 'Location not found';
 				} else {
 					$summary = $warning;
 				}
@@ -4568,7 +4574,7 @@ sub print_person
 
 	if($geocoder && ($placeofbirth || $placeofdeath)) {
 		if($placeofbirth) {
-			if(my @$locations = $geocoder->geocode($placeofbirth)) {
+			if(my @locations = $geocoder->geocode($placeofbirth)) {
 				if(scalar(@locations) > 1) {
 					if($opts{'f'}) {
 						die $person->as_string(), ": Ambiguous birth location $placeofbirth";
