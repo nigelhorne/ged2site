@@ -11,10 +11,7 @@
 #	above e-mail.
 
 # TODO: Move from CSV to XML
-# TODO: Parse notes for locations using Geo::Parser::Text
-# TODO: Geo::Coder::Ovi
 # TODO: Geo::Coder::GeocodeFarm, once github issue 1 has been fixed
-# TODO: Geo::Coder::RandMcnally for the US
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -57,7 +54,10 @@ use Geo::Coder::XYZ;
 use Geo::Coder::GooglePlaces;
 use Geo::Coder::Google;
 use Geo::Coder::CA;
+use Geo::Coder::Ovi;
+use Geo::Coder::RandMcnally;
 use Geo::Coder::US::Census;
+use Geo::Parser::Text;
 use HTML::GoogleMaps::V3 0.10;
 use Term::ANSIColor;
 use HTML::Entities;
@@ -139,6 +139,7 @@ if($opts{'J'}) {
 }
 
 my $geocoder;
+my $textgeocoder;
 
 if($opts{'m'} || $opts{'w'}) {
 	my $l = $ENV{'LANG'};
@@ -150,9 +151,11 @@ if($opts{'m'} || $opts{'w'}) {
 		$geocoder = Geo::Coder::List->new()
 			->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
 			->push({ regex => qr/(Canada|USA|US|United States)$/i, geocoder => Geo::Coder::CA->new() })
+			->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::RandMcnally->new() })
 			->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() })
 			->push({ regex => qr/^\w+,\s*\w+,\s*(UK|United Kingdom|England)$/i, geocoder => Geo::Coder::Postcodes->new() })
 			->push(Geo::Coder::OSM->new())
+			->push(Geo::Coder::Ovi->new())
 			->push(Geo::Coder::GooglePlaces->new(%gp_args))
 			->push(Geo::Coder::XYZ->new())
 			->push(Geo::Coder::Google->new());
@@ -160,9 +163,11 @@ if($opts{'m'} || $opts{'w'}) {
 		$geocoder = Geo::Coder::List->new()
 			->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
 			->push({ regex => qr/(Canada|USA|US|United States)$/i, geocoder => Geo::Coder::CA->new() })
+			->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::RandMcnally->new() })
 			->push({ regex => qr/^\w+,\s*\w+,\s*(UK|United Kingdom|England)$/i, geocoder => Geo::Coder::Postcodes->new() })
 			->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() })
 			->push(Geo::Coder::OSM->new())
+			->push(Geo::Coder::Ovi->new())
 			->push(Geo::Coder::XYZ->new())
 			->push(Geo::Coder::Google->new())
 			->push(Geo::Coder::GooglePlaces->new(%gp_args));
@@ -177,13 +182,17 @@ if($opts{'m'} || $opts{'w'}) {
 		'geocode.xyz' => 1,
 		'geocoder.ca' => 1,
 		'api.postcodes.io' => 1,
-		'geocoding.geo.census.gov' => 1
+		'where.desktop.mos.svc.ovi.com' => 1,
+		'geocoding.geo.census.gov' => 1,
+		'a2ageo.rmservers.com/mapengine3/sli' => 1,
 	});
 
 	# G::C::GooglePlaces
 	$ua->throttle({ 'maps.googleapis.com' => 0.1 }) unless($geolocation_key);
 	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
+
+	$textgeocoder = Geo::Parser::Text->new('https://geocoder.ca');
 }
 
 # TODO: BMAP_KEY for Geo::Coder::Bing
@@ -632,7 +641,7 @@ if($opts{'w'}) {
 					$summary = 'Birth location not found';
 				} elsif($warning =~ /^Unknown death location/) {
 					$summary = 'Death location not found';
-				} elsif($warning =~ / isn't found$/) {
+				} elsif($warning =~ /\sisn't found$/) {
 					$summary = 'Location not found';
 				} else {
 					$summary = $warning;
@@ -2462,6 +2471,7 @@ sub print_person
 	my $printed_residence = 0;
 	my %citationnotes;
 	my @residences = $person->residence();
+	my @note_locations;
 
 	if($opts{'l'} || !$was_alive) {
 		if(scalar(@childrenunknownparent)) {
@@ -2602,7 +2612,7 @@ sub print_person
 						push @residencelist, $residence;
 						if(my $src = $residence->source()) {
 							$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
-							my $note = notes(record => $residence);
+							my $note = notes(record => $residence, note_locations => \@note_locations);
 							foreach my $c(@birthcitations) {
 								if($src eq $citations{$c}) {
 									$residencecitations{$residence} = $c;
@@ -2938,7 +2948,7 @@ sub print_person
 					}
 				}
 				# Citation residence notes print later
-				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence }))) {
+				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence, note_locations => \@note_locations }))) {
 					$notes =~ s/\.$//;
 					$notes = lcfirst($notes);
 					$bio .= " ($notes)";
@@ -3055,7 +3065,7 @@ sub print_person
 						$bio .= place({ person => $person, place => $placeofburial, there => $placeofdeath, places_printed => \%places_printed, must_postdate => $birth_dt });
 					}
 				}
-				if(my $b = notes({ person => $person, record => $burial, paragraph => 0 })) {
+				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
@@ -3090,7 +3100,7 @@ sub print_person
 			}
 			$bio .= cite(@deathcitations);
 			# Print notes about the death, if any
-			if(my $d = notes({ person => $person, record => $death })) {
+			if(my $d = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
 				$d =~ tr/\r//;
 				$d =~ tr/\n/ /;
 				$d =~ s/\.$//;
@@ -3121,7 +3131,7 @@ sub print_person
 					}
 				}
 				$bio .= ' ' . year({ person => $person, date => $dateofburial });
-				if(my $b = notes({ person => $person, record => $burial, paragraph => 0 })) {
+				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
@@ -3184,7 +3194,7 @@ sub print_person
 		$bio .= cite(@deathcitations);
 
 		# Print notes about the death, if any
-		if(defined($death) && (my $d = notes({ person => $person, record => $death, paragraph => 0 }))) {
+		if(defined($death) && (my $d = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
 			$d =~ tr/\r//;
 			$d =~ s/\.$//;
 			$bio .= " ($d)";
@@ -3315,7 +3325,7 @@ sub print_person
 				' arrived' .
 				place({ person => $person, record => $arrival });
 
-			if(my $notes = notes({ record => $arrival, person => $person })) {
+			if(my $notes = notes({ record => $arrival, person => $person, note_locations => \@note_locations })) {
 				$notes = lcfirst($notes);
 				$bio .= " ($notes)";
 			}
@@ -3385,7 +3395,7 @@ sub print_person
 						}
 					}
 				}
-				if(my $notes = notes({ record => $event })) {
+				if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 					$notes = lcfirst($notes);
 					$notes =~ s/\.$//;
 					$bio .= " ($notes)";
@@ -3407,7 +3417,7 @@ sub print_person
 				$place =~ s/^\sin/ from/;
 				$bio .= "$place " .
 					year({ person => $person, record => $events[0] });
-				if(my $notes = notes({ record => $event })) {
+				if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 					$notes = lcfirst($notes);
 					$bio .= " ($notes)";
 				}
@@ -3422,7 +3432,7 @@ sub print_person
 					$bio .= " $date";
 				}
 
-				if(my $notes = notes(record => $event)) {
+				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 					$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 					$notes =~ s/\.$//;
 					$bio .= " (<em>$notes</em>)";
@@ -3434,7 +3444,7 @@ sub print_person
 				($type ne 'Register UK 1939')) {
 
 				red_warning({ person => $person, warning => "Unhandled event type: $type" });
-				if(my $notes = notes(record => $event)) {
+				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 					$notes = ucfirst($notes);
 					$bio .= " ($notes)";
 					$end_of_sentence = 0;
@@ -3472,7 +3482,7 @@ sub print_person
 						$mentioned_military = 1;
 					}
 
-					if(my $notes = notes(record => $event)) {
+					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 						$notes =~ s/\.$//;
 						$bio .= " (<em>$notes</em>)";
@@ -3659,7 +3669,7 @@ sub print_person
 					} else {
 						$bio .= $place;
 					}
-					if(my $notes = notes({ record => $event })) {
+					if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 						$notes = lcfirst($notes);
 						$bio .= " ($notes)";
 					}
@@ -3669,7 +3679,7 @@ sub print_person
 					($type ne 'Race') &&
 					($type ne 'Hospitalisation')) {
 					red_warning({ person => $person, warning => "Unknown event type: $type" });
-					if(my $notes = notes(record => $event)) {
+					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes =~ s/\.$//;
 						my $date = year(record => $event);
 						if($end_of_sentence) {
@@ -3947,10 +3957,10 @@ sub print_person
 		if($person->get_value('note')) {
 			print $html "<h2>Notes</h2>" unless($printed_notes);
 
-			if(my $notes = notes({ person => $person, paragraph => 1, record => $person })) {
+			if(my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations })) {
 				print $html $notes;
 				print $csv '----' if($printed_notes);
-				print $csv notes({ person => $person, record => $person });
+				print $csv notes({ person => $person, record => $person, note_locations => \@note_locations });
 			}
 			# print $html map { "<p>$_</p>" } @notes;
 		}
@@ -4153,7 +4163,7 @@ sub print_person
 										if($opts{'f'}) {
 											die "Can't get image information for static-site/$localfile";
 										}
-										red_warning({ person => $person, "Can't get image information for static-site/$localfile" });
+										red_warning({ person => $person, warning => "Can't get image information for static-site/$localfile" });
 										# unlink "static-site/$localfile";
 										next OBJE;
 									}
@@ -4377,12 +4387,13 @@ sub print_person
 	print $csv '!';
 
 	my @place_events = keys %place_records;
-	if($opts{'m'} && ($opts{'l'} || !$was_alive) && scalar(@place_events)) {
+	if($opts{'m'} && ($opts{'l'} || !$was_alive) && (scalar(@place_events) || scalar(@note_locations))) {
 		print "Create map\n" if($opts{'v'});
 		my $map;
 		my $current_place;
 		my $annotation;
 		# Sort put all events at a place on the same pointer
+		# TODO: then sort in date order
 		foreach my $event(sort @place_events) {
 			my $record = $place_records{$event};
 			my $place = place({ record => $record });
@@ -4411,6 +4422,30 @@ sub print_person
 				}
 				$annotation .= "<p>$text</p>";
 			}
+		}
+		foreach my $location(@note_locations) {
+			my %args = (geocoder => $geocoder);
+			if($javascript_key) {
+				$args{'api_key'} = $javascript_key;
+			}
+			my $place = $location->{'location'};
+			if(defined($current_place) && ($place ne $current_place)) {
+				if(!defined($map)) {
+					# my %args = (geocoder => $geocoder, z_index => -1);
+					my %args = (geocoder => $geocoder);
+					if($javascript_key) {
+						$args{'api_key'} = $javascript_key;
+					}
+					$map = HTML::GoogleMaps::V3->new(%args);
+					$map->center($current_place);
+				}
+				add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
+				$current_place = $place;
+				$annotation = undef;
+			} elsif(!defined($current_place)) {
+				$current_place = $place;
+			}
+			$annotation .= '<p>' . $location->{'text'} . '</p>';
 		}
 		if($current_place) {
 			if(!defined($map)) {
@@ -4575,12 +4610,13 @@ sub print_person
 	if($geocoder && ($placeofbirth || $placeofdeath)) {
 		if($placeofbirth) {
 			if(my @locations = $geocoder->geocode($placeofbirth)) {
-				if(scalar(@locations) > 1) {
-					if($opts{'f'}) {
-						die $person->as_string(), ": Ambiguous birth location $placeofbirth";
-					}
-					red_warning({ person => $person, warning => "Ambiguous birth location $placeofbirth" });
-				} elsif(!defined($locations[0]->{'error'})) {
+				# if(scalar(@locations) > 1) {
+					# if($opts{'f'}) {
+						# die $person->as_string(), ": Ambiguous birth location $placeofbirth";
+					# }
+					# red_warning({ person => $person, warning => "Ambiguous birth location $placeofbirth" });
+				# } elsif(!defined($locations[0]->{'error'})) {
+				if(!defined($locations[0]->{'error'})) {
 					print $csv $locations[0]->{geometry}{location}{lat}, ',',
 						$locations[0]->{geometry}{location}{lng};
 				}
@@ -4594,12 +4630,13 @@ sub print_person
 		print $csv '!';
 		if($placeofdeath) {
 			if(my @locations = $geocoder->geocode($placeofdeath)) {
-				if(scalar(@locations) > 1) {
-					if($opts{'f'}) {
-						die $person->as_string(), ": Ambiguous death location $placeofdeath";
-					}
-					red_warning({ person => $person, warning => "Ambiguous death location $placeofdeath" });
-				} elsif(!defined($locations[0]->{'error'})) {
+				# if(scalar(@locations) > 1) {
+					# if($opts{'f'}) {
+						# die $person->as_string(), ": Ambiguous death location $placeofdeath";
+					# }
+					# red_warning({ person => $person, warning => "Ambiguous death location $placeofdeath" });
+				# } elsif(!defined($locations[0]->{'error'})) {
+				if(!defined($locations[0]->{'error'})) {
 					print $csv $locations[0]->{geometry}{location}{lat}, ',',
 						$locations[0]->{geometry}{location}{lng};
 				}
@@ -5386,6 +5423,7 @@ sub notes
 	my $person = $params{'person'};
 	my $paragraph = $params{'paragraph'};
 	my @notes = $record->get_record('note');
+	my $note_locations = $params{note_locations};
 
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
 	# my @deathnotes = $person, value => 'death note' });
@@ -5481,6 +5519,14 @@ sub notes
 				return Lingua::EN::ABC::a2b($rc);
 			}
 		}
+	}
+	if($note_locations && (my $hr = $textgeocoder->scantext(scantext => $rc, strict => 1))) {
+		if(length($rc) > 15) {
+			$hr->{'text'} = substr($rc, 0, 14) . '...';
+		} else {
+			$hr->{'text'} = $rc;
+		}
+		push @{$note_locations}, $hr;
 	}
 	return($rc);
 }
@@ -5991,6 +6037,12 @@ sub add_marker
 	my $person = $params{'person'};
 	my $map = $params{'map'};
 	my $place = $params{'place'};
+
+	$place =~ s/\s\s+/ /g;
+	if($place =~ /\d/) {	# We have the address, so no need to include the name of the building in the search
+		# FIXME: changes Silver Spring, MD 20910, USA to 20910, USA
+		$place =~ s/^\D+(.+)/$1/;
+	}
 
 	if(my $annotation = $params{'annotation'}) {
 		if($map->add_marker(point => $place, html => "$place<br>$annotation")) {

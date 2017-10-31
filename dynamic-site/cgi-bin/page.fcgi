@@ -262,6 +262,7 @@ sub doit
 	eval {
 		my $page = $info->param('page');
 		$page =~ s/#.*$//;
+		# $display = eval 'Ged2site::Display::$page->new($args)';
 		if($page eq 'people') {
 			$display = Ged2site::Display::people->new($args);
 		} elsif($page eq 'censuses') {
