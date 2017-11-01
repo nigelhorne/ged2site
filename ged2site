@@ -10,8 +10,9 @@
 #	must apply in writing for a licence for use from Nigel Horne at the
 #	above e-mail.
 
-# TODO: Move from CSV to XML
 # TODO: Geo::Coder::GeocodeFarm, once github issue 1 has been fixed
+# TODO: Investigate BGS
+# TODO: Finish XML
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -413,9 +414,8 @@ if($opts{'w'}) {
 memoize('Gedcom::Individual::as_string');
 memoize('stepsabove');
 
-# Would be nice to use XML, but that needs DBD::AnyData which doesn't build
-# open(my $xml, '>', 'dynamic-site/databases/people.xml');
-# print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
+open(my $xml, '>', 'dynamic-site/databases/people.xml');
+print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country!warnings\n";
 
@@ -494,9 +494,9 @@ foreach my $person($ged->individuals()) {
 	}
 	if(!$printed{$person->{'xref'}}) {
 		# FIXME: change &eacute; to e
-		# print $xml "<person person_id=\"$index\">";
+		print $xml "<person person_id=\"$index\">";
 		print_person({ person => $person });
-		# print $xml '</person>';
+		print $xml '</person>';
 		print $csv "\n";
 		if($opts{'v'}) {
 			my $log = $geocoder->log();
@@ -515,8 +515,8 @@ foreach my $person($ged->individuals()) {
 		}
 	}
 }
-# print $xml '</table>';
-# close $xml;
+print $xml '</table>';
+close $xml;
 close $csv;
 
 print $timeline_xml "</data>\n";
@@ -1031,7 +1031,7 @@ sub print_person
 	print "Starting output\n" if($opts{'v'});
 
 	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
-	# print $xml '<entry>', $person->{'xref'}, "</entry><title>$title</title>";
+	print $xml '<entry>', $person->{'xref'}, "</entry><title>$title</title>";
 	print $csv $person->{'xref'}, '!',
 		$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
 
@@ -1050,7 +1050,7 @@ sub print_person
 		print $html '</head>',
 			"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
 		close $html;
-		# print $xml '<home>1</home>';
+		print $xml '<home>1</home>';
 		print $csv '1!';
 	} else {
 		print $csv '0!';
@@ -1081,7 +1081,7 @@ sub print_person
 	my $fullbio;
 
 	if($was_alive && !$opts{'l'}) {
-		# print $xml '<alive>1</alive>';
+		print $xml '<alive>1</alive>';
 		print $csv '1!';
 		$bio = '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
 		print "Living person\n" if($opts{'v'});
