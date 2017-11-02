@@ -65,11 +65,11 @@ use HTML::Entities;
 use HTTP::Cache::Transparent;
 use File::Spec;
 use File::Temp;
-use LWP::Simple;
 use File::Basename;
 use Image::Info;
 use URI;
 use URI::Find::Schemeless;
+use LWP::Simple;
 use LWP::UserAgent::Throttled;
 use Sort::Key::DateTime;
 use String::ProgressBar;
@@ -383,7 +383,11 @@ foreach my $dir(@dirlist) {
 	mkdir $dir if(!-d $dir);
 }
 
+my $browser;
+
 if($opts{'d'} || $opts{'m'}) {
+	$browser = LWP::UserAgent->new();
+	$browser->env_proxy(1);
 	my $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'http-cache-transparent');
 	if(!-d $cachedir) {
 		mkdir $cachedir || die "$cachedir: $!";
@@ -415,7 +419,7 @@ memoize('Gedcom::Individual::as_string');
 memoize('stepsabove');
 
 open(my $xml, '>', 'dynamic-site/databases/people.xml');
-print $xml '<?xml version="1.0" encoding="US-ASCII"?><table>';
+print $xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>";
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country!warnings\n";
 
@@ -494,9 +498,9 @@ foreach my $person($ged->individuals()) {
 	}
 	if(!$printed{$person->{'xref'}}) {
 		# FIXME: change &eacute; to e
-		print $xml "<person person_id=\"$index\">";
+		print $xml "\n\t<person person_id=\"$index\">";
 		print_person({ person => $person });
-		print $xml '</person>';
+		print $xml "\n\t</person>";
 		print $csv "\n";
 		if($opts{'v'}) {
 			my $log = $geocoder->log();
@@ -515,7 +519,7 @@ foreach my $person($ged->individuals()) {
 		}
 	}
 }
-print $xml '</table>';
+print $xml "\n</table>\n";
 close $xml;
 close $csv;
 
@@ -1031,7 +1035,9 @@ sub print_person
 	print "Starting output\n" if($opts{'v'});
 
 	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
-	print $xml '<entry>', $person->{'xref'}, "</entry><title>$title</title>";
+	my $xtitle = $title;
+	$xtitle =~ s/&eacute;/&#233;/g;
+	print $xml "\n\t\t<entry>", $person->{'xref'}, "</entry>\n\t\t<title>$xtitle</title>";
 	print $csv $person->{'xref'}, '!',
 		$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
 
@@ -1050,7 +1056,7 @@ sub print_person
 		print $html '</head>',
 			"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
 		close $html;
-		print $xml '<home>1</home>';
+		print $xml "\n\t<home>1</home>";
 		print $csv '1!';
 	} else {
 		print $csv '0!';
@@ -1081,9 +1087,9 @@ sub print_person
 	my $fullbio;
 
 	if($was_alive && !$opts{'l'}) {
-		print $xml '<alive>1</alive>';
+		print $xml "\n\t\t<alive>1</alive>";
 		print $csv '1!';
-		$bio = '<i>This is the record of a living person, so much data will not be shown.</i></p><p>';
+		$bio = '<i>This is the record of a living person, so not much data will be shown.</i></p><p>';
 		print "Living person\n" if($opts{'v'});
 	} else {
 		print $csv '0!';
@@ -1516,6 +1522,7 @@ sub print_person
 	}
 
 	my $print_sibling_count = 0;
+	print $xml "\n\t\t<bio>";
 	if($father || $mother) {
 		if(scalar(@occupations)) {
 			$bio .= ' and the ';
@@ -1608,6 +1615,7 @@ sub print_person
 
 		print $html $bio;
 		print $csv $bio;
+		print $xml $bio;
 
 		$fullbio = $bio;
 		$bio = '';
@@ -1617,6 +1625,9 @@ sub print_person
 				print $html ' <a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
+				print $xml ' &lt;a href="?page=people&amp;entry=', $father->{'xref'}, '"&gt;'.
+					$father->as_string(),
+					'$lt;/a$gt;';
 				print $csv ' <a href="?page=people&entry=', $father->{'xref'}, '">'.
 					$father->as_string(),
 					'</a>';
@@ -1630,22 +1641,27 @@ sub print_person
 					if($occupations[0]) {
 						print $html ' (a';
 						print $csv ' (a';
+						print $xml ' (a';
 						if($occupations[0] =~ /^[aeiou]/i) {
 							print $html 'n';
 							print $csv 'n';
+							print $xml 'n';
 						}
 						print $html ' ', HTML::Entities::encode(lc($occupations[0])), ')';
 						print $csv ' ', HTML::Entities::encode(lc($occupations[0])), ')';
+						print $xml ' ', HTML::Entities::encode(lc($occupations[0])), ')';
 					}
 				}
 				$fullbio .= ' ' . $father->as_string();
 				if($mother) {
 					print $html ' and';
 					print $csv ' and';
+					print $xml ' and';
 					$fullbio .= ' and';
 				} else {
 					print $html ', ';
 					print $csv ', ';
+					print $xml ', ';
 					$fullbio .= ', ';
 					$printed_comma = 1;
 				}
@@ -1654,6 +1670,7 @@ sub print_person
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
 					print $html ' <a href="', make_filename_from_person(person => $mother), "\">$m</a>";
 					print $csv ' <a href="?page=people&entry=', $mother->{'xref'}, "\">$m</a>";
+					print $xml ' &lt;a href="?page=people&amp;entry=', $mother->{'xref'}, "\"&gt;$m&lt;/a&gt;";
 				}
 
 				my @occupations = $mother->get_value('occupation');
@@ -1661,12 +1678,15 @@ sub print_person
 				if($occupations[0]) {
 					print $html ' (a';
 					print $csv ' (a';
+					print $xml ' (a';
 					if($occupations[0] =~ /^[aeiou]/i) {
 						print $html 'n';
 						print $csv 'n';
+						print $xml 'n';
 					}
 					print $html ' ', lc($occupations[0]), ')';
 					print $csv ' ', lc($occupations[0]), ')';
+					print $xml ' ', lc($occupations[0]), ')';
 				}
 				$fullbio .= ' ' . $mother->as_string();
 				if($opts{'w'}) {
@@ -1691,9 +1711,13 @@ sub print_person
 				print $csv ' <a href="?page=people&entry=', $father->{'xref'}, '">',
 					$father->given_names(),
 					'</a>';
+				print $xml ' &lt;a href="?page=people&amp;entry=', $father->{'xref'}, '"&gt;',
+					$father->given_names(),
+					'&lt;/a&gt;';
 				if($mother) {
 					print $html ' and';
 					print $csv ' and';
+					print $xml ' and';
 				}
 			}
 			if($mother) {
@@ -1703,6 +1727,9 @@ sub print_person
 				print $csv ' <a href="?page=people&entry=', $mother->{'xref'}, '">',
 					$mother->given_names(),
 					'</a>';
+				print $xml ' &lt;a href="?page=people&amp;entry=', $father->{'xref'}, '"&gt;',
+					$mother->given_names(),
+					'&lt;/a&gt;';
 			}
 		}
 	}
@@ -1745,6 +1772,7 @@ sub print_person
 
 	print $html $bio;
 	print $csv $bio;
+	print $xml HTML::Entities::encode($bio);
 
 	$fullbio .= $bio;
 	$bio = '';
@@ -1759,13 +1787,19 @@ sub print_person
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>';
+		print $xml " the $relationship of ",
+			'&lt;a href="?page=people&amp;home=1"&gt;',
+			$me->as_string(nee => 1),
+			'&lt;/a&gt;';
 	} elsif($spouserelationship) {
 		if($sex eq 'F') {
 			print $html ', the wife of';
 			print $csv ', the wife of';
+			print $xml ', the wife of';
 		} else {
 			print $html ', the husband of';
 			print $csv ', the husband of';
+			print $xml ', the husband of';
 		}
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 			$spouse->as_string({ middle_names => 1, title => 1 }),
@@ -1779,9 +1813,16 @@ sub print_person
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>';
+		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->{'xref'}, '"&gt;',
+			$spouse->as_string({ middle_names => 1, title => 1 }),
+			"&lt;/a&gt; the $spouserelationship of ",
+			'&lt;a href="?page=people&amp;home=1"&gt;',
+			$me->as_string(nee => 1),
+			'&lt;/a&gt;';
 		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
 			print $html ',';
 			print $csv ',';
+			print $xml ',';
 		}
 		$haveprintedspousename = 1;
 	}
@@ -1789,6 +1830,7 @@ sub print_person
 	if(my $aka = $person->as_string({ use_aka => 1 })) {
 		print $html " (also known as $aka)";
 		print $csv " (also known as $aka)";
+		print $xml " (also known as $aka)";
 	}
 
 	my $end_of_sentence = 0;
@@ -2071,6 +2113,11 @@ sub print_person
 				} else {
 					print $html $bio;
 					print $csv $bio;
+					$bio =~ s/&/&amp;/g;
+					$bio =~ s/</&lt;/g;
+					$bio =~ s/>/&gt;/g;
+					$c =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
+					print $xml $bio;
 
 					$fullbio .= $bio . $spouses[0]->as_string();
 					$bio = '';
@@ -2082,13 +2129,19 @@ sub print_person
 						print $csv '<a href="?page=people&entry=', $spouses[0]->{'xref'}, '">',
 							$spouses[0]->as_string(),
 							'</a>';
+						print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->{'xref'}, '"&gt;',
+							$spouses[0]->as_string(),
+							'&lt;/a&gt;';
 					} else {
 						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->given_names(),
 							'</a>';
 						print $csv '<a href="?page=people&entry=', $spouses[0]->{'xref'}, '">',
-							$spouses[0]->as_string(),
+							$spouses[0]->given_names(),
 							'</a>';
+						print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->{'xref'}, '"&gt;',
+							$spouses[0]->given_names(),
+							'&lt;/a&gt;';
 					}
 					$haveprintedspousename = 1;
 				}
@@ -2240,6 +2293,9 @@ sub print_person
 
 				print $html $bio;
 				print $csv $bio;
+				$bio =~ s/</&lt;/g;
+				$bio =~ s/>/&gt;/g;
+				print $xml $bio;
 
 				$fullbio .= $bio;
 				$bio = '';
@@ -2278,6 +2334,9 @@ sub print_person
 					print $csv ' <a href="?page=people&entry=', $spouse->{'xref'}, '">',
 						$spouse->as_string(),
 						'</a>';
+					print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->{'xref'}, '"&gt;',
+						$spouse->as_string(),
+						'&lt;/a&gt;';
 
 					my $dateofmarriage = get_value({ person => $spouse, value => 'marriage date' });
 					if(!defined($dateofmarriage)) {
@@ -2318,6 +2377,7 @@ sub print_person
 					}
 					print $html $bio;
 					print $csv $bio;
+					print $xml $bio;
 
 					$fullbio .= $bio;
 					$bio = '';
@@ -2494,7 +2554,7 @@ sub print_person
 		}
 
 		if($same_occupation_as_father) {
-			$bio .= '. ' if(!$end_of_sentence);
+			$bio .= '.' if(!$end_of_sentence);
 			$bio .= ' Like his father, ' . lcfirst($pronoun) .
 				(was_alive(person => $person) ? ' is a' : ' was a');
 			if($same_occupation_as_father =~ /^[aeiou]/i) {
@@ -3032,6 +3092,7 @@ sub print_person
 		}
 	} else {
 		print $csv '.!!!';
+		print $xml '.';
 	}
 
 	if($placeofburial || $dateofburial) {
@@ -3726,8 +3787,13 @@ sub print_person
 
 	if($opts{'l'} || !$was_alive) {
 		print $csv $bio;
+		$bio =~ s/&/&amp;/g;
+		$bio =~ s/</&lt;/g;
+		$bio =~ s/>/&gt;/g;
+		print $xml $bio;
 	}
 	print $csv '!';
+	print $xml '</bio>';
 
 	if($opts{'l'} || !$was_alive) {
 		print "Create parents\n" if($opts{'v'});
@@ -3737,23 +3803,29 @@ sub print_person
 			if($father && (my $f = person_line_html({ person => $father, year => $year }))) {
 				print $html "<li>$f</li>";
 				print $csv person_line_csv({ person => $father, year => $year });
+				print $xml "\n\t\t<father>", HTML::Entities::encode($f), '</father>';
 			}
 			print $csv '!';
 			if($mother && (my $m = person_line_html({ person => $mother, year => $year }))) {
 				print $html "<li>$m</li>";
 				print $csv person_line_csv({ person => $mother, year => $year });
+				print $xml "\n\t\t<mother>", HTML::Entities::encode($m), '</mother>';
 			}
 			print $html '</ol>';
 		} else {
 			print $csv '!';
 		}
 		print $csv '!';
-		print $html '<h2>Children</h2><ol>' if(@children);
+		if(scalar(@children)) {
+			print $html '<h2>Children</h2><ol>';
+			print $xml "\n\t\t<children>";
+		}
 
 		my $c = '';
 		foreach my $child(@children) {
 			my $line = person_line_html({ person => $child, year => $year });
 			print $html "<li>$line</li>";
+			print $xml "\n\t\t\t<child>", HTML::Entities::encode($line) . '</child>';
 			if($c) {
 				$c .= '----' . person_line_csv({ person => $child, year => $year });
 			} else {
@@ -3789,7 +3861,10 @@ sub print_person
 				}
 			}
 		}
-		print $html '</ol>' if(@children);
+		if(scalar(@children)) {
+			print $html '</ol>';
+			print $xml "\n\t\t</children>";
+		}
 		print $csv $c;
 	} else {
 		print $csv '!!';
@@ -3803,6 +3878,7 @@ sub print_person
 		if($opts{'c'} && $citationcount) {
 			print "Create citations\n" if($opts{'v'});
 			print $html '<h2>Citations</h2><ol>';
+			print $xml "\n\t\t<citations>";
 			my $ufinder = URI::Find::Schemeless->new(sub {
 				my($uri, $orig_uri) = @_;
 
@@ -3890,8 +3966,14 @@ sub print_person
 				print $html "<li>$c</li>";
 				print $csv '----' if($citation > 1);
 				print $csv $c;
+				$c =~ s/&/&amp;/g;
+				$c =~ s/&Acirc;&copy;/&#169;/g;
+				$c =~ s/&acirc;&#128;&#152;//g;
+				$c =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
+				print $xml "\n\t\t\t<citation>$c</citation>";
 			}
 			print $html '</ol>';
+			print $xml "\n\t\t</citations>";
 
 			if($opts{'w'}) {
 				foreach my $event(@events) {
@@ -3947,7 +4029,7 @@ sub print_person
 
 		print $csv '!';
 
-		my $printed_notes;
+		# my $printed_notes;
 		# if($death && (my $notes = notes({ person => $person, record => $death, paragraph => 1 }))) {
 			# print $html "<h2>Notes</h2>$notes";
 			# $printed_notes = 1;
@@ -3955,12 +4037,17 @@ sub print_person
 		# }
 
 		if($person->get_value('note')) {
-			print $html "<h2>Notes</h2>" unless($printed_notes);
+			print $html '<h2>Notes</h2>';
 
 			if(my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations })) {
 				print $html $notes;
-				print $csv '----' if($printed_notes);
+				# print $csv '----' if($printed_notes);
 				print $csv notes({ person => $person, record => $person, note_locations => \@note_locations });
+				my $xnotes = $notes;
+				$xnotes =~ s/</&lt;/g;
+				$xnotes =~ s/>/&gt;/g;
+				$xnotes =~ s/\s*&excl;/!/g;
+				print $xml "\n\t\t<note>$xnotes</note>\n";
 			}
 			# print $html map { "<p>$_</p>" } @notes;
 		}
@@ -4002,8 +4089,6 @@ sub print_person
 
 			my %downloadhistory;
 
-			my $browser = LWP::UserAgent->new();
-			$browser->env_proxy(1);
 			# Two passes, the first one where the links are pictures, the second where they are not
 			for(my $pass = 1; $pass <= 2; $pass++) {
 				print "Media pass $pass\n" if($opts{'v'});
@@ -4023,6 +4108,7 @@ sub print_person
 						}
 						if(!$printed_media_header) {
 							print $html '<h2>Media</h2>';
+							print $xml "\n\t\t<media>";
 							$printed_media_header = 1;
 						}
 
@@ -4038,6 +4124,7 @@ sub print_person
 						warn $obje->{"_date"}, "\n" if($obje->{'_date'});
 						# warn $obje->tag(), "\n" if($obje->tag());
 						my $title = $obje->title() || $obje->tag_record('TITL', 1);
+						$title =~ s/\s\s+/ /g;
 						my $form = $obje->form();
 						if((!$form) && $obje->items()) {
 							# Family Tree Maker does this
@@ -4053,6 +4140,9 @@ sub print_person
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							# FIXME: It should check if the remote image is newer than the local image
 							if(!-r $localfile) {
+								if($file =~ /^http:\/\/(\w+)\.findmypast\.(co[\w\.]+)\/(.+)/) {
+									$file = "https://$1.findmypast.$2/$3";
+								}
 								print "Download non-image $file\n" if($opts{'v'});
 								my $resp = $browser->get($file);
 								if($resp->is_success() && ($resp->content_type() eq 'image/jpeg')) {
@@ -4152,6 +4242,9 @@ sub print_person
 										next OBJE;
 									}
 								}
+								if($file =~ /^http:\/\/(\w+)\.findmypast\.(co[\w\.]+)\/(.+)/) {
+									$file = "https://$1.findmypast.$2/$3";
+								}
 								print "Download image $file\n" if($opts{'v'});
 								my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
 								my $rc;
@@ -4175,11 +4268,13 @@ sub print_person
 											'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
 											'</a>';
 										print $csv "/$localfile---$title---$h----";
+										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$localfile</file>\n\t\t\t\t<title>$title</title>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
 									} else {
 										print $html "<a href=\"$localfile\" target=\"_blank\">",
 											'<img src="', $localfile, "\" width=\"175\" height=\"$h\">",
 											'</a>';
 										print $csv "/$localfile--- ---$h----";
+										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$localfile</file>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
 									}
 									if(defined($profile_object) && ($obje eq $profile_object)) {
 										$s_profile_image = "static-site/$localfile";
@@ -4199,11 +4294,13 @@ sub print_person
 											"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 											'</a>';
 										print $csv "$file---$title---0----";
+										print $xml "\n\t\t<image><url>$file</url><title>$title</title></image>";
 									} else {
 										print $html "<a href=\"$file\" target=\"_blank\">",
 											"<img src=\"$file\" width=\"175\">",
 											'</a>';
 										print $csv "$file--- ---0----";
+										print $xml "\n\t\t<image><url>$file</url></image>";
 									}
 									if(defined($profile_object) && ($obje eq $profile_object)) {
 										$s_profile_image = $file;
@@ -4216,11 +4313,13 @@ sub print_person
 										"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 										'</a>';
 									print $csv "$file---$title---0----";
+									print $xml "\n\t\t<image><url>$file</url><title>$title></title></image>";
 								} else {
 									print $html "<a href=\"$file\" target=\"_blank\">",
 										"<img src=\"$file\" width=\"175\">",
 										'</a>';
 									print $csv "$file--- ---0----";
+									print $xml "\n\t\t<image><url>$file</url></image>";
 								}
 								if(defined($profile_object) && ($obje eq $profile_object)) {
 									$s_profile_image = $file;
@@ -4234,6 +4333,9 @@ sub print_person
 							print $csv "$file---",
 								$title ? HTML::Entities::encode($title) : 'Media',
 								'---0----';
+							if($title) {
+								print $xml "\n\t\t\t<image>\n\t\t\t\t<title>", HTML::Entities::encode($title), "</title>\n\t\t\t</image>";
+							}
 						}
 						# if($obje->date()) {
 							# die $obje->date();
@@ -4241,6 +4343,9 @@ sub print_person
 						print $html '<br>';
 					}
 				}
+			}
+			if($printed_media_header) {
+				print $xml "\n\t\t</media>";
 			}
 		}
 		print $csv '!';
@@ -4370,11 +4475,19 @@ sub print_person
 				my $filename = make_filename_from_object(object => $person);
 				my $dim = Image::Info::html_dim(Image::Info::image_info($png));
 				print $csv "/img/$filename.png---$dim---";
+				print $xml "\n\t\t<profile>/img/$filename.png</profile>";
 				$tmp->seek(0, SEEK_SET);
+				print $xml "\n\t\t<family_tree>";
 				foreach my $line(<$tmp>) {
 					chomp $line;
 					print $csv $line;
+					$line =~ s/</&lt;/g;
+					$line =~ s/>/&gt;/g;
+					$line =~ s/&/&amp;/g;
+					$line =~ s/&amp;amp;/&amp;/g;
+					print $xml $line;
 				}
+				print $xml '</family_tree>';
 			}
 		} elsif(defined($dot)) {
 			if($opts{'f'}) {
@@ -4470,6 +4583,7 @@ sub print_person
 			# }
 			print $html "$head<h2>Map</h2>$map_div\n";
 			print $csv MIME::Base64::encode_base64url($head), '!', MIME::Base64::encode_base64url($map_div), '!';
+			print $xml "\n\t\t<map>\n\t\t\t<head>", MIME::Base64::encode_base64url($head), "</head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>";
 		} else {
 			print $csv '!!';
 		}
@@ -4479,10 +4593,12 @@ sub print_person
 
 	if($birth_dt) {
 		print $csv $birth_dt->strftime('%Y/%m/%d');
+		print $xml "\n\t\t<birth>", $birth_dt->strftime('%Y/%m/%d'), '</birth>';
 	}
 	print $csv '!';
 	if($death_dt) {
 		print $csv $death_dt->strftime('%Y/%m/%d');
+		print $xml "\n\t\t<death>", $death_dt->strftime('%Y/%m/%d'), '</death>';
 	}
 	print $csv '!';
 
@@ -4573,6 +4689,7 @@ sub print_person
 		if($profile_thumbnail) {
 			print $visjs "<img src=\"/$profile_thumbnail\" alt=\"", $person->as_string(), "\"><p>";
 			print $csv $profile_thumbnail;
+			print $xml "\n\t\t<thumbnail>$profile_thumbnail</thumbnail>";
 		}
 		$fullbio =~ s/'/\&#39;/g;
 		print $visjs '<h2>', $person->as_string(), "</h2><hr>$fullbio'\n},\n";
@@ -4603,54 +4720,13 @@ sub print_person
 
 	if(defined($m)) {
 		print $csv "!$m!$sex!";
+		print $xml "\n\t\t<marriage>$m</marriage>\n\t\t<sex>$sex</sex>";
 	} else {
 		print $csv "!!$sex!";
+		print $xml "\n\t\t<sex>$sex</sex>";
 	}
 
-	if($geocoder && ($placeofbirth || $placeofdeath)) {
-		if($placeofbirth) {
-			if(my @locations = $geocoder->geocode($placeofbirth)) {
-				# if(scalar(@locations) > 1) {
-					# if($opts{'f'}) {
-						# die $person->as_string(), ": Ambiguous birth location $placeofbirth";
-					# }
-					# red_warning({ person => $person, warning => "Ambiguous birth location $placeofbirth" });
-				# } elsif(!defined($locations[0]->{'error'})) {
-				if(!defined($locations[0]->{'error'})) {
-					print $csv $locations[0]->{geometry}{location}{lat}, ',',
-						$locations[0]->{geometry}{location}{lng};
-				}
-			} elsif($opts{'w'}) {
-				if($opts{'f'}) {
-					die $person->as_string(), ": Unknown birth location $placeofbirth";
-				}
-				red_warning({ person => $person, warning => "Unknown birth location $placeofbirth" });
-			}
-		}
-		print $csv '!';
-		if($placeofdeath) {
-			if(my @locations = $geocoder->geocode($placeofdeath)) {
-				# if(scalar(@locations) > 1) {
-					# if($opts{'f'}) {
-						# die $person->as_string(), ": Ambiguous death location $placeofdeath";
-					# }
-					# red_warning({ person => $person, warning => "Ambiguous death location $placeofdeath" });
-				# } elsif(!defined($locations[0]->{'error'})) {
-				if(!defined($locations[0]->{'error'})) {
-					print $csv $locations[0]->{geometry}{location}{lat}, ',',
-						$locations[0]->{geometry}{location}{lng};
-				}
-			} elsif($opts{'w'}) {
-				if($opts{'f'}) {
-					die $person->as_string(), ": Unknown death location $placeofdeath";
-				}
-				red_warning({ person => $person, warning => "Unknown death location $placeofdeath" });
-			}
-		}
-		print $csv '!';
-	} else {
-		print $csv '!!';
-	}
+	my $birth_country = '';
 
 	if($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
@@ -4670,7 +4746,7 @@ sub print_person
 			$b = Locale::Object::Country->new(name => $c);
 		};
 		if(defined($b)) {
-			print $csv $b->code_alpha2();
+			$birth_country = $b->code_alpha2();
 		} elsif($opts{'w'}) {
 			if($opts{'f'}) {
 				die $person->as_string(), ": Unknown birth country '$c'";
@@ -4678,7 +4754,8 @@ sub print_person
 			red_warning({ person => $person, warning => "Unknown birth country: '$c'" });
 		}
 	}
-	print $csv '!';
+
+	my $death_country = '';
 
 	if($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
@@ -4698,7 +4775,7 @@ sub print_person
 			$d = Locale::Object::Country->new(name => $c);
 		};
 		if(defined($d)) {
-			print $csv $d->code_alpha2();
+			$death_country = $d->code_alpha2();
 		} elsif($opts{'w'}) {
 			if($opts{'f'}) {
 				die $person->as_string(), ": Unknown death country '$c'";
@@ -4706,7 +4783,70 @@ sub print_person
 			red_warning({ person => $person, warning => "Unknown death country: '$c'" });
 		}
 	}
-	print $csv '!';
+
+	if($geocoder && ($placeofbirth || $placeofdeath)) {
+		print $xml "\n\t\t<locations>";
+		if($placeofbirth) {
+			if(my @locations = $geocoder->geocode($placeofbirth)) {
+				# if(scalar(@locations) > 1) {
+					# if($opts{'f'}) {
+						# die $person->as_string(), ": Ambiguous birth location $placeofbirth";
+					# }
+					# red_warning({ person => $person, warning => "Ambiguous birth location $placeofbirth" });
+				# } elsif(!defined($locations[0]->{'error'})) {
+				print $xml "\n\t\t\t<birth>";
+				if($birth_country) {
+					print $xml "\n\t\t\t\t<country>$birth_country</country>";
+				}
+				if(!defined($locations[0]->{'error'})) {
+					print $csv $locations[0]->{geometry}{location}{lat}, ',',
+						$locations[0]->{geometry}{location}{lng};
+					print $xml "\n\t\t\t\t<lat>", $locations[0]->{geometry}{location}{lat}, '</lat>',
+						"\n\t\t\t\t<long>", $locations[0]->{geometry}{location}{lng}, '</long>';
+				}
+				print $xml "\n\t\t\t</birth>";
+			} elsif($opts{'w'}) {
+				if($opts{'f'}) {
+					die $person->as_string(), ": Unknown birth location $placeofbirth";
+				}
+				red_warning({ person => $person, warning => "Unknown birth location $placeofbirth" });
+			}
+		}
+		print $csv '!';
+		if($placeofdeath) {
+			if(my @locations = $geocoder->geocode($placeofdeath)) {
+				# if(scalar(@locations) > 1) {
+					# if($opts{'f'}) {
+						# die $person->as_string(), ": Ambiguous death location $placeofdeath";
+					# }
+					# red_warning({ person => $person, warning => "Ambiguous death location $placeofdeath" });
+				# } elsif(!defined($locations[0]->{'error'})) {
+				print $xml "\n\t\t\t<death>";
+				if($death_country) {
+					print $xml "\n\t\t\t\t<country>$death_country</country>";
+				}
+				if(defined($locations[0]->{gemoetry}{location}) && !defined($locations[0]->{'error'})) {
+					print $csv $locations[0]->{geometry}{location}{lat}, ',',
+						$locations[0]->{geometry}{location}{lng};
+					print $xml "\n\t\t\t\t<lat>", $locations[0]->{geometry}{location}{lat}, '</lat>',
+						"\n\t\t\t\t<long>", $locations[0]->{geometry}{location}{lng}, '</long>';
+				}
+				print $xml "\n\t\t\t</death>";
+			} elsif($opts{'w'}) {
+				if($opts{'f'}) {
+					die $person->as_string(), ": Unknown death location $placeofdeath";
+				}
+				red_warning({ person => $person, warning => "Unknown death location $placeofdeath" });
+			}
+		}
+		print $csv '!';
+		print $xml "\n\t\t</locations>";
+	} else {
+		print $csv '!!';
+	}
+
+	print $csv "!$birth_country!$death_country";
+
 	if($person->{'warnings'}) {
 		print "Create warnings\n" if($opts{'v'});
 		my $ufinder = URI::Find::Schemeless->new(sub {
@@ -4724,6 +4864,14 @@ sub print_person
 		my @issues = map { my $s = HTML::Entities::decode($_); if($s =~ /<a href="/i) { $s } else { $ufinder->find(\$s); "<p>$s</p>" } } @{$person->{'warnings'}};
 		print $html "<h2>Known Issues</h2>@issues";
 		print $csv @issues;
+		print $xml "\n\t\t<issues>";
+		foreach my $issue(@issues) {
+			$issue =~ s/</&lt;/g;
+			$issue =~ s/>/&gt;/g;
+			$issue =~ s/&/&amp;/g;
+			print $xml "\n\t\t\t<issue>$issue</issue>";
+		}
+		print $xml "\n\t\t</issues>";
 	}
 
 	print $html '</body></html>';
