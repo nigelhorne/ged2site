@@ -955,7 +955,7 @@ sub print_person
 		red_warning({ person => $person, warning => 'not connected to the tree' });
 	}
 
-	my $year = $params{'year'} || (localtime)[5];
+	my $year = (localtime)[5];
 	$year += 1900 if($year < 1900);
 
 	my $yob;	# Year of birth
@@ -1027,8 +1027,8 @@ sub print_person
 		red_warning({ person => $person, warning => 'Last name contains a digit' });
 	}
 
-	my $was_alive = was_alive(person => $person, year => $year);
-	if($was_alive && !$opts{'l'}) {
+	my $is_alive = is_alive(person => $person);
+	if($is_alive && !$opts{'l'}) {
 		$title = $firstname;
 	}
 
@@ -1086,7 +1086,7 @@ sub print_person
 	my $bio;
 	my $fullbio;
 
-	if($was_alive && !$opts{'l'}) {
+	if($is_alive && !$opts{'l'}) {
 		print $xml "\n\t\t<alive>1</alive>";
 		print $csv '1!';
 		$bio = '<i>This is the record of a living person, so not much data will be shown.</i></p><p>';
@@ -1111,6 +1111,10 @@ sub print_person
 	my $placeofdeath = get_value({ person => $person, value => 'death place' });
 	if((!$placeofdeath) && $death) {
 		$placeofdeath = $death->place();
+	}
+
+	if($is_alive && ($placeofdeath || $dateofdeath)) {
+		die "BUG: $title is marked as alive yet we have death information";
 	}
 
 	my %citations;
@@ -1144,7 +1148,7 @@ sub print_person
 						$citations{$citationcount} = $src;
 					}
 				}
-			} elsif($opts{'w'} && ($opts{'l'} || !$was_alive)) {
+			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofbirth) {
 					red_warning({ person => $person, warning => "Birth date ($dateofbirth) has no citations" });
 				} else {
@@ -1170,7 +1174,7 @@ sub print_person
 						$citations{$citationcount} = $src;
 					}
 				}
-			} elsif($opts{'w'} && ($opts{'l'} || !$was_alive)) {
+			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofdeath) {
 					red_warning({ person => $person, warning => "Death date ($dateofdeath) has no citations" });
 				} else {
@@ -1244,6 +1248,10 @@ sub print_person
 		$placeofburial = $burial->place();
 	}
 
+	if($is_alive && ($placeofburial || $dateofburial)) {
+		die "BUG: $title is marked as alive yet we have burial information";
+	}
+
 	$birth_dt = date_to_datetime(date => $dateofbirth);
 
 	my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
@@ -1264,7 +1272,7 @@ sub print_person
 	}
 	$death_dt = date_to_datetime(date => $dateofdeath);
 
-	if($opts{'l'} || !$was_alive) {
+	if($opts{'l'} || !$is_alive) {
 		# RT114091
 		if($birth_dt && ($birth_dt >= $year_1000)) {
 			$all_events{'B' . $person->{'xref'}} = { person => $person, event => 'Birth', date => $birth_dt };
@@ -1321,7 +1329,7 @@ sub print_person
 					$marriagecitation = ++$citationcount;
 					$citations{$marriagecitation} = $src;
 				}
-			} elsif($opts{'w'} && ($opts{'l'} || !$was_alive)) {
+			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofmarriage) {
 					red_warning({ person => $person, warning => "Marriage date ($dateofmarriage) has no citations" });
 				} else {
@@ -1362,7 +1370,7 @@ sub print_person
 						}
 					}
 				}
-			} elsif($opts{'w'} && ($opts{'l'} || !$was_alive)) {
+			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofburial) {
 					red_warning({ person => $person, warning => "Burial date ($dateofburial) has no citations" });
 				} else {
@@ -1530,7 +1538,7 @@ sub print_person
 			$bio = 'The ';
 		}
 
-		if($birth_dt && ($opts{'l'} || !$was_alive)) {
+		if($birth_dt && ($opts{'l'} || !$is_alive)) {
 			if(scalar(@siblings)) {
 				# If possible, sort siblings by date of birth
 				my $all_siblings_have_dob = 1;
@@ -1620,7 +1628,7 @@ sub print_person
 		$fullbio = $bio;
 		$bio = '';
 
-		if($opts{'l'} || !$was_alive) {
+		if($opts{'l'} || !$is_alive) {
 			if($father) {
 				print $html ' <a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
@@ -1735,14 +1743,14 @@ sub print_person
 	}
 
 	if($firstname) {
-		if((!$was_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
-			if($opts{'l'} || $was_alive) {
+		if((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
+			if($opts{'l'} || $is_alive) {
 				if($relationship) {
 					$bio .= ', ' unless($printed_comma);
 					$bio .= "<b>$firstname</b>";
-					if(($dob || $marriage) && (!($was_alive || $opts{'l'}))) {
+					if(($dob || $marriage) && (!($is_alive || $opts{'l'}))) {
 						$bio .= ',';
-					} elsif($was_alive) {
+					} elsif($is_alive) {
 						$bio .= ' is';
 					} else {
 						$bio .= ' was';
@@ -1758,7 +1766,7 @@ sub print_person
 				if($relationship) {
 					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || scalar(@spouses)) {
 						$bio .= ',';
-					} elsif($opts{'l'} || $was_alive) {
+					} elsif($opts{'l'} || $is_alive) {
 						$bio .= ' is';
 					} else {
 						$bio .= ' was';
@@ -1836,14 +1844,14 @@ sub print_person
 	my $end_of_sentence = 0;
 
 	my @childrenunknownparent;
-	if($opts{'l'} || !$was_alive) {
+	if($opts{'l'} || !$is_alive) {
 		my $all_children_are_alive = 1;
 
 		if($yob && ($year >= $yob + 150)) {
 			$all_children_are_alive = 0;
 		} else {
 			foreach my $child(@children) {
-				if(!was_alive(person => $child, year => $year)) {
+				if(!is_alive(person => $child)) {
 					$all_children_are_alive = 0;
 					last;
 				}
@@ -2116,13 +2124,13 @@ sub print_person
 					$bio =~ s/&/&amp;/g;
 					$bio =~ s/</&lt;/g;
 					$bio =~ s/>/&gt;/g;
-					$c =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
+					$bio =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
 					print $xml $bio;
 
 					$fullbio .= $bio . $spouses[0]->as_string();
 					$bio = '';
 
-					if($opts{'l'} || !$was_alive) {
+					if($opts{'l'} || !$is_alive) {
 						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->as_string(),
 							'</a>';
@@ -2251,7 +2259,7 @@ sub print_person
 						$parentheses = 1;
 					}
 				}
-				if($opts{'l'} || !$was_alive) {
+				if($opts{'l'} || !$is_alive) {
 					if($parentheses) {
 						$bio .= ')';
 					} elsif(($dateofmarriage || $placeofmarriage) && $numberofchildren) {
@@ -2281,7 +2289,7 @@ sub print_person
 						$bio .= cite(($marriagecitation));
 					}
 				}
-			} elsif($opts{'l'} || !$was_alive) {
+			} elsif($opts{'l'} || !$is_alive) {
 				$bio .= ' was married ';
 				if(scalar(@spouses) == 2) {
 					$bio .= 'twice';
@@ -2533,7 +2541,7 @@ sub print_person
 	my @residences = $person->residence();
 	my @note_locations;
 
-	if($opts{'l'} || !$was_alive) {
+	if($opts{'l'} || !$is_alive) {
 		if(scalar(@childrenunknownparent)) {
 			$bio .= '. ' if(!$end_of_sentence);
 			$bio .= "$pronoun ";
@@ -2556,7 +2564,7 @@ sub print_person
 		if($same_occupation_as_father) {
 			$bio .= '.' if(!$end_of_sentence);
 			$bio .= ' Like his father, ' . lcfirst($pronoun) .
-				(was_alive(person => $person) ? ' is a' : ' was a');
+				(is_alive(person => $person) ? ' is a' : ' was a');
 			if($same_occupation_as_father =~ /^[aeiou]/i) {
 				$bio .= 'n';
 			}
@@ -3135,7 +3143,7 @@ sub print_person
 				if(my $address = $burial->address()) {
 					$bio .= " at $address";
 				}
-				$bio .= ' in ' .  lcfirst($person->possessive()) .
+				$bio .= ' in ' . lcfirst($person->possessive()) .
 					' home town of ';
 				my $city = $placeofburial;
 				if($city =~ /^(.+?),/) {
@@ -3347,7 +3355,7 @@ sub print_person
 			}
 
 			if(defined($departure->place())) {
-				$bio .= ' from ' .  $departure->place();
+				$bio .= ' from ' . $departure->place();
 			} else {
 				if($opts{'f'}) {
 					die $person->as_string() . ': departure record has no location';
@@ -3357,7 +3365,7 @@ sub print_person
 				}
 			}
 			if(defined($arrival->place())) {
-				$bio .= ' to ' .  $arrival->place();
+				$bio .= ' to ' . $arrival->place();
 			} else {
 				if($opts{'f'}) {
 					die $person->as_string() . ': arrival record has no location';
@@ -3598,7 +3606,7 @@ sub print_person
 							}
 							if($previous->date()) {
 								if($yod && $yoa && ($yod == $yoa)) {
-									$bio .= " During $yod " . lc($person->pronoun());
+									$bio .= "During $yod " . lc($person->pronoun());
 								} else {
 									$bio .= $person->pronoun();
 
@@ -3613,7 +3621,7 @@ sub print_person
 								}
 
 								if(defined($departure->place())) {
-									$bio .= ' from ' .  $departure->place();
+									$bio .= ' from ' . $departure->place();
 								} else {
 									if($opts{'f'}) {
 										die $person->as_string() . ': departure record has no location';
@@ -3623,7 +3631,7 @@ sub print_person
 									}
 								}
 								if(defined($arrival->place())) {
-									$bio .= ' to ' .  $arrival->place();
+									$bio .= ' to ' . $arrival->place();
 								} else {
 									if($opts{'f'}) {
 										die $person->as_string() . ': arrival record has no location';
@@ -3655,7 +3663,7 @@ sub print_person
 								$year2 = $2;
 								$date2 =~ s/,\s//;
 							}
-							$bio .= '.  ' if(!$end_of_sentence);
+							$bio .= '. ' if(!$end_of_sentence);
 							if(defined($year1) && defined($year2) && ($year1 == $year2)) {
 								if($date1 eq 'in ') {
 									$date1 = '';
@@ -3769,7 +3777,7 @@ sub print_person
 		# $person->resolve_xref($profile_object->value());
 		if(my $value = $profile_object->get_value()) {
 			$bio .= '.' if(!$end_of_sentence);
-			$bio .= "  $pronoun served in the military ($value).";
+			$bio .= " $pronoun served in the military ($value).";
 			$end_of_sentence = 1;
 		}
 	}
@@ -3785,9 +3793,15 @@ sub print_person
 	print $html $bio;
 	$fullbio .= $bio;
 
-	if($opts{'l'} || !$was_alive) {
+	if($opts{'l'} || !$is_alive) {
 		print $csv $bio;
 		$bio =~ s/&/&amp;/g;
+		$bio =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
+		$bio =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
+		$bio =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
+		$bio =~ s/&amp;pound;/&#163;/g;
+		$bio =~ s/&amp;#39;/'/g;
+		$bio =~ s/&amp;#/&#/g;
 		$bio =~ s/</&lt;/g;
 		$bio =~ s/>/&gt;/g;
 		print $xml $bio;
@@ -3795,7 +3809,7 @@ sub print_person
 	print $csv '!';
 	print $xml '</bio>';
 
-	if($opts{'l'} || !$was_alive) {
+	if($opts{'l'} || !$is_alive) {
 		print "Create parents\n" if($opts{'v'});
 		print $html '</p>';
 		if($mother || $father) {
@@ -3874,7 +3888,7 @@ sub print_person
 	my $profile_image;
 	my $profile_thumbnail;
 
-	if($opts{'l'} || !$was_alive) {
+	if($opts{'l'} || !$is_alive) {
 		if($opts{'c'} && $citationcount) {
 			print "Create citations\n" if($opts{'v'});
 			print $html '<h2>Citations</h2><ol>';
@@ -3942,7 +3956,7 @@ sub print_person
 					}
 				}
 				if(defined(my $page = $citations{$citation}->page())) {
-					$c .= " $page";
+					$c .= ' ' . HTML::Entities::encode($page);
 				}
 				my @notes = $citations{$citation}->note();
 				foreach my $note(@notes) {
@@ -3952,7 +3966,7 @@ sub print_person
 
 					if($note && ($note !~ /^This information comes from/)) {
 						$ufinder->find(\$note);
-						$c .= " ($note)";
+						$c .= ' (' . HTML::Entities::encode($note) . ')';
 					}
 				}
 				if($citationnotes{$citation}) {
@@ -3967,8 +3981,8 @@ sub print_person
 				print $csv '----' if($citation > 1);
 				print $csv $c;
 				$c =~ s/&/&amp;/g;
-				$c =~ s/&Acirc;&copy;/&#169;/g;
-				$c =~ s/&acirc;&#128;&#152;//g;
+				$c =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
+				$c =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
 				$c =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
 				print $xml "\n\t\t\t<citation>$c</citation>";
 			}
@@ -4043,11 +4057,12 @@ sub print_person
 				print $html $notes;
 				# print $csv '----' if($printed_notes);
 				print $csv notes({ person => $person, record => $person, note_locations => \@note_locations });
-				my $xnotes = $notes;
-				$xnotes =~ s/</&lt;/g;
-				$xnotes =~ s/>/&gt;/g;
-				$xnotes =~ s/\s*&excl;/!/g;
-				print $xml "\n\t\t<note>$xnotes</note>\n";
+				$notes =~ s/&pound;/&#163;/g;
+				$notes =~ s/</&lt;/g;
+				$notes =~ s/>/&gt;/g;
+				$notes =~ s/\s*&excl;/!/g;
+				$notes =~ s/&Acirc;//g;
+				print $xml "\n\t\t<note>$notes</note>";
 			}
 			# print $html map { "<p>$_</p>" } @notes;
 		}
@@ -4294,6 +4309,7 @@ sub print_person
 											"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 											'</a>';
 										print $csv "$file---$title---0----";
+										$title =~ s/&/&amp;/g;
 										print $xml "\n\t\t<image><url>$file</url><title>$title</title></image>";
 									} else {
 										print $html "<a href=\"$file\" target=\"_blank\">",
@@ -4313,6 +4329,7 @@ sub print_person
 										"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 										'</a>';
 									print $csv "$file---$title---0----";
+									$title =~ s/&/&amp;/g;
 									print $xml "\n\t\t<image><url>$file</url><title>$title></title></image>";
 								} else {
 									print $html "<a href=\"$file\" target=\"_blank\">",
@@ -4334,7 +4351,11 @@ sub print_person
 								$title ? HTML::Entities::encode($title) : 'Media',
 								'---0----';
 							if($title) {
-								print $xml "\n\t\t\t<image>\n\t\t\t\t<title>", HTML::Entities::encode($title), "</title>\n\t\t\t</image>";
+								$title = HTML::Entities::encode($title);
+								$title =~ s/&/&amp;/g;
+								print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>";
+							} else {
+								print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t</image>";
 							}
 						}
 						# if($obje->date()) {
@@ -4500,7 +4521,7 @@ sub print_person
 	print $csv '!';
 
 	my @place_events = keys %place_records;
-	if($opts{'m'} && ($opts{'l'} || !$was_alive) && (scalar(@place_events) || scalar(@note_locations))) {
+	if($opts{'m'} && ($opts{'l'} || !$is_alive) && (scalar(@place_events) || scalar(@note_locations))) {
 		print "Create map\n" if($opts{'v'});
 		my $map;
 		my $current_place;
@@ -4591,12 +4612,12 @@ sub print_person
 		print $csv '!!';
 	}
 
-	if($birth_dt) {
+	if($birth_dt && ($opts{'l'} || !$is_alive)) {
 		print $csv $birth_dt->strftime('%Y/%m/%d');
 		print $xml "\n\t\t<birth>", $birth_dt->strftime('%Y/%m/%d'), '</birth>';
 	}
 	print $csv '!';
-	if($death_dt) {
+	if($death_dt && ($opts{'l'} || !$is_alive)) {
 		print $csv $death_dt->strftime('%Y/%m/%d');
 		print $xml "\n\t\t<death>", $death_dt->strftime('%Y/%m/%d'), '</death>';
 	}
@@ -4615,7 +4636,7 @@ sub print_person
 		# $dt->day(), ' ', $dt->month_name(), ' ', $dt->year(),
 		'</i></p>';
 
-	if($birth_dt && ($opts{'l'} || !$was_alive) && $me && ($relationship || ($person eq $me))) {
+	if($birth_dt && ($opts{'l'} || !$is_alive) && $me && ($relationship || ($person eq $me))) {
 		print $timeline_xml '<event start="', $birth_dt->year();
 		if($birth_dt->month() && $birth_dt->day()) {
 			printf $timeline_xml '-%02d', $birth_dt->month();
@@ -4696,7 +4717,7 @@ sub print_person
 	}
 
 	my $m;
-	if(!$was_alive) {
+	if($opts{'l'} || !$is_alive) {
 		foreach my $spouse(@spouses) {
 			my $date;
 			if(my $rec = $spouse->get_record('fams marriage')) {
@@ -4784,7 +4805,7 @@ sub print_person
 		}
 	}
 
-	if($geocoder && ($placeofbirth || $placeofdeath)) {
+	if($geocoder && ($opts{'l'} || !$is_alive) && ($placeofbirth || $placeofdeath)) {
 		print $xml "\n\t\t<locations>";
 		if($placeofbirth) {
 			if(my @locations = $geocoder->geocode($placeofbirth)) {
@@ -4866,6 +4887,8 @@ sub print_person
 		print $csv @issues;
 		print $xml "\n\t\t<issues>";
 		foreach my $issue(@issues) {
+			$issue =~ s/^<p>//;
+			$issue =~ s/<\/p>$//;
 			$issue =~ s/</&lt;/g;
 			$issue =~ s/>/&gt;/g;
 			$issue =~ s/&/&amp;/g;
@@ -5761,7 +5784,7 @@ sub person_line_html
 
 	my $person = $params{'person'};
 
-	if($opts{'l'} || !was_alive(%params)) {
+	if($opts{'l'} || !is_alive(%params)) {
 		my $dob = get_value({ person => $person, value => 'birth date' });
 		if($dob) {
 			return '<a href="' . make_filename_from_person(person => $person) . '">' .
@@ -5787,7 +5810,7 @@ sub person_line_csv
 
 	my $person = $params{'person'};
 
-	if($opts{'l'} || !was_alive(%params)) {
+	if($opts{'l'} || !is_alive(%params)) {
 		my $dob = get_value({ person => $person, value => 'birth date' });
 		if($dob) {
 			return '<a href="?page=people&entry=' . $person->{'xref'} . '">' .
@@ -6048,7 +6071,7 @@ sub print_graphviz
 	return $thumbnail;
 }
 
-sub was_alive
+sub is_alive
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -6067,7 +6090,7 @@ sub was_alive
 				# TODO: Look at children's lifespan for a clue
 	}
 
-	my $year = $params{'year'} || (localtime)[5];
+	my $year = (localtime)[5];
 	$year += 1900 if($year < 1900);
 
 	if(($dob =~ /^\d{3,4}$/) && ($dob < ($year - 100))) {
