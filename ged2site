@@ -4062,7 +4062,7 @@ sub print_person
 				$notes =~ s/</&lt;/g;
 				$notes =~ s/>/&gt;/g;
 				$notes =~ s/\s*&excl;/!/g;
-				$notes =~ s/&Acirc;//g;
+				$notes =~ s/&Acirc;//gi;
 				print $xml "\n\t\t<note>$notes</note>";
 			}
 			# print $html map { "<p>$_</p>" } @notes;
