@@ -3972,7 +3972,7 @@ sub print_person
 				}
 				if($citationnotes{$citation}) {
 					$citationnotes{$citation} =~ s/\.$//;
-					$c .= " ($citationnotes{$citation})";
+					$c .= ' (' . HTML::Entities::encode($citationnotes{$citation}) . ')';
 				}
 				if(($title =~ /census/i) && ($title =~ /(\d{3,4})/)) {
 					$census_years{$1} = $title;
@@ -4351,11 +4351,22 @@ sub print_person
 							print $csv "$file---",
 								$title ? HTML::Entities::encode($title) : 'Media',
 								'---0----';
-							if($title) {
-								$title = HTML::Entities::encode($title);
-								print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>";
+							if($file =~ /^https?:/) {
+								$file = HTML::Entities::encode($file);
+								if($title) {
+									$title = HTML::Entities::encode($title);
+									$title =~ s/&acirc;//g;
+									print $xml "\n\t\t\t<image>\n\t\t\t\t<url>$file</url>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>";
+								} else {
+									print $xml "\n\t\t\t<image>\n\t\t\t\t<url>$file</url>\n\t\t\t</image>";
+								}
 							} else {
-								print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t</image>";
+								if($title) {
+									$title = HTML::Entities::encode($title);
+									print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>";
+								} else {
+									print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t</image>";
+								}
 							}
 						}
 						# if($obje->date()) {
