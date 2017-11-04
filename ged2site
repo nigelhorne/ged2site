@@ -1624,6 +1624,7 @@ sub print_person
 		print $html $bio;
 		print $csv $bio;
 		$bio =~ s/\s&\s/ &amp; /g;
+		$bio =~ s/&eacute;/&#233;/g;
 		print $xml $bio;
 
 		$fullbio = $bio;
