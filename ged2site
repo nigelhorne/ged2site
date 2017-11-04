@@ -3820,7 +3820,7 @@ sub print_person
 				print $csv person_line_csv({ person => $father, year => $year });
 				my $x = HTML::Entities::encode($f);
 				$x =~ s/"/&quot;/g;
-				print $xml "\n\t\t<father>$f</father>";
+				print $xml "\n\t\t<father>$x</father>";
 			}
 			print $csv '!';
 			if($mother && (my $m = person_line_html({ person => $mother, year => $year }))) {
@@ -3828,7 +3828,7 @@ sub print_person
 				print $csv person_line_csv({ person => $mother, year => $year });
 				my $x = HTML::Entities::encode($m);
 				$x =~ s/"/&quot;/g;
-				print $xml "\n\t\t<mother>$f</mother>";
+				print $xml "\n\t\t<mother>$x</mother>";
 			}
 			print $html '</ol>';
 		} else {
@@ -3847,7 +3847,7 @@ sub print_person
 			my $x = HTML::Entities::encode($line);
 			$x =~ s/"/&quot;/g;
 			print $xml "\n\t\t\t<child>$x</child>";
-			if($c) {
+			if(length($c)) {
 				$c .= '----' . person_line_csv({ person => $child, year => $year });
 			} else {
 				$c = person_line_csv({ person => $child, year => $year });
