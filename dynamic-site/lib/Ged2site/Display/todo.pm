@@ -34,3 +34,5 @@ sub html {
 
 	return $self->SUPER::html({ todos => $todohash, updated => $todo->updated() });
 }
+
+1;

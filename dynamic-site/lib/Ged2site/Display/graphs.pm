@@ -628,7 +628,7 @@ sub _dist
 				# a standard deviation, since they are likely to bias the
 				# data rather heavily.  For example one family of 4
 				# who emigrate thousands of miles will have an unduly large
-				# effect, especially if the data size is very small 
+				# effect, especially if the data size is very small
 				my %info = Statistics::Lite::statshash(@{$dists{$bucket}});
 				# print "$bucket:\n", join(',', @{$dists{$bucket}}), "\n",
 					# Statistics::Lite::statsinfo(@{$dists{$bucket}}), "\n";

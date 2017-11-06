@@ -236,7 +236,7 @@ sub doit
 	}
 
 	my $fb = FCGI::Buffer->new();
-	
+
 	$fb->init($args);
 
 	if($fb->can_cache()) {
@@ -262,7 +262,7 @@ sub doit
 	eval {
 		my $page = $info->param('page');
 		$page =~ s/#.*$//;
-		# $display = eval 'Ged2site::Display::$page->new($args)';
+		# $display = Ged2site::Display::$page->new($args);
 		if($page eq 'people') {
 			$display = Ged2site::Display::people->new($args);
 		} elsif($page eq 'censuses') {
@@ -369,6 +369,6 @@ sub choose
 			"/cgi-bin/page.fcgi?page=ww1\n",
 			"/cgi-bin/page.fcgi?page=twins\n",
 			"/cgi-bin/page.fcgi?page=reports\n",
-			"/cgi-bin/page.fcgi?page=mailto\n",
+			"/cgi-bin/page.fcgi?page=mailto\n";
 	}
 }

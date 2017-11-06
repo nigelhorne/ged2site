@@ -827,6 +827,7 @@ if($gedcal) {
 				while(<$fin>) {
 					print $mout $_;
 				}
+				close $fin;
 			}
 		}
 		print "\n";
@@ -995,7 +996,7 @@ sub print_person
 				red_warning({
 					person => $person,
 					warning => "not found in $ARGV[1]"
-				})
+				});
 			}
 		}
 	}
@@ -1063,12 +1064,12 @@ sub print_person
 	}
 
 	if($opts{'m'}) {
-		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
+		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>";
 	} else {
 		if($geolocation_key) {
 			die "$0: -G makes no sense without -m";
 		}
-		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
+		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>";
 	}
 	if(defined($me)) {
 		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
@@ -1212,23 +1213,19 @@ sub print_person
 						$event = $e;
 					}
 				}
-				if(ref($event) eq 'Gedcom::Record') {
-					my $type = $event->type();
-					if($type eq 'Custom Marriage') {
-						# FindMyPast
-						$marriage = $event;
-					}
+				if((ref($event) eq 'Gedcom::Record') &&
+				  ($event->type() eq 'Custom Marriage')) {
+					# FindMyPast
+					$marriage = $event;
 				}
 			} else {
 				foreach my $event(@events) {
-					if(ref($event) eq 'Gedcom::Record') {
-						my $type = $event->type();
-						if($type eq 'Custom Marriage') {
-							# FindMyPast
-							$marriage = $event;
-							last;
+					if((ref($event) eq 'Gedcom::Record') &&
+					  ($event->type() eq 'Custom Marriage')) {
+						# FindMyPast
+						$marriage = $event;
+						last;
 						}
-					}
 				}
 			}
 		}
@@ -1943,7 +1940,7 @@ sub print_person
 							if($1 > $yod) {
 								if($opts{'f'}) {
 									die $person->as_string(),
-										": Year of citation of $title is after the death year of $yod"
+										": Year of citation of $title is after the death year of $yod";
 								}
 								red_warning({
 									person => $person,
@@ -2167,7 +2164,7 @@ sub print_person
 							my @items = $soccupation->items();
 							$soccupation = $items[0]->value();
 						}
-						if($soccupation =~ /^self-employed$/i) {
+						if(lc($soccupation) eq 'self-employed') {
 							$bio .= 'self-employed ';
 						} else {
 							$bio .= 'a';
@@ -3836,14 +3833,17 @@ sub print_person
 			print $csv '!';
 		}
 		print $csv '!';
-		if(scalar(@children)) {
-			print $html '<h2>Children</h2><ol>';
-			print $xml "\n\t\t<children>";
-		}
+		my $printed_children_header;
 
 		my $c = '';
 		foreach my $child(@children) {
 			my $line = person_line_html({ person => $child, year => $year });
+			next if($line eq '');
+			if(!$printed_children_header) {
+				print $html '<h2>Children</h2><ol>';
+				print $xml "\n\t\t<children>";
+				$printed_children_header = 1;
+			}
 			print $html "<li>$line</li>";
 			my $x = HTML::Entities::encode($line);
 			$x =~ s/"/&quot;/g;
@@ -3883,7 +3883,7 @@ sub print_person
 				}
 			}
 		}
-		if(scalar(@children)) {
+		if($printed_children_header) {
 			print $html '</ol>';
 			print $xml "\n\t\t</children>";
 		}
@@ -4232,7 +4232,7 @@ sub print_person
 							my $key = $person->as_string() . ";$localfile";
 							$images{$key} = 1;
 						}
-						if($form && ($form =~ /^JPG$/i)) {
+						if($form && (lc($form) eq 'JPG')) {
 							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
@@ -4770,7 +4770,7 @@ sub print_person
 	if($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$c = 'United Kingdom'
+			$c = 'United Kingdom';
 		} elsif($c eq 'USA') {
 			$c = 'United States';
 		} elsif($c eq 'Scotland') {
@@ -4799,7 +4799,7 @@ sub print_person
 	if($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$c = 'United Kingdom'
+			$c = 'United Kingdom';
 		} elsif($c eq 'USA') {
 			$c = 'United States';
 		} elsif($c eq 'Scotland') {
