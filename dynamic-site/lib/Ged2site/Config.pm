@@ -74,14 +74,15 @@ sub new {
 			if($args{default_config_directory}) {
 				$path = $args{default_config_directory};
 			} elsif($args{logger}) {
-				while (($key,$value) = each %ENV) {
+				while(my ($key,$value) = each %ENV) {
 					$args{logger}->debug("$key=$value");
 				}
 			}
 		}
 
 		if(my $lingua = $args{'lingua'}) {
-			if((my $language = $lingua->language_code_alpha2()) && (-d "$path/$language")) {
+			my $language;
+			if(($language = $lingua->language_code_alpha2()) && (-d "$path/$language")) {
 				$path .= "/$language";
 			} elsif(-d "$path/default") {
 				$path .= '/default';
@@ -135,12 +136,12 @@ sub new {
 }
 
 sub AUTOLOAD {
-	my $self = shift or return undef;
-
+	our $AUTOLOAD;
 	my $key = $AUTOLOAD;
 
 	$key =~ s{.*::}{};
 
+	my $self = shift or return undef;
 	return $self->{$key};
 }
 
