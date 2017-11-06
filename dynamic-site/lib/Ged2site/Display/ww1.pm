@@ -47,7 +47,7 @@ sub html {
 
 		next unless($person->{'death_country'});
 		my $dcountry = $person->{'death_country'};
-		next unless(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dountry eq 'nl'));
+		next unless(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dcountry eq 'nl'));
 
 		push @wardead, $person;
 	}

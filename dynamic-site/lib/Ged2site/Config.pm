@@ -11,6 +11,8 @@ package Ged2site::Config;
 #	config (ref to hash to of values to override in the config file
 # Values in the file are overriden by what's in the environment
 
+use warnings;
+use strict;
 use Config::Auto;
 use CGI::Info;
 use File::Spec;
