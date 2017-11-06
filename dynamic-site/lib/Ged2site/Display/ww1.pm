@@ -5,6 +5,8 @@ package Ged2site::Display::ww1;
 #	data, but that can't always be trusted to be of normalised form.  Need to find a way of
 #	speeding this up.
 
+use warnings;
+use strict;
 use Ged2site::Display;
 
 our @ISA = ('Ged2site::Display');

@@ -1,5 +1,8 @@
 package Ged2site::Display::emmigrants;
 
+use warnings;
+use strict;
+
 # Display the emmigrants page
 # FIXME:  This is slow because of the reverse_geocode calls.  Would be better to use the original
 #	data, but that can't always be trusted to be of normalised form.  Need to find a way of
