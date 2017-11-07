@@ -2935,30 +2935,6 @@ sub print_person
 						}
 						$prev_date = $this_date;
 					}
-					# Find if they are an adult living with an adult sibling
-					if(scalar(@siblings) && $birth_dt && $residence->address()) {
-						my $diff = $dfn->parse_datetime($rdate) - $birth_dt;
-						if($diff->in_units('years') >= 40) {
-							# Safe to assume both are adults at this time
-							foreach my $sibling(@siblings) {
-								my @srs = $sibling->residence();
-								foreach my $sr(@srs) {
-									if((ref($sr) eq 'Gedcom::Record') &&
-									   $sr->date() && ($sr->date() eq $rdate) &&
-									   places_are_the_same({ person => $sibling, first => $residence, second => $sr })) {
-										$bio .= ' when ' .
-											lcfirst($person->pronoun()) .
-											' was living with ' .
-											lcfirst($person->possessive()) .
-											(($sibling->sex() eq 'F') ? ' sister, ' : ' brother, ') .
-											'<a href="' . make_filename_from_person(person => $sibling) . '">' .
-												$sibling->given_names() .
-											'</a>';
-									}
-								}
-							}
-						}
-					}
 					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
 							$bio .= ' following the death of ' .
@@ -3003,6 +2979,45 @@ sub print_person
 											year(date => get_value({ person => $spouses[0], value => 'death date' }));
 										$spdeath_dt = undef;
 										last CHILD;
+									}
+								}
+							}
+						}
+					}
+					# Find if they are an adult living with an adult sibling or in-law
+					if($all_residences_have_date && scalar(@siblings) && $birth_dt) {
+						foreach my $r(@residences) {
+							my $rdate = $r->date();
+							my $place = place({ person => $person, record => $r });
+
+							foreach my $sibling(@siblings) {
+								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
+								if(my $ss = $sibling->spouse()) {
+									next if($bdiff->in_units('years') < 20);
+									# If they are living with an in-law, assume both are adults
+									my @ssr = get_all_residences(person => $ss);
+									foreach my $ssr(@ssr) {
+										next if($ssr->date() ne $rdate);
+										if(place({ person => $ss, record => $ssr }) eq $place) {
+											$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+												' ' .
+												(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
+												$ss->as_string();
+											last;
+										}
+									}
+								}
+								next if($bdiff->in_units('years') < 40);
+								# Safe to assume both are adults at this time
+								my @sr = get_all_residences(person => $sibling);
+								foreach my $sr(@sr) {
+									next if($sr->date() ne $rdate);
+									if(place({ person => $sibling, record => $sr }) eq $place) {
+										$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+											' ' .
+											(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+											$sibling->given_names();
+										last;
 									}
 								}
 							}
@@ -5151,6 +5166,12 @@ sub Gedcom::Individual::relationship
 	my $self = shift;
 	my $other = shift;
 
+	if($self->mother() && $other->mother() && $self->father() && $other->father &&
+	  ($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
+		my $sex = get_value({ person => $other, value => 'sex' });
+		return ($sex eq 'M') ? 'brother' : 'sister';
+	}
+
 	unless(@myancestors) {
 		@myancestors = $self->ancestors();
 	}
@@ -6309,4 +6330,37 @@ sub cite
 	return '' unless(scalar(@citations));
 
 	return '<span class="citation">' . join(',', List::Util::uniq(sort { $a <=> $b } (@citations))) . '</span>';
+}
+
+sub get_all_residences
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+
+	my @residences = $person->residence();
+	my @rc;
+	foreach my $residence(@residences) {
+		next if(!ref($residence));
+		push @rc, $residence;
+	}
+	my @events = $person->event();
+	my $index = 0;
+	foreach my $event(@events) {
+		$index++;
+		if(!ref($event)) {
+			my $e = $person->tag_record('EVEN', $index);
+			if(ref($e) eq 'Gedcom::Record') {
+				$event = $e;
+			}
+		}
+		next if(ref($event) ne 'Gedcom::Record');
+		my $type = $event->type();
+		next if(!defined($type));
+		if(($type =~ /^Census U[KS] (\d{4})$/) || ($type eq 'Register UK 1939')) {
+			push @rc, $event;
+		}
+	}
+
+	return @rc;
 }
