@@ -329,12 +329,7 @@ if($opts{'F'}) {
 	}
 
 	if(!defined($dot)) {
-		if($opts{'f'}) {
-			die 'Graphviz not found, no family trees';
-		}
-		if($opts{'w'}) {
-			red_warning(warning => 'Graphviz not found, no family trees');
-		}
+		complain(warning => 'Graphviz not found, no family trees');
 	} else {
 		require Image::Magick::Thumbnail;
 		Image::Magick::Thumbnail->import();
@@ -5944,7 +5939,15 @@ sub sibling_baptism_string
 
 sub complain
 {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'warning'} = shift;
+	}
 
 	die "What do you want to say?" unless($params{'warning'});
 
