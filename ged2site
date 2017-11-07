@@ -1369,9 +1369,9 @@ sub print_person
 				}
 			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofburial) {
-					red_warning({ person => $person, warning => "Burial date ($dateofburial) has no citations" });
+					complain({ person => $person, warning => "Burial date ($dateofburial) has no citations" });
 				} else {
-					red_warning({ person => $person, warning => "Burial place ($placeofburial) has no citations" });
+					complain({ person => $person, warning => "Burial place ($placeofburial) has no citations" });
 				}
 			}
 		}
@@ -5940,6 +5940,25 @@ sub sibling_baptism_string
 		$count++;
 	}
 	return $rc;
+}
+
+sub complain
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	die "What do you want to say?" unless($params{'warning'});
+
+	if($opts{'w'}) {
+		$params{'caller'} = 1;
+		red_warning(%params);
+		return;
+	}
+
+	my @call_details = caller(0);
+	if($params{'person'}) {
+		die $params{'person'}, ': ', ucfirst($params{'warning'}), ' at line ', $call_details[2];
+	}
+	die ucfirst($params{'warning'}), ' at line ', $call_details[2];
 }
 
 sub red_warning
