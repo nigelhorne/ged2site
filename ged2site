@@ -2987,7 +2987,7 @@ sub print_person
 					# Find if they are an adult living with an adult sibling or in-law
 					if($all_residences_have_date && scalar(@siblings) && $birth_dt) {
 						foreach my $r(@residences) {
-							my $rdate = $r->date();
+							next if($r->date() ne $rdate);
 							my $place = place({ person => $person, record => $r });
 
 							foreach my $sibling(@siblings) {
