@@ -1338,10 +1338,7 @@ sub print_person
 					if(!defined($src)) {
 						if($opts{'w'}) {
 							my $src = $burial->source();
-							if($opts{'f'}) {
-								die $person->as_string(), ": burial citation can't find source $src";
-							}
-							red_warning({ person => $person, warning => "burial citation can't find source $src" });
+							complain({ person => $person, warning => "burial citation can't find source $src" });
 						}
 						next;
 					}
@@ -1396,10 +1393,7 @@ sub print_person
 				}
 			}
 			if($error) {
-				if($opts{'f'}) {
-					die $person->name(), ': Check the gender of the record';
-				}
-				red_warning({ person => $person, warning => 'Check the gender of the record' });
+				complain({ person => $person, warning => 'Check the gender of the record' });
 			}
 		}
 	}
@@ -4894,7 +4888,7 @@ sub print_person
 		print $csv '!!';
 	}
 
-	print $csv "!$birth_country!$death_country";
+	print $csv "!$birth_country!$death_country!";
 
 	if($person->{'warnings'}) {
 		print "Create warnings\n" if($opts{'v'});
