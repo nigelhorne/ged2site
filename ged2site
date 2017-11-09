@@ -4875,11 +4875,8 @@ sub print_person
 						"\n\t\t\t\t<long>", $locations[0]->{geometry}{location}{lng}, '</long>';
 				}
 				print $xml "\n\t\t\t</death>";
-			} elsif($opts{'w'}) {
-				if($opts{'f'}) {
-					die $person->as_string(), ": Unknown death location $placeofdeath";
-				}
-				red_warning({ person => $person, warning => "Unknown death location $placeofdeath" });
+			} else {
+				complain({ person => $person, warning => "Unknown death location $placeofdeath" });
 			}
 		}
 		print $csv '!';
@@ -4888,7 +4885,7 @@ sub print_person
 		print $csv '!!';
 	}
 
-	print $csv "!$birth_country!$death_country!";
+	print $csv "$birth_country!$death_country!";
 
 	if($person->{'warnings'}) {
 		print "Create warnings\n" if($opts{'v'});
