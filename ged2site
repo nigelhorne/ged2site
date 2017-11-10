@@ -482,8 +482,9 @@ HEADER
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dolly Cowell')) {
+# foreach my $person($ged->get_individual('Edmund Frank Horne')) {
 
-foreach my $person($ged->individuals()) {
+# foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
 		$| = 1;
@@ -4233,7 +4234,7 @@ sub print_person
 							my $key = $person->as_string() . ";$localfile";
 							$images{$key} = 1;
 						}
-						if($form && (lc($form) eq 'JPG')) {
+						if($form && (lc($form) eq 'jpg')) {
 							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
@@ -4259,10 +4260,7 @@ sub print_person
 										# 404
 										$file = "https://mediasvc.ancestry.com/v2/image/namespaces/1093/media/$1.jpg?client=Trees";
 									} elsif($opts{'w'}) {
-										if($opts{'f'}) {
-											die "BUG: update ACOM mapping for $file";
-										}
-										red_warning({ person => $person, warning => "BUG: update ACOM mapping for $file" });
+										complain({ person => $person, warning => "BUG: update ACOM mapping for $file" });
 										next OBJE;
 									}
 								}
