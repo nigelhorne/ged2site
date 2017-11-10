@@ -484,7 +484,7 @@ HEADER
 # foreach my $person($ged->get_individual('Dolly Cowell')) {
 # foreach my $person($ged->get_individual('Edmund Frank Horne')) {
 
-# foreach my $person($ged->individuals()) {
+foreach my $person($ged->individuals()) {
 	$index++;
 	if(!$opts{'w'}) {
 		$| = 1;
