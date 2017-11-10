@@ -1,5 +1,8 @@
 package Ged2site::Display::people;
 
+use warnings;
+use strict;
+
 # Display the people page
 
 use Ged2site::Display;
@@ -36,9 +39,7 @@ sub html {
 
 	return $self->SUPER::html({
 		person => $people->fetchrow_hashref(\%params),
-		decode_base64url => sub {
-			MIME::Base64::decode_base64url($_[0])
-		},
+		decode_base64url => sub { MIME::Base64::decode_base64url($_[0]); },
 		updated => $people->updated()
 	});
 }

@@ -329,12 +329,7 @@ if($opts{'F'}) {
 	}
 
 	if(!defined($dot)) {
-		if($opts{'f'}) {
-			die 'Graphviz not found, no family trees';
-		}
-		if($opts{'w'}) {
-			red_warning(warning => 'Graphviz not found, no family trees');
-		}
+		complain(warning => 'Graphviz not found, no family trees');
 	} else {
 		require Image::Magick::Thumbnail;
 		Image::Magick::Thumbnail->import();
@@ -827,6 +822,7 @@ if($gedcal) {
 				while(<$fin>) {
 					print $mout $_;
 				}
+				close $fin;
 			}
 		}
 		print "\n";
@@ -995,7 +991,7 @@ sub print_person
 				red_warning({
 					person => $person,
 					warning => "not found in $ARGV[1]"
-				})
+				});
 			}
 		}
 	}
@@ -1063,12 +1059,12 @@ sub print_person
 	}
 
 	if($opts{'m'}) {
-		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>",
+		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>";
 	} else {
 		if($geolocation_key) {
 			die "$0: -G makes no sense without -m";
 		}
-		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>",
+		print $html "<html><head><title>$title</title></head><body><center><h1>$title</h1>";
 	}
 	if(defined($me)) {
 		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
@@ -1212,23 +1208,19 @@ sub print_person
 						$event = $e;
 					}
 				}
-				if(ref($event) eq 'Gedcom::Record') {
-					my $type = $event->type();
-					if($type eq 'Custom Marriage') {
-						# FindMyPast
-						$marriage = $event;
-					}
+				if((ref($event) eq 'Gedcom::Record') &&
+				  ($event->type() eq 'Custom Marriage')) {
+					# FindMyPast
+					$marriage = $event;
 				}
 			} else {
 				foreach my $event(@events) {
-					if(ref($event) eq 'Gedcom::Record') {
-						my $type = $event->type();
-						if($type eq 'Custom Marriage') {
-							# FindMyPast
-							$marriage = $event;
-							last;
+					if((ref($event) eq 'Gedcom::Record') &&
+					  ($event->type() eq 'Custom Marriage')) {
+						# FindMyPast
+						$marriage = $event;
+						last;
 						}
-					}
 				}
 			}
 		}
@@ -1346,10 +1338,7 @@ sub print_person
 					if(!defined($src)) {
 						if($opts{'w'}) {
 							my $src = $burial->source();
-							if($opts{'f'}) {
-								die $person->as_string(), ": burial citation can't find source $src";
-							}
-							red_warning({ person => $person, warning => "burial citation can't find source $src" });
+							complain({ person => $person, warning => "burial citation can't find source $src" });
 						}
 						next;
 					}
@@ -1372,9 +1361,9 @@ sub print_person
 				}
 			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofburial) {
-					red_warning({ person => $person, warning => "Burial date ($dateofburial) has no citations" });
+					complain({ person => $person, warning => "Burial date ($dateofburial) has no citations" });
 				} else {
-					red_warning({ person => $person, warning => "Burial place ($placeofburial) has no citations" });
+					complain({ person => $person, warning => "Burial place ($placeofburial) has no citations" });
 				}
 			}
 		}
@@ -1404,10 +1393,7 @@ sub print_person
 				}
 			}
 			if($error) {
-				if($opts{'f'}) {
-					die $person->name(), ': Check the gender of the record';
-				}
-				red_warning({ person => $person, warning => 'Check the gender of the record' });
+				complain({ person => $person, warning => 'Check the gender of the record' });
 			}
 		}
 	}
@@ -1943,7 +1929,7 @@ sub print_person
 							if($1 > $yod) {
 								if($opts{'f'}) {
 									die $person->as_string(),
-										": Year of citation of $title is after the death year of $yod"
+										": Year of citation of $title is after the death year of $yod";
 								}
 								red_warning({
 									person => $person,
@@ -2167,7 +2153,7 @@ sub print_person
 							my @items = $soccupation->items();
 							$soccupation = $items[0]->value();
 						}
-						if($soccupation =~ /^self-employed$/i) {
+						if(lc($soccupation) eq 'self-employed') {
 							$bio .= 'self-employed ';
 						} else {
 							$bio .= 'a';
@@ -2943,30 +2929,6 @@ sub print_person
 						}
 						$prev_date = $this_date;
 					}
-					# Find if they are an adult living with an adult sibling
-					if(scalar(@siblings) && $birth_dt && $residence->address()) {
-						my $diff = $dfn->parse_datetime($rdate) - $birth_dt;
-						if($diff->in_units('years') >= 40) {
-							# Safe to assume both are adults at this time
-							foreach my $sibling(@siblings) {
-								my @srs = $sibling->residence();
-								foreach my $sr(@srs) {
-									if((ref($sr) eq 'Gedcom::Record') &&
-									   $sr->date() && ($sr->date() eq $rdate) &&
-									   places_are_the_same({ person => $sibling, first => $residence, second => $sr })) {
-										$bio .= ' when ' .
-											lcfirst($person->pronoun()) .
-											' was living with ' .
-											lcfirst($person->possessive()) .
-											(($sibling->sex() eq 'F') ? ' sister, ' : ' brother, ') .
-											'<a href="' . make_filename_from_person(person => $sibling) . '">' .
-												$sibling->given_names() .
-											'</a>';
-									}
-								}
-							}
-						}
-					}
 					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
 							$bio .= ' following the death of ' .
@@ -3011,6 +2973,45 @@ sub print_person
 											year(date => get_value({ person => $spouses[0], value => 'death date' }));
 										$spdeath_dt = undef;
 										last CHILD;
+									}
+								}
+							}
+						}
+					}
+					# Find if they are an adult living with an adult sibling or in-law
+					if($all_residences_have_date && scalar(@siblings) && $birth_dt) {
+						foreach my $r(@residences) {
+							next if($r->date() ne $rdate);
+							my $place = place({ person => $person, record => $r });
+
+							foreach my $sibling(@siblings) {
+								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
+								if(my $ss = $sibling->spouse()) {
+									next if($bdiff->in_units('years') < 20);
+									# If they are living with an in-law, assume both are adults
+									my @ssr = get_all_residences(person => $ss);
+									foreach my $ssr(@ssr) {
+										next if($ssr->date() ne $rdate);
+										if(place({ person => $ss, record => $ssr }) eq $place) {
+											$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+												' ' .
+												(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
+												$ss->as_string();
+											last;
+										}
+									}
+								}
+								next if($bdiff->in_units('years') < 40);
+								# Safe to assume both are adults at this time
+								my @sr = get_all_residences(person => $sibling);
+								foreach my $sr(@sr) {
+									next if($sr->date() ne $rdate);
+									if(place({ person => $sibling, record => $sr }) eq $place) {
+										$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+											' ' .
+											(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+											$sibling->given_names();
+										last;
 									}
 								}
 							}
@@ -3834,14 +3835,17 @@ sub print_person
 			print $csv '!';
 		}
 		print $csv '!';
-		if(scalar(@children)) {
-			print $html '<h2>Children</h2><ol>';
-			print $xml "\n\t\t<children>";
-		}
+		my $printed_children_header;
 
 		my $c = '';
 		foreach my $child(@children) {
 			my $line = person_line_html({ person => $child, year => $year });
+			next if($line eq '');
+			if(!$printed_children_header) {
+				print $html '<h2>Children</h2><ol>';
+				print $xml "\n\t\t<children>";
+				$printed_children_header = 1;
+			}
 			print $html "<li>$line</li>";
 			my $x = HTML::Entities::encode($line);
 			print $xml "\n\t\t\t<child>$x</child>";
@@ -3880,7 +3884,7 @@ sub print_person
 				}
 			}
 		}
-		if(scalar(@children)) {
+		if($printed_children_header) {
 			print $html '</ol>';
 			print $xml "\n\t\t</children>";
 		}
@@ -4229,7 +4233,7 @@ sub print_person
 							my $key = $person->as_string() . ";$localfile";
 							$images{$key} = 1;
 						}
-						if($form && ($form =~ /^JPG$/i)) {
+						if($form && (lc($form) eq 'JPG')) {
 							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
@@ -4767,7 +4771,7 @@ sub print_person
 	if($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$c = 'United Kingdom'
+			$c = 'United Kingdom';
 		} elsif($c eq 'USA') {
 			$c = 'United States';
 		} elsif($c eq 'Scotland') {
@@ -4796,7 +4800,7 @@ sub print_person
 	if($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$c = 'United Kingdom'
+			$c = 'United Kingdom';
 		} elsif($c eq 'USA') {
 			$c = 'United States';
 		} elsif($c eq 'Scotland') {
@@ -4868,11 +4872,8 @@ sub print_person
 						"\n\t\t\t\t<long>", $locations[0]->{geometry}{location}{lng}, '</long>';
 				}
 				print $xml "\n\t\t\t</death>";
-			} elsif($opts{'w'}) {
-				if($opts{'f'}) {
-					die $person->as_string(), ": Unknown death location $placeofdeath";
-				}
-				red_warning({ person => $person, warning => "Unknown death location $placeofdeath" });
+			} else {
+				complain({ person => $person, warning => "Unknown death location $placeofdeath" });
 			}
 		}
 		print $csv '!';
@@ -5152,6 +5153,12 @@ sub Gedcom::Individual::relationship
 {
 	my $self = shift;
 	my $other = shift;
+
+	if($self->mother() && $other->mother() && $self->father() && $other->father &&
+	  ($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
+		my $sex = get_value({ person => $other, value => 'sex' });
+		return ($sex eq 'M') ? 'brother' : 'sister';
+	}
 
 	unless(@myancestors) {
 		@myancestors = $self->ancestors();
@@ -5939,6 +5946,33 @@ sub sibling_baptism_string
 	return $rc;
 }
 
+sub complain
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'warning'} = shift;
+	}
+
+	die "What do you want to say?" unless($params{'warning'});
+
+	if($opts{'w'}) {
+		$params{'caller'} = 1;
+		red_warning(%params);
+		return;
+	}
+
+	my @call_details = caller(0);
+	if($params{'person'}) {
+		die $params{'person'}, ': ', ucfirst($params{'warning'}), ' at line ', $call_details[2];
+	}
+	die ucfirst($params{'warning'}), ' at line ', $call_details[2];
+}
+
 sub red_warning
 {
 	if($opts{'w'}) {
@@ -6284,4 +6318,37 @@ sub cite
 	return '' unless(scalar(@citations));
 
 	return '<span class="citation">' . join(',', List::Util::uniq(sort { $a <=> $b } (@citations))) . '</span>';
+}
+
+sub get_all_residences
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+
+	my @residences = $person->residence();
+	my @rc;
+	foreach my $residence(@residences) {
+		next if(!ref($residence));
+		push @rc, $residence;
+	}
+	my @events = $person->event();
+	my $index = 0;
+	foreach my $event(@events) {
+		$index++;
+		if(!ref($event)) {
+			my $e = $person->tag_record('EVEN', $index);
+			if(ref($e) eq 'Gedcom::Record') {
+				$event = $e;
+			}
+		}
+		next if(ref($event) ne 'Gedcom::Record');
+		my $type = $event->type();
+		next if(!defined($type));
+		if(($type =~ /^Census U[KS] (\d{4})$/) || ($type eq 'Register UK 1939')) {
+			push @rc, $event;
+		}
+	}
+
+	return @rc;
 }

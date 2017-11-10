@@ -48,7 +48,7 @@ sub html {
 	};
 	my %params = %{$info->params({ allow => $allowed })};
 
-	my $updated = $args{'people'}->updated();;
+	my $updated = $args{'people'}->updated();
 
 	if((!scalar(keys %params)) || !defined($params{'graph'})) {
 		# Display the list of graphs
@@ -120,9 +120,9 @@ sub _ageatdeath
 		push @y, $average;
 		push @samples, { bucket => $bucket, size => $counts{$bucket} };
 	}
-	my $lineFit = Statistics::LineFit->new();
-	if($lineFit->setData(\@x, \@y)) {
-		@y = $lineFit->predictedYs();
+	my $lf = Statistics::LineFit->new();
+	if($lf->setData(\@x, \@y)) {
+		@y = $lf->predictedYs();
 		my $x = shift @x;
 		my $y = shift @y;
 		my $bestfit = "{ label: \"$x\", y: $y },\n";
@@ -628,7 +628,7 @@ sub _dist
 				# a standard deviation, since they are likely to bias the
 				# data rather heavily.  For example one family of 4
 				# who emigrate thousands of miles will have an unduly large
-				# effect, especially if the data size is very small 
+				# effect, especially if the data size is very small
 				my %info = Statistics::Lite::statshash(@{$dists{$bucket}});
 				# print "$bucket:\n", join(',', @{$dists{$bucket}}), "\n",
 					# Statistics::Lite::statsinfo(@{$dists{$bucket}}), "\n";

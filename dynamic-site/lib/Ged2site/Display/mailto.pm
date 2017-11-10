@@ -49,7 +49,7 @@ sub html {
 		$copy->{'error'} = 'Please enter the message';
 	} elsif(!defined($params->{'subject'})) {
 		$copy->{'error'} = 'Please enter the subject';
-	} 
+	}
 	my $yemail = $params->{'yemail'};
 	my $yname = $params->{'yname'};
 	if(!defined($copy->{'error'})) {

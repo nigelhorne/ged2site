@@ -11,6 +11,8 @@ package Ged2site::Config;
 #	config (ref to hash to of values to override in the config file
 # Values in the file are overriden by what's in the environment
 
+use warnings;
+use strict;
 use Config::Auto;
 use CGI::Info;
 use File::Spec;
@@ -72,14 +74,15 @@ sub new {
 			if($args{default_config_directory}) {
 				$path = $args{default_config_directory};
 			} elsif($args{logger}) {
-				while (($key,$value) = each %ENV) {
+				while(my ($key,$value) = each %ENV) {
 					$args{logger}->debug("$key=$value");
 				}
 			}
 		}
 
 		if(my $lingua = $args{'lingua'}) {
-			if((my $language = $lingua->language_code_alpha2()) && (-d "$path/$language")) {
+			my $language;
+			if(($language = $lingua->language_code_alpha2()) && (-d "$path/$language")) {
 				$path .= "/$language";
 			} elsif(-d "$path/default") {
 				$path .= '/default';
@@ -133,12 +136,12 @@ sub new {
 }
 
 sub AUTOLOAD {
-	my $self = shift or return undef;
-
+	our $AUTOLOAD;
 	my $key = $AUTOLOAD;
 
 	$key =~ s{.*::}{};
 
+	my $self = shift or return undef;
 	return $self->{$key};
 }
 

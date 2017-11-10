@@ -5,6 +5,8 @@ package Ged2site::Display::ww1;
 #	data, but that can't always be trusted to be of normalised form.  Need to find a way of
 #	speeding this up.
 
+use warnings;
+use strict;
 use Ged2site::Display;
 
 our @ISA = ('Ged2site::Display');
@@ -45,7 +47,7 @@ sub html {
 
 		next unless($person->{'death_country'});
 		my $dcountry = $person->{'death_country'};
-		next unless(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dountry eq 'nl'));
+		next unless(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dcountry eq 'nl'));
 
 		push @wardead, $person;
 	}

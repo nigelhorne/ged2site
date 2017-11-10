@@ -154,8 +154,7 @@ sub allow {
 			require Data::Validate::URI;
 			Data::Validate::URI->import();
 
-			my $v = Data::Validate::URI->new();
-			unless($v->is_uri($ENV{'HTTP_REFERER'})) {
+			unless(Data::Validate::URI->new()->is_uri($ENV{'HTTP_REFERER'})) {
 				if($logger) {
 					$logger->warn("$ENV{REMOTE_ADDR}: Blocked shellshocker for $ENV{HTTP_REFERER}");
 				}
