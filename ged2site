@@ -3820,7 +3820,6 @@ sub print_person
 				print $html "<li>$f</li>";
 				print $csv person_line_csv({ person => $father, year => $year });
 				my $x = HTML::Entities::encode($f);
-				$x =~ s/"/&quot;/g;
 				print $xml "\n\t\t<father>$x</father>";
 			}
 			print $csv '!';
@@ -3828,7 +3827,6 @@ sub print_person
 				print $html "<li>$m</li>";
 				print $csv person_line_csv({ person => $mother, year => $year });
 				my $x = HTML::Entities::encode($m);
-				$x =~ s/"/&quot;/g;
 				print $xml "\n\t\t<mother>$x</mother>";
 			}
 			print $html '</ol>';
@@ -3846,7 +3844,6 @@ sub print_person
 			my $line = person_line_html({ person => $child, year => $year });
 			print $html "<li>$line</li>";
 			my $x = HTML::Entities::encode($line);
-			$x =~ s/"/&quot;/g;
 			print $xml "\n\t\t\t<child>$x</child>";
 			if(length($c)) {
 				$c .= '----' . person_line_csv({ person => $child, year => $year });
@@ -4884,7 +4881,7 @@ sub print_person
 		print $csv '!!';
 	}
 
-	print $csv "!$birth_country!$death_country";
+	print $csv "$birth_country!$death_country!";
 
 	if($person->{'warnings'}) {
 		print "Create warnings\n" if($opts{'v'});
