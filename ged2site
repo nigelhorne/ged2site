@@ -1724,7 +1724,7 @@ sub print_person
 				print $csv ' <a href="?page=people&entry=', $mother->{'xref'}, '">',
 					$mother->given_names(),
 					'</a>';
-				print $xml ' &lt;a href="?page=people&amp;entry=', $father->{'xref'}, '"&gt;',
+				print $xml ' &lt;a href="?page=people&amp;entry=', $mother->{'xref'}, '"&gt;',
 					$mother->given_names(),
 					'&lt;/a&gt;';
 			}
