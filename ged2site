@@ -5964,11 +5964,13 @@ sub complain
 		return;
 	}
 
-	my @call_details = caller(0);
-	if($params{'person'}) {
-		die $params{'person'}, ': ', ucfirst($params{'warning'}), ' at line ', $call_details[2];
+	if($opts{'f'}) {
+		my @call_details = caller(0);
+		if($params{'person'}) {
+			die $params{'person'}->as_string(), ': ', ucfirst($params{'warning'}), ' at line ', $call_details[2];
+		}
+		die ucfirst($params{'warning'}), ' at line ', $call_details[2];
 	}
-	die ucfirst($params{'warning'}), ' at line ', $call_details[2];
 }
 
 sub red_warning
