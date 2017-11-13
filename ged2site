@@ -482,6 +482,7 @@ HEADER
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dolly Cowell')) {
+# foreach my $person($ged->get_individual('Edmund Frank Horne')) {
 
 foreach my $person($ged->individuals()) {
 	$index++;
@@ -1723,7 +1724,7 @@ sub print_person
 				print $csv ' <a href="?page=people&entry=', $mother->{'xref'}, '">',
 					$mother->given_names(),
 					'</a>';
-				print $xml ' &lt;a href="?page=people&amp;entry=', $father->{'xref'}, '"&gt;',
+				print $xml ' &lt;a href="?page=people&amp;entry=', $mother->{'xref'}, '"&gt;',
 					$mother->given_names(),
 					'&lt;/a&gt;';
 			}
@@ -3821,7 +3822,6 @@ sub print_person
 				print $html "<li>$f</li>";
 				print $csv person_line_csv({ person => $father, year => $year });
 				my $x = HTML::Entities::encode($f);
-				$x =~ s/"/&quot;/g;
 				print $xml "\n\t\t<father>$x</father>";
 			}
 			print $csv '!';
@@ -3829,7 +3829,6 @@ sub print_person
 				print $html "<li>$m</li>";
 				print $csv person_line_csv({ person => $mother, year => $year });
 				my $x = HTML::Entities::encode($m);
-				$x =~ s/"/&quot;/g;
 				print $xml "\n\t\t<mother>$x</mother>";
 			}
 			print $html '</ol>';
@@ -3850,7 +3849,6 @@ sub print_person
 			}
 			print $html "<li>$line</li>";
 			my $x = HTML::Entities::encode($line);
-			$x =~ s/"/&quot;/g;
 			print $xml "\n\t\t\t<child>$x</child>";
 			if(length($c)) {
 				$c .= '----' . person_line_csv({ person => $child, year => $year });
@@ -4236,7 +4234,7 @@ sub print_person
 							my $key = $person->as_string() . ";$localfile";
 							$images{$key} = 1;
 						}
-						if($form && (lc($form) eq 'JPG')) {
+						if($form && (lc($form) eq 'jpg')) {
 							next OBJE if($pass == 2);
 							if($title) {
 								print $html "<h3>$title</h3>";
@@ -4262,10 +4260,7 @@ sub print_person
 										# 404
 										$file = "https://mediasvc.ancestry.com/v2/image/namespaces/1093/media/$1.jpg?client=Trees";
 									} elsif($opts{'w'}) {
-										if($opts{'f'}) {
-											die "BUG: update ACOM mapping for $file";
-										}
-										red_warning({ person => $person, warning => "BUG: update ACOM mapping for $file" });
+										complain({ person => $person, warning => "BUG: update ACOM mapping for $file" });
 										next OBJE;
 									}
 								}
@@ -4875,11 +4870,8 @@ sub print_person
 						"\n\t\t\t\t<long>", $locations[0]->{geometry}{location}{lng}, '</long>';
 				}
 				print $xml "\n\t\t\t</death>";
-			} elsif($opts{'w'}) {
-				if($opts{'f'}) {
-					die $person->as_string(), ": Unknown death location $placeofdeath";
-				}
-				red_warning({ person => $person, warning => "Unknown death location $placeofdeath" });
+			} else {
+				complain({ person => $person, warning => "Unknown death location $placeofdeath" });
 			}
 		}
 		print $csv '!';
@@ -4888,7 +4880,7 @@ sub print_person
 		print $csv '!!';
 	}
 
-	print $csv "!$birth_country!$death_country!";
+	print $csv "$birth_country!$death_country!";
 
 	if($person->{'warnings'}) {
 		print "Create warnings\n" if($opts{'v'});
