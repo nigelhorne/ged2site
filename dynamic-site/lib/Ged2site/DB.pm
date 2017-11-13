@@ -162,16 +162,12 @@ sub _open {
 		} else {
 			$slurp_file = File::Spec->catfile($directory, "$table.xml");
 			if(-r $slurp_file) {
-				# You'll need to install XML::Twig and
-				# AnyData::Format::XML
-				# The DBD::AnyData in CPAN doesn't work - grab a
-				# patched version from https://github.com/nigelhorne/DBD-AnyData.git
-				$dbh = DBI->connect('dbi:AnyData(RaiseError=>1):');
+				$dbh = DBI->connect('dbi:XMLSimple(RaiseError=>1):');
 				$dbh->{'RaiseError'} = 1;
 				if($self->{'logger'}) {
 					$self->{'logger'}->debug("read in $table from XML $slurp_file");
 				}
-				$dbh->func($table, 'XML', $slurp_file, 'ad_import');
+				$dbh->func($table, 'XML', $slurp_file, 'xmlsimple_import');
 			} else {
 				throw Error::Simple("Can't open $directory/$table");
 			}
