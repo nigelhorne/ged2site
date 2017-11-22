@@ -5775,15 +5775,19 @@ sub validate_place
 			# my $error = $ap->parse("$address, $p");
 			# print $ap->report();
 		# }
-		if(($place =~ /USA$/) || ($place =~ /United States$/)) {
-			if(my $href = Geo::StreetAddress::US->parse_location($place)) {
-				if($href->{'state'} && !$us->{code2state}{$href->{'state'}}) {
-					my $person = $params{'person'};
-					if($opts{'f'}) {
-						die $person->as_string(), ": Unknown state in $place";
-					}
-					red_warning({ person => $person, warning => "Unknown state in $place" });
-				}
+
+		# if(($place =~ /USA$/) || ($place =~ /United States$/)) {
+			# if(my $href = Geo::StreetAddress::US->parse_location($place)) {
+				# if($href->{'state'} && !$us->{code2state}{$href->{'state'}} && !$us->{state2code}{$href->{'state'}) {
+				# die $href->{'state'};
+					# complain({ person => $params{'person'}, warning => "Unknown state in $place" });
+				# }
+			# }
+		# }
+		if((($place =~ /USA$/) || ($place =~ /United States$/)) && ($place =~ /^.+,\s*([\w\s]+),[\w\s]+$/)) {
+			my $state = uc($1);
+			if((!$us->{code2state}{$state}) && !$us->{state2code}{$state}) {
+				complain({ person => $params{'person'}, warning => "Unknown state '$state' in $place" });
 			}
 		}
 
