@@ -3203,7 +3203,18 @@ sub print_person
 						$bio .= place($opts);
 					}
 				}
-				$bio .= ' ' . year({ person => $person, date => $dateofburial });
+				my $must_postdate;
+				if($death_dt) {
+					$must_postdate = $death_dt;
+				} elsif($dateofdeath =~ /^(Abt|ca?)\.?\s*(.+)/i) {
+					my $d = $2;
+					if($d !~ /^\d/) {
+						$must_postdate = date_to_datetime("1 $d");
+					} else {
+						$must_postdate = date_to_datetime($d);
+					}
+				}
+				$bio .= ' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate });
 				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
@@ -5349,8 +5360,21 @@ sub year
 		return "in $string";
 	}
 	if($string =~ /^(Abt|ca?)\.?\s*(.+)/i) {
+		my $rc = $2;
+		if(my $must_postdate = $params{'must_postdate'}) {
+			my $dt;
+			if($rc !~ /^\d/) {
+				$dt = date_to_datetime("1 $rc");
+			} else {
+				$dt = date_to_datetime($rc);
+			}
+print "$dt\n";
+			if($dt && ($dt < $must_postdate)) {
+				die $rc;
+			}
+		}
 		if($params{'circa'}) {
-			return $params{'circa'} . " $2";
+			return $params{'circa'} . " $rc";
 		}
 		return "<i>c.</i> $2";
 	}
@@ -5364,13 +5388,7 @@ sub year
 
 	if($string =~ /(.+)\s(\d{4})\/\d{2}/) {
 		my $year = $2 + 1;
-		if($opts{'w'}) {
-			my $person = $params{'person'};
-			if($opts{'f'}) {
-				die $person->as_string(), ": old-style date ($string) should be in $year";
-			}
-			red_warning({ person => $person, warning => "old-style date ($string) should be in $year" });
-		}
+		complain({ person => $params{'person'}, warning => "old-style date ($string) should be in $year" });
 		$string = "$1 $year";
 	}
 
@@ -5388,12 +5406,7 @@ sub year
 		if(my $d = date_parser_cached(date => $string)) {
 			$d = $dfn->parse_datetime($d->{'canonical'});
 			if(my $must_postdate = $params{'must_postdate'}) {
-				if($opts{'f'}) {
-					die $person->as_string(), ": Something is wrong with the date $string which should be after ", $must_postdate->strftime('%x') if($d < $must_postdate);
-				}
-				if($opts{'w'}) {
-					red_warning({ person => $person, warning => "something is wrong with the date $string which should be after " . $must_postdate->strftime('%x') }) if($d < $must_postdate);
-				}
+				complain({ person => $person, warning => "something is wrong with the date $string which should be after " . $must_postdate->strftime('%x') }) if($d < $must_postdate);
 			}
 			if(my $must_predate = $params{'must_predate'}) {
 				if($opts{'f'}) {
