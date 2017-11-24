@@ -70,6 +70,10 @@ use Ged2site::Display::reports;
 use Ged2site::Display::mailto;
 
 use Ged2site::DB::people;
+if($@) {
+	$logger->error($@);
+	die $@;
+}
 use Ged2site::DB::censuses;
 use Ged2site::DB::surnames;
 use Ged2site::DB::history;
