@@ -295,6 +295,7 @@ sub doit
 		} elsif($page eq 'mailto') {
 			$display = Ged2site::Display::mailto->new($args);
 		} else {
+			$logger->info("Unknown page $page");
 			$invalidpage = 1;
 		}
 	};
@@ -316,7 +317,6 @@ sub doit
 			cachedir => $cachedir
 		});
 	} elsif($invalidpage) {
-		$logger->info("Unknown page $page")
 		choose();
 		return;
 	} else {
