@@ -27,7 +27,7 @@ by you to create the look and feel of the website that you want.
 If you decide to use the static site, just copy files in the static-site directory to your web-server.
 
 If you decide to use the dynamic site first create a $hostname.com file in the
-conf directory (use example.com as a template),
+conf directory (use default as a template),
 then modify the contents of the template tree so that the site looks as you
 want it.
 The configuration file can be in any number of formats including INI and XML.
