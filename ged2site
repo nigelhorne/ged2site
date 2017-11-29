@@ -4986,12 +4986,7 @@ sub Gedcom::Individual::as_string
 				$surname = $husband->surname();
 				$has_maiden_name = 1;
 			} elsif(my $spouse = $self->spouse()) {
-				if($opts{'f'}) {
-					die 'married, but no husband relationship';
-				}
-				if($opts{'w'}) {
-					red_warning({ person => $self, warning => 'married, but no husband relationship' });
-				}
+				complain({ person => $self, warning => 'married, but no husband relationship' });
 				$surname = $spouse->surname();
 				$has_maiden_name = 1;
 			}
