@@ -2992,13 +2992,15 @@ sub print_person
 									# If they are living with an in-law, assume both are adults
 									my @ssr = get_all_residences(person => $ss);
 									foreach my $ssr(@ssr) {
-										next if($ssr->date() ne $rdate);
-										if(place({ person => $ss, record => $ssr }) eq $place) {
-											$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-												' ' .
-												(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
-												$ss->as_string();
-											last;
+										if(my $d = $ssr->date()) {
+											next if($d ne $rdate);
+											if(place({ person => $ss, record => $ssr }) eq $place) {
+												$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' ' .
+													(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
+													$ss->as_string();
+												last;
+											}
 										}
 									}
 								}
