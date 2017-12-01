@@ -396,6 +396,9 @@ if($opts{'d'} || $opts{'m'}) {
 
 my @everyone = $ged->individuals();
 my $total = scalar(@everyone);
+if($total == 0) {
+	die "$0: gedcom file is empty\n";
+}
 my $index = 0;
 my $dtl = DateTime::Locale->load($ENV{'LANG'});
 
