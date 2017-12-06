@@ -646,6 +646,8 @@ if($opts{'w'}) {
 					$summary = 'Death location not found';
 				} elsif($warning =~ /\sisn't found$/) {
 					$summary = 'Location not found';
+				} elsif($warning =~ /^something is wrong with the date /) {
+					$summary = 'Inconsistent date';
 				} else {
 					$summary = $warning;
 				}
