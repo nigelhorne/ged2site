@@ -2560,7 +2560,7 @@ sub print_person
 			if($same_occupation_as_father =~ /^[aeiou]/i) {
 				$bio .= 'n';
 			}
-			$bio .= ' ' . lc($same_occupation_as_father) . '. ';
+			$bio .= ' ' . lc($same_occupation_as_father) . '.';
 			$end_of_sentence = 1;
 		}
 
