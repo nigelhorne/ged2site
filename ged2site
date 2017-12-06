@@ -3411,7 +3411,7 @@ sub print_person
 		} else {
 			$bio .= ucfirst(year({ person => $person, record => $arrival })) .
 				' ' . lcfirst($person->pronoun()) .
-				' arrived' .
+				'arrived' .
 				place({ person => $person, record => $arrival });
 
 			if(my $notes = notes({ record => $arrival, person => $person, note_locations => \@note_locations })) {
