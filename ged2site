@@ -5368,7 +5368,6 @@ sub year
 			} else {
 				$dt = date_to_datetime($rc);
 			}
-print "$dt\n";
 			if($dt && ($dt < $must_postdate)) {
 				die $rc;
 			}
