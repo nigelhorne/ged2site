@@ -1696,10 +1696,7 @@ sub print_person
 					if($mdod && $birth_dt) {
 						if(my $dt = date_to_datetime(date => $mdod)) {
 							if($birth_dt > $dt) {
-								if($opts{'f'}) {
-									die $person->name(), ': Born after mother died';
-								}
-								red_warning({ person => $person, warning => 'Born after mother died' });
+								complain({ person => $person, warning => 'Born after mother died' });
 							}
 						}
 					}
@@ -3412,7 +3409,7 @@ sub print_person
 			}
 		} else {
 			$bio .= ucfirst(year({ person => $person, record => $arrival })) .
-				' ' . lcfirst($person->pronoun()) .
+				', ' . lcfirst($person->pronoun()) .
 				'arrived' .
 				place({ person => $person, record => $arrival });
 
