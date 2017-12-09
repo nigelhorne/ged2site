@@ -362,7 +362,16 @@ sub choose
 	return unless($info->status() == 200);
 
 	print "Status: 300 Multiple Choices\n",
-		"Content-type: text/plain\n\n";
+		"Content-type: text/plain\n";
+
+	my $path = $info->script_path();
+	if(defined($path)) {
+		my @statb = stat($path);
+		my $mtime = $statb[9];
+		print "Last-Modified: ", HTTP::Date::time2str($mtime), "\n";
+	}
+
+	print "\n";
 
 	unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 		print "/cgi-bin/page.fcgi?page=people\n",
