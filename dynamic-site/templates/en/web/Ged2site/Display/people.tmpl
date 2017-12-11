@@ -6,6 +6,8 @@
 		[% IF person %]
 			<title>[% person.title %]</title>
 			<meta name="description" content="About [% person.title %] - A ged2site webpage">
+		[% ELSIF home %]
+			<title>[% SiteTitle.join(' ') %]</title>
 		[% ELSE %]
 			<title>[% SiteTitle.join(' ') %]</title>
 			<script language="JavaScript">
@@ -222,6 +224,9 @@
 					</div>
 				[% END %]
 			</div>
+		[% ELSIF home %]
+			<h1>[% SiteTitle.join(' ') %]</h1>
+			<p><font color="red" size="+2">Home record not found - probably '-h' flag wasn't set given to ged2site</font></p>
 		[% ELSE %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
 			<center><img src="/images/page-loader.gif" height="300" width="300" alt="loading icon"></center>
