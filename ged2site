@@ -3590,94 +3590,20 @@ sub print_person
 					$end_of_sentence = 0;
 				} elsif($type eq 'Arrival') {
 					if(!defined($event->place())) {
-						if($opts{'f'}) {
-							die $person->as_string() . ': arrival record without destination';
-						}
-						if($opts{'w'}) {
-							red_warning({ person => $person, warning => 'Arrival record without destination' });
-						}
+						complain({ person => $person, warning => 'Arrival record without destination' });
 						next;
 					}
-					if($events[$index] && ($events[$index]->type() eq 'Arrival') && $event->date()) {
+					if($events[$index] && ($events[$index]->type() eq 'Departure') && $event->date()) {
 						if($events[$index]->date()) {
 							$previous = $event;
 							$prev_type = 'Arrival';
+							# FIXME: not all locations will be noted or notes printed
 							next;
 						}
 					}
 					if($previous) {
 						if($prev_type eq 'Departure') {
-							my $arrival = $event;
-							my $departure = $previous;
-							my $yod;
-							my $yoa;
-							my $dod = $departure->date();
-							my $doa = $arrival->date();
-							my $only_have_departure_year;
-							if($doa && $dod && ($doa =~ /(\d{3,4})/)) {
-								$yoa = $1;
-								$doa =~ s/\s?\d{3,4}//;
-								if($dod =~ /(\d{3,4})/) {
-									$yod = $1;
-									$dod =~ s/\s?\d{3,4}//;
-									if($dod =~ /^\d/) {
-										$dod = "on $dod";
-									} else {
-										$dod = "during $yod";
-										$only_have_departure_year = 1;
-									}
-									if($doa =~ /^\d/) {
-										$doa = "on $doa";
-									} elsif($yoa == $yod) {
-										$doa = 'later that same year';
-									} else {
-										$doa = "during $yoa";
-									}
-								}
-							}
-							if($previous->date()) {
-								if($yod && $yoa && ($yod == $yoa)) {
-									$bio .= "During $yod " . lc($person->pronoun());
-								} else {
-									$bio .= $person->pronoun();
-
-									# $yod = year({ person => $person, record => $departure });
-									# $yoa = year({ person => $person, record => $arrival });
-								}
-
-								if($ENV{'LANG'} =~ /^en_US/) {
-									$bio .= ' traveled';
-								} else {
-									$bio .= ' travelled';
-								}
-
-								if(defined($departure->place())) {
-									$bio .= ' from ' . $departure->place();
-								} else {
-									if($opts{'f'}) {
-										die $person->as_string() . ': departure record has no location';
-									}
-									if($opts{'w'}) {
-										red_warning({ person => $person, warning => 'Departure record has no location' });
-									}
-								}
-								if(defined($arrival->place())) {
-									$bio .= ' to ' . $arrival->place();
-								} else {
-									if($opts{'f'}) {
-										die $person->as_string() . ': arrival record has no location';
-									}
-									if($opts{'w'}) {
-										red_warning({ person => $person, warning => 'Arrival record has no location' });
-									}
-								}
-
-								if(defined($dod) && !$only_have_departure_year) {
-									$bio .= ", departing $dod and";
-								}
-
-								$bio .= " arriving $doa. ";
-							}
+							$bio .= journey({ person => $person, arrival => $event, departure => $previous });
 						} else {
 							# Two arrival records, put into one sentence for improved readability
 							my $date1 = year({ record => $previous });
@@ -3713,7 +3639,7 @@ sub print_person
 									place({ person => $person, record => $previous }) .
 									' and ' .
 									year({ person => $person, record => $event }) .
-									' ' . lcfirst($pronoun),
+									' ' . lcfirst($pronoun) .
 									' arrived' .
 									place({ person => $person, record => $event }) . '.';
 							}
@@ -3727,47 +3653,50 @@ sub print_person
 								$bio .= $year;
 							}
 							$bio .= ' ' . lcfirst($person->pronoun()) . " arrived$place.";
-						} elsif($opts{'f'}) {
-							die $person->as_string(), "Can't determine $type date";
-						} elsif($opts{'w'}) {
-							red_warning({ person => $person, warning => "Can't determine $type date" });
+						} else {
+							complain({ person => $person, warning => "Can't determine $type date" });
 						}
-					} elsif($opts{'f'}) {
-						die $person->as_string(), "Can't determine $type location";
-					} elsif($opts{'w'}) {
-						red_warning({ person => $person, warning => "Can't determine $type location" });
+					} else {
+						complain({ person => $person, warning => "Can't determine $type location" });
+					}
+					if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
+						$notes = lcfirst($notes);
+						$bio .= " ($notes)";
 					}
 					$end_of_sentence = 1;
 				} elsif($type eq 'Departure') {
 					if(!defined($event->place())) {
-						if($opts{'f'}) {
-							die $person->as_string() . ': departure record without destination';
-						}
-						if($opts{'w'}) {
-							red_warning({ person => $person, warning => 'Departure record without destination' });
-						}
+						complain({ person => $person, warning => 'Departure record without destination' });
 						next;
 					}
 					if($events[$index] && ($events[$index]->type() eq 'Arrival') && $event->date()) {
 						if($events[$index]->date()) {
 							$previous = $event;
 							$prev_type = 'Departure';
+							# FIXME: not all locations will be noted or notes printed
 							next;
 						}
 					}
-					$bio .= ' ' . $person->pronoun();
-					if($ENV{'LANG'} =~ /^en_US/) {
-						$bio .= ' traveled';
+					if($previous) {
+						if($prev_type eq 'Arrival') {
+							$bio .= journey({ person => $person, arrival => $event, departure => $previous });
+						}
+						$previous = undef;
 					} else {
-						$bio .= ' travelled';
-					}
-					my $place = place({ person => $person, record => $event });
-					$place =~ s/^\sin/ from/;
-					if($event->date()) {
-						$bio .= "$place " .
-							year({ person => $person, record => $event });
-					} else {
-						$bio .= $place;
+						$bio .= ' ' . $person->pronoun();
+						if($ENV{'LANG'} =~ /^en_US/) {
+							$bio .= ' traveled';
+						} else {
+							$bio .= ' travelled';
+						}
+						my $place = place({ person => $person, record => $event });
+						$place =~ s/^\sin/ from/;
+						if($event->date()) {
+							$bio .= "$place " .
+								year({ person => $person, record => $event });
+						} else {
+							$bio .= $place;
+						}
 					}
 					if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 						$notes = lcfirst($notes);
@@ -6363,4 +6292,88 @@ sub get_all_residences
 	}
 
 	return @rc;
+}
+
+sub journey
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+	my $arrival = $params{'arrival'};
+	my $departure = $params{'departure'};
+
+	my $rc;
+	my $yod;
+	my $yoa;
+	my $dod = $departure->date();
+	my $doa = $arrival->date();
+	my $only_have_departure_year;
+	if($doa && $dod && ($doa =~ /(\d{3,4})/)) {
+		$yoa = $1;
+		$doa =~ s/\s?\d{3,4}//;
+		if($dod =~ /(\d{3,4})/) {
+			$yod = $1;
+			$dod =~ s/\s?\d{3,4}//;
+			if($dod =~ /^\d/) {
+				$dod = "on $dod";
+			} else {
+				$dod = "during $yod";
+				$only_have_departure_year = 1;
+			}
+			if($doa =~ /^\d/) {
+				$doa = "on $doa";
+			} elsif($yoa == $yod) {
+				$doa = 'later that same year';
+			} else {
+				$doa = "during $yoa";
+			}
+		}
+	}
+	if($dod) {
+		if($yod && $yoa && ($yod == $yoa)) {
+			$rc = " During $yod " . lc($person->pronoun());
+		} else {
+			$rc = $person->pronoun();
+
+			# $yod = year({ person => $person, record => $departure });
+			# $yoa = year({ person => $person, record => $arrival });
+		}
+
+		if($ENV{'LANG'} =~ /^en_US/) {
+			$rc .= ' traveled';
+		} else {
+			$rc .= ' travelled';
+		}
+
+		if(defined($departure->place())) {
+			# $rc .= ' from ' .  $departure->place();
+			$rc .= ' from' . place({ person => $person, record => $departure, nopreposition => 1 });
+			if(my $notes = notes(record => $departure)) {
+				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+				$notes =~ s/\.$//;
+				$rc .= " ($notes)";
+			}
+		} else {
+			complain({ person => $person, warning => 'Departure record has no location' });
+		}
+		if(defined($arrival->place())) {
+			# $rc .= ' to ' .  $departure->place();
+			$rc .= ' to' . place({ person => $person, record => $arrival, nopreposition => 1 });
+			if(my $notes = notes(record => $arrival)) {
+				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+				$notes =~ s/\.$//;
+				$rc .= " ($notes)";
+			}
+		} else {
+			complain({ person => $person, warning => 'Arrival record has no location' });
+		}
+
+		if(defined($dod) && !$only_have_departure_year) {
+			$rc .= ", departing $dod and";
+		}
+
+		$rc .= " arriving $doa";
+	}
+
+	return $rc;
 }
