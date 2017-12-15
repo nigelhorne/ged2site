@@ -89,7 +89,8 @@ sub html {
 		}
 	}
 
-	print $fout "Sender: $site_title\n",
+	my $host_name = $info->host_name();
+	print $fout "Sender: \"$site_title\" <webmaster\@$host_name\n",
 		'Return-Receipt-To: ', $yemail, "\n";
 
 	# if((!defined($params->{'entry'})) || ($params->{'entry'} !~ /Nigel.Horne/i)) {
