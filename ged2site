@@ -3190,7 +3190,7 @@ sub print_person
 				$d =~ tr/\r//;
 				$d =~ tr/\n/ /;
 				$d =~ s/\.$//;
-				$d = lcfirst($d);
+				$d = lcfirst($d) unless($d =~ /^[A-Z]{2}/);
 				$bio .= " ($d)";
 			}
 			my $opts = {
@@ -3275,10 +3275,8 @@ sub print_person
 					}
 					if(defined($place)) {
 						$bio .= $place;
-					} elsif($opts{'f'}) {
-						die $person->as_string(), "Place of death ($placeofdeath) can't be parsed";
-					} elsif($opts{'w'}) {
-						red_warning({
+					} else {
+						complain({
 							person => $person,
 							warning => "Place of death ($placeofdeath) can't be parsed"
 						});
@@ -3291,12 +3289,17 @@ sub print_person
 		$bio .= cite(@deathcitations);
 
 		# Print notes about the death, if any
+		$end_of_sentence = 0;
 		if(defined($death) && (my $d = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
 			$d =~ tr/\r//;
 			$d =~ s/\.$//;
+			$d = lcfirst($d) unless($d =~ /^[A-Z]{2}/);
 			$bio .= " ($d)";
+			if(length($d) > 160) {
+				$bio .= ".</p><p>";
+				$end_of_sentence = 1;
+			}
 		}
-		$end_of_sentence = 0;
 	}
 	$bio .= '.' if(!$end_of_sentence);
 	$end_of_sentence = 1;
@@ -5650,36 +5653,9 @@ sub notes
 	foreach my $note(@notes) {
 		if($note) {
 			if(ref($note) eq 'Gedcom::Record') {
-				if($note->cont()) {
-					my $n = $note->value();
-					$n =~ s/\r//g;
-					$n =~ s/\.$//;
-					foreach my $c($note->cont()) {
-						if((!ref($c)) && length($c)) {
-							$c =~ s/\s\s+/ /g;
-							$c =~ s/\.$//;
-							if($n =~ /[;:]$/) {
-								$n .= " $c";
-							} else {
-								$n .= ". $c";
-							}
-						}
-					}
-					$note = $n;
-				} elsif($note->conc()) {
-					my $n = $note->value();
-					$n =~ s/\r//g;
-					$n =~ s/\.$//;
-					foreach my $c($note->conc()) {
-						if((!ref($c)) && length($c)) {
-							$c =~ s/\s\s+/ /g;
-							$n .= $c;
-						}
-					}
-					$note = $n;
-				} else {
-					$note = $note->value();
-				}
+				$note = $note->full_value();	# Include CONC records
+			# } else {
+				# complain("Note record is just description ($note), infomation may have been lost");
 			}
 			$note =~ s/\r//g;
 			$note =~ tr/\n/ /;
@@ -5697,6 +5673,8 @@ sub notes
 				}
 				$rc .= HTML::Entities::encode($note) . '.';
 			}
+		} else {
+			complain('Notes field is empty');
 		}
 	}
 	if(defined($rc)) {
@@ -6015,12 +5993,12 @@ sub red_warning
 		die "What do you want to say?" unless($params{'warning'});
 
 		my $warning = HTML::Entities::decode($params{'warning'});
+		my @call_details = caller(0);
 		if($params{'person'}) {
-			my @call_details = caller(0);
 			warn colored(['red'], $params{'person'}->as_string(), ": $warning at line ", $call_details[2]);
 			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
-			warn colored(lcfirst($warning), 'red');
+			warn colored(['red'], $params{'warning'}, ' at line ', $call_details[2]);
 		}
 		# my $i = 0;
 		# while((my @call_details = (caller($i++)))) {
