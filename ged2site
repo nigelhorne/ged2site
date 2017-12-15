@@ -3939,7 +3939,7 @@ sub print_person
 						red_warning({ person => $person, warning => "$orig_uri: not found" });
 					}
 					$uri =~ s/:$//;
-					return "<a HREF=\"$uri\">" .
+					return "<a href=\"$uri\">" .
 						$u->host() .
 						'</a>';
 				}
@@ -4011,9 +4011,13 @@ sub print_person
 					$census_years{$1} = $title;
 				}
 
-				print $html "<li>$c</li>";
+				my $h = $c;
+				if($h =~ s/&lt;a href=&quot;http/<a href="http/gi) {
+					$h =~ s/&lt;\/a&gt;/<\/a>/gi;
+				}
+				print $html "<li>$h</li>";
 				print $csv '----' if($citation > 1);
-				print $csv $c;
+				print $csv $h;
 				$c =~ s/&/&amp;/g;
 				$c =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
 				$c =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
@@ -5712,7 +5716,7 @@ sub notes
 					red_warning({ person => $person, warning => "$orig_uri: in notes is not found" });
 				}
 				$uri =~ s/:$//;
-				return "<a HREF=\"$uri\">" .
+				return "<a href=\"$uri\">" .
 					$u->host() .
 					'</a>';
 			}
