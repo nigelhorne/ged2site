@@ -3186,12 +3186,13 @@ sub print_person
 			}
 			$bio .= cite(@deathcitations);
 			# Print notes about the death, if any
-			if(my $d = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
-				$d =~ tr/\r//;
-				$d =~ tr/\n/ /;
-				$d =~ s/\.$//;
-				$d = lcfirst($d) unless($d =~ /^[A-Z]{2}/);
-				$bio .= " ($d)";
+			my $notes;
+			if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
+				$notes =~ tr/\r//;
+				$notes =~ tr/\n/ /;
+				$notes =~ s/\.$//;
+				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+				$bio .= " ($notes)";
 			}
 			my $opts = {
 				person => $person,
@@ -3237,6 +3238,10 @@ sub print_person
 				$bio .= ' and is buried there at ' . $burial->address();
 			} else {
 				$bio .= ' and is buried' . place($opts);
+			}
+			if(length($notes) > 160) {
+				$bio .= ".</p><p>";
+				$end_of_sentence = 1;
 			}
 			$end_of_sentence = 0;
 		}
@@ -3371,7 +3376,7 @@ sub print_person
 		}
 		if($departure || !$doa) {
 			if($yod && $yoa && ($yod == $yoa)) {
-				$bio .= "During $yod " . lc($person->pronoun());
+				$bio .= "Durin $yod " . lc($person->pronoun());
 			} else {
 				$bio .= $person->pronoun();
 
@@ -3663,6 +3668,7 @@ sub print_person
 						$notes = lcfirst($notes);
 						$bio .= " ($notes)";
 					}
+					$bio .= '.';
 					$end_of_sentence = 1;
 				} elsif($type eq 'Departure') {
 					if(!defined($event->place())) {
@@ -3702,7 +3708,8 @@ sub print_person
 						$notes = lcfirst($notes);
 						$bio .= " ($notes)";
 					}
-					$bio .= '. ';
+					$bio .= '.';
+					$end_of_sentence = 1;
 				} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
 					($type ne 'Register UK 1939') &&
 					($type ne 'Race') &&
@@ -6331,7 +6338,7 @@ sub journey
 	}
 	if($dod) {
 		if($yod && $yoa && ($yod == $yoa)) {
-			$rc = " During $yod " . lc($person->pronoun());
+			$rc = " In $yod, " . lc($person->pronoun());
 		} else {
 			$rc = $person->pronoun();
 
@@ -6346,7 +6353,6 @@ sub journey
 		}
 
 		if(defined($departure->place())) {
-			# $rc .= ' from ' .  $departure->place();
 			$rc .= ' from' . place({ person => $person, record => $departure, nopreposition => 1 });
 			if(my $notes = notes(record => $departure)) {
 				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
@@ -6357,7 +6363,6 @@ sub journey
 			complain({ person => $person, warning => 'Departure record has no location' });
 		}
 		if(defined($arrival->place())) {
-			# $rc .= ' to ' .  $departure->place();
 			$rc .= ' to' . place({ person => $person, record => $arrival, nopreposition => 1 });
 			if(my $notes = notes(record => $arrival)) {
 				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
