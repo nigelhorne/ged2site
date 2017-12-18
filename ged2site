@@ -183,7 +183,7 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::GooglePlaces->new(%gp_args));
 	}
 
-	my $ua = LWP::UserAgent::Throttled->new(agent => 'ged2site');
+	my $ua = LWP::UserAgent::Throttled->new(agent => 'ged2site', keep_alive => 1);
 	$ua->env_proxy(1);
 
 	# TODO: throttle other geocoders
