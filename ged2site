@@ -4738,27 +4738,25 @@ sub print_person
 	if($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
-			$c = 'United States';
+			$birth_country = 'United States';
 		} elsif($c eq 'Scotland') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
-			$c = 'United Kingdom';
-		}
-		my $b;
-		eval {
-			$b = Locale::Object::Country->new(name => $c);
-		};
-		if(defined($b)) {
-			$birth_country = $b->code_alpha2();
-		} elsif($opts{'w'}) {
-			if($opts{'f'}) {
-				die $person->as_string(), ": Unknown birth country '$c'";
+			$birth_country = 'United Kingdom';
+		} else {
+			my $b;
+			eval {
+				$b = Locale::Object::Country->new(name => $c);
+			};
+			if(defined($b)) {
+				$birth_country = $b->code_alpha2();
+			} elsif($opts{'w'}) {
+				complain({ person => $person, warning => "Unknown birth country: '$c'" });
 			}
-			red_warning({ person => $person, warning => "Unknown birth country: '$c'" });
 		}
 	}
 
@@ -4767,27 +4765,25 @@ sub print_person
 	if($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
-			$c = 'United States';
+			$birth_country = 'United States';
 		} elsif($c eq 'Scotland') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
-			$c = 'United Kingdom';
-		}
-		my $d;
-		eval {
-			$d = Locale::Object::Country->new(name => $c);
-		};
-		if(defined($d)) {
-			$death_country = $d->code_alpha2();
-		} elsif($opts{'w'}) {
-			if($opts{'f'}) {
-				die $person->as_string(), ": Unknown death country '$c'";
+			$birth_country = 'United Kingdom';
+		} else {
+			my $d;
+			eval {
+				$d = Locale::Object::Country->new(name => $c);
+			};
+			if(defined($d)) {
+				$death_country = $d->code_alpha2();
+			} elsif($opts{'w'}) {
+				complain({ person => $person, warning => "Unknown death country: '$c'" });
 			}
-			red_warning({ person => $person, warning => "Unknown death country: '$c'" });
 		}
 	}
 
