@@ -3019,7 +3019,9 @@ sub print_person
 								# Safe to assume both are adults at this time
 								my @sr = get_all_residences(person => $sibling);
 								foreach my $sr(@sr) {
-									next if($sr->date() ne $rdate);
+									my $sdate = $sr->date();
+									next if(!defined($sdate));
+									next if($sdate ne $rdate);
 									if(place({ person => $sibling, record => $sr }) eq $place) {
 										$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 											' ' .
