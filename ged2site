@@ -199,6 +199,7 @@ if($opts{'m'} || $opts{'w'}) {
 		'where.desktop.mos.svc.ovi.com' => 1,
 		'geocoding.geo.census.gov' => 1,
 		'a2ageo.rmservers.com' => 1,
+		'dev.virtualearth.net' => 1,	# Bing
 	});
 
 	# G::C::GooglePlaces
