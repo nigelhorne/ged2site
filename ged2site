@@ -54,6 +54,7 @@ use Geo::Coder::OSM;
 use Geo::Coder::XYZ;
 use Geo::Coder::GooglePlaces;
 use Geo::Coder::Google;
+use Geo::Coder::Bing;
 use Geo::Coder::CA;
 use Geo::Coder::Ovi;
 use Geo::Coder::RandMcnally;
@@ -180,7 +181,10 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::Ovi->new())
 			->push(Geo::Coder::XYZ->new())
 			->push(Geo::Coder::Google->new())
-			->push(Geo::Coder::GooglePlaces->new(%gp_args));
+			->push(Geo::Coder::GooglePlaces->new());
+	}
+	if(my $key = $ENV{BMAP_KEY}) {
+		$geocoder-push(Geo::Coder::Bing->new(key => $key);
 	}
 
 	my $ua = LWP::UserAgent::Throttled->new(agent => 'ged2site', keep_alive => 1);
