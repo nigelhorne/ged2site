@@ -2905,7 +2905,7 @@ sub print_person
 									}
 									if(ref($residence) eq 'Gedcom::Record') {
 										my $date = $residence->date();
-										if($date =~ /(\d{3,4})$/) {
+										if($date && ($date =~ /(\d{3,4})$/)) {
 											if($1 == $yoe) {
 												$found_parent = $residence;
 												last;
