@@ -303,7 +303,7 @@ sub AUTOLOAD {
 	}
 	$query .= " ORDER BY $column";
 	if($self->{'logger'}) {
-		if(scalar(@args)) {
+		if(scalar(@args) && $args[0]) {
 			$self->{'logger'}->debug("AUTOLOAD $query: " . join(', ', @args));
 		} else {
 			$self->{'logger'}->debug("AUTOLOAD $query");
