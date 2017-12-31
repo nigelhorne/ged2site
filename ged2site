@@ -35,7 +35,6 @@ use autodie qw(:all);
 no lib '.';
 use Gedcom;
 use Getopt::Std;
-use Gedcom;
 use Lingua::EN::NameCase;
 use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;
