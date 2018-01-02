@@ -1,5 +1,8 @@
 package Ged2site::Display::todo;
 
+use warnings;
+use strict;
+
 # Display the todo page
 
 use Ged2site::Display;
@@ -25,7 +28,7 @@ sub html {
 	# sort ensures that the list will be sorted by title
 	foreach my $t(@todos) {
 		# Ensure only list a person once per summary
-		push(@{$todohash->{$t->{'summary'}}}, $t) if(!grep($_->{'title'} eq $t->{'title'}, @{$todohash->{$t->{'summary'}}}));
+		push(@{$todohash->{$t->{'summary'}}}, $t) if(!grep { $_->{'title'} eq $t->{'title'} } @{$todohash->{$t->{'summary'}}});
 	}
 
 	# use Data::Dumper;
