@@ -99,7 +99,7 @@ sub new {
 		} elsif (-r File::Spec->catdir($path, 'default')) {
 			$config = Config::Auto::parse('default', path => $path);
 		} else {
-			die 'no suitable config file found';
+			die "no suitable config file found in $path";
 		}
 	};
 	if($@ || !defined($config)) {
@@ -129,7 +129,7 @@ sub new {
 	}
 
 	unless($config->{'config_path'}) {
-		$config->{'config_path'} = File::Spec->catdir($path, $info->domain_name())
+		$config->{'config_path'} = File::Spec->catdir($path, $info->domain_name());
 	}
 
 	return bless $config, $class;

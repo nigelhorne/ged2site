@@ -35,7 +35,6 @@ use autodie qw(:all);
 no lib '.';
 use Gedcom;
 use Getopt::Std;
-use Gedcom;
 use Lingua::EN::NameCase;
 use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;
@@ -54,6 +53,7 @@ use Geo::Coder::OSM;
 use Geo::Coder::XYZ;
 use Geo::Coder::GooglePlaces;
 use Geo::Coder::Google;
+use Geo::Coder::Bing;
 use Geo::Coder::CA;
 use Geo::Coder::Ovi;
 use Geo::Coder::RandMcnally;
@@ -180,7 +180,10 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::Ovi->new())
 			->push(Geo::Coder::XYZ->new())
 			->push(Geo::Coder::Google->new())
-			->push(Geo::Coder::GooglePlaces->new(%gp_args));
+			->push(Geo::Coder::GooglePlaces->new());
+	}
+	if(my $key = $ENV{BMAP_KEY}) {
+		$geocoder->push(Geo::Coder::Bing->new(key => $key));
 	}
 
 	my $ua = LWP::UserAgent::Throttled->new(agent => 'ged2site', keep_alive => 1);
@@ -195,6 +198,7 @@ if($opts{'m'} || $opts{'w'}) {
 		'where.desktop.mos.svc.ovi.com' => 1,
 		'geocoding.geo.census.gov' => 1,
 		'a2ageo.rmservers.com' => 1,
+		'dev.virtualearth.net' => 1,	# Bing
 	});
 
 	# G::C::GooglePlaces
@@ -2905,7 +2909,7 @@ sub print_person
 									}
 									if(ref($residence) eq 'Gedcom::Record') {
 										my $date = $residence->date();
-										if($date =~ /(\d{3,4})$/) {
+										if($date && ($date =~ /(\d{3,4})$/)) {
 											if($1 == $yoe) {
 												$found_parent = $residence;
 												last;
@@ -3019,7 +3023,9 @@ sub print_person
 								# Safe to assume both are adults at this time
 								my @sr = get_all_residences(person => $sibling);
 								foreach my $sr(@sr) {
-									next if($sr->date() ne $rdate);
+									my $sdate = $sr->date();
+									next if(!defined($sdate));
+									next if($sdate ne $rdate);
 									if(place({ person => $sibling, record => $sr }) eq $place) {
 										$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 											' ' .
@@ -4736,27 +4742,25 @@ sub print_person
 	if($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
-			$c = 'United States';
+			$birth_country = 'United States';
 		} elsif($c eq 'Scotland') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
-			$c = 'United Kingdom';
-		}
-		my $b;
-		eval {
-			$b = Locale::Object::Country->new(name => $c);
-		};
-		if(defined($b)) {
-			$birth_country = $b->code_alpha2();
-		} elsif($opts{'w'}) {
-			if($opts{'f'}) {
-				die $person->as_string(), ": Unknown birth country '$c'";
+			$birth_country = 'United Kingdom';
+		} else {
+			my $b;
+			eval {
+				$b = Locale::Object::Country->new(name => $c);
+			};
+			if(defined($b)) {
+				$birth_country = $b->code_alpha2();
+			} elsif($opts{'w'}) {
+				complain({ person => $person, warning => "Unknown birth country: '$c'" });
 			}
-			red_warning({ person => $person, warning => "Unknown birth country: '$c'" });
 		}
 	}
 
@@ -4765,27 +4769,25 @@ sub print_person
 	if($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
-			$c = 'United States';
+			$birth_country = 'United States';
 		} elsif($c eq 'Scotland') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
-			$c = 'United Kingdom';
+			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
-			$c = 'United Kingdom';
-		}
-		my $d;
-		eval {
-			$d = Locale::Object::Country->new(name => $c);
-		};
-		if(defined($d)) {
-			$death_country = $d->code_alpha2();
-		} elsif($opts{'w'}) {
-			if($opts{'f'}) {
-				die $person->as_string(), ": Unknown death country '$c'";
+			$birth_country = 'United Kingdom';
+		} else {
+			my $d;
+			eval {
+				$d = Locale::Object::Country->new(name => $c);
+			};
+			if(defined($d)) {
+				$death_country = $d->code_alpha2();
+			} elsif($opts{'w'}) {
+				complain({ person => $person, warning => "Unknown death country: '$c'" });
 			}
-			red_warning({ person => $person, warning => "Unknown death country: '$c'" });
 		}
 	}
 
