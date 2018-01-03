@@ -3134,6 +3134,9 @@ sub print_person
 					year({ person => $person, date => $dateofburial });
 				if($placeofburial) {
 					if($placeofbirth && ($placeofburial eq $placeofbirth)) {
+						if(my $address = $burial->address()) {
+							$bio .= " at $address";
+						}
 						$bio .= ' in ' .
 							lcfirst($person->possessive()) .
 							' home town of ';
