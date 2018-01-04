@@ -1896,18 +1896,12 @@ sub print_person
 					if($mumdateofbirth =~ /.*?(\d{3,4})/) {
 						$mumdateofbirth = $1;
 						if(($yob - $mumdateofbirth) <= 13) {
-							if($opts{'f'}) {
-								die "something is wrong with the date of birth which is less than 13 years after the mother was born ($mumdateofbirth)";
-							}
-							red_warning({
+							complain({
 								person => $person,
 								warning => "something is wrong with the date of birth which is less than 13 years after the mother was born ($mumdateofbirth)"
 							});
 						} elsif(($yob - $mumdateofbirth) >= 52) {
-							if($opts{'f'}) {
-								die "something is wrong with the date of birth which is more than 52 years after the mother was born ($mumdateofbirth)";
-							}
-							red_warning({
+							complain({
 								person => $person,
 								warning => "something is wrong with the date of birth which is more than 52 years after the mother was born ($mumdateofbirth)"
 							});
