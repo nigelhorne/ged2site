@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en" dir="ltr">
 	<head>
-		<meta charset="utf8">
+		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
 		[% IF person %]
 			<title>[% person.title %]</title>
@@ -20,7 +20,6 @@
 			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=people&home=1">
 			<meta name="description" content="[% SiteTitle.join(' ') %] - A ged2site webpage">
 		[% END %]
-		<meta http-equiv="Content-Language" content="English">
 		[% IF person.map_head %]
 			[% decode_base64url(person.map_head) %]
 		[% END %]
@@ -32,8 +31,8 @@
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
-		<link async rel="stylesheet" href="/css/print.css" type="text/css" media="print">
-		<link async rel="stylesheet" href="/css/sprite.css" type="text/css">
+		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
+		<link rel="stylesheet" href="/css/sprite.css" type="text/css">
 		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
 	</head>
 	[% IF person.map_body %]
@@ -70,7 +69,7 @@
 							<!-- Twitter -->
 							[% IF twitter %]
 								<!-- use the twitter value from the configuration file -->
-								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title | uri %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 							[% ELSE %]
 								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 							[% END %]
