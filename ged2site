@@ -1582,7 +1582,7 @@ sub print_person
 				if($all_siblings_have_dob) {
 					@siblings = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => get_value({ person => $_, value => 'birth date' }))}[0]->{'canonical'}) } @siblings;
 				}
-				my $count = 1;
+				my $age_index = 1;	# count of siblings born before $person + 1 (i.e. where $person is in the date order)
 				$print_sibling_count = 1;
 				foreach my $sibling(@siblings) {
 					if(my $dob = get_value({ person => $sibling, value => 'birth date' })) {
@@ -1593,30 +1593,28 @@ sub print_person
 							  ($d < $birth_dt) &&
 							  ($d < ($birth_dt - $oneday)) &&
 							  ($d > ($birth_dt - $tenmonths))) {
-								if($opts{'f'}) {
-									die $sibling->as_string(),
-										' was born less than 10 months before sibling ',
-										$person->as_string();
-								}
-								red_warning({
+								complain({
 									person => $sibling,
 									warning => 'Born less than 10 months before sibling ' . $person->as_string()
 								});
 							}
-							$count++ if($d && ($d < $birth_dt));
+							$age_index++ if($d && ($d < $birth_dt));
 						} else {
 							$all_siblings_have_dob = 0;
 							last;
 						}
-					}
+					} else {
+						$all_siblings_have_dob = 0;
+						last;
+				}
 				}
 				if($all_siblings_have_dob) {
-					if(scalar(@siblings) && ($count == (scalar(@siblings) + 1))) {
-						$bio .= ((scalar(@siblings) > 1) ? 'eldest' : 'older');
-					} elsif(scalar(@siblings) && ($count == 1)) {
+					if(scalar(@siblings) && ($age_index == (scalar(@siblings) + 1))) {
 						$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
+					} elsif(scalar(@siblings) && ($age_index == 1)) {
+						$bio .= ((scalar(@siblings) > 1) ? 'eldest' : 'older');
 					} else {
-						$bio .= ordinate($count);
+						$bio .= ordinate($age_index);
 					}
 					$bio .= ' of ' . (scalar(@siblings) + 1) . ' children';
 				} else {
