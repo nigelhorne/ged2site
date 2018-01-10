@@ -69,9 +69,9 @@
 							<!-- Twitter -->
 							[% IF twitter %]
 								<!-- use the twitter value from the configuration file -->
-								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title | uri %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% person.title | replace('\s+', '%20') %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 							[% ELSE %]
-								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]&hashtags=genealogy&text=[% person.title %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% person.title | replace('\s+', '%20') %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 							[% END %]
 								<!--
 									<img src="/images/socicon.com/twitter.png" alt="Twitter" height="50" width="50">
@@ -101,10 +101,10 @@
 				<div class="non-printable">
 					<center>
 						[% UNLESS home %]
-							[ <a href="?page=people&home=1">Home</a> ] |
+							[ <a href="?page=people&amp;home=1">Home</a> ] |
 						[% END %]
 						[% IF person.children && !person.alive %]
-							[ <a href="?page=descendants&entry=[% entry %]">Descendants</a> ] |
+							[ <a href="?page=descendants&amp;entry=[% entry %]">Descendants</a> ] |
 						[% END %]
 						[ <a href="?page=censuses">Census Index</a> ] |
 						[ <a href="?page=surnames">Surname Index</a> ] |
