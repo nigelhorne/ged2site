@@ -3548,7 +3548,7 @@ sub print_person
 
 				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 					$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
-					$notes =~ s/\.$//;
+					$notes =~ s/[\s\.]+$//;
 					$bio .= " (<em>$notes</em>)";
 				}
 				$end_of_sentence = 0;
@@ -3598,7 +3598,7 @@ sub print_person
 
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
-						$notes =~ s/\.$//;
+						$notes =~ s/[\s\.]+$//;
 						$bio .= " (<em>$notes</em>)";
 					}
 					$end_of_sentence = 0;
@@ -3753,6 +3753,7 @@ sub print_person
 		# $person->resolve_xref($profile_object->value());
 		if(my $value = $profile_object->get_value()) {
 			$bio .= '.' if(!$end_of_sentence);
+			$value =~ s/[\s\.]+$//;
 			$bio .= " $pronoun served in the military ($value).";
 			$end_of_sentence = 1;
 		}
