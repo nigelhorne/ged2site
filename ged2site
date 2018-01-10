@@ -52,6 +52,8 @@ use Geo::Coder::Postcodes 0.02;
 use Geo::Coder::OSM;
 use Geo::Coder::XYZ;
 use Geo::Coder::GooglePlaces;
+use Geo::Coder::Bing;
+use Geo::GeoNames;
 use Geo::Coder::Google;
 use Geo::Coder::Bing;
 use Geo::Coder::CA;
@@ -182,6 +184,9 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::Google->new())
 			->push(Geo::Coder::GooglePlaces->new());
 	}
+	if(my $username = $ENV{'GEONAMES_USER'}) {
+		$geocoder->push(Geo::GeoNames->new(username => $username));
+	}
 	if(my $key = $ENV{BMAP_KEY}) {
 		$geocoder->push(Geo::Coder::Bing->new(key => $key));
 	}
@@ -199,6 +204,7 @@ if($opts{'m'} || $opts{'w'}) {
 		'geocoding.geo.census.gov' => 1,
 		'a2ageo.rmservers.com' => 1,
 		'dev.virtualearth.net' => 1,	# Bing
+		'api.geonames.org' => 1,
 	});
 
 	# G::C::GooglePlaces
