@@ -5133,12 +5133,7 @@ sub Gedcom::Individual::relationship
 
 	my $sex = get_value({ person => $other, value => 'sex' }) || $other->sex();
 	if((!defined($sex)) || ($sex !~ /[MF]/)) {
-		if($opts{'f'}) {
-			die "\n", $other->as_string(), ": unknown sex\n";
-		}
-		if($opts{'w'}) {
-			red_warning({ person => $other, warning => 'unknown sex' });
-		}
+		complain({ person => $other, warning => 'unknown sex' });
 		return;
 	}
 
