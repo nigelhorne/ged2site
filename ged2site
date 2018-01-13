@@ -3249,8 +3249,9 @@ sub print_person
 			if(length($notes) > 160) {
 				$bio .= ".</p><p>";
 				$end_of_sentence = 1;
+			} else {
+				$end_of_sentence = 0;
 			}
-			$end_of_sentence = 0;
 		}
 		$bio .= cite(@burialcitations);
 	} elsif($placeofdeath || $dateofdeath) {
@@ -3309,7 +3310,6 @@ sub print_person
 			$bio .= " ($d)";
 			if(length($d) > 160) {
 				$bio .= ".</p><p>";
-				$end_of_sentence = 1;
 			}
 		}
 	}
@@ -3352,8 +3352,9 @@ sub print_person
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	    (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		# Simple case - one journey made
-		$bio .= '. ' if(!$end_of_sentence);
+		$bio .= '.' if(!$end_of_sentence);
 		$bio .= ' ';
+		$end_of_sentence = 1;
 
 		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
 		my $departure = ($events[0]->type() eq 'Departure') ? $events[0] : $events[1];
@@ -3383,7 +3384,7 @@ sub print_person
 		}
 		if($departure || !$doa) {
 			if($yod && $yoa && ($yod == $yoa)) {
-				$bio .= "Durin $yod " . lc($person->pronoun());
+				$bio .= "During $yod " . lc($person->pronoun());
 			} else {
 				$bio .= $person->pronoun();
 
