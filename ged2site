@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2017, Nigel Horne
+# Copyright (C) 2015-2018, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -103,6 +103,7 @@ my %censuses;
 my %images;
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
+my %name_date;	# Maps first names to quarter century
 
 # FIXME: Should be in a configuration file
 # Will be removed when new G:C:Free is published
@@ -905,6 +906,19 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	close $fout;
 }
 
+if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
+	# Ready for HTML::TagCloud
+	print $csv "entry!name!count\n";
+	$index = 1;
+
+	foreach my $date(sort keys %name_date) {
+		foreach my $firstname(sort keys %{$name_date{$date}}) {
+			print "$date!$firstname!$name_date{$date}{$firstname}\n";
+		}
+	}
+	close $csv;
+}
+
 sub print_person
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -1036,16 +1050,14 @@ sub print_person
 	my $surname = ucfirst(lc($person->surname())); # RT109786
 
 	if($firstname && ($firstname =~ /\d/)) {
-		if($opts{'f'}) {
-			die $person->as_string(), ': First name contains a digit';
-		}
-		red_warning({ person => $person, warning => 'First name contains a digit' });
+		complain({ person => $person, warning => 'First name contains a digit' });
 	}
 	if($surname && ($surname =~ /\d/)) {
-		if($opts{'f'}) {
-			die $person->as_string(), ': Last name contains a digit';
-		}
-		red_warning({ person => $person, warning => 'Last name contains a digit' });
+		complain({ person => $person, warning => 'Last name contains a digit' });
+	}
+
+	if($yob && $firstname) {
+		$name_date{$yob / 25}{$firstname}++;
 	}
 
 	my $is_alive = is_alive(person => $person);
