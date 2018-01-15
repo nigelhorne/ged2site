@@ -4784,15 +4784,15 @@ sub print_person
 	if($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$birth_country = 'United Kingdom';
+			$death_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
-			$birth_country = 'United States';
+			$death_country = 'United States';
 		} elsif($c eq 'Scotland') {
-			$birth_country = 'United Kingdom';
+			$death_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
-			$birth_country = 'United Kingdom';
+			$death_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
-			$birth_country = 'United Kingdom';
+			$death_country = 'United Kingdom';
 		} else {
 			my $d;
 			eval {
