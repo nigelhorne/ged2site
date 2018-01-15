@@ -7,6 +7,7 @@ use DateTime::Locale;
 use DateTime::Format::Natural;
 use Statistics::LineFit;
 use Statistics::Lite;
+use HTML::TagCloud;
 
 # Display some information about the family
 
@@ -34,6 +35,7 @@ our $mapper = {
 	'ageatfirstborn' => \&_ageatfirstborn,
 	'familysizetime' => \&_familysizetime,
 	'motherchildren' => \&_motherchildren,
+	'namecloud' => \&_namecloud,
 };
 
 sub html {
@@ -876,6 +878,36 @@ sub _familysizetime
 	}
 
 	return { datapoints => $datapoints };
+}
+
+sub _namecloud
+{
+	my $self = shift;
+	my $args = shift;
+
+	my %counts;
+
+	my $names = $args->{'names'};
+
+	my $bucket = 60;
+
+	my @rc;
+
+	for(my $bucket = 60; $bucket <= 80; $bucket++) {
+		my $all = $names->selectall_hashref({ entry => $bucket });
+
+		use Data::Dumper;
+		# print Data::Dumper->new([\$all])->Dump();
+
+		my $cloud = HTML::TagCloud->new();
+		foreach my $name(@{$all}) {
+			$cloud->add_static($name->{'name'}, $name->{'count'});
+		}
+
+		push @rc, { year => $bucket, data => $cloud->html_and_css(50) };
+	}
+
+	return { clouds => \@rc };
 }
 
 sub _date_to_datetime

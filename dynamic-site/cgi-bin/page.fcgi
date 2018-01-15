@@ -78,6 +78,7 @@ use Ged2site::DB::censuses;
 use Ged2site::DB::surnames;
 use Ged2site::DB::history;
 use Ged2site::DB::todo;
+use Ged2site::DB::names;
 
 my $database_dir = "$script_dir/../databases";
 Ged2site::DB::init({ directory => $database_dir, logger => $logger });
@@ -91,6 +92,7 @@ my $censuses = Ged2site::DB::censuses->new();
 my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::DB::history->new();
 my $todo = Ged2site::DB::todo->new();
+my $names = Ged2site::DB::names->new();
 
 # open STDERR, ">&STDOUT";
 close STDERR;
@@ -314,6 +316,7 @@ sub doit
 			surnames => $surnames,
 			history => $history,
 			todo => $todo,
+			names => $names,
 			cachedir => $cachedir
 		});
 	} elsif($invalidpage) {
