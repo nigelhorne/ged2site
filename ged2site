@@ -526,15 +526,17 @@ foreach my $person($ged->individuals()) {
 			my $log = $geocoder->log();
 			$geocoder->flush();
 			foreach my $l(@{$log}) {
+				print $l->{location}, ': ';
 				if($l->{geocoder}) {
 					if($l->{error}) {
-						print $l->{location}, ': ',  $l->{timetaken}, 's with ',  $l->{geocoder}, '(', $l->{error}, ")\n";
+						print $l->{timetaken}, 's with ',  $l->{geocoder}, '(', $l->{error}, ")";
 					} else {
-						print $l->{location}, ': ',  $l->{timetaken}, 's with ',  $l->{geocoder}, "\n";
+						print $l->{timetaken}, 's with ',  $l->{geocoder};
 					}
 				} else {
-					print $l->{location}, ": cached\n";
+					print 'cached';
 				}
+				print ', wantarray ', $l->{wantarray}, "\n";
 			}
 		}
 	}
@@ -5740,18 +5742,23 @@ sub validate_place
 			# Use only the town part
 			$town = $1;
 		}
-		if($opts{'w'} && !$geocoder->geocode($town)) {
-			# Don't die because there are many
-			# false positives as locations
-			# may no longer exist
-			if(my $person = $params{'person'}) {
-				warn colored($person->as_string({ include_years => 1 }) . ": unknown location $place", 'red');
-			} else {
-				warn colored("Unknown location $place", 'red');
+		if($opts{'w'}) {
+			# Force wantwarry for improved caching in
+			# G:C:L
+			my @locations = $geocoder->geocode($town);
+			if(scalar(@locations) == 0) {
+				# Don't die because there are many
+				# false positives as locations
+				# may no longer exist
+				if(my $person = $params{'person'}) {
+					warn colored($person->as_string({ include_years => 1 }) . ": unknown location $place", 'red');
+				} else {
+					warn colored("Unknown location $place", 'red');
+				}
+				$places{$place} = 0;
+				$places{$town} = 0;
+				return 0;
 			}
-			$places{$place} = 0;
-			$places{$town} = 0;
-			return 0;
 		}
 		$places{$town} = 1;
 	}
