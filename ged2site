@@ -85,6 +85,7 @@ use Data::Fetch;
 use Config::Auto;
 use Locale::Object::Country;
 use List::Util;
+use POSIX;
 
 no lib '.';
 
@@ -913,7 +914,7 @@ if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
 
 	foreach my $date(sort keys %name_date) {
 		foreach my $firstname(sort keys %{$name_date{$date}}) {
-			print "$date!$firstname!$name_date{$date}{$firstname}\n";
+			print $csv "$date!$firstname!$name_date{$date}{$firstname}\n";
 		}
 	}
 	close $csv;
@@ -1057,7 +1058,7 @@ sub print_person
 	}
 
 	if($yob && $firstname) {
-		$name_date{$yob / 25}{$firstname}++;
+		$name_date{floor($yob / 25)}{$firstname}++;
 	}
 
 	my $is_alive = is_alive(person => $person);
