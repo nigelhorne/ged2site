@@ -5743,7 +5743,7 @@ sub validate_place
 			$town = $1;
 		}
 		if($opts{'w'}) {
-			# Force wantwarry for improved caching in
+			# Force wantarray for improved caching in
 			# G:C:L
 			my @locations = $geocoder->geocode($town);
 			if(scalar(@locations) == 0) {
@@ -5835,7 +5835,7 @@ sub places_are_the_same
 
 	if(my $person = $params{'person'}) {
 		validate_place({ person => $person, place => $place1 });
-		validate_place({ person => $person, place => $place2 });
+		validate_place({ person => $person, place => $place2 }) unless($place1 eq $place2);
 	}
 
 	if(my $address = $record1->address()) {
@@ -6297,8 +6297,9 @@ sub get_all_residences
 	my @residences = $person->residence();
 	my @rc;
 	foreach my $residence(@residences) {
-		next if(!ref($residence));
-		push @rc, $residence;
+		if(ref($residence)) {
+			push @rc, $residence;
+		}
 	}
 	my @events = $person->event();
 	my $index = 0;
