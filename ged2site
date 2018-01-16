@@ -911,12 +911,14 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 
 if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
 	# Ready for HTML::TagCloud
-	print $csv "entry!name!count\n";
+	print $csv "entry!name!count!people\n";
 	$index = 1;
 
 	foreach my $date(sort keys %name_date) {
 		foreach my $firstname(sort keys %{$name_date{$date}}) {
-			print $csv "$date!$firstname!$name_date{$date}{$firstname}\n";
+			my $count = scalar($name_date{$date}{$firstname});
+			my $people = join('--', @{$name_date{$date}{$firstname}});
+			print $csv "$date!$firstname!$count!$people\n";
 		}
 	}
 	close $csv;
@@ -1060,7 +1062,7 @@ sub print_person
 	}
 
 	if($yob && $firstname) {
-		$name_date{floor($yob / 25)}{$firstname}++;
+		push @{$name_date{floor($yob / 25)}{$firstname}}, $person->{'xref'};
 	}
 
 	my $is_alive = is_alive(person => $person);

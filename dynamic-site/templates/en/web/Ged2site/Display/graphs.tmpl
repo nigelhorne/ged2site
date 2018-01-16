@@ -28,12 +28,17 @@
 		[% ELSIF graph == 'motherchildren' %]
 			[% SET title = 'Number of Children by Women' %]
 		[% ELSIF graph == 'namecloud' %]
+			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'First Name Popularity' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<title>[% title %]</title>
+		[% IF twitter %]
+			<meta name="twitter:site" content="@[% twitter %]">
+			<meta name="twitter:title" content="[% SiteTitle %]">
+		[% END %]
 		<!--
 			<meta http-equiv="Content-Language" content="English">
 		-->
@@ -188,11 +193,6 @@
 				chart.render();
 			}
 			</script>
-		[% ELSIF clouds %]
-			[% FOREACH year IN clouds %]
-				<h2>[% year.year * 25 %]</h2>
-				[% year.data %]
-			[% END %]
 		[% END %]
 		<!--
 		<style type="text/css">
@@ -272,6 +272,18 @@
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
+		[% ELSIF clouds %]
+			<div id="header_container">
+				<center>
+					<h1>First Name Popularity</h1>
+				</center>
+			</div>
+			<div id="container">
+				[% FOREACH year IN clouds %]
+					<h2>[% year.year * 25 %]</h2>
+					[% year.data %]
+				[% END %]
+			</div>
 		[% ELSE %]
 			<div id="container">
 				<h2>Choose a Graph</h2>
