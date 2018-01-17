@@ -198,7 +198,12 @@ sub selectall_hashref {
 		return $self->{'data'};
 	}
 
-	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	my $query;
+	if(wantarray) {
+		$query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	} else {
+		$query = "SELECT DISTINCT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	}
 	my @args;
 	foreach my $c1(keys(%args)) {
 		$query .= " AND $c1 LIKE ?";
@@ -293,7 +298,12 @@ sub AUTOLOAD {
 
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	my $query;
+	if(wantarray) {
+		$query = "SELECT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	} else {
+		$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	}
 	my @args;
 	foreach my $c1(keys(%params)) {
 		# $query .= " AND $c1 LIKE ?";
