@@ -4827,7 +4827,7 @@ sub print_person
 				if($birth_country) {
 					print $xml "\n\t\t\t\t<country>$birth_country</country>";
 				}
-				if(defined($locations[0]->{geometry}{location}) && !defined($locations[0]->{'error'})) {
+				if(defined($locations[0]->{geometry}{location}{llat}) && !defined($locations[0]->{'error'})) {
 					print $csv $locations[0]->{geometry}{location}{lat}, ',',
 						$locations[0]->{geometry}{location}{lng};
 					print $xml "\n\t\t\t\t<lat>", $locations[0]->{geometry}{location}{lat}, '</lat>',
