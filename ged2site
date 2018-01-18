@@ -182,9 +182,9 @@ if($opts{'m'} || $opts{'w'}) {
 			->push({ regex => qr/^[\w\s-]+,\s*[\w\s]+,\s*(UK|United Kingdom|England)$/i, geocoder => Geo::Coder::Postcodes->new() })
 			->push(Geo::Coder::OSM->new())
 			->push(Geo::Coder::Ovi->new())
-			->push(Geo::Coder::XYZ->new())
-			->push(Geo::Coder::Google->new())
-			->push(Geo::Coder::GooglePlaces->new());
+			->push(Geo::Coder::XYZ->new());
+			# ->push(Geo::Coder::Google->new())
+			# ->push(Geo::Coder::GooglePlaces->new());
 	}
 	if(my $username = $ENV{'GEONAMES_USER'}) {
 		$geocoder->push(Geo::GeoNames->new(username => $username));
