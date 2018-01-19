@@ -916,7 +916,7 @@ if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
 
 	foreach my $date(sort keys %name_date) {
 		foreach my $firstname(sort keys %{$name_date{$date}}) {
-			my $count = scalar($name_date{$date}{$firstname});
+			my $count = scalar(@{$name_date{$date}{$firstname}});
 			my $people = join('--', @{$name_date{$date}{$firstname}});
 			print $csv "$date!$firstname!$count!$people\n";
 		}
