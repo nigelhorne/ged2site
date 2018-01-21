@@ -62,6 +62,7 @@ The options to ged2site are:
 | -g   | Generate Google verification file - see www.google.com/webmasters/verification Don't include the .html at the end of the code |
 | -h   | set the home person |
 | -l   | include living people |
+| -L n | Limit to n records |
 | -m   | Generate a Google map on each page showing events |
 | -J   | Google Maps JavaScript API key (used to display the map) |
 | -G   | Google Maps geolocation API key (used to populate the map) |
@@ -151,6 +152,14 @@ ExpiresByType text/css "access plus 1 day"
 ExpiresByType text/javascript "access plus 1 day"
 </IfModule>
 ```
+
+## Environment Variables
+
+For compatibility with other code, these environment variables are honoured:
+
+    BMAP_KEY: Bing (virtualearth.net) API Key
+    GMAP_KEY: Google Places (maps.googleapis.com) API Key
+    GEONAMES_USE: geonames.org registered username
 
 Bugs
 ====

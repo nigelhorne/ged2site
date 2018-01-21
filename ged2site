@@ -90,9 +90,9 @@ use POSIX;
 no lib '.';
 
 my %opts;
-getopts('cdfFG:g:h:J:lmwv', \%opts);
+getopts('cdfFG:g:h:J:lL:mwv', \%opts);
 
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 my $me;
 my @myancestors;
@@ -508,7 +508,7 @@ HEADER
 # foreach my $person($ged->get_individual('Dolly Cowell')) {
 # foreach my $person($ged->get_individual('Edmund Frank Horne')) {
 
-foreach my $person($ged->individuals()) {
+foreach my $person(@everyone) {
 	$index++;
 	if(!$opts{'w'}) {
 		$| = 1;
@@ -540,6 +540,7 @@ foreach my $person($ged->individuals()) {
 			}
 		}
 	}
+	last if($opts{'L'} && ($index == $opts{'L'}));
 }
 print $xml "\n</table>\n";
 close $xml;
@@ -618,7 +619,7 @@ if($opts{'w'}) {
 	print $csv "entry!person!title!summary!error\n";
 	my $index = 1;
 
-	foreach my $person($ged->individuals()) {
+	foreach my $person(@everyone) {
 		if($person->{'warnings'}) {
 			print $html '<h2>',
 				'<a href="', make_filename_from_person(person => $person), '">', $person->as_string(include_years => 1), '</a></h2>',
@@ -825,6 +826,21 @@ if($key) {
 	}
 }
 
+if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
+	# Ready for HTML::TagCloud
+	print $csv "entry!name!count!people\n";
+	$index = 1;
+
+	foreach my $date(sort keys %name_date) {
+		foreach my $firstname(sort keys %{$name_date{$date}}) {
+			my $count = scalar(@{$name_date{$date}{$firstname}});
+			my $people = join('--', @{$name_date{$date}{$firstname}});
+			print $csv "$date!$firstname!$count!$people\n";
+		}
+	}
+	close $csv;
+}
+
 if($gedcal) {
 	print "Creating calendar\n";
 	if(open(my $fout, '>', 'static-site/calendar/index.html')) {
@@ -907,21 +923,6 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	close $csv;
 	print $fout '</ul></body></html>';
 	close $fout;
-}
-
-if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
-	# Ready for HTML::TagCloud
-	print $csv "entry!name!count!people\n";
-	$index = 1;
-
-	foreach my $date(sort keys %name_date) {
-		foreach my $firstname(sort keys %{$name_date{$date}}) {
-			my $count = scalar(@{$name_date{$date}{$firstname}});
-			my $people = join('--', @{$name_date{$date}{$firstname}});
-			print $csv "$date!$firstname!$count!$people\n";
-		}
-	}
-	close $csv;
 }
 
 sub print_person
