@@ -901,7 +901,12 @@ sub _namecloud
 
 		my $cloud = HTML::TagCloud->new();
 		foreach my $name(@{$all}) {
-			$cloud->add_static($name->{'name'}, $name->{'count'});
+			my $count = $name->{'count'};
+			if($count == 1) {
+				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=people&entry=$name->{people}", $name);
+			} else {
+				$cloud->add_static($name->{'name'}, $name);
+			}
 		}
 
 		push @rc, { year => $bucket, data => $cloud->html_and_css(50) };
