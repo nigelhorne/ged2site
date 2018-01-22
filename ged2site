@@ -828,14 +828,15 @@ if($key) {
 
 if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
 	# Ready for HTML::TagCloud
-	print $csv "entry!name!count!people\n";
+	print $csv "entry!name!count!sex!people\n";
 	$index = 1;
 
 	foreach my $date(sort keys %name_date) {
 		foreach my $firstname(sort keys %{$name_date{$date}}) {
 			my $count = scalar(@{$name_date{$date}{$firstname}});
+			my $sex = Text::Names::guessGender($firstname) || Text::Names::guessGender::GB($firstname);
 			my $people = join('--', @{$name_date{$date}{$firstname}});
-			print $csv "$date!$firstname!$count!$people\n";
+			print $csv "$date!$firstname!$count!$sex!$people\n";
 		}
 	}
 	close $csv;
