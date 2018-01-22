@@ -903,9 +903,9 @@ sub _namecloud
 		foreach my $name(@{$all}) {
 			my $count = $name->{'count'};
 			if($count == 1) {
-				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=people&entry=$name->{people}", $name);
+				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=people&entry=$name->{people}", 1);
 			} else {
-				$cloud->add_static($name->{'name'}, $name);
+				$cloud->add_static($name->{'name'}, $count);
 			}
 		}
 
