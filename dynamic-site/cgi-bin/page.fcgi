@@ -136,6 +136,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		$logger = Log::Any->get_logger(category => $script_name);
 		Log::WarnDie->dispatcher($logger);
 		$people->set_logger($logger);
+		$names->set_logger($logger);
 		$info->set_logger($logger);
 		$Error::Debug = 1;
 		try {
