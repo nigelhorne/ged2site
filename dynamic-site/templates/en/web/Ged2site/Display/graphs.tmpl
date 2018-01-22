@@ -204,20 +204,22 @@
 	</head>
 
 	<body>
-		<center>
-			[ <a href="?page=people&amp;home=1">Home</a> ] |
-			[ <a href="?page=censuses">Census Index</a> ] |
-			[ <a href="?page=surnames">Surname Index</a> ] |
-			[ <a href="?page=history">Family History</a> ] |
-			[ <a href="?page=todo">To Do</a> ] |
-			[ <a href="?page=calendar">Calendar</a> ] |
-			[% IF graph %]
-				[ <a href="?page=graphs">Analytics</a> ] |
-			[% END %]
-			[ <a href="?page=emmigrants">Emigrants</a> ] |
-			[ <a href="/visjs.html">Timeline</a> ]
-		</center>
-		<p>
+		[% UNLESS clouds %]
+			<center>
+				[ <a href="?page=people&amp;home=1">Home</a> ] |
+				[ <a href="?page=censuses">Census Index</a> ] |
+				[ <a href="?page=surnames">Surname Index</a> ] |
+				[ <a href="?page=history">Family History</a> ] |
+				[ <a href="?page=todo">To Do</a> ] |
+				[ <a href="?page=calendar">Calendar</a> ] |
+				[% IF graph %]
+					[ <a href="?page=graphs">Analytics</a> ] |
+				[% END %]
+				[ <a href="?page=emmigrants">Emigrants</a> ] |
+				[ <a href="/visjs.html">Timeline</a> ]
+			</center>
+			<p>
+		[% END %]
 
 		[% IF graph == 'ageatdeath' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
@@ -279,6 +281,19 @@
 				</center>
 			</div>
 			<div id="container">
+				<center>
+					[ <a href="?page=people&amp;home=1">Home</a> ] |
+					[ <a href="?page=censuses">Census Index</a> ] |
+					[ <a href="?page=surnames">Surname Index</a> ] |
+					[ <a href="?page=history">Family History</a> ] |
+					[ <a href="?page=todo">To Do</a> ] |
+					[ <a href="?page=calendar">Calendar</a> ] |
+					[% IF graph %]
+						[ <a href="?page=graphs">Analytics</a> ] |
+					[% END %]
+					[ <a href="?page=emmigrants">Emigrants</a> ] |
+					[ <a href="/visjs.html">Timeline</a> ]
+				</center>
 				[% FOREACH year IN clouds %]
 					<h2>[% year.year * 25 %]</h2>
 					[% year.data %]

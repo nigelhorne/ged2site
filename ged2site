@@ -1062,7 +1062,8 @@ sub print_person
 		complain({ person => $person, warning => 'Last name contains a digit' });
 	}
 
-	if($yob && $firstname) {
+	# Ensure last name isn't used if the first name isn't known
+	if($yob && $firstname && $person->given_names()) {
 		push @{$name_date{floor($yob / 25)}{$firstname}}, $person->{'xref'};
 	}
 
