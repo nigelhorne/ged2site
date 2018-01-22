@@ -297,8 +297,12 @@ sub updated {
 	return $self->{'_updated'};
 }
 
-# Return the contents of an arbiratary column in the database which match the given criteria
-# Returns an array of the matches, or just the first entry when called in scalar context
+# Return the contents of an arbiratary column in the database which match the
+#	given criteria
+# Returns an array of the matches, or just the first entry when called in
+#	scalar context
+
+# Set distinct to 1 if you're after a uniq list
 sub AUTOLOAD {
 	our $AUTOLOAD;
 	my $column = $AUTOLOAD;
@@ -317,13 +321,16 @@ sub AUTOLOAD {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $query;
-	if(wantarray) {
+	if(wantarray && !delete($params{'distinct'})) {
 		$query = "SELECT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	} else {
 		$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	}
 	my @args;
 	foreach my $c1(keys(%params)) {
+		if(!defined($params{$c1})) {
+			$self->{'logger'}->debug("AUTOLOAD params $c1 isn't defined");
+		}
 		# $query .= " AND $c1 LIKE ?";
 		$query .= " AND $c1 = ?";
 		push @args, $params{$c1};

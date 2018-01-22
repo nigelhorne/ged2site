@@ -3,7 +3,6 @@ package Ged2site::Display::surnames;
 # Display the surnames page
 
 use Ged2site::Display;
-use List::MoreUtils::XS;
 
 our @ISA = ('Ged2site::Display');
 
@@ -27,7 +26,7 @@ sub html {
 
 	unless(scalar(keys %params)) {
 		# Display the list of surnames
-		my @s = List::MoreUtils::XS::uniq(sort $surnames->surname());
+		my @s = sort $surnames->surname(distinct => 1);
 		return $self->SUPER::html({ surnames => \@s, updated => $surnames->updated() });
 	}
 
