@@ -23,6 +23,11 @@ sub new {
 
 	my $class = ref($proto) || $proto;
 
+	if($class eq 'Ged2site::DB') {
+		die "$class: abstract class";
+	}
+
+	die "$class: where are the files?" unless($directory || $args{'directory'});
 	# init(\%args);
 
 	return bless {
@@ -232,7 +237,8 @@ sub selectall_hashref {
 	my @rc;
 	while (my $href = $sth->fetchrow_hashref()) {
 		push @rc, $href;
-		last if(!wantarray);
+		# TODO - add this to selectall_hash when that has been written
+		# last if(!wantarray);
 	}
 	if($c) {
 		$c->set($key, \@rc, '1 hour');
@@ -346,7 +352,7 @@ sub AUTOLOAD {
 	my $sth = $self->{$table}->prepare($query) || throw Error::Simple($query);
 	$sth->execute(@args) || throw Error::Simple($query);
 
-	if(wantarray()) {
+	if(wantarray) {
 		return map { $_->[0] } @{$sth->fetchall_arrayref()};
 	}
 	return $sth->fetchrow_array();	# Return the first match only
