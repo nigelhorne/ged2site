@@ -26,11 +26,11 @@ sub html {
 	# Handle into the database
 	my $people = $args{'people'};
 
-	my $everyone = $people->selectall_hashref(\%params);
+	my @everyone = $people->selectall_hash(\%params);
 
 	my @wardead;
 
-	foreach my $person(@{$everyone}) {
+	foreach my $person(@everyone) {
 		next unless($person->{'dod'});
 		my $dod = $person->{'dod'};
 		my $yod;

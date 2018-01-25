@@ -30,18 +30,18 @@ sub html {
 	# Handle into the database
 	my $people = $args{'people'};
 
-	my $everyone = $people->selectall_hashref(\%params);
+	my @everyone = $people->selectall_hash(\%params);
 
 	my @emmigrants;
 
-	if(0) {
+	if(0) {	# old code
 		if(!defined($geocoder)) {
 			my $ua = LWP::UserAgent->new(agent => 'ged2site');
 			$ua->env_proxy(1);
 			$geocoder = Geo::Coder::XYZ->new(ua => $ua);
 		}
 
-		foreach my $person(@{$everyone}) {
+		foreach my $person(@everyone) {
 			next unless($person->{'birth_coords'} && $person->{'death_coords'});
 			next if($person->{'birth_coords'} eq $person->{'death_coords'});
 
@@ -82,7 +82,7 @@ sub html {
 			}
 		}
 	} else {
-		foreach my $person(@{$everyone}) {
+		foreach my $person(@everyone) {
 			next unless($person->{'birth_country'} && $person->{'death_country'});
 			next if($person->{'birth_country'} eq $person->{'death_country'});
 

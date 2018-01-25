@@ -32,8 +32,7 @@ sub html {
 
 	# Look in the surnames.csv for the name given as the CGI argument and
 	# find their details
-	my $surname = $surnames->selectall_hashref(\%params);
-	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$surname};
+	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } $surnames->selectall_hash(\%params);
 	@people = sort { $a->{'title'} cmp $b->{'title'} } @people;
 
 	# TODO: handle situation where look up fails

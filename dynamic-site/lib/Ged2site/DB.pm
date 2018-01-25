@@ -1,5 +1,17 @@
 package Ged2site::DB;
 
+# Author Nigel Horne: njh@bandsman.co.uk
+# Copyright (C) 2015-2018, Nigel Horne
+
+# Usage is subject to licence terms.
+# The licence terms of this software are as follows:
+# Personal single user, single computer use: GPL2
+# All other users (including Commercial, Charity, Educational, Government)
+#	must apply in writing for a licence for use from Nigel Horne at the
+#	above e-mail.
+
+# Read-only access to databases
+
 use warnings;
 use strict;
 
@@ -194,6 +206,12 @@ sub _open {
 # Returns a reference to an array of hash references of all the data meeting
 # the given criteria
 sub selectall_hashref {
+	my @rc = selectall_hash(@_);
+	return \@rc;
+}
+
+# Returns an array of hash references
+sub selectall_hash {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -204,17 +222,12 @@ sub selectall_hashref {
 
 	if((scalar(keys %args) == 0) && $self->{'data'}) {
 		if($self->{'logger'}) {
-			$self->{'logger'}->trace("$table: selectall_hashref fast track return");
+			$self->{'logger'}->trace("$table: selectall_hash fast track return");
 		}
-		return $self->{'data'};
+		return @{$self->{'data'}};
 	}
 
-	my $query;
-	if(wantarray) {
-		$query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
-	} else {
-		$query = "SELECT DISTINCT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
-	}
+	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	my @args;
 	foreach my $c1(keys(%args)) {
 		$query .= " AND $c1 LIKE ?";
@@ -222,7 +235,7 @@ sub selectall_hashref {
 	}
 	$query .= ' ORDER BY entry';
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("selectall_hashref $query: " . join(', ', @args));
+		$self->{'logger'}->debug("selectall_hash $query: " . join(', ', @args));
 	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute(@args) || throw Error::Simple("$query: @args");
@@ -231,20 +244,19 @@ sub selectall_hashref {
 	my $c;
 	if($c = $self->{cache}) {
 		if(my $rc = $c->get($key)) {
-			return $rc;
+			return @{$rc};
 		}
 	}
 	my @rc;
-	while (my $href = $sth->fetchrow_hashref()) {
+	while(my $href = $sth->fetchrow_hashref()) {
 		push @rc, $href;
-		# TODO - add this to selectall_hash when that has been written
-		# last if(!wantarray);
+		last if(!wantarray);
 	}
-	if($c) {
+	if($c && wantarray) {
 		$c->set($key, \@rc, '1 hour');
 	}
 
-	return \@rc;
+	return @rc;
 }
 
 # Returns a hash reference for one row in a table
@@ -257,7 +269,8 @@ sub fetchrow_hashref {
 
 	$self->_open() if(!$self->{table});
 
-	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	# Only want one row, so use distinct
+	my $query = "SELECT DISTINCT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	my @args;
 	foreach my $c1(keys(%args)) {
 		$query .= " AND $c1 LIKE ?";
@@ -289,7 +302,7 @@ sub execute {
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute() || throw Error::Simple($query);
 	my @rc;
-	while (my $href = $sth->fetchrow_hashref()) {
+	while(my $href = $sth->fetchrow_hashref()) {
 		push @rc, $href;
 	}
 

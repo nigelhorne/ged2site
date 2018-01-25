@@ -21,8 +21,7 @@ sub html {
 	# TODO: handle situation where look up fails
 
 	# Create a list of entries in the TODO table, sorted by title
-	my @todos = sort { $a->{'title'} cmp $b->{'title'} }
-		@{$todo->selectall_hashref()};
+	my @todos = sort { $a->{'title'} cmp $b->{'title'} } $todo->selectall_hash();
 
 	# Now create a list of hashes, each list is a list of entries in the todo table with the same summary field, the earlier
 	# sort ensures that the list will be sorted by title

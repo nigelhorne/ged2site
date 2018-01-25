@@ -15,8 +15,8 @@ sub html {
 
 	# TODO: handle situation where look up fails
 
-	my $events = $history->selectall_hashref();
-	foreach my $event(@{$events}) {
+	my @events = $history->selectall_hash();
+	foreach my $event(@events) {
 		push @{$eventshash->{$event->{'year'}}}, $event;
 	}
 

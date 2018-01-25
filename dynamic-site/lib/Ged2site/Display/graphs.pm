@@ -77,7 +77,7 @@ sub _ageatdeath
 	my %counts;
 	my %totals;
 
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		if($person->{'dob'} && $person->{'dod'}) {
 			my $dob = $person->{'dob'};
 			my $yob;
@@ -149,7 +149,7 @@ sub _birthmonth
 
 	my $people = $args->{'people'};
 	my @counts = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		if(my $dob = $person->{'dob'}) {
 			if($dob =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
 				$counts[$1 - 1]++;
@@ -187,7 +187,7 @@ sub _marriagemonth
 
 	my $people = $args->{'people'};
 	my @counts = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		# TODO: Handle more than one marriage
 		if(my $dom = $person->{'marriages'}) {
 			if($dom =~ /^(.+?)-/) {
@@ -229,7 +229,7 @@ sub _deathmonth
 
 	my $people = $args->{'people'};
 	my @counts = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		if(my $dod = $person->{'dod'}) {
 			if($dod =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
 				$counts[$1 - 1]++;
@@ -269,7 +269,7 @@ sub _infantdeaths
 	my %totals;
 	my $people = $args->{'people'};
 
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		if($person->{'dob'} && $person->{'dod'}) {
 			my $dob = $person->{'dob'};
 			my $yob;
@@ -334,7 +334,7 @@ sub _firstborn
 
 	$dfn ||= DateTime::Format::Natural->new();
 	my $max;
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		if($person->{'children'} && $person->{'marriages'}) {
 			my $dom = $person->{'marriages'};
 			if($dom =~ /^(.+?)-/) {
@@ -396,7 +396,7 @@ sub _sex
 
 	my $people = $args->{'people'};
 
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		next if($person->{'sex'} !~ /[MF]/);
 		next if(!(defined($person->{'dob'})));
 
@@ -465,7 +465,7 @@ sub _ageatmarriage
 
 	my $people = $args->{'people'};
 
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		if($person->{'dob'} && $person->{'marriages'}) {
 			my $dob = $person->{'dob'};
 			my $yob;
@@ -591,7 +591,7 @@ sub _dist
 	my %totals;
 	my %counts;
 	my %dists;
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		next unless($person->{'birth_coords'} && $person->{'death_coords'} && $person->{'dob'});
 		my $dob = $person->{'dob'};
 		my $yob;
@@ -682,7 +682,7 @@ sub _distcount
 
 	my $people = $args->{'people'};
 	my %counts;
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		next unless($person->{'birth_coords'} && $person->{'death_coords'});
 		my $dist;
 		if($person->{'birth_coords'} eq $person->{'death_coords'}) {
@@ -724,7 +724,7 @@ sub _ageatfirstborn
 	my $people = $args->{'people'};
 
 	$dfn ||= DateTime::Format::Natural->new();
-	foreach my $person(@{$people->selectall_hashref()}) {
+	foreach my $person($people->selectall_hash()) {
 		if($person->{'dob'} && $person->{'children'}) {
 			my $dob = $person->{'dob'};
 			my $yob;
@@ -794,7 +794,7 @@ sub _motherchildren
 
 	my $people = $args->{'people'};
 
-	foreach my $person(@{$people->selectall_hashref({ 'sex' => 'F' })}) {
+	foreach my $person($people->selectall_hash({ 'sex' => 'F' })) {
 		if($person->{'children'} && $person->{'dob'}) {
 			my $dob = $person->{'dob'};
 			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
@@ -832,7 +832,7 @@ sub _familysizetime
 	my $people = $args->{'people'};
 	$dfn ||= DateTime::Format::Natural->new();
 
-	foreach my $person(@{$people->selectall_hashref({ 'sex' => 'F' })}) {
+	foreach my $person($people->selectall_hash({ 'sex' => 'F' })) {
 		my $count;
 		my $eldest;
 		CHILD: foreach my $child(split(/----/, $person->{'children'})) {
@@ -894,13 +894,13 @@ sub _namecloud
 	my @rc;
 
 	for(my $bucket = 60; $bucket <= 80; $bucket++) {
-		my $all = $names->selectall_hashref({ entry => $bucket });
+		my @all = $names->selectall_hash({ entry => $bucket });
 
-		use Data::Dumper;
+		# use Data::Dumper;
 		# print Data::Dumper->new([\$all])->Dump();
 
 		my $cloud = HTML::TagCloud->new();
-		foreach my $name(@{$all}) {
+		foreach my $name(@all) {
 			my $count = $name->{'count'};
 			if($count == 1) {
 				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=people&entry=$name->{people}", 1);
