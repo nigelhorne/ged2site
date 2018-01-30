@@ -3945,10 +3945,12 @@ sub print_person
 				} else {
 					$c = HTML::Entities::encode($title);
 					if($title =~ /Census/) {
-						my $census = $censusmaps{$title};
-						die "Add $title to censusmaps" unless($census);
-						# TODO: Add pointer to image
-						$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
+						if(my $census = $censusmaps{$title}) {
+							# TODO: Add pointer to image
+							$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
+						} else {
+							complain({ person => $person, warming => "Add $title to censusmaps" });
+						}
 					}
 				}
 				if(defined(my $publication = $citations{$citation}->publication())) {
