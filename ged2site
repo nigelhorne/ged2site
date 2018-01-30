@@ -3199,8 +3199,7 @@ sub print_person
 			if($dateofdeath) {
 				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			}
-			if($placeofdeath) {
-				my $p = place({ person => $person, record => $death, places_printed => \%places_printed });
+			if($placeofdeath && (my $p = place({ person => $person, record => $death, places_printed => \%places_printed }))) {
 				$bio .= $p;
 				$places_printed{$p} = 1;
 			}
@@ -3894,10 +3893,7 @@ sub print_person
 				my $u = URI->new($orig_uri);
 				if($u && (ref($u) ne 'URI::_generic')) {
 					if((!head($orig_uri)) && !get($orig_uri)) {
-						if($opts{'f'}) {
-							die $person->as_string, ": $orig_uri: not found";
-						}
-						red_warning({ person => $person, warning => "$orig_uri: not found" });
+						complain({ person => $person, warning => "$orig_uri: not found" });
 					}
 					$uri =~ s/:$//;
 					return "<a href=\"$uri\">" .
@@ -3910,23 +3906,14 @@ sub print_person
 			my %census_years;
 			foreach my $citation(1..$citationcount) {
 				if(!$citations{$citation}) {
-					if($opts{'f'}) {
-						die $person->as_string(), "[$citation]: empty citation";
-					}
-					if($opts{'w'}) {
-						red_warning({
-							person => $person,
-							warning => "[$citation]: empty citation"
-						});
-					}
-					next;
+					complain({
+						person => $person,
+						warning => "[$citation]: empty citation"
+					});
 				}
 				my $title = $citations{$citation}->title();
 				if(!defined($title)) {
-					if($opts{'f'}) {
-						die $person->as_string, "[$citation]: no citation title";
-					}
-					red_warning({
+					complain({
 						person => $person,
 						warning => "[$citation]: no citation title"
 					});
@@ -3942,7 +3929,7 @@ sub print_person
 							# TODO: Add pointer to image
 							$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
 						} else {
-							complain({ person => $person, warming => "Add $title to censusmaps" });
+							complain({ person => $person, warning => "Add $title to censusmaps" });
 						}
 					}
 				}
@@ -4757,17 +4744,27 @@ sub print_person
 
 	my $birth_country = '';
 
-	if($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
+	if($placeofbirth && ($placeofbirth =~ /(.+[a-z]) USA$/)) {
+		complain({ person => $person, warning => "Comma missing before USA in birth location '$placeofbirth'" });
+		$placeofbirth = "$1, USA";
+		$birth_country = 'United States';
+	} elsif($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
+			$birth_country = 'United States';
+		} elsif($c eq 'Texas') {
+			$birth_country = 'United States';
+		} elsif($c eq 'United States of America') {
 			$birth_country = 'United States';
 		} elsif($c eq 'Scotland') {
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
+			$birth_country = 'United Kingdom';
+		} elsif($c eq 'Northern Ireland') {
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Preußen') {	# Prussia
 			$birth_country = 'Germany';
@@ -4786,11 +4783,19 @@ sub print_person
 
 	my $death_country = '';
 
-	if($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
+	if($placeofdeath && ($placeofdeath =~ /(.+[a-z]) USA$/)) {
+		complain({ person => $person, warning => "Comma missing before USA in death location '$placeofdeath'" });
+		$placeofdeath = "$1, USA";
+		$death_country = 'United States';
+	} elsif($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
 			$death_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
+			$death_country = 'United States';
+		} elsif($c eq 'Texas') {
+			$death_country = 'United States';
+		} elsif($c eq 'United States of America') {
 			$death_country = 'United States';
 		} elsif($c eq 'Scotland') {
 			$death_country = 'United Kingdom';
@@ -4798,8 +4803,10 @@ sub print_person
 			$death_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
 			$death_country = 'United Kingdom';
+		} elsif($c eq 'Northern Ireland') {
+			$death_country = 'United Kingdom';
 		} elsif($c eq 'Preußen') {	# Prussia
-			$birth_country = 'Germany';
+			$death_country = 'Germany';
 		} else {
 			my $d;
 			eval {
@@ -5928,7 +5935,10 @@ sub complain
 		$params{'warning'} = shift;
 	}
 
-	die "What do you want to say?" unless($params{'warning'});
+	if(!defined($params{'warning'})) {
+		my @call_details = caller(0);
+		die "What do you want to say on line $call_details[2]?";
+	}
 
 	if($opts{'w'}) {
 		$params{'caller'} = 1;
