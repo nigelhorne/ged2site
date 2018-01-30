@@ -291,7 +291,8 @@ my %censusmaps = (
 	'1920 United States Federal Census' => '1920 US Census',
 	'US Census 1920 - Findmypast' => '1920 US Census',
 
-	'New York, State Census, 1925' => '1925 New York Census',
+	'New York, State Census, 1925' => '1925 US State Censuses',
+	'South Dakota, State Census, 1925' => '1925 US State Censuses',
 
 	'US Census 1930 - Findmypast' => '1930 US Census',
 	'1930 United States Federal Census' => '1930 US Census',
@@ -876,7 +877,6 @@ if($gedcal) {
 	}
 }
 
-# TODO - this is a POC which seems to work
 if(open(my $fout, '>', 'static-site/history.html')) {
 	print "Creating family history page\n";
 	print $fout "<html><head><title>Family History $name</title></head>",
@@ -1713,7 +1713,7 @@ sub print_person
 				}
 
 				my @occupations = $mother->get_value('occupation');
-				# TODO: print $html all occupations
+				# TODO: print all occupations
 				if($occupations[0]) {
 					print $html ' (a';
 					print $csv ' (a';
@@ -1936,10 +1936,7 @@ sub print_person
 					if($daddateofbirth =~ /.*?(\d{3,4})/) {
 						$daddateofbirth = $1;
 						if(($yob - $daddateofbirth) <= 13) {
-							if($opts{'f'}) {
-								die "something is wrong with the date of birth which is less than 13 years after the father was born ($daddateofbirth)";
-							}
-							red_warning({
+							complain({
 								person => $person,
 								warning => "something is wrong with the date of birth which is less than 13 years after the father was born ($daddateofbirth)"
 							});
@@ -1961,11 +1958,7 @@ sub print_person
 						my $title = $citation->title();
 						if($title =~ /^(\d{3,4})\s/) {
 							if($1 > $yod) {
-								if($opts{'f'}) {
-									die $person->as_string(),
-										": Year of citation of $title is after the death year of $yod";
-								}
-								red_warning({
+								complain({
 									person => $person,
 									warning => "Year of citation of $title is after the death year of $yod"
 								});
