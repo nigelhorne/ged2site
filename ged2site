@@ -4769,6 +4769,8 @@ sub print_person
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
 			$birth_country = 'United Kingdom';
+		} elsif($c eq 'Preußen') {	# Prussia
+			$birth_country = 'Germany';
 		} else {
 			my $b;
 			eval {
@@ -4777,7 +4779,7 @@ sub print_person
 			if(defined($b)) {
 				$birth_country = $b->code_alpha2();
 			} elsif($opts{'w'}) {
-				complain({ person => $person, warning => "Unknown birth country: '$c'" });
+				complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
 			}
 		}
 	}
@@ -4796,6 +4798,8 @@ sub print_person
 			$death_country = 'United Kingdom';
 		} elsif($c eq 'Isle of Man') {
 			$death_country = 'United Kingdom';
+		} elsif($c eq 'Preußen') {	# Prussia
+			$birth_country = 'Germany';
 		} else {
 			my $d;
 			eval {
@@ -4804,7 +4808,7 @@ sub print_person
 			if(defined($d)) {
 				$death_country = $d->code_alpha2();
 			} elsif($opts{'w'}) {
-				complain({ person => $person, warning => "Unknown death country: '$c'" });
+				complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
 			}
 		}
 	}
