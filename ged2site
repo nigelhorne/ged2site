@@ -6181,6 +6181,7 @@ sub make_filename_from_object
 	return $rc;
 }
 
+# Parse Gedcom format dates
 # Genealogy::Gedcom::Date is expensive, so cache results
 sub date_parser_cached
 {
@@ -6205,11 +6206,11 @@ sub date_parser_cached
 	eval {
 		$d = $date_parser->parse(date => $date);
 	};
-	if($d) {
+	if($d && (ref($d) eq 'ARRAY')) {
 		$d = @{$d}[0];
 		$all_dates{$date} = $d;
-		return $d;
 	}
+	return $d;
 }
 
 sub date_to_datetime
@@ -6224,10 +6225,13 @@ sub date_to_datetime
 		$params{'date'} = shift;
 	}
 
-	my $date = $params{'date'};
-	if($date && ($date !~ /^\d{3,4}$/) && ($date =~ /^\d/)) {
-		if(my $d = date_parser_cached($date)) {
-			return $dfn->parse_datetime($d->{'canonical'});
+	if(my $date = $params{'date'}) {
+		if($date !~ /^\d{3,4}$/) {
+			if(($date =~ /^\d/) && (my $d = date_parser_cached($date))) {
+				return $dfn->parse_datetime($d->{'canonical'});
+			}
+			# ACOM exports full month names and non-standard format dates e.g. U.S. format MMM, DD YYYY
+			return $dfn->parse_datetime($date);
 		}
 	}
 }
