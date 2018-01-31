@@ -2388,6 +2388,7 @@ sub print_person
 						$bio .= ' (' . year({ string => $dateofmarriage }) .
 							"$placeofmarriage)";
 					} elsif($placeofmarriage) {
+						$placeofmarriage =~ s/^\s+//;
 						$bio .= " ($placeofmarriage)";
 					} elsif($dateofmarriage) {
 						$bio .= ' (' . year({ string => $dateofmarriage }) . ')';
