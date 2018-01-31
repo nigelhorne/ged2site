@@ -835,7 +835,7 @@ if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
 	foreach my $date(sort keys %name_date) {
 		foreach my $firstname(sort keys %{$name_date{$date}}) {
 			my $count = scalar(@{$name_date{$date}{$firstname}});
-			my $sex = Text::Names::guessGender($firstname) || Text::Names::guessGender::GB($firstname);
+			my $sex = Text::Names::guessGender($firstname) || Text::Names::GB::guessGender($firstname);
 			my $people = join('--', @{$name_date{$date}{$firstname}});
 			print $csv "$date!$firstname!$count!$sex!$people\n";
 		}
@@ -5494,6 +5494,13 @@ sub place
 		} else {
 			return ' there';
 		}
+	}
+
+	# The more consistent the data, the fewer lookups on Geocoders and the smoother the English output
+	if($place =~ /(.+)\s*United States$/i) {
+		$place = "$1 USA";
+	} elsif($place =~ /States\s*$/) {
+		complain({ person => $params{'person'}, warning => "Unexpected text at the end of the place '$place'" });
 	}
 
 	if($params{'person'}) {
