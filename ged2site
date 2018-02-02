@@ -835,7 +835,7 @@ if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
 	foreach my $date(sort keys %name_date) {
 		foreach my $firstname(sort keys %{$name_date{$date}}) {
 			my $count = scalar(@{$name_date{$date}{$firstname}});
-			my $sex = Text::Names::guessGender($firstname) || Text::Names::GB::guessGender($firstname);
+			my $sex = Text::Names::guessGender($firstname) || Text::Names::GB::guessGender($firstname) || '?';
 			my $people = join('--', @{$name_date{$date}{$firstname}});
 			print $csv "$date!$firstname!$count!$sex!$people\n";
 		}
