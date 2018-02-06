@@ -20,7 +20,7 @@
 		</div>
 		<div id="container">
 			<center>
-				[ <a href="?page=people&home=1">Home</a> ] |
+				[ <a href="?page=people&amp;home=1">Home</a> ] |
 				[ <a href="?page=censuses">Census Index</a> ] |
 				[ <a href="?page=surnames">Surname Index</a> ] |
 				[ <a href="?page=history">Family History</a> ] |
@@ -35,7 +35,7 @@
 				<ul id="nav">
 					[% FOREACH person IN wardead %]
 						<li>
-							<a href="?page=people&entry=[%- person.entry %]">[% person.title %]</a>
+							<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
 						</li>
 					[% END %]
 				</ul>
