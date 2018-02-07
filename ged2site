@@ -5497,7 +5497,7 @@ sub place
 	}
 
 	# The more consistent the data, the fewer lookups on Geocoders and the smoother the English output
-	if($place =~ /(.+)\s*United States$/i) {
+	if($place =~ /(.+?)\s*United States$/i) {
 		$place = "$1 USA";
 	} elsif($place =~ /States\s*$/) {
 		complain({ person => $params{'person'}, warning => "Unexpected text at the end of the place '$place'" });
