@@ -2866,7 +2866,7 @@ sub print_person
 											next;
 										}
 
-										if(($type =~ /^Census U[KS] (\d{4})$/) || ($type eq 'Register UK 1939')) {
+										if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
 											push @mr, $event;
 										}
 									}
@@ -2908,7 +2908,7 @@ sub print_person
 											next;
 										}
 
-										if(($type =~ /^Census U[KS] (\d{4})$/) || ($type eq 'Register UK 1939')) {
+										if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
 											push @fr, $event;
 										}
 									}
@@ -2932,11 +2932,54 @@ sub print_person
 							}
 							if(($father || $mother) && !$found_parent) {
 								# FIXME: both parents could be dead
-								if($opts{'f'}) {
-									die $person->name(), "Residence information in $yoe, but no residence information found for either parent";
-								}
-								red_warning({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
+								complain({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
 							}	# TODO: else warn if both parents locations are different
+						} elsif($numberofchildren) {
+							# Look if a young child isn't with this parent
+							foreach my $child(@children) {
+								my @cr = $child->residence();
+								my @ce = $child->event();
+
+								my $cyob = get_value({ person => $child, value => 'birth date' });
+								next if(!defined($cyob));
+								if($cyob =~ /(\d{3,4})$/) {
+									$cyob = $1;
+								}
+								next if($yoe < $cyob);	# This child wasn't by born then
+								next if(($yoe - $cyob) > 10);	# Over 10 years old
+
+								my $missing_child = 1;
+								my $index = 0;
+
+								foreach my $event(@ce, @cr) {
+									$index++;
+									if(!ref($event)) {
+										# FIXME: Assumes not traversing cr - ce must come first
+										$event = $child->tag_record('EVEN', $index);
+									}
+									if(ref($event) eq 'Gedcom::Record') {
+										my $type = $event->type();
+										if(!defined($type)) {
+											next;
+										}
+
+										if(($type !~ /^Census U[KS] \d{4}$/) && ($type ne 'Register UK 1939')) {
+											next;
+										}
+									} else {
+										next;
+									}
+									my $edate = $event->date();
+									next if(!defined($edate));
+									if($edate eq $rdate) {
+										$missing_child = 0;
+										last;
+									}
+								}
+								if($missing_child) {
+									complain({ person => $child, warning => "Parent is listed in the census for $rdate, but this child is not" });
+								}
+							}
 						}
 					}
 					if(scalar(@residencelist) > 1) {
