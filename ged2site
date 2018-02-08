@@ -2937,12 +2937,9 @@ sub print_person
 						} elsif($numberofchildren) {
 							# Look if a young child isn't with this parent
 							foreach my $child(@children) {
-								my @cr = $child->residence();
-								my @ce = $child->event();
-
 								my $cyob = get_value({ person => $child, value => 'birth date' });
 								next if(!defined($cyob));
-								if($cyob =~ /(\d{3,4})$/) {
+								if($cyob =~ /(\d{3,4})\s*$/) {
 									$cyob = $1;
 								}
 								next if($yoe < $cyob);	# This child wasn't by born then
@@ -2950,6 +2947,8 @@ sub print_person
 
 								my $missing_child = 1;
 								my $index = 0;
+								my @cr = $child->residence();
+								my @ce = $child->event();
 
 								foreach my $event(@ce, @cr) {
 									$index++;
@@ -2977,7 +2976,7 @@ sub print_person
 									}
 								}
 								if($missing_child) {
-									complain({ person => $child, warning => "Parent is listed in the census for $rdate, but this child is not" });
+									complain({ person => $child, warning => "Parent $firstname is listed in the census for $rdate, but this child is not" });
 								}
 							}
 						}
@@ -2985,10 +2984,7 @@ sub print_person
 					if(scalar(@residencelist) > 1) {
 						my $this_date = year({ person => $person, date => $rdate });
 						if($prev_date && ($prev_date eq $this_date)) {
-							if($opts{'f'}) {
-								die $person->name(), "Two residence records for $rdate";
-							}
-							red_warning({ person => $person, warning => "Two residence records for $rdate" });
+							complain({ person => $person, warning => "Two residence records for $rdate" });
 						}
 						if($print_year_only) {
 							if($count == (scalar(@residencelist) - 1)) {
