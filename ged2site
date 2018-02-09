@@ -3041,12 +3041,14 @@ sub print_person
 									foreach my $ssr(@ssr) {
 										if(my $d = $ssr->date()) {
 											next if($d ne $rdate);
-											if(place({ person => $ss, record => $ssr }) eq $place) {
-												$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' ' .
-													(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
-													$ss->as_string();
-												last;
+											if(my $ssp = place({ person => $ss, record => $ssr })) {
+												if($ssp eq $place) {
+													$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+														' ' .
+														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
+														$ss->as_string();
+													last;
+												}
 											}
 										}
 									}
@@ -5479,7 +5481,10 @@ sub place
 			} else {
 				$place = $place->place();
 			}
-			return unless($place);
+			if(!defined($place)) {
+				complain({ person => $params{'person'}, warning => 'location is empty' });
+				return;
+			}
 		}
 	} elsif(ref($address) eq 'Gedcom::Record') {
 		$place = getaddress($address);
@@ -6249,13 +6254,20 @@ sub date_to_datetime
 	}
 
 	if(my $date = $params{'date'}) {
+		if($date =~ /^\s*(\d{3,4})\s*\-\s*(\d{3,4})\s*$/) {
+			complain("Changing date '$date' to 'bet $1 and $2'");
+			$date = "bet $1 and $2";
+		}
 		if($date !~ /^\d{3,4}$/) {
 			if(($date =~ /^\d/) && (my $d = date_parser_cached($date))) {
 				return $dfn->parse_datetime($d->{'canonical'});
 			}
 			if(($date !~ /^(Abt|ca?)/i) && ($date =~ /^[\w\s]+$/)) {
 				# ACOM exports full month names and non-standard format dates e.g. U.S. format MMM, DD YYYY
-				return $dfn->parse_datetime($date);
+				if(my $rc = $dfn->parse_datetime($date)) {
+					return $rc;
+				}
+				complain(warning => "Can't parse date '$date'");
 			}
 		}
 	}
