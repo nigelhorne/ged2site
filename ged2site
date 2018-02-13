@@ -2944,6 +2944,12 @@ sub print_person
 								}
 								next if($yoe < $cyob);	# This child wasn't by born then
 								next if(($yoe - $cyob) > 10);	# Over 10 years old
+								if(my $cyod = get_value({ person => $child, value => 'death date' })) {
+									if($cyod =~ /(\d{3,4})\s*$/) {
+										$cyod = $1;
+									}
+									next if($yoe > $cyod);	# This child was dead by then
+								}
 
 								my $missing_child = 1;
 								my @residences = get_all_residences($child);
@@ -2957,7 +2963,7 @@ sub print_person
 									}
 								}
 								if($missing_child) {
-									complain({ person => $child, warning => "Parent $firstname is listed in the census for $rdate, but this child is not" });
+									complain({ person => $child, warning => "Parent $firstname is listed in the residence for $rdate, but this child is not" });
 								}
 							}
 						}
