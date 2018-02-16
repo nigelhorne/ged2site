@@ -664,7 +664,7 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Unknown state in/) {
 					$summary = 'Unknown US State';
 				} elsif($warning =~ /^Residence information in/) {
-					$summary = 'Child census not in a parent';
+					$summary = 'Parent Missing From Child Location Record';
 				} elsif($warning =~ /^Unknown birth location/) {
 					$summary = 'Birth location not found';
 				} elsif($warning =~ /^Unknown death location/) {
