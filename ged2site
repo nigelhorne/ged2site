@@ -673,6 +673,12 @@ if($opts{'w'}) {
 					$summary = 'Location not found';
 				} elsif($warning =~ /^something is wrong with the date /) {
 					$summary = 'Inconsistent date';
+				} elsif($warning =~ /^born before parent was born/) {
+					$summary = 'Born before Parent was born';
+				} elsif($warning =~ /^Date of residence .+ is after date of death/) {
+					$summary = 'Date of Residence After Date of Death';
+				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
+					$summary = 'Child Missing From Parent Location Record';
 				} else {
 					$summary = $warning;
 				}
@@ -2834,12 +2840,9 @@ sub print_person
 								});
 							} elsif($death_dt && (my $rdate_dt = date_to_datetime($rdate))) {
 								if($rdate_dt > $death_dt) {
-									if($opts{'f'}) {
-										die $person->as_string(), ": Date of residence $rdate is after date of death ", $death_dt->strftime('x');
-									}
-									red_warning({
+									complain({
 										person => $person,
-										warning => "Date of residence $rdate is after date of death " . $death_dt->strftime('x')
+										warning => "Date of residence $rdate is after date of death " . $death_dt->strftime('%x')
 									});
 								}
 							}
@@ -3874,25 +3877,16 @@ sub print_person
 					if(my $d = date_parser_cached(date => $dob)) {
 						$d = $dfn->parse_datetime($d->{'canonical'});
 						if($birth_dt && ($d <= $birth_dt)) {
-							if($opts{'f'}) {
-								die $child->name(), ': Born before parent was born';
-							}
-							red_warning({ person => $child, warning => 'born before parent was born' });
+							complain({ person => $child, warning => 'born before parent was born' });
 						}
 						if(($sex eq 'F') && $death_dt && ($d > $death_dt)) {
-							if($opts{'f'}) {
-								die $child->name(), ': Born after mother died';
-							}
-							red_warning({ person => $child, warning => 'born after mother died' });
+							complain({ person => $child, warning => 'born after mother died' });
 						} elsif(($sex eq 'M') && $death_dt && ($d > ($death_dt + $tenmonths))) {
 							# Allow the child to be
 							# born up to 9 months
 							# after the death of the
 							# father
-							if($opts{'f'}) {
-								die $child->name(), ': Born more than 10 months after father died';
-							}
-							red_warning({ person => $child, warning => 'born more than 10 months after father died' });
+							complain({ person => $child, warning => 'born more than 10 months after father died' });
 						}
 					}
 				}
@@ -5488,7 +5482,7 @@ sub place
 				$place = $place->place();
 			}
 			if(!defined($place)) {
-				complain({ person => $params{'person'}, warning => 'location is empty' });
+				complain({ person => $params{'person'}, warning => 'Location is empty' });
 				return;
 			}
 		}
