@@ -2960,10 +2960,15 @@ sub print_person
 								foreach my $event(@residences) {
 									my $edate = $event->date();
 									next if(!defined($edate));
-									if($edate eq $rdate) {
+									if($edate eq $rdate) {	# Found residence of child on the same day
 										$missing_child = 0;
 										last;
 									}
+									if($edate =~ /(\d{3,4})\s*$/) {
+										if($yoe eq $1) {	# Found residence of child in the same year
+											$missing_child = 0;
+											last;
+										}
 								}
 								if($missing_child) {
 									complain({ person => $child, warning => "Parent $firstname is listed in the residence for $rdate, but this child is not" });
