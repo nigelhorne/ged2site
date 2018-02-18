@@ -2969,6 +2969,7 @@ sub print_person
 											$missing_child = 0;
 											last;
 										}
+									}
 								}
 								if($missing_child) {
 									complain({ person => $child, warning => "Parent $firstname is listed in the residence for $rdate, but this child is not" });
