@@ -3046,6 +3046,7 @@ sub print_person
 						foreach my $r(@residences) {
 							next if($r->date() ne $rdate);
 							my $place = place({ person => $person, record => $r });
+							my $first = 1;
 
 							foreach my $sibling(@siblings) {
 								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
@@ -3058,10 +3059,20 @@ sub print_person
 											next if($d ne $rdate);
 											if(my $ssp = place({ person => $ss, record => $ssr })) {
 												if($ssp eq $place) {
-													$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-														' ' .
-														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
-														$ss->as_string();
+													if($first) {
+														$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+															' ' .
+															(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
+															$ss->as_string();
+															$first = 0;
+													} else {
+														# FIXME: If possible, should say
+														#	sisters-in-law or
+														#	brothers-in-law
+														$bio .= ' and ' .
+															(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
+															$ss->as_string();
+														}
 													last;
 												}
 											}
