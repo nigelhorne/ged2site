@@ -1517,6 +1517,8 @@ sub print_person
 	while(scalar(@occupations) > 1) {
 		if(($occupations[0] =~ /labou?rer/i) && ($occupations[1] =~ /labou?rer/i)) {
 			shift @occupations;
+		} elsif($occupations[0] eq $occupations[1]) {
+			shift @occupations;
 		} else {
 			last;
 		}
@@ -1554,15 +1556,10 @@ sub print_person
 			}
 		}
 	} elsif(scalar(@occupations)) {
-		if($opts{'w'}) {
-			if($opts{'f'}) {
-				die $person->as_string, ': occupation is empty';
-			}
-			red_warning({
-				person => $person,
-				warning => 'occupation is empty'
-			});
-		}
+		complain({
+			person => $person,
+			warning => 'occupation is empty'
+		});
 		shift @occupations;
 	}
 
@@ -1587,16 +1584,10 @@ sub print_person
 							last;
 						}
 						if(!date_parser_cached(date => $dob)) {
-							if($opts{'f'}) {
-								die $sibling->as_string(),
-									" has an invalid date of birth: $dob";
-							}
-							if($opts{'w'}) {
-								red_warning({
-									person => $sibling,
-									warning => "has an invalid date of birth: $dob"
-								});
-							}
+							complain({
+								person => $sibling,
+								warning => "has an invalid date of birth: $dob"
+							});
 							$all_siblings_have_dob = 0;
 							last;
 						}
