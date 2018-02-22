@@ -214,7 +214,8 @@ if($opts{'m'} || $opts{'w'}) {
 	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
 
-	$textgeocoder = Geo::Parser::Text->new('https://geocoder.ca');
+	# $textgeocoder = Geo::Parser::Text->new('https://geocoder.ca');
+	$textgeocoder = Geo::Parser::Text->new(host => 'https://geocode.xyz');
 }
 
 # TODO: BMAP_KEY for Geo::Coder::Bing
@@ -4599,7 +4600,8 @@ sub print_person
 					$map = HTML::GoogleMaps::V3->new(%args);
 					$map->center($current_place);
 				}
-				add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
+				# FIXME: no need to look up again, use current_place->longt and latt
+				add_marker(person => $person, map => $map, place => $current_place->{'location'}, annotation => $annotation);
 				$current_place = $place;
 				$annotation = undef;
 			} elsif(!defined($current_place)) {
@@ -5686,10 +5688,7 @@ sub notes
 			if($u && (ref($u) ne 'URI::_generic')) {
 				# Some sites give 404 on HEAD but work on GET
 				if((!head($orig_uri)) && !get($orig_uri)) {
-					if($opts{'f'}) {
-						die $person->as_string, ": $orig_uri: in notes is not found";
-					}
-					red_warning({ person => $person, warning => "$orig_uri: in notes is not found" });
+					complain({ person => $person, warning => "$orig_uri: in notes is not found" });
 				}
 				$uri =~ s/:$//;
 				return "<a href=\"$uri\">" .
@@ -5713,7 +5712,7 @@ sub notes
 			}
 		}
 	}
-	if($note_locations && (my $hr = $textgeocoder->scantext(scantext => $rc, strict => 1))) {
+	if(defined($note_locations) && (my $hr = $textgeocoder->geocode(scantext => $rc))) {
 		if(length($rc) > 15) {
 			$hr->{'text'} = substr($rc, 0, 14) . '...';
 		} else {
