@@ -163,7 +163,7 @@ if($opts{'m'} || $opts{'w'}) {
 
 	if($geolocation_key) {
 		$geocoder = Geo::Coder::List->new()
-			->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() })
+			->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new(openaddr => $ENV{'OPENADDR_HOME'}) })
 			->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
 			->push({ regex => qr/(Canada|USA|US|United States)$/i, geocoder => Geo::Coder::CA->new() })
 			->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::RandMcnally->new() })
@@ -175,7 +175,7 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::Google->new());
 	} else {
 		$geocoder = Geo::Coder::List->new()
-			->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() })
+			->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new(openaddr => $ENV{'OPENADDR_HOME'}) })
 			->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
 			->push({ regex => qr/(Canada|USA|US|United States)$/i, geocoder => Geo::Coder::CA->new() })
 			->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::RandMcnally->new() })
