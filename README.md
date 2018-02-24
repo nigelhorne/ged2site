@@ -160,6 +160,7 @@ For compatibility with other code, these environment variables are honoured:
     BMAP_KEY: Bing (virtualearth.net) API Key
     GMAP_KEY: Google Places (maps.googleapis.com) API Key
     GEONAMES_USE: geonames.org registered username
+    OPENADDR_HOME: directory of data from http://results.openaddresses.io/
 
 Bugs
 ====
