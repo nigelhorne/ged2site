@@ -5526,7 +5526,11 @@ sub place
 	if($there && ($place eq $there)) {
 		if($address) {
 			if($place =~ /^(.+?),.+,/) {
-				return " at $address, $1";
+				if($params{'nopreposition'}) {
+					return " $address, $1";
+				} else {
+					return " at $address, $1";
+				}
 			}
 		} else {
 			return ' there';
@@ -5565,7 +5569,11 @@ sub place
 	}
 
 	if($address) {
-		$place = " at $address, $place";
+		if($params{'nopreposition'}) {
+			$place = " $address, $place";
+		} else {
+			$place = " at $address, $place";
+		}
 	} elsif($params{'nopreposition'}) {
 		$place = " $place";
 	} else {
