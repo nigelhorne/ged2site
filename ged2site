@@ -5762,7 +5762,7 @@ sub validate_place
 			$place = "$1$2";
 		}
 		$place =~ s/^(in|at)\s//;
-		if($places{$place}) {
+		if(defined($places{$place})) {
 			return $places{$place};
 		}
 		# my $ap;
