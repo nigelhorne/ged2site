@@ -163,7 +163,7 @@ if($opts{'m'} || $opts{'w'}) {
 
 	$geocoder = Geo::Coder::List->new();
 	if(my $oa = $ENV{'OPENADDR_HOME'}) {
-		$geocoder->push(Geo::Coder::Free->new(openaddr => $oa));
+		$geocoder->push({ regex => qr/,[\w\s]+,[\w\s]+$/, geocoder => Geo::Coder::Free->new(openaddr => $oa) });
 	} else {
 		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 	}
@@ -5756,7 +5756,7 @@ sub validate_place
 	}
 
 	$place =~ s/^\s+//;
-	if($places{$place}) {
+	if(defined($places{$place})) {
 		return $places{$place};
 	}
 
