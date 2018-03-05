@@ -21,6 +21,7 @@ our $date_parser;
 our $dfn;
 
 # TODO: age of people dying vs. year (is that a good idea?)
+# Plot average distance between place of spouse's birth against year of marriage
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
 	'birthmonth' => \&_birthmonth,
