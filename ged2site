@@ -3649,7 +3649,7 @@ sub print_person
 					if(!$mentioned_military) {
 						$bio .= '.' if(!$end_of_sentence);
 						$bio .= " $pronoun served in the military";
-						if(my $place = place({ person => $person, record => $event })) {
+						if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
 							$bio .= $place;
 						}
 						if(my $date = year(record => $event)) {
@@ -5502,7 +5502,9 @@ sub place
 				$place = $place->place();
 			}
 			if(!defined($place)) {
-				complain({ person => $params{'person'}, warning => 'Location is empty' });
+				if(!$params{'allow_empty'}) {
+					complain({ person => $params{'person'}, warning => 'location is empty' });
+				}
 				return;
 			}
 		}
