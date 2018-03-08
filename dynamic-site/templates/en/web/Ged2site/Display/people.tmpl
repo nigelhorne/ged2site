@@ -25,7 +25,9 @@
 		[% END %]
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
-			<meta name="twitter:title" content="[% SiteTitle %]">
+			[% IF SiteTitle %]
+				<meta name="twitter:title" content="[% SiteTitle.join(' ') %]">
+			[% END %]
 		[% END %]
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
