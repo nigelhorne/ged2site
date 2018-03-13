@@ -961,22 +961,13 @@ sub print_person
 		if(($dob !~ /^[\d\sA-Z\/]+$/i) && ($dob !~ /^Abt\./)) {
 			if($dob =~ /(\d{4})\s*(.+)/) {
 				$dob = "ABT$1";
-				if(place({ peron => $person, place => $2 })) {
-					if($opts{'f'}) {
-						die $person->as_string(), ": Unexpected text ($2) after the date $1 - should be in the location record";
-					}
-					red_warning({ person => $person, warning => "Unexpected text ($2) after the date $1 - should be in the location record" });
+				if(place({ person => $person, place => $2 })) {
+					complain({ person => $person, warning => "Unexpected text ($2) after the date $1 - should be in the location record" });
 				} else {
-					if($opts{'f'}) {
-						die $person->as_string(), ": Unexpected text ($2) after the date $1 - should be in the note field";
-					}
-					red_warning({ person => $person, warning => "Unexpected text ($2) after the date $1 - should be in the note field" });
+					complain({ person => $person, warning => "Unexpected text ($2) after the date $1 - should be in the note field" });
 				}
 			} elsif($dob !~ /\d{1,2}$/) {	# Dates can begin with a letter in the US
-				if($opts{'f'}) {
-					die $person->as_string(), ": Invalid character in date of birth $dob";
-				}
-				red_warning({ person => $person, warning => "Invalid character in date of birth $dob" });
+				complain({ person => $person, warning => "Invalid character in date of birth $dob" });
 				$dob = undef;
 			}
 		}
@@ -990,20 +981,24 @@ sub print_person
 	my @spouses = $person->spouse();
 
 	# TODO: Properly chart which spouse a child comes from
-	# FIXME: This current algorithm misses children from all the marriages
-	my $family;
-	foreach my $f($person->fams()) {
-		if($f->number_of_children()) {
-			$family = $f;
-			last;
+	if($opts{'w'}) {
+		my $family;
+		foreach my $f($person->fams()) {
+			if($f->number_of_children()) {
+				$family = $f;
+				last;
+			}
 		}
-	}
 
-	if($opts{'w'} && (!$family) && (scalar(@siblings) == 0) && (!$mother) && (!$father) && (scalar(@spouses) == 0)) {
-		if($opts{'f'}) {
-			die $person->as_string() . ': not connected to the tree';
+		if((!$family) && (scalar(@siblings) == 0) && (!$mother) && (!$father) && (scalar(@spouses) == 0)) {
+			complain({ person => $person, warning => 'not connected to the tree' });
 		}
-		red_warning({ person => $person, warning => 'not connected to the tree' });
+
+		# FIXME: needs to only complain about more than two biological parents
+		my @parents = $person->parents();
+		if(scalar(@parents) > 2) {
+			complain({ person => $person, warning => 'has more than two parents' });
+		}
 	}
 
 	my $year = (localtime)[5];
@@ -1038,16 +1033,8 @@ sub print_person
 	my $person2;
 	if($ged2) {
 		$person2 = $ged2->get_individual($person->as_string());
-		if($opts{'w'}) {
-			if(!defined($person2)) {
-				if($opts{'f'}) {
-					die $person->as_string() . ": not found in $ARGV[1]";
-				}
-				red_warning({
-					person => $person,
-					warning => "not found in $ARGV[1]"
-				});
-			}
+		if($opts{'w'} && !defined($person2)) {
+			complain({ person => $person, warning => "not found in $ARGV[1]" });
 		}
 	}
 	my $title = $person->as_string({
