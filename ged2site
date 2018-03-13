@@ -2851,86 +2851,23 @@ sub print_person
 						if($yob && (($yoe - $yob) <= 10)) {
 							my $found_parent = 0;
 							if($mother) {
-								# my @mr = $mother->residence();
-								# my @me = $mother->event();
-								# my $index = 0;
-								# foreach my $event(@me) {
-									# $index++;
-									# if(!ref($event)) {
-										# my $e = $mother->tag_record('EVEN', $index);
-										# if(ref($e) eq 'Gedcom::Record') {
-											# $event = $e;
-										# } else {
-											# next;
-										# }
-									# }
-									# if(ref($event) eq 'Gedcom::Record') {
-										# my $type = $event->type();
-										# if(!defined($type)) {
-											# next;
-										# }
-# 
-										# if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
-											# push @mr, $event;
-										# }
-									# }
-								# }
-								# $index = 0;
-								# foreach my $residence(@mr) {
 								foreach my $residence(get_all_residences($mother)) {
-									# $index++;
-									# if(ref($residence) ne 'Gedcom::Record') {
-										# $residence = $person->record(['residence', $index]);
-									# }
-									# if(ref($residence) eq 'Gedcom::Record') {
-										my $date = $residence->date();
-										if(defined($date) && ($date =~ /(\d{3,4})$/)) {
-											if($1 == $yoe) {
-												$found_parent = $residence;
-												last;
-											}
+									my $date = $residence->date();
+									if(defined($date) && ($date =~ /(\d{3,4})$/)) {
+										if($1 == $yoe) {
+											$found_parent = $residence;
+											last;
 										}
-									# }
+									}
 								}
 							}
 							if($father && !$found_parent) {
-								my @fr = $father->residence();
-								my @fe = $father->event();
-								my $index = 0;
-								foreach my $event(@fe) {
-									$index++;
-									if(!ref($event)) {
-										my $e = $father->tag_record('EVEN', $index);
-										if(ref($e) eq 'Gedcom::Record') {
-											$event = $e;
-										} else {
-											next;
-										}
-									}
-									if(ref($event) eq 'Gedcom::Record') {
-										my $type = $event->type();
-										if(!defined($type)) {
-											next;
-										}
-
-										if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
-											push @fr, $event;
-										}
-									}
-								}
-								$index = 0;
-								foreach my $residence(@fr) {
-									$index++;
-									if(ref($residence) ne 'Gedcom::Record') {
-										$residence = $person->record(['residence', $index]);
-									}
-									if(ref($residence) eq 'Gedcom::Record') {
-										my $date = $residence->date();
-										if($date && ($date =~ /(\d{3,4})$/)) {
-											if($1 == $yoe) {
-												$found_parent = $residence;
-												last;
-											}
+								foreach my $residence(get_all_residences($father)) {
+									my $date = $residence->date();
+									if(defined($date) && ($date =~ /(\d{3,4})$/)) {
+										if($1 == $yoe) {
+											$found_parent = $residence;
+											last;
 										}
 									}
 								}
