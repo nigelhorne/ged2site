@@ -70,6 +70,7 @@ sub html {
 }
 
 # TODO: have separate graphs for male and female
+# FIXME: should plot year of death against age, not year of birth, that way data up to the present day could be presented
 sub _ageatdeath
 {
 	my $self = shift;
@@ -123,7 +124,7 @@ sub _ageatdeath
 		$datapoints .= "{ label: \"$bucket\", y: $average },\n";
 		push @x, $bucket;
 		push @y, $average;
-		push @samples, { bucket => $bucket, size => $counts{$bucket} };
+		push @samples, { bucket => ("$bucket-" . ($bucket + $BUCKETYEARS - 1)), size => $counts{$bucket} };
 	}
 	my $lf = Statistics::LineFit->new();
 	if($lf->setData(\@x, \@y)) {
