@@ -23,6 +23,7 @@ our $dfn;
 # TODO: age of people dying vs. year (is that a good idea?)
 #	Plot average distance between place of spouse's birth against year of marriage
 #	Distance betweeen parents' birth and death places and each child birth and death places (the coloured lines)
+#	Plot age of death against percentage of the total sample size (one colour male, one female)
 
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
@@ -70,6 +71,7 @@ sub html {
 }
 
 # TODO: have separate graphs for male and female
+# FIXME: should plot year of death against age, not year of birth, that way data up to the present day could be presented
 sub _ageatdeath
 {
 	my $self = shift;
@@ -123,7 +125,7 @@ sub _ageatdeath
 		$datapoints .= "{ label: \"$bucket\", y: $average },\n";
 		push @x, $bucket;
 		push @y, $average;
-		push @samples, { bucket => $bucket, size => $counts{$bucket} };
+		push @samples, { bucket => ("$bucket-" . ($bucket + $BUCKETYEARS - 1)), size => $counts{$bucket} };
 	}
 	my $lf = Statistics::LineFit->new();
 	if($lf->setData(\@x, \@y)) {

@@ -1708,6 +1708,12 @@ sub print_person
 				}
 
 				my @occupations = $mother->get_value('occupation');
+				while($occupations[0] && ($occupations[0] =~ /^scho(ol|lar)/i)) {
+					shift @occupations;
+				}
+				while($occupations[0] && ($occupations[0] =~ /wife$/i)) {
+					shift @occupations;
+				}
 				# TODO: print all occupations
 				if($occupations[0]) {
 					print $html ' (a';
