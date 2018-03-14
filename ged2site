@@ -5114,10 +5114,12 @@ sub Gedcom::Individual::relationship
 	my $self = shift;
 	my $other = shift;
 
-	if($self->mother() && $other->mother() && $self->father() && $other->father &&
-	  ($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
+	if($self->mother() && $other->mother() && $self->father() && $other->father()) {
 		my $sex = get_value({ person => $other, value => 'sex' });
-		return ($sex eq 'M') ? 'brother' : 'sister';
+		if(($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
+			return ($sex eq 'M') ? 'brother' : 'sister';
+		}
+		return ($sex eq 'M') ? 'half-brother' : 'half-sister';
 	}
 
 	unless(@myancestors) {
