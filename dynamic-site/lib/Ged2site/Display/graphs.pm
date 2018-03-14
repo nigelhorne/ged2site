@@ -23,6 +23,7 @@ our $dfn;
 # TODO: age of people dying vs. year (is that a good idea?)
 #	Plot average distance between place of spouse's birth against year of marriage
 #	Distance betweeen parents' birth and death places and each child birth and death places (the coloured lines)
+#	Plot age of death against percentage of the total sample size (one colour male, one female)
 
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
