@@ -5125,7 +5125,9 @@ sub Gedcom::Individual::relationship
 		if(($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
 			return ($sex eq 'M') ? 'brother' : 'sister';
 		}
-		return ($sex eq 'M') ? 'half-brother' : 'half-sister';
+		if(($self->mother() eq $other->mother()) || ($self->father() eq $other->father())) {
+			return ($sex eq 'M') ? 'half-brother' : 'half-sister';
+		}
 	}
 
 	unless(@myancestors) {
