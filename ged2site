@@ -2825,14 +2825,12 @@ sub print_person
 						my $yoe = $1;
 						if($yod) {
 							if($yoe > $yod) {
-								if($opts{'f'}) {
-									die $person->as_string(), ": Year of residence $yoe is after the year of death $yod";
-								}
-								red_warning({
+								complain({
 									person => $person,
 									warning => "Year of residence $yoe is after the year of death $yod"
 								});
 							} elsif($death_dt && (my $rdate_dt = date_to_datetime($rdate))) {
+								# FIXME: If $rdate is a date range, should check both dates in the range
 								if($rdate_dt > $death_dt) {
 									complain({
 										person => $person,
@@ -6210,6 +6208,7 @@ sub date_parser_cached
 	return $d;
 }
 
+# TODO: If given a date range in an array context, return the opening and starting dates as a two element array
 sub date_to_datetime
 {
 	my %params;
@@ -6227,6 +6226,7 @@ sub date_to_datetime
 			complain("Changing date '$date' to 'bet $1 and $2'");
 			$date = "bet $1 and $2";
 		}
+		return if ($date =~ /^bet /i);
 		if($date !~ /^\d{3,4}$/) {
 			if(($date =~ /^\d/) && (my $d = date_parser_cached($date))) {
 				return $dfn->parse_datetime($d->{'canonical'});
