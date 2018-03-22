@@ -47,7 +47,8 @@ use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::List 0.15;
-use Geo::Coder::Free 0.03;
+use Geo::Coder::Free 0.05;	# 0.06 really
+use Geo::Coder::Free::OpenAddresses;
 use Geo::Coder::Postcodes 0.02;
 use Geo::Coder::OSM;
 use Geo::Coder::XYZ;
@@ -163,7 +164,9 @@ if($opts{'m'} || $opts{'w'}) {
 
 	$geocoder = Geo::Coder::List->new();
 	if(my $oa = $ENV{'OPENADDR_HOME'}) {
-		$geocoder->push({ regex => qr/,[\w\s]+,[\w\s]+$/, geocoder => Geo::Coder::Free->new(openaddr => $oa) });
+		# $geocoder->push({ regex => qr/,[\w\s]+,[\w\s]+$/, geocoder => Geo::Coder::Free->new(openaddr => $oa) });
+		$geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada)+$/, geocoder => Geo::Coder::Free::OpenAddresses->new(openaddr => $oa) })
+			->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 	} else {
 		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 	}
