@@ -2914,7 +2914,11 @@ sub print_person
 									}
 								}
 								if($missing_child) {
-									complain({ person => $child, warning => "Parent $firstname is listed in the residence for $rdate, but this child is not" });
+									if($firstname) {
+										complain({ person => $child, warning => "Parent $firstname is listed in the residence for $rdate, but this child is not" });
+									} else {
+										complain({ person => $child, warning => "Parent is listed in the residence for $rdate, but this child is not" });
+									}
 								}
 							}
 						}
@@ -3230,6 +3234,11 @@ sub print_person
 				my $must_postdate;
 				if($death_dt) {
 					$must_postdate = $death_dt;
+				} elsif(!defined($dateofdeath)) {
+					complain({
+						person => $person,
+						warning => 'Date of burial is known but not of death, suggest adding "Abt. YEAR"'
+					});
 				} elsif($dateofdeath =~ /^(Abt|ca?)\.?\s*(.+)/i) {
 					my $d = $2;
 					if($d !~ /^\d/) {
