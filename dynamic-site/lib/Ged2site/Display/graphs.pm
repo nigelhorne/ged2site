@@ -691,6 +691,10 @@ sub _dist
 		}
 	}
 
+	if(!defined($datapoints)) {
+		return { error => 'No birth and/or death location data has been recorded' };
+	}
+
 	return { datapoints => $datapoints, units => ($units eq 'K') ? 'Kilometres' : 'Miles' };
 }
 

@@ -356,6 +356,9 @@
 				[ <a href="?page=emmigrants">Emigrants</a> ] |
 				[ <a href="/visjs.html">Timeline</a> ]
 			</center>
+			[% IF error %]
+				<p><font color="red" size="+2">[% error %]</font></p>
+			[% END %]
 			<p>
 		[% END %]
 
@@ -398,7 +401,7 @@
 			</p>
 		[% ELSIF graph == 'ageatmarriage' %]
 			<div id="chartContainer" style="height: 400px; width: 100%;"></div>
-			<p>If the data size is not large anomolies can appear.</p>
+			<p>If the data size is not large, anomolies can appear.</p>
 		[% ELSIF graph == 'familysizetime' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
