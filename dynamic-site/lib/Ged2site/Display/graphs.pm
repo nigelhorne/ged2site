@@ -70,18 +70,42 @@ sub html {
 	return $self->SUPER::html(updated => $updated);
 }
 
-# TODO: have separate graphs for male and female
+# Creates the datapoints for two graphs for age of death against year of death.
+# One graph for women and one for men
 sub _ageatdeath
 {
 	my $self = shift;
 	my $args = shift;
 
+	my ($datapoints, $bestfit, $samples);
+
+	for my $sex('M', 'F') {
+		local $args->{'sex'} = $sex;
+		if(my $rc = $self->_ageatdeathbysex($args)) {
+			$datapoints->{$sex} = $rc->{'datapoints'};
+			if($rc->{'bestfit'}) {
+				$bestfit->{$sex} = $rc->{'bestfit'};
+			}
+			$samples->{$sex} = $rc->{'samples'};
+		}
+	}
+
+	return { datapoints => $datapoints, bestfit => $bestfit, samples => $samples };
+}
+
+sub _ageatdeathbysex
+{
+	my $self = shift;
+	my $args = shift;
+
 	my $people = $args->{'people'};
+	my $sex = $args->{'sex'};
 
 	my %counts;
 	my %totals;
 
 	foreach my $person($people->selectall_hash()) {
+		next if($person->{'sex'} ne $sex);
 		if($person->{'dob'} && $person->{'dod'}) {
 			my $dob = $person->{'dob'};
 			my $yob;
@@ -140,10 +164,10 @@ sub _ageatdeath
 				$bestfit .= "{ label: \"$x\", y: $y },\n";
 			}
 		}
-		return { mdatapoints => $datapoints, fdatapoints => $bestfit, samples => \@samples };
+		return { datapoints => $datapoints, bestfit => $bestfit, samples => \@samples };
 	}
 
-	return { datapoints => $datapoints, samples => @samples };
+	return { datapoints => $datapoints, samples => \@samples };
 }
 
 sub _birthmonth

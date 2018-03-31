@@ -43,8 +43,163 @@
 			<meta http-equiv="Content-Language" content="English">
 		-->
 		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A ged2site webpage">
-		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne, all rights reserved">
-		[% IF datapoints %]
+		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne">
+		<style type="text/css">
+			/* Two columns */
+			.column {
+				float: left;
+				width: 50%;
+			}
+
+			/* Clear floats after the columns */
+			.row:after {
+				content: "";
+				display: table;
+				clear: both;
+			}
+		</style>
+		[% IF bestfit %]
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+			<script type="text/javascript">
+
+			window.onload = function () {
+				var chartM = new CanvasJS.Chart("chartContainerM", {
+					theme: "theme1",	//theme2
+					title: {
+						text: "[% title %] (Men)"
+					},
+					zoomEnabled: false,
+					axisY: {
+						[% IF graph == 'ageatdeath' %]
+							includeZero: false,
+							title: 'Age at Death',
+						[% END %]
+						gridThickness: 0
+					},
+					[% IF graph == 'ageatdeath' %]
+						axisX: {
+							title: 'Year of Death'
+						},
+					[% END %]
+					toolTip: {
+						shared:true
+					},
+					legend: {
+						verticalAlign: "center",
+						horizontalAlign: "right"
+					},
+					animationEnabled: true,	// change to false
+					data: [
+						{
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							type: "line",
+							showInLegend: true,
+							[% IF graph == 'ageatdeath' %]
+								name: "Values",
+							[% END %]
+							color: "#F08080",
+							dataPoints: [
+								[% datapoints.M %]
+							]
+						}, {
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							type: "line",
+							[% IF graph == 'ageatdeath' %]
+								lineDashType: "dash",
+								connectNullData: true,
+								nullDataLineDashType: "dot",
+								name: "Trend",
+							[% END %]
+							showInLegend: true,
+							color: "#20B2AA",
+							dataPoints: [
+								[% bestfit.M %]
+							]
+						},
+					],
+					legend: {
+						cursor: "pointer",
+						itemclick:function(e){
+							if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else{
+								e.dataSeries.visible = true;
+							}
+							chartM.render();
+						}
+					}
+				});
+				var chartF = new CanvasJS.Chart("chartContainerF", {
+					theme: "theme1",	//theme2
+					title: {
+						text: "[% title %] (Women)"
+					},
+					zoomEnabled: false,
+					axisY: {
+						[% IF graph == 'ageatdeath' %]
+							includeZero: false,
+							title: 'Age at Death',
+						[% END %]
+						gridThickness: 0
+					},
+					[% IF graph == 'ageatdeath' %]
+						axisX: {
+							title: 'Year of Death'
+						},
+					[% END %]
+					toolTip: {
+						shared:true
+					},
+					legend: {
+						verticalAlign: "center",
+						horizontalAlign: "right"
+					},
+					animationEnabled: true,	// change to false
+					data: [
+						{
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							type: "line",
+							showInLegend: true,
+							[% IF graph == 'ageatdeath' %]
+								name: "Values",
+							[% END %]
+							color: "#F08080",
+							dataPoints: [
+								[% datapoints.F %]
+							]
+						}, {
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							type: "line",
+							[% IF graph == 'ageatdeath' %]
+								lineDashType: "dash",
+								connectNullData: true,
+								nullDataLineDashType: "dot",
+								name: "Trend",
+							[% END %]
+							showInLegend: true,
+							color: "#20B2AA",
+							dataPoints: [
+								[% bestfit.F %]
+							]
+						},
+					],
+					legend: {
+						cursor: "pointer",
+						itemclick:function(e){
+							if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else{
+								e.dataSeries.visible = true;
+							}
+							chartF.render();
+						}
+					}
+				});
+				chartM.render();
+				chartF.render();
+			}
+			</script>
+		[% ELSIF datapoints %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
@@ -61,8 +216,6 @@
 							title: "Number of Children",
 						[% ELSIF graph == 'motherchildren' %]
 							title: "Number of Mothers",
-						[% ELSIF graph == 'ageatdeath' %]
-							title: "Age at Death",
 							includeZero: false,
 						[% ELSIF graph == 'infantdeaths' %]
 							title: 'Percentage',
@@ -80,9 +233,6 @@
 						zoomEnabled: true,
 					[% ELSIF graph == 'dist' %]
 						zoomEnabled: true,
-					[% ELSIF graph == 'ageatdeath' %]
-						axisX: {
-							title: "Year of Death",
 					[% ELSIF graph == 'distcount' %]
 						zoomEnabled: true,
 						axisX: {
@@ -95,17 +245,17 @@
 					[% END %]
 					animationEnabled: true,	// change to false
 					data: [
-					{
-						// Change type to "bar", "area", "spline", "pie","column"etc.
-						[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' || graph == 'firstborn' || graph == 'motherchildren' %]
-							type: "column",
-						[% ELSE %]
-							type: "line",
-						[% END %]
-						dataPoints: [
-							[% datapoints %]
-						]
-					}
+						{
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' || graph == 'firstborn' || graph == 'motherchildren' %]
+								type: "column",
+							[% ELSE %]
+								type: "line",
+							[% END %]
+							dataPoints: [
+								[% datapoints %]
+							]
+						}
 					]
 				});
 				chart.render();
@@ -129,8 +279,6 @@
 							title: 'Percentage',
 							minimum: 0,
 							maximum: 100,
-						[% ELSIF graph == 'ageatdeath' %]
-							includeZero: false,
 						[% END %]
 						gridThickness: 0
 					},
@@ -152,27 +300,15 @@
 							// Change type to "bar", "area", "spline", "pie","column"etc.
 							type: "line",
 							showInLegend: true,
-							[% IF graph == 'ageatdeath' %]
-								name: "Values",
-							[% ELSE %]
-								name: "Male",
-							[% END %]
+							name: "Male",
 							color: "#F08080",
 							dataPoints: [
 								[% mdatapoints %]
 							]
-						},
-						{
+						}, {
 							// Change type to "bar", "area", "spline", "pie","column"etc.
 							type: "line",
-							[% IF graph == 'ageatdeath' %]
-								lineDashType: "dash",
-								connectNullData: true,
-								nullDataLineDashType: "dot",
-								name: "Trend",
-							[% ELSE %]
-								name: "Female",
-							[% END %]
+							name: "Female",
 							showInLegend: true,
 							color: "#20B2AA",
 							dataPoints: [
@@ -224,16 +360,31 @@
 		[% END %]
 
 		[% IF graph == 'ageatdeath' %]
-			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
-				This graph of average age at death against year of death, starting at 1840, only includes those who lived past the age of 20.
+				These graphs of average age at death against year of death starting at 1840
+				only includes those who lived past the age of 20.
 			</p>
-			The sample sizes are:
-			<ul>
-				[% FOREACH sample IN samples %]
-					<li>[% sample.bucket %]: [% sample.size %]</li>
-				[% END %]
-			</ul>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
+			<h2>Sample Sizes</h2>
+			<div class="row">
+				<div class="column">
+					<i>Men</i>
+					<ul>
+						[% FOREACH sample IN samples.M %]
+							<li>[% sample.bucket %]: [% sample.size %]</li>
+						[% END %]
+					</ul>
+				</div>
+				<div class="column">
+					<i>Women</i>
+					<ul>
+						[% FOREACH sample IN samples.F %]
+							<li>[% sample.bucket %]: [% sample.size %]</li>
+						[% END %]
+					</ul>
+				</div>
+			</div>
 		[% ELSIF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'distcount' %]
