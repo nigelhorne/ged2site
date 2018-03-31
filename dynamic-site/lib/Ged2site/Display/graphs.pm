@@ -193,13 +193,14 @@ sub _marriagemonth
 	my $people = $args->{'people'};
 	my @counts = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	foreach my $person($people->selectall_hash()) {
-		# TODO: Handle more than one marriage
-		if(my $dom = $person->{'marriages'}) {
-			if($dom =~ /^(.+?)-/) {
-				$dom = $1;	# use the first marriage
-			}
-			if($dom =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
-				$counts[$1 - 1]++;
+		if($person->{'marriages'}) {
+			foreach my $dom(split(/----/, $person->{'marriages'})) {
+				if($dom =~ /^(.+?)-/) {
+					$dom = $1;	# use the first marriage
+				}
+				if($dom =~ /^\d{3,4}\/(\d{2})\/\d{2}$/) {
+					$counts[$1 - 1]++;
+				}
 			}
 		}
 	}
