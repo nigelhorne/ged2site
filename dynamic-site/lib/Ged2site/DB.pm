@@ -10,7 +10,19 @@ package Ged2site::DB;
 #	must apply in writing for a licence for use from Nigel Horne at the
 #	above e-mail.
 
-# Read-only access to databases
+# TODO: support a directory hierachy of databases
+
+# Abstract class giving read-only access to CSV, XML and SQLite databases
+
+# You can then access the files in $directory/foo.csv via this class:
+
+# package Ged2site::DB::foo;
+
+# use Ged2site::DB;
+
+# our @ISA = ('Ged2site::DB');
+
+# 1;
 
 use warnings;
 use strict;
@@ -44,8 +56,9 @@ sub new {
 
 	return bless {
 		logger => $args{'logger'} || $logger,
-		directory => $args{'directory'} || $directory,
-		cache => $args{'cache'} || $cache
+		directory => $args{'directory'} || $directory,	# The directory conainting the tables in XML, SQLite or CSV format
+		cache => $args{'cache'} || $cache,
+		table => $args{'table'}	# The name of the file containing the table, defaults to the class name
 	}, $class;
 }
 
@@ -85,7 +98,7 @@ sub _open {
 		((ref($_[0]) eq 'HASH') ? %{$_[0]} : @_)
 	);
 
-	my $table = ref($self);
+	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
 
 	if($self->{'logger'}) {
@@ -103,6 +116,8 @@ sub _open {
 		$dbh = DBI->connect("dbi:SQLite:dbname=$slurp_file", undef, undef, {
 			sqlite_open_flags => SQLITE_OPEN_READONLY,
 		});
+		$dbh->do('PRAGMA synchronous = OFF');
+		$dbh->do('PRAGMA cache_size = 65536');
 		if($self->{'logger'}) {
 			$self->{'logger'}->debug("read in $table from SQLite $slurp_file");
 		}
@@ -215,7 +230,7 @@ sub selectall_hash {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $table = ref($self);
+	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
 
 	$self->_open() if(!$self->{$table});
@@ -229,18 +244,25 @@ sub selectall_hash {
 
 	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	my @args;
-	foreach my $c1(keys(%args)) {
+	foreach my $c1(sort keys(%args)) {	# sort so that the key is always the same
 		$query .= " AND $c1 LIKE ?";
 		push @args, $args{$c1};
 	}
 	$query .= ' ORDER BY entry';
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("selectall_hash $query: " . join(', ', @args));
+		if(defined($args[0])) {
+			$self->{'logger'}->debug("selectall_hash $query: " . join(', ', @args));
+		} else {
+			$self->{'logger'}->debug("selectall_hash $query");
+		}
 	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute(@args) || throw Error::Simple("$query: @args");
 
-	my $key = "$query " . join(', ', @args);
+	my $key = $query;
+	if(defined($args[0])) {
+		$key .= ' ' . join(', ', @args);
+	}
 	my $c;
 	if($c = $self->{cache}) {
 		if(my $rc = $c->get($key)) {
@@ -264,36 +286,60 @@ sub fetchrow_hashref {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $table = ref($self);
+	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
 
-	$self->_open() if(!$self->{table});
+	$self->_open() if(!$self->{$table});
 
-	# Only want one row, so use distinct
-	my $query = "SELECT DISTINCT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	my @args;
-	foreach my $c1(keys(%args)) {
+	foreach my $c1(sort keys(%args)) {	# sort so that the key is always the same
 		$query .= " AND $c1 LIKE ?";
 		push @args, $args{$c1};
 	}
-	$query .= ' ORDER BY entry';
+	$query .= ' ORDER BY entry LIMIT 1';
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("fetchrow_hashref $query: " . join(', ', @args));
+		if(defined($args[0])) {
+			$self->{'logger'}->debug("fetchrow_hashref $query: " . join(', ', @args));
+		} else {
+			$self->{'logger'}->debug("fetchrow_hashref $query");
+		}
+	}
+	my $key = "fetchrow $query " . join(', ', @args);
+	my $c;
+	if($c = $self->{cache}) {
+		if(my $rc = $c->get($key)) {
+			return $rc;
+		}
 	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute(@args) || throw Error::Simple("$query: @args");
+	if($c) {
+		my $rc = $sth->fetchrow_hashref();
+		$c->set($key, $rc, '1 hour');
+		return $rc;
+	}
 	return $sth->fetchrow_hashref();
 }
 
 # Execute the given SQL on the data
+# In an array context, returns an array of hash refs, in a scalar context returns a hash of the first row
 sub execute {
 	my $self = shift;
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my %args;
 
-	my $table = ref($self);
+	if(ref($_[0]) eq 'HASH') {
+		%args = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%args = @_;
+	} else {
+		$args{'query'} = shift;
+	}
+
+	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
 
-	$self->_open() if(!$self->{table});
+	$self->_open() if(!$self->{$table});
 
 	my $query = $args{'query'};
 	if($self->{'logger'}) {
@@ -303,6 +349,7 @@ sub execute {
 	$sth->execute() || throw Error::Simple($query);
 	my @rc;
 	while(my $href = $sth->fetchrow_hashref()) {
+		return $href if(!wantarray);
 		push @rc, $href;
 	}
 
@@ -332,7 +379,7 @@ sub AUTOLOAD {
 
 	my $self = shift or return undef;
 
-	my $table = ref($self);
+	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
 
 	$self->_open() if(!$self->{$table});
@@ -355,6 +402,9 @@ sub AUTOLOAD {
 		push @args, $params{$c1};
 	}
 	$query .= " ORDER BY $column";
+	if(!wantarray) {
+		$query .= ' LIMIT 1';
+	}
 	if($self->{'logger'}) {
 		if(scalar(@args) && $args[0]) {
 			$self->{'logger'}->debug("AUTOLOAD $query: " . join(', ', @args));
