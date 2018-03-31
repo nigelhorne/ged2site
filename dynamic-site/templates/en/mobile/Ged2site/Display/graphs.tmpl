@@ -20,6 +20,8 @@
 			[% SET title = 'Sex of people born in each year' %]
 		[% ELSIF graph == 'ageatfirstborn' %]
 			[% SET title = 'Age of Parents on Birth of First Born' %]
+		[% ELSIF graph == 'percentagedying' %]
+			[% SET title = 'Percentage of people alive who died' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSE %]
@@ -58,7 +60,7 @@
 					animationEnabled: true,	// change to false
 					data: [
 					{
-						// Change type to "bar", "area", "spline", "pie","column"etc.
+						// Change type to "bar", "area", "spline", "pie","column" etc.
 						[% IF graph == 'birthmonth' || graph == 'firstborn' || graph == 'deathmonth' || graph == 'marriagemonth' %]
 							type: "column",
 						[% ELSE %]
@@ -177,6 +179,13 @@
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
+		[% ELSIF graph == 'percentagedying' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>
+				If the percentage dying looks very large, probably the number of births is low in the tree,
+				so more births should be added to the tree.
+			</p>
+			<p>This graph only includes data from 5 year periods that contain at least 20 adults alive.</p>
 		[% ELSE %]
 			<h2>Choose a Graph</h2>
 			<ul>
@@ -189,6 +198,7 @@
 				<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
 				<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
 				<li><a href="?page=graphs&graph=dist">Average distance between birth and death</a></li>
+				<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
 				<li><a href="?page=graphs&graph=ageatfirstborn">Age of Parents on Birth of First Born</a></li>
 			</ul>
 		[% END %]

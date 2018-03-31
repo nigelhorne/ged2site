@@ -27,6 +27,8 @@
 			[% SET title = 'How Family Size Changes over Time' %]
 		[% ELSIF graph == 'motherchildren' %]
 			[% SET title = 'Number of Children by Women' %]
+		[% ELSIF graph == 'percentagedying' %]
+			[% SET title = 'Percentage of people alive who died' %]
 		[% ELSIF graph == 'namecloud' %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'First Name Popularity' %]
@@ -58,7 +60,7 @@
 				clear: both;
 			}
 		</style>
-		[% IF bestfit %]
+		[% IF datapoints.M %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
@@ -217,7 +219,7 @@
 						[% ELSIF graph == 'motherchildren' %]
 							title: "Number of Mothers",
 							includeZero: false,
-						[% ELSIF graph == 'infantdeaths' %]
+						[% ELSIF graph == 'infantdeaths' || graph == 'percentagedying' %]
 							title: 'Percentage',
 						[% ELSIF graph == 'distcount' %]
 							title: "Number of People",
@@ -428,6 +430,13 @@
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
+		[% ELSIF graph == 'percentagedying' %]
+			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<p>
+				If the percentage dying looks very large, probably the number of births is low in the tree,
+				so more births should be added to the tree.
+			</p>
+			<p>This graph only includes data from 5 year periods that contain at least 20 adults alive.</p>
 		[% ELSIF clouds %]
 			<div id="header_container">
 				<center>
@@ -471,6 +480,7 @@
 					<li><a href="?page=graphs&amp;graph=ageatfirstborn">Age of Parents on birth of first born</a></li>
 					<li><a href="?page=graphs&amp;graph=familysizetime">How family size changes over time</a></li>
 					<li><a href="?page=graphs&amp;graph=motherchildren">Number of children by women</a></li>
+					<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
 					<li><a href="?page=graphs&amp;graph=namecloud">First Name Popularity</a></li>
 				</ul>
 			</div>

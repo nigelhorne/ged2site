@@ -15,15 +15,14 @@ use Ged2site::Display;
 
 our @ISA = ('Ged2site::Display');
 
-our $BUCKETYEARS = 5;
-our $BUCKETDISTANCE = 5;
+use constant BUCKETYEARS => 5;
+use constant BUCKETDISTANCE => 5;
 our $date_parser;
 our $dfn;
 
 # TODO: age of people dying vs. year (is that a good idea?)
 #	Plot average distance between place of spouse's birth against year of marriage
 #	Distance betweeen parents' birth and death places and each child birth and death places (the coloured lines)
-#	Plot age of death against percentage of the total sample size (one colour male, one female)
 
 our $mapper = {
 	'ageatdeath' => \&_ageatdeath,
@@ -39,6 +38,7 @@ our $mapper = {
 	'ageatfirstborn' => \&_ageatfirstborn,
 	'familysizetime' => \&_familysizetime,
 	'motherchildren' => \&_motherchildren,
+	'percentagedying' => \&_percentagedying,
 	'namecloud' => \&_namecloud,
 };
 
@@ -126,7 +126,7 @@ sub _ageatdeathbysex
 			next if($yod < 1840);
 			my $age = $yod - $yob;
 			next if ($age < 20);
-			$yod -= $yod % $BUCKETYEARS;
+			$yod -= $yod % BUCKETYEARS;
 			if($counts{$yod}) {
 				$counts{$yod}++;
 				$totals{$yod} += $yod - $yob;
@@ -148,7 +148,7 @@ sub _ageatdeathbysex
 		$datapoints .= "{ label: \"$bucket\", y: $average },\n";
 		push @x, $bucket;
 		push @y, $average;
-		push @samples, { bucket => ("$bucket-" . ($bucket + $BUCKETYEARS - 1)), size => $counts{$bucket} };
+		push @samples, { bucket => ("$bucket-" . ($bucket + BUCKETYEARS - 1)), size => $counts{$bucket} };
 	}
 	my $lf = Statistics::LineFit->new();
 	if($lf->setData(\@x, \@y)) {
@@ -322,7 +322,7 @@ sub _infantdeaths
 				next;
 			}
 			my $age = $yod - $yob;
-			$yob -= $yob % $BUCKETYEARS;
+			$yob -= $yob % BUCKETYEARS;
 
 			if($totals{$yob}) {
 				$totals{$yob}++;
@@ -439,7 +439,7 @@ sub _sex
 		} else {
 			next;
 		}
-		$yob -= $yob % $BUCKETYEARS;
+		$yob -= $yob % BUCKETYEARS;
 
 		if($person->{'sex'} eq 'M') {
 			if($mcounts{$yob}) {
@@ -520,7 +520,7 @@ sub _ageatmarriage
 				next;
 			}
 			my $age = $yom - $yob;
-			$yom -= $yom % $BUCKETYEARS;
+			$yom -= $yom % BUCKETYEARS;
 
 			if($person->{'sex'} eq 'M') {
 				if($mcounts{$yom}) {
@@ -629,7 +629,7 @@ sub _dist
 		} else {
 			next;
 		}
-		$yob -= $yob % $BUCKETYEARS;
+		$yob -= $yob % BUCKETYEARS;
 
 		my ($blat, $blong) = split(/,/, $person->{'birth_coords'});
 		my ($dlat, $dlong) = split(/,/, $person->{'death_coords'});
@@ -726,7 +726,7 @@ sub _distcount
 
 			$dist = floor(::distance($blat, $blong, $dlat, $dlong, $units));
 		}
-		my $bucket = $dist - ($dist % $BUCKETDISTANCE);
+		my $bucket = $dist - ($dist % BUCKETDISTANCE);
 		$counts{$bucket}++;
 	}
 
@@ -766,7 +766,7 @@ sub _ageatfirstborn
 			} else {
 				next;
 			}
-			my $bucket = $yob - ($yob % $BUCKETYEARS);
+			my $bucket = $yob - ($yob % BUCKETYEARS);
 
 			my $firstborn;
 			CHILD: foreach my $child(split(/----/, $person->{'children'})) {
@@ -891,7 +891,7 @@ sub _familysizetime
 		}
 		if(defined($eldest)) {
 			my $yob = $eldest->year();
-			my $bucket = $yob - ($yob % $BUCKETYEARS);
+			my $bucket = $yob - ($yob % BUCKETYEARS);
 			$totals{$bucket} += $count;
 			$counts{$bucket}++;
 		}
@@ -905,6 +905,78 @@ sub _familysizetime
 			$average = floor($average);
 
 			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif(defined($datapoints)) {
+			$datapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+
+	return { datapoints => $datapoints };
+}
+
+# What percentage of the adults alive die in a given 5-year period?
+# TODO: separate tables for men and women
+sub _percentagedying
+{
+	my $self = shift;
+	my $args = shift;
+
+	my $people = $args->{'people'};
+	my %numberalive;
+	my %numberdying;
+
+	foreach my $person($people->selectall_hash()) {
+		my $yob;
+		if(my $dob = $person->{'dob'}) {
+			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+				$yob = $1;
+				$dob =~ tr/\//-/;
+			} elsif($dob =~ /^\d{3,4}$/) {
+				$yob = $dob;
+			}
+		}
+		next unless(defined($yob));
+
+		my $yod;
+		if(my $dod = $person->{'dod'}) {
+			if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+				$yod = $1;
+				$dod =~ tr/\//-/;
+			} elsif($dod =~ /^\d{3,4}$/) {
+				$yod = $dod;
+			}
+		}
+		next unless(defined($yod));
+
+		my $age = $yod - $yob;
+		next if ($age < 20);
+		$yob -= $yob % BUCKETYEARS;
+		$yod -= $yod % BUCKETYEARS;
+		my $bucket = $yob;
+		while($bucket <= $yod) {
+			if($numberalive{$bucket}) {
+				$numberalive{$bucket}++;
+			} else {
+				$numberalive{$bucket} = 1;
+			}
+			if($bucket == $yod) {
+				if($numberalive{$bucket}) {
+					$numberdying{$bucket}++;
+				} else {
+					$numberdying{$bucket} = 1;
+				}
+				last;
+			}
+			$bucket += BUCKETYEARS;
+		}
+	}
+	my $datapoints;
+
+	foreach my $bucket(sort keys(%numberalive)) {
+		if($numberalive{$bucket} && $numberdying{$bucket} && $numberalive{$bucket} >= 100) {
+			my $percentage = ($numberdying{$bucket} * 100) / $numberalive{$bucket};
+			$percentage = floor($percentage);
+
+			$datapoints .= "{ label: \"$bucket\", y: $percentage },\n";
 		} elsif(defined($datapoints)) {
 			$datapoints .= "{ label: \"$bucket\", y: null },\n";
 		}
