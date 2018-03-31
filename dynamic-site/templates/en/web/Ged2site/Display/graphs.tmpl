@@ -43,6 +43,7 @@
 			<meta http-equiv="Content-Language" content="English">
 		-->
 		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A ged2site webpage">
+		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne, all rights reserved">
 		[% IF datapoints %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
@@ -61,6 +62,7 @@
 						[% ELSIF graph == 'motherchildren' %]
 							title: "Number of Mothers",
 						[% ELSIF graph == 'ageatdeath' %]
+							title: "Age at Death",
 							includeZero: false,
 						[% ELSIF graph == 'infantdeaths' %]
 							title: 'Percentage',
@@ -80,7 +82,7 @@
 						zoomEnabled: true,
 					[% ELSIF graph == 'ageatdeath' %]
 						axisX: {
-							title: "Year of Birth",
+							title: "Year of Death",
 					[% ELSIF graph == 'distcount' %]
 						zoomEnabled: true,
 						axisX: {
@@ -223,10 +225,8 @@
 
 		[% IF graph == 'ageatdeath' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
-			<p>This graph of average age at death against birth year only includes those who lived past the age of 20.</p>
 			<p>
-				The data end at 1925, since anyone born after that date may be still
-				alive, which would affect the graph.
+				This graph of average age at death against year of death, starting at 1840, only includes those who lived past the age of 20.
 			</p>
 			The sample sizes are:
 			<ul>

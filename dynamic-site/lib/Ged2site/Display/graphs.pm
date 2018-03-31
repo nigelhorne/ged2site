@@ -71,7 +71,6 @@ sub html {
 }
 
 # TODO: have separate graphs for male and female
-# FIXME: should plot year of death against age, not year of birth, that way data up to the present day could be presented
 sub _ageatdeath
 {
 	my $self = shift;
@@ -92,8 +91,7 @@ sub _ageatdeath
 			} else {
 				next;
 			}
-			next if($yob < 1840);
-			next if($yob >= 1930);
+			# next if($yob >= 1930);
 			my $dod = $person->{'dod'};
 			my $yod;
 			if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
@@ -101,15 +99,16 @@ sub _ageatdeath
 			} else {
 				next;
 			}
+			next if($yod < 1840);
 			my $age = $yod - $yob;
 			next if ($age < 20);
-			$yob -= $yob % $BUCKETYEARS;
-			if($counts{$yob}) {
-				$counts{$yob}++;
-				$totals{$yob} += $yod - $yob;
+			$yod -= $yod % $BUCKETYEARS;
+			if($counts{$yod}) {
+				$counts{$yod}++;
+				$totals{$yod} += $yod - $yob;
 			} else {
-				$counts{$yob} = 1;
-				$totals{$yob} = $yod - $yob;
+				$counts{$yod} = 1;
+				$totals{$yod} = $yod - $yob;
 			}
 		}
 	}
