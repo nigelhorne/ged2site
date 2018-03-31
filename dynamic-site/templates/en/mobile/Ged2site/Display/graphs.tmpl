@@ -150,6 +150,9 @@
 	</head>
 
 	<body>
+		[% IF error %]
+			<p><font color="red" size="+2">[% error %]</font></p>
+		[% END %]
 		[% IF graph == 'ageatdeath' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes those who lived past the age of 20.</p>
