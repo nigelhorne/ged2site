@@ -92,6 +92,16 @@
 		[% ELSIF graph == 'ageatfirstborn' %]
 			<p>This graph only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
+		[% ELSIF graph == 'percentagedying' %]
+			<p>
+				If the percentage dying looks very large, probably the number of births is low in the tree,
+				so more births should be added to the tree.
+			</p>
+			<p>
+				People with no death information born after 1920 are assumed to be alive, those born before 1920
+				are assuming to be missing a death record.
+				These differences could cause anomolies.
+			</p>
 		[% END %]
 
 		<h2>Choose a Graph</h2>

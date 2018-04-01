@@ -924,6 +924,8 @@ sub _percentagedying
 	my %numberalive;
 	my %numberdying;
 
+	my $year = DateTime->today()->year();
+
 	foreach my $person($people->selectall_hash()) {
 		my $yob;
 		if(my $dob = $person->{'dob'}) {
@@ -945,13 +947,20 @@ sub _percentagedying
 				$yod = $dod;
 			}
 		}
-		next unless(defined($yod));
+
+		if(!defined($yod)) {
+			if($yob < 1920) {
+				next;
+			}
+			$yod = $year;
+		}
 
 		my $age = $yod - $yob;
 		next if ($age < 20);
 		$yob -= $yob % BUCKETYEARS;
 		$yod -= $yod % BUCKETYEARS;
 		my $bucket = $yob;
+
 		while($bucket <= $yod) {
 			if($numberalive{$bucket}) {
 				$numberalive{$bucket}++;

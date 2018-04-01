@@ -436,7 +436,11 @@
 				If the percentage dying looks very large, probably the number of births is low in the tree,
 				so more births should be added to the tree.
 			</p>
-			<p>This graph only includes data from 5 year periods that contain at least 20 adults alive.</p>
+			<p>
+				People with no death information born after 1920 are assumed to be alive, those born before 1920
+				are assuming to be missing a death record.
+				These differences could cause anomolies.
+			</p>
 		[% ELSIF clouds %]
 			<div id="header_container">
 				<center>
