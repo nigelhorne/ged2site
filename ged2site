@@ -170,6 +170,9 @@ if($opts{'m'} || $opts{'w'}) {
 	} else {
 		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 	}
+	if(my $username = $ENV{'GEONAMES_USER'}) {
+		$geocoder->push(Geo::GeoNames->new(username => $username));
+	}
 	if($geolocation_key) {
 		$geocoder->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
 			->push({ regex => qr/(Canada|USA|US|United States)$/i, geocoder => Geo::Coder::CA->new() })
@@ -190,9 +193,6 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::XYZ->new());
 			# ->push(Geo::Coder::Google->new())
 			# ->push(Geo::Coder::GooglePlaces->new());
-	}
-	if(my $username = $ENV{'GEONAMES_USER'}) {
-		$geocoder->push(Geo::GeoNames->new(username => $username));
 	}
 	if(my $key = $ENV{BMAP_KEY}) {
 		$geocoder->push(Geo::Coder::Bing->new(key => $key));
