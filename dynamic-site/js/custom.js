@@ -43,7 +43,8 @@ function fixYearHistory(){
 		var sizePadding = 0;
 		var offset = 15;
 		var offsetPointer = 5;
-		var offsetPointerPercentage = 15;
+		// var offsetPointerPercentage = 15;
+		var offsetPointerPercentage;
 
 		if($(this).find('.ss-right').eq(0).hasClass('jaartal')){
 			sizeBox = $(this).find('.ss-left').eq(0).height();
