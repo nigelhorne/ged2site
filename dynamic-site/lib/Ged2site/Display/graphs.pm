@@ -914,19 +914,39 @@ sub _familysizetime
 }
 
 # What percentage of the adults alive die in a given 5-year period?
-# TODO: separate tables for men and women
+# One graph for women and one for men
 sub _percentagedying
 {
 	my $self = shift;
 	my $args = shift;
 
+	my $datapoints;
+
+	for my $sex('M', 'F') {
+		local $args->{'sex'} = $sex;
+		if(my $rc = $self->_percentagedyingbysex($args)) {
+			$datapoints->{$sex} = $rc->{'datapoints'};
+		}
+	}
+
+	return { datapoints => $datapoints };
+}
+
+sub _percentagedyingbysex
+{
+	my $self = shift;
+	my $args = shift;
+
 	my $people = $args->{'people'};
+	my $sex = $args->{'sex'};
+
 	my %numberalive;
 	my %numberdying;
 
 	my $year = DateTime->today()->year();
 
 	foreach my $person($people->selectall_hash()) {
+		next if($person->{'sex'} ne $sex);
 		my $yob;
 		if(my $dob = $person->{'dob'}) {
 			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {

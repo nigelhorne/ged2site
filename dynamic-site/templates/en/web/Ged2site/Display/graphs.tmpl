@@ -75,6 +75,8 @@
 						[% IF graph == 'ageatdeath' %]
 							includeZero: false,
 							title: 'Age at Death',
+						[% ELSIF graph == 'percentagedying' %]
+							title: 'Percentage',
 						[% END %]
 						gridThickness: 0
 					},
@@ -103,21 +105,24 @@
 							dataPoints: [
 								[% datapoints.M %]
 							]
-						}, {
-							// Change type to "bar", "area", "spline", "pie","column" etc.
-							type: "line",
-							[% IF graph == 'ageatdeath' %]
-								lineDashType: "dash",
-								connectNullData: true,
-								nullDataLineDashType: "dot",
-								name: "Trend",
-							[% END %]
-							showInLegend: true,
-							color: "#20B2AA",
-							dataPoints: [
-								[% bestfit.M %]
-							]
 						},
+						[% IF bestfit.M %]
+							{
+								// Change type to "bar", "area", "spline", "pie","column" etc.
+								type: "line",
+								[% IF graph == 'ageatdeath' %]
+									lineDashType: "dash",
+									connectNullData: true,
+									nullDataLineDashType: "dot",
+									name: "Trend",
+								[% END %]
+								showInLegend: true,
+								color: "#20B2AA",
+								dataPoints: [
+									[% bestfit.M %]
+								]
+							},
+						[% END %]
 					],
 					legend: {
 						cursor: "pointer",
@@ -169,7 +174,9 @@
 							dataPoints: [
 								[% datapoints.F %]
 							]
-						}, {
+						},
+						[% IF bestfit.F %]
+						{
 							// Change type to "bar", "area", "spline", "pie","column" etc.
 							type: "line",
 							[% IF graph == 'ageatdeath' %]
@@ -184,6 +191,7 @@
 								[% bestfit.F %]
 							]
 						},
+						[% END %]
 					],
 					legend: {
 						cursor: "pointer",
@@ -219,7 +227,7 @@
 						[% ELSIF graph == 'motherchildren' %]
 							title: "Number of Mothers",
 							includeZero: false,
-						[% ELSIF graph == 'infantdeaths' || graph == 'percentagedying' %]
+						[% ELSIF graph == 'infantdeaths' %]
 							title: 'Percentage',
 						[% ELSIF graph == 'distcount' %]
 							title: "Number of People",
@@ -431,7 +439,8 @@
 			<p>This graph only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
 		[% ELSIF graph == 'percentagedying' %]
-			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
 			<p>
 				If the percentage dying looks very large, probably the number of births is low in the tree,
 				so more births should be added to the tree.
