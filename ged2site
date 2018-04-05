@@ -6227,7 +6227,8 @@ sub date_parser_cached
 	return $d;
 }
 
-# TODO: If given a date range in an array context, return the opening and starting dates as a two element array
+# Try hard to convert a Gedcom date to a DateTime object.
+# If a date range is given, return a two element array in array context, or undef in stalar context
 sub date_to_datetime
 {
 	my %params;
@@ -6245,7 +6246,13 @@ sub date_to_datetime
 			complain("Changing date '$date' to 'bet $1 and $2'");
 			$date = "bet $1 and $2";
 		}
-		return if ($date =~ /^bet /i);
+		if($date =~ /^bet (.+) and (.+)/i) {
+			if(wantarray) {
+				return date_to_datetime($1), date_to_datetime($2);
+			} else {
+				return;
+			}
+		}
 		if($date !~ /^\d{3,4}$/) {
 			if(($date =~ /^\d/) && (my $d = date_parser_cached($date))) {
 				return $dfn->parse_datetime($d->{'canonical'});
