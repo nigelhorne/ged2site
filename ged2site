@@ -2882,19 +2882,25 @@ sub print_person
 							}	# TODO: else warn if both parents locations are different
 						} elsif($numberofchildren) {
 							# Look if a young child isn't with this parent
+							my $rdt = date_to_datetime($rdate);
 							foreach my $child(@children) {
 								my $cyob = get_value({ person => $child, value => 'birth date' });
 								next if(!defined($cyob));
+								my $cbdt = date_to_datetime($cyob);
+								next if($rdt && $cbdt && ($rdt < $cbdt));	# Child wasn't born by that day
 								if($cyob =~ /(\d{3,4})\s*$/) {
 									$cyob = $1;
 								}
 								next if($yoe < $cyob);	# This child wasn't by born then
 								next if(($yoe - $cyob) > 10);	# Over 10 years old
+								my $cddt;
 								if(my $cyod = get_value({ person => $child, value => 'death date' })) {
+									$cddt = date_to_datetime($cyod);
 									if($cyod =~ /(\d{3,4})\s*$/) {
 										$cyod = $1;
 									}
-									next if($yoe > $cyod);	# This child was dead by then
+									next if($yoe > $cyod);	# Child was dead by that year
+									next if($rdt && $cddt && ($rdt > $cbdt));	# Child was dead by that day
 								}
 
 								my $missing_child = 1;
