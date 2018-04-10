@@ -6234,7 +6234,7 @@ sub date_parser_cached
 }
 
 # Try hard to convert a Gedcom date to a DateTime object.
-# If a date range is given, return a two element array in array context, or undef in stalar context
+# If a date range is given, return a two element array in array context, or undef in scalar context
 sub date_to_datetime
 {
 	my %params;
