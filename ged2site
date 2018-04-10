@@ -13,6 +13,7 @@
 # TODO: Geo::Coder::GeocodeFarm, once github issue 1 has been fixed
 # TODO: Investigate BGS
 # TODO: Finish XML
+# TODO: add warning for 'bet 2000 and 1999'
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
