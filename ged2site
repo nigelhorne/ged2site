@@ -1218,7 +1218,26 @@ sub print_person
 				}
 			} elsif($opts{'l'} || !is_alive(person => $person)) {
 				if($dateofdeath) {
-					complain({ person => $person, warning => "Death date ($dateofdeath) has no citations" });
+					my $dateismissing = 0;
+					my @objects = $person->obje();
+					foreach my $o(@objects) {
+						my $obje;
+						if(ref($o) eq 'Gedcom::Record') {
+							$obje = $o;	# e.g. Ancestry
+						} else {
+							$obje = $ged->resolve_xref($o);	# e.g. FMP
+						}
+						foreach my $item($obje->items()) {
+							next if($item->tag() ne '_DATE');
+							if($item->value() eq $dateofdeath) {
+								$dateismissing = 0;
+								last;
+							}
+						}
+					}
+					if($dateismissing) {
+						complain({ person => $person, warning => "Death date ($dateofdeath) has no citations" });
+					}
 				} elsif($placeofdeath) {
 					complain({ person => $person, warning => "Death place ($placeofdeath) has no citations" });
 				} else {
@@ -5452,6 +5471,7 @@ sub place
 		return unless($place);
 
 		if(ref($place) eq 'Gedcom::Record') {
+			my $p = $place;
 			$address = $place->address();
 			if(ref($address) eq 'Gedcom::Record') {
 				$place = getaddress($address);
@@ -5461,7 +5481,11 @@ sub place
 			}
 			if(!defined($place)) {
 				if(!$params{'allow_empty'}) {
-					complain({ person => $params{'person'}, warning => 'location is empty' });
+					if(my $date = $p->date()) {
+						complain({ person => $params{'person'}, warning => "Location for the event on $date is empty" });
+					} else {
+						complain({ person => $params{'person'}, warning => 'Location is empty' });
+					}
 				}
 				return;
 			}
