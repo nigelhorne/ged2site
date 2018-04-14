@@ -2920,7 +2920,7 @@ sub print_person
 										$cyod = $1;
 									}
 									next if($yoe > $cyod);	# Child was dead by that year
-									next if($rdt && $cddt && ($rdt > $cbdt));	# Child was dead by that day
+									next if($rdt && $cddt && ($rdt > $cddt));	# Child was dead by that day
 								}
 
 								my $missing_child = 1;
