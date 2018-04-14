@@ -45,6 +45,7 @@ use Lingua::EN::Inflect;
 use Geo::StreetAddress::US;
 use Locale::US;
 use DateTime::Format::Natural;
+use DateTime::Format::Genealogy;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::List 0.15;
@@ -124,6 +125,7 @@ if($ARGV[1]) {
 	$ged2 = Gedcom->new(gedcom_file => $ARGV[1], read_only => 1);
 }
 my $dfn = DateTime::Format::Natural->new();
+my $dfg = DateTime::Format::Genealogy->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $oneday = DateTime::Duration->new(days => 1);
 my $tenmonths = DateTime::Duration->new(months => 10);
@@ -1311,13 +1313,13 @@ sub print_person
 		die "BUG: $title is marked as alive yet we have burial information";
 	}
 
-	$birth_dt = date_to_datetime(date => $dateofbirth);
+	$birth_dt = $dfg->parse_datetime(date => $dateofbirth);
 
 	my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
 	if((!$dateofmarriage) && $marriage) {
 		$dateofmarriage = $marriage->date();
 	}
-	$marriage_dt = date_to_datetime(date => $dateofmarriage);
+	$marriage_dt = $dfg->parse_datetime(date => $dateofmarriage);
 
 	if($birth_dt && $marriage_dt && $opts{'w'} && ($marriage_dt < ($birth_dt + $sixteenyears))) {
 		if($opts{'f'}) {
@@ -1329,7 +1331,7 @@ sub print_person
 			warning => 'married when less than 16 years old'
 		});
 	}
-	$death_dt = date_to_datetime(date => $dateofdeath);
+	$death_dt = $dfg->parse_datetime(date => $dateofdeath);
 
 	if($opts{'l'} || !$is_alive) {
 		# RT114091
