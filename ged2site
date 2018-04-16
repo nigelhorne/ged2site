@@ -4864,7 +4864,7 @@ sub print_person
 						"\n\t\t\t\t<long>", $locations[0]->{geometry}{location}{lng}, '</long>';
 				}
 				print $xml "\n\t\t\t</birth>";
-			} elsif($opts{'w'}) {
+			} else {
 				complain({ person => $person, warning => "Unknown birth location $placeofbirth" });
 			}
 		}
