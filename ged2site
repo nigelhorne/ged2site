@@ -56,7 +56,7 @@ use Geo::Coder::OSM;
 use Geo::Coder::XYZ;
 use Geo::Coder::GooglePlaces;
 use Geo::Coder::Bing;
-use Geo::GeoNames;
+# use Geo::GeoNames;
 use Geo::Coder::Google;
 use Geo::Coder::Bing;
 use Geo::Coder::CA;
@@ -173,9 +173,9 @@ if($opts{'m'} || $opts{'w'}) {
 	} else {
 		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 	}
-	if(my $username = $ENV{'GEONAMES_USER'}) {
-		$geocoder->push(Geo::GeoNames->new(username => $username));
-	}
+	# if(my $username = $ENV{'GEONAMES_USER'}) {
+		# $geocoder->push(Geo::GeoNames->new(username => $username));
+	# }
 	if($geolocation_key) {
 		$geocoder->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
 			->push({ regex => qr/(Canada|USA|US|United States)$/i, geocoder => Geo::Coder::CA->new() })
