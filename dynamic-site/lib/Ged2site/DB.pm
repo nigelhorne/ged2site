@@ -72,7 +72,6 @@ sub init {
 	if($args{'databases'}) {
 		@databases = $args{'databases'};
 	}
-	throw Error::Simple('directory not given') unless($directory);
 }
 
 sub set_logger {
@@ -82,6 +81,8 @@ sub set_logger {
 
 	if(ref($_[0]) eq 'HASH') {
 		%args = %{$_[0]};
+	} elsif(ref($_[0])) {
+		Carp::croak('Usage: set_logger(logger => $logger)');
 	} elsif(scalar(@_) % 2 == 0) {
 		%args = @_;
 	} else {
@@ -109,8 +110,8 @@ sub _open {
 	# Read in the database
 	my $dbh;
 
-	my $directory = $self->{'directory'} || $directory;
-	my $slurp_file = File::Spec->catfile($directory, "$table.sql");
+	my $dir = $self->{'directory'} || $directory;
+	my $slurp_file = File::Spec->catfile($dir, "$table.sql");
 
 	if(-r $slurp_file) {
 		$dbh = DBI->connect("dbi:SQLite:dbname=$slurp_file", undef, undef, {
@@ -123,14 +124,14 @@ sub _open {
 		}
 	} else {
 		my $fin;
-		($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv.gz:db.gz');
+		($fin, $slurp_file) = File::pfopen::pfopen($dir, $table, 'csv.gz:db.gz');
 		if(defined($slurp_file) && (-r $slurp_file)) {
 			$fin = File::Temp->new(SUFFIX => '.csv', UNLINK => 0);
 			print $fin gunzip_file($slurp_file);
 			$slurp_file = $fin->filename();
 			$self->{'temp'} = $slurp_file;
 		} else {
-			($fin, $slurp_file) = File::pfopen::pfopen($directory, $table, 'csv:db');
+			($fin, $slurp_file) = File::pfopen::pfopen($dir, $table, 'csv:db');
 		}
 		if(defined($slurp_file) && (-r $slurp_file)) {
 			close($fin);
@@ -188,7 +189,7 @@ sub _open {
 				file => $slurp_file
 			)};
 
-			# Don't use blank lines or comments
+			# Ignore blank lines or lines starting with # in the CSV file
 			@data = grep { $_->{'entry'} !~ /^#/ } grep { defined($_->{'entry'}) } @data;
 			# $self->{'data'} = @data;
 			my $i = 0;
@@ -197,7 +198,7 @@ sub _open {
 				$self->{'data'}[$i++] = $d;
 			}
 		} else {
-			$slurp_file = File::Spec->catfile($directory, "$table.xml");
+			$slurp_file = File::Spec->catfile($dir, "$table.xml");
 			if(-r $slurp_file) {
 				$dbh = DBI->connect('dbi:XMLSimple(RaiseError=>1):');
 				$dbh->{'RaiseError'} = 1;
@@ -206,7 +207,7 @@ sub _open {
 				}
 				$dbh->func($table, 'XML', $slurp_file, 'xmlsimple_import');
 			} else {
-				throw Error::Simple("Can't open $directory/$table");
+				throw Error::Simple("Can't open $dir/$table");
 			}
 		}
 	}
@@ -242,7 +243,7 @@ sub selectall_hash {
 		return @{$self->{'data'}};
 	}
 
-	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL";
 	my @args;
 	foreach my $c1(sort keys(%args)) {	# sort so that the key is always the same
 		$query .= " AND $c1 LIKE ?";
@@ -291,7 +292,7 @@ sub fetchrow_hashref {
 
 	$self->_open() if(!$self->{$table});
 
-	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL";
 	my @args;
 	foreach my $c1(sort keys(%args)) {	# sort so that the key is always the same
 		$query .= " AND $c1 LIKE ?";
@@ -330,6 +331,8 @@ sub execute {
 
 	if(ref($_[0]) eq 'HASH') {
 		%args = %{$_[0]};
+	} elsif(ref($_[0])) {
+		Carp::croak('Usage: execute(query => $query)');
 	} elsif(scalar(@_) % 2 == 0) {
 		%args = @_;
 	} else {
@@ -343,7 +346,7 @@ sub execute {
 
 	my $query = $args{'query'};
 	if($self->{'logger'}) {
-		$self->{'logger'}->debug("fetchrow_hashref $query");
+		$self->{'logger'}->debug("execute $query");
 	}
 	my $sth = $self->{$table}->prepare($query);
 	$sth->execute() || throw Error::Simple($query);
@@ -388,9 +391,9 @@ sub AUTOLOAD {
 
 	my $query;
 	if(wantarray && !delete($params{'distinct'})) {
-		$query = "SELECT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+		$query = "SELECT $column FROM $table WHERE entry IS NOT NULL";
 	} else {
-		$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+		$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL";
 	}
 	my @args;
 	foreach my $c1(keys(%params)) {
