@@ -56,7 +56,7 @@ use Geo::Coder::OSM;
 use Geo::Coder::XYZ;
 use Geo::Coder::GooglePlaces;
 use Geo::Coder::Bing;
-# use Geo::GeoNames;
+use Geo::GeoNames;
 use Geo::Coder::Google;
 use Geo::Coder::Bing;
 use Geo::Coder::CA;
@@ -137,7 +137,7 @@ my $config;
 
 eval { $config = Config::Auto::parse() };
 
-my %gp_args;
+my %gp_args = (apiver => 3);
 my $geolocation_key;
 if($opts{'G'}) {
 	$geolocation_key = $opts{'G'};
@@ -168,14 +168,14 @@ if($opts{'m'} || $opts{'w'}) {
 	$geocoder = Geo::Coder::List->new();
 	if(my $oa = $ENV{'OPENADDR_HOME'}) {
 		# $geocoder->push({ regex => qr/,[\w\s]+,[\w\s]+$/, geocoder => Geo::Coder::Free->new(openaddr => $oa) });
-		$geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada)+$/, geocoder => Geo::Coder::Free::OpenAddresses->new(openaddr => $oa) })
+		$geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada|Australia)+$/, geocoder => Geo::Coder::Free::OpenAddresses->new(openaddr => $oa) })
 			->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 	} else {
 		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 	}
-	# if(my $username = $ENV{'GEONAMES_USER'}) {
-		# $geocoder->push(Geo::GeoNames->new(username => $username));
-	# }
+	if(my $username = $ENV{'GEONAMES_USER'}) {
+		$geocoder->push(Geo::GeoNames->new(username => $username));
+	}
 	if($geolocation_key) {
 		$geocoder->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
 			->push({ regex => qr/(Canada|USA|US|United States)$/i, geocoder => Geo::Coder::CA->new() })
