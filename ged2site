@@ -108,6 +108,7 @@ my %images;
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
+my $first_birth;	# First person on the tree
 
 # FIXME: Should be in a configuration file
 # Will be removed when new G:C:Free is published
@@ -942,6 +943,13 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	close $fout;
 }
 
+if(open($csv, '>', 'dynamic-site/databases/facts.csv')) {
+	print $csv "entry!key!value\n";
+	if($first_birth) {
+		print $csv 'first!', $first_birth->{'xref'}, '!', $first_birth->{'date'}->strftime('%Y/%m/%d'), "\n";
+	}
+}
+
 sub print_person
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -1313,7 +1321,17 @@ sub print_person
 		die "BUG: $title is marked as alive yet we have burial information";
 	}
 
-	$birth_dt = $dfg->parse_datetime(date => $dateofbirth);
+	if($birth_dt = $dfg->parse_datetime(date => $dateofbirth)) {
+		if(defined($first_birth)) {
+			if($birth_dt < $first_birth->{'date'}) {
+				$first_birth->{'date'} = $birth_dt;
+				$first_birth->{'xref'} = $person->{'xref'};
+			}
+		} else {
+			$first_birth->{'date'} = $birth_dt;
+			$first_birth->{'xref'} = $person->{'xref'};
+		}
+	}
 
 	my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
 	if((!$dateofmarriage) && $marriage) {
