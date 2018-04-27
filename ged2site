@@ -1339,11 +1339,7 @@ sub print_person
 	$marriage_dt = $dfg->parse_datetime(date => $dateofmarriage);
 
 	if($birth_dt && $marriage_dt && $opts{'w'} && ($marriage_dt < ($birth_dt + $sixteenyears))) {
-		if($opts{'f'}) {
-			die $person->as_string(),
-				': married when less than 16 years old';
-		}
-		red_warning({
+		complain({
 			person => $person,
 			warning => 'married when less than 16 years old'
 		});
