@@ -209,7 +209,7 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 ## See Also
 
-[gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files  
+[gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files 
 [gedcmp](https://github.com/nigelhorne/gedcmp) - compare two Gedcoms
 
 # LICENSE AND COPYRIGHT

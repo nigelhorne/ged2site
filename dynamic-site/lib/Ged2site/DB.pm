@@ -10,19 +10,25 @@ package Ged2site::DB;
 #	must apply in writing for a licence for use from Nigel Horne at the
 #	above e-mail.
 
-# TODO: support a directory hierachy of databases
+# Abstract class giving read-only access to CSV, XML and SQLite databases via Perl without writing any SQL.
 
-# Abstract class giving read-only access to CSV, XML and SQLite databases
+# You can access the files in $directory/foo.csv via this class:
 
-# You can then access the files in $directory/foo.csv via this class:
+# package MyPackageName::DB::foo;
 
-# package Ged2site::DB::foo;
+# use NJH::Snippets::DB;
 
-# use Ged2site::DB;
-
-# our @ISA = ('Ged2site::DB');
+# our @ISA = ('NJH::Snippets::DB');
 
 # 1;
+
+# You can then access the data using:
+# my $foo = NJH::Snippets::DB::foo->new();
+# my $row = $foo->fetchrow_hashref(customer_id => '12345);
+# print Data::Dumper->new([$row])->Dump();
+
+# TODO: support a directory hierachy of databases
+# TODO: consider returning an object or array of objects, rather than hashes
 
 use warnings;
 use strict;
@@ -35,6 +41,7 @@ use File::Temp;
 use Gzip::Faster;
 use DBD::SQLite::Constants qw/:file_open/;	# For SQLITE_OPEN_READONLY
 use Error::Simple;
+use Carp;
 
 our @databases;
 our $directory;
@@ -81,7 +88,7 @@ sub set_logger {
 
 	if(ref($_[0]) eq 'HASH') {
 		%args = %{$_[0]};
-	} elsif(ref($_[0])) {
+	} elsif(!ref($_[0])) {
 		Carp::croak('Usage: set_logger(logger => $logger)');
 	} elsif(scalar(@_) % 2 == 0) {
 		%args = @_;
@@ -142,8 +149,8 @@ sub _open {
 						csv_tables => {
 							$table => {
 								col_names => $args{'column_names'},
-							}
-						}
+							},
+						},
 					}
 				);
 			} else {
@@ -155,7 +162,7 @@ sub _open {
 				$self->{'logger'}->debug("read in $table from CSV $slurp_file");
 			}
 
-			my %options = (
+			$dbh->{csv_tables}->{$table} = {
 				allow_loose_quotes => 1,
 				blank_is_undef => 1,
 				empty_is_undef => 1,
@@ -163,9 +170,23 @@ sub _open {
 				f_file => $slurp_file,
 				escape_char => '\\',
 				sep_char => $sep_char,
-			);
+				auto_diag => 1,
+				# Don't do this, it causes "Attempt to free unreferenced scalar"
+				# callbacks => {
+					# after_parse => sub {
+						# my ($csv, @rows) = @_;
+						# my @rc;
+						# foreach my $row(@rows) {
+							# if($row->[0] !~ /^#/) {
+								# push @rc, $row;
+							# }
+						# }
+						# return @rc;
+					# }
+				# }
+			};
 
-			$dbh->{csv_tables}->{$table} = \%options;
+			# $dbh->{csv_tables}->{$table} = \%options;
 			# delete $options{f_file};
 
 			# require Text::CSV::Slurp;
@@ -190,7 +211,7 @@ sub _open {
 			)};
 
 			# Ignore blank lines or lines starting with # in the CSV file
-			@data = grep { $_->{'entry'} !~ /^#/ } grep { defined($_->{'entry'}) } @data;
+			@data = grep { $_->{'entry'} !~ /^\s*#/ } grep { defined($_->{'entry'}) } @data;
 			# $self->{'data'} = @data;
 			my $i = 0;
 			$self->{'data'} = ();
@@ -283,11 +304,13 @@ sub selectall_hash {
 }
 
 # Returns a hash reference for one row in a table
+# Special argument: table: determines the table to read from if not the default,
+#	which is worked out from the class name
 sub fetchrow_hashref {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $table = $self->{table} || ref($self);
+	my $table = $self->{'table'} || ref($self);
 	$table =~ s/.*:://;
 
 	$self->_open() if(!$self->{$table});
@@ -313,7 +336,7 @@ sub fetchrow_hashref {
 			return $rc;
 		}
 	}
-	my $sth = $self->{$table}->prepare($query);
+	my $sth = $self->{$table}->prepare($query) or die $self->{$table}->errstr();
 	$sth->execute(@args) || throw Error::Simple("$query: @args");
 	if($c) {
 		my $rc = $sth->fetchrow_hashref();
@@ -431,7 +454,7 @@ sub DESTROY {
 	my $self = shift;
 
 	if($self->{'temp'}) {
-		unlink $self->{'temp'};
+		unlink delete $self->{'temp'};
 	}
 }
 
