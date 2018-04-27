@@ -185,7 +185,7 @@ if($opts{'m'} || $opts{'w'}) {
 			->push({ regex => qr/^[\w\s-]+,\s*[\w\s]+,\s*(UK|United Kingdom|England)$/i, geocoder => Geo::Coder::Postcodes->new() })
 			->push(Geo::Coder::OSM->new())
 			->push(Geo::Coder::Ovi->new())
-			->push(Geo::Coder::GooglePlaces->new(%gp_args))
+			->push({ limit => 200, geocoder => Geo::Coder::GooglePlaces->new(%gp_args) })
 			->push(Geo::Coder::XYZ->new())
 			->push(Geo::Coder::Google->new());
 	} else {
