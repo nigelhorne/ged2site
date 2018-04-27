@@ -89,6 +89,7 @@ use Config::Auto;
 use Locale::Object::Country;
 use List::Util;
 use POSIX;
+use JSON;
 
 no lib '.';
 
@@ -108,7 +109,7 @@ my %images;
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
-my $first_birth;	# First person on the tree
+my $facts;
 
 # FIXME: Should be in a configuration file
 # Will be removed when new G:C:Free is published
@@ -943,11 +944,9 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	close $fout;
 }
 
-if(open($csv, '>', 'dynamic-site/databases/facts.csv')) {
-	print $csv "entry!key!value\n";
-	if($first_birth) {
-		print $csv 'first!', $first_birth->{'xref'}, '!', $first_birth->{'date'}->strftime('%Y/%m/%d'), "\n";
-	}
+if(open(my $json, '>', 'dynamic-site/databases/facts.json')) {
+	print $json encode_json($facts);
+	close $json;
 }
 
 sub print_person
@@ -1322,14 +1321,14 @@ sub print_person
 	}
 
 	if($birth_dt = $dfg->parse_datetime(date => $dateofbirth)) {
-		if(defined($first_birth)) {
-			if($birth_dt < $first_birth->{'date'}) {
-				$first_birth->{'date'} = $birth_dt;
-				$first_birth->{'xref'} = $person->{'xref'};
+		if(defined($facts->{'first_birth'})) {
+			if($birth_dt < $facts->{'first_birth'}->{'date'}) {
+				$facts->{'first_birth'}->{'date'} = $birth_dt;
+				$facts->{'first_birth'}->{'xref'} = $person->{'xref'};
 			}
 		} else {
-			$first_birth->{'date'} = $birth_dt;
-			$first_birth->{'xref'} = $person->{'xref'};
+			$facts->{'first_birth'}->{'date'} = $birth_dt;
+			$facts->{'first_birth'}->{'xref'} = $person->{'xref'};
 		}
 	}
 
