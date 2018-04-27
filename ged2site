@@ -944,7 +944,10 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	close $fout;
 }
 
-if(open(my $json, '>', 'dynamic-site/databases/facts.json')) {
+if($facts && open(my $json, '>', 'dynamic-site/databases/facts.json')) {
+	if(my $fb = $facts->{'first_birth'}) {
+		$facts->{'first_birth'}->{'date'} = $fb->{'date'}->strftime('%x');
+	}
 	print $json encode_json($facts);
 	close $json;
 }
