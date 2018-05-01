@@ -5682,9 +5682,11 @@ sub notes
 			$note =~ s/\.$//;
 			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
 			$note =~ s/\xe2\x80\x9d/"/g;	# right quotation
+			$note =~ s/\x80"/"/g;
 			$note =~ s/\xe2\x80\x99/\'/g;
 			$note =~ s/[\x93\x94]/"/g;
 			$note =~ s/[\x91\x92]/'/g;
+			$note =~ s/[\xc2\xe2]//g;
 			if($paragraph) {
 				$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
 			} else {
