@@ -1008,6 +1008,8 @@ sub print_person
 		}
 
 		if((!$family) && (scalar(@siblings) == 0) && (!$mother) && (!$father) && (scalar(@spouses) == 0)) {
+			# This person isn't connected to anyone
+			# TODO: catch "islands" of people connected to each other, but nobody else
 			complain({ person => $person, warning => 'not connected to the tree' });
 		}
 
@@ -1028,10 +1030,7 @@ sub print_person
 		if($dob eq 'UNKNOWN') {
 			$dob = undef;
 		} elsif($opts{'w'} && !$warned{$person}) {
-			if($opts{'f'}) {
-				die $person->name(), ": invalid date of birth $dob\n";
-			}
-			warn $person->name(), ": invalid date of birth $dob\n";
+			complain({ person => $person, warning => ": invalid date of birth $dob" });
 			$warned{$person} = 1;
 		}
 	}
