@@ -49,7 +49,7 @@ function fixYearHistory(){
 		if($(this).find('.ss-right').eq(0).hasClass('jaartal')){
 			sizeBox = $(this).find('.ss-left').eq(0).height();
 			sizePadding = parseFloat($(this).find('.ss-right').eq(0).css('padding-left'));
-			
+
 			if( sizePadding > 90){
 				offsetPointerPercentage = 20;
 			}else if(sizePadding > 70){
@@ -61,7 +61,7 @@ function fixYearHistory(){
 			}else{
 				offsetPointerPercentage = 0;
 			}
-			
+
 			$(this).find('.ss-right').eq(0).css({'line-height':(sizeBox - offset)+'px'});
 			$(this).find('.bolleke').eq(0).css({'top':'-'+((sizeBox/2) + offsetPointer)+'px',
 												'left':'-'+ (sizePadding - (sizePadding/100*offsetPointerPercentage))+'px'
@@ -69,7 +69,7 @@ function fixYearHistory(){
 		} else {
 			sizeBox = $(this).find('.ss-right').eq(0).height();
 			sizePadding = parseFloat($(this).find('.ss-right').eq(0).css('padding-left'));
-			
+
 			if( sizePadding > 90){
 				offsetPointerPercentage = 20;
 			}else if(sizePadding > 70){
@@ -81,7 +81,7 @@ function fixYearHistory(){
 			}else{
 				offsetPointerPercentage = 0;
 			}
-			
+
 			$(this).find('.ss-left').eq(0).css({'line-height':(sizeBox - offset)+'px'})
 			$(this).find('.bolleke').eq(0).css({'top':'-'+((sizeBox/2) + offsetPointer)+'px',
 												'left':(sizePadding - (sizePadding/100*offsetPointerPercentage))+'px'
@@ -94,7 +94,7 @@ fixYearHistory();
 
 $(window).resize(function(){
 	fixYearHistory();
-	
+
 	$('.overlaybg').height( $('header').height() );
 });
 
@@ -105,7 +105,7 @@ $(document).ready(function(){
 	    }, 1000);
 	    return false;
 	});
-	
+
 	$('.overlaybg').height( $('header').height() );
 });
 
@@ -119,23 +119,22 @@ $(window).scroll(function(){
 		var st = $(this).scrollTop();
 		$('header').css({'background-position':'center calc(50% + '+(st*.8)+'px)'});
 	}
-	
+
 	if( $(window).scrollTop() > 200 ){
-	
+
 		if( !$('.topnav-hidden').hasClass('fixed-navbar') ){
 			$('.topnav-hidden').addClass('fixed-navbar');
 			$('#click-menu').addClass('fixed-menu');
 			$('.topnav').fadeTo("fast", 0);
 		}
-			
+
 	} else {
-		
+
 		if( $('.topnav-hidden').hasClass('fixed-navbar') ){
 			$('.topnav-hidden').removeClass('fixed-navbar');
 			$('#click-menu').removeClass('fixed-menu');
 			$('.topnav').fadeTo("fast", 1);
 		}
-		
+
 	}
-	
 });
