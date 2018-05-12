@@ -968,7 +968,7 @@ sub print_person
 		$dob =~ s/[\.\-]/ /g;
 		$dob =~ s/\s{2,}/ /g;
 		$dob =~ s/\(.+$//;	# some people put information in brackets after the date
-		if($dob =~ /^About[:\s](.+)/) {
+		if($dob =~ /^About[:\s](.+)/i) {
 			$dob = "ABT$1";
 		} elsif($dob =~ /^Bet\s[a-z]{3}.+([a-z]{3}\s+.*)/i) {	# Bet Jun-Jul 1860
 			$dob = "ABT $1";
@@ -977,11 +977,16 @@ sub print_person
 		}
 		if(($dob !~ /^[\d\sA-Z\/]+$/i) && ($dob !~ /^Abt\./)) {
 			if($dob =~ /(\d{4})\s*(.+)/) {
-				$dob = "ABT$1";
-				if(place({ person => $person, place => $2 })) {
-					complain({ person => $person, warning => "Unexpected text ($2) after the date $1 - should be in the location record" });
-				} else {
-					complain({ person => $person, warning => "Unexpected text ($2) after the date $1 - should be in the note field" });
+				my $d = $1;
+				my $t = $2;
+				# Allow 1914-1918
+				if($t !~ /\d{3,4}$/) {
+					$dob = "ABT$d";
+					if(place({ person => $person, place => $t })) {
+						complain({ person => $person, warning => "Unexpected text ($t) after the date $d - should be in the location record" });
+					} else {
+						complain({ person => $person, warning => "Unexpected text ($t) after the date $d - should be in the note field" });
+					}
 				}
 			} elsif($dob !~ /\d{1,2}$/) {	# Dates can begin with a letter in the US
 				complain({ person => $person, warning => "Invalid character in date of birth $dob" });
