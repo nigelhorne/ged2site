@@ -5255,79 +5255,143 @@ sub Gedcom::Individual::relationship
 			if($person1 eq $person2) {
 				# Common ancestor is $person2
 				my $steps1 = stepsabove($self, $person1, 0);
-				return if($steps1 > 7);
+				die $steps1 if($steps1 > 23);
+				return if($steps1 > 23);
 				my $steps2 = stepsabove($other, $person2, 0);
-				return if($steps2 > 7);
+				die $steps2 if($steps2 > 23);
+				return if($steps2 > 23);
 
-				# It would be nice to do this as an algorithm, but this will do
-				# e.g. 2, 1 is uncle
+				# TODO: It would be nice to do this as an algorithm
 				my %male_relationships = (
-					1 << 8 | 1 => 'brother',
-					1 << 8 | 2 => 'nephew',
-					2 << 8 | 1 => 'uncle',
-					3 << 8 | 1 => 'great-uncle',
-					4 << 8 | 1 => 'great-great-uncle',
-					2 << 8 | 2 => 'cousin',
-					2 << 8 | 3 => 'first cousin once-removed',
-					3 << 8 | 2 => 'first cousin once-removed',
-					2 << 8 | 4 => 'first cousin twice-removed',
-					3 << 8 | 3 => 'second cousin',
-					3 << 8 | 4 => 'second cousin once-removed',
-					4 << 8 | 2 => 'first cousin twice-removed',
-					4 << 8 | 3 => 'second cousin once-removed',
-					5 << 8 | 2 => 'first cousin three-times-removed',
-					5 << 8 | 3 => 'second cousin twice-removed',
-					5 << 8 | 4 => 'third cousin once-removed',
-					6 << 8 | 3 => 'second cousin three-times-removed',
-					6 << 8 | 4 => 'third cousin twice-removed',
-					6 << 8 | 5 => 'fourth cousin once-removed',
-					6 << 8 | 6 => 'sixth cousin',
-					7 << 8 | 3 => 'second cousin four-times-removed',
-					7 << 8 | 4 => 'third cousin three-times-removed',
-					7 << 8 | 5 => 'fourth cousin twice-removed',
-					7 << 8 | 6 => 'fifth cousin once-removed',
+					1 << 24 | 1 => 'brother',
+					1 << 24 | 2 => 'nephew',
+					2 << 24 | 1 => 'uncle',
+					2 << 24 | 2 => 'cousin',
+					2 << 24 | 3 => 'first cousin once-removed',
+					2 << 24 | 4 => 'first cousin twice-removed',
+					2 << 24 | 5 => 'first cousin three-times-removed',
+					3 << 24 | 1 => 'great-uncle',
+					3 << 24 | 2 => 'first cousin once-removed',
+					3 << 24 | 3 => 'second cousin',
+					3 << 24 | 4 => 'second cousin once-removed',
+					3 << 24 | 5 => 'second cousin twice-removed',
+					3 << 24 | 6 => 'second cousin three-times-removed',
+					4 << 24 | 1 => 'great-great-uncle',
+					4 << 24 | 2 => 'first cousin twice-removed',
+					4 << 24 | 3 => 'second cousin once-removed',
+					4 << 24 | 4 => 'third cousin',
+					4 << 24 | 5 => 'third cousin once-removed',
+					4 << 24 | 6 => 'third cousin twice-removed',
+					5 << 24 | 1 => 'third times great-uncle',
+					5 << 24 | 2 => 'first cousin three-times-removed',
+					5 << 24 | 3 => 'second cousin twice-removed',
+					5 << 24 | 4 => 'third cousin once-removed',
+					5 << 24 | 5 => 'fourth cousin',
+					5 << 24 | 6 => 'fourth cousin once-removed',
+					6 << 24 | 1 => 'four times great-uncle',
+					6 << 24 | 2 => 'first cousin four-times-removed',
+					6 << 24 | 3 => 'second cousin three-times-removed',
+					6 << 24 | 4 => 'third cousin twice-removed',
+					6 << 24 | 5 => 'fourth cousin once-removed',
+					6 << 24 | 6 => 'fifth cousin',
+					6 << 24 | 7 => 'fifth cousin once-removed',
+					6 << 24 | 8 => 'fifth cousin twice-removed',
+					7 << 24 | 1 => 'fifth times great-uncle',
+					7 << 24 | 2 => 'first cousin five-times-removed',
+					7 << 24 | 3 => 'second cousin four-times-removed',
+					7 << 24 | 4 => 'third cousin three-times-removed',
+					7 << 24 | 5 => 'fourth cousin twice-removed',
+					7 << 24 | 6 => 'fifth cousin once-removed',
+					7 << 24 | 7 => 'sixth cousin',
+					7 << 24 | 8 => 'sixth cousin once-removed',
+					8 << 24 | 1 => 'six times great-uncle',
+					8 << 24 | 2 => 'first cousin six-times-removed',
+					9 << 24 | 1 => 'seven times great-uncle',
+					10 << 24 | 1 => 'eight times great-uncle',
+					10 << 24 | 2 => 'first cousin eight-times-removed',
+					11 << 24 | 1 => 'nine times great-uncle',
+					11 << 24 | 4 => 'third cousin seven-times-removed',
+					12 << 24 | 1 => 'ten times great-uncle',
+					13 << 24 | 1 => 'eleven times great-uncle',
+					14 << 24 | 1 => 'twelve times great-uncle',
+					15 << 24 | 1 => 'thirteen times great-uncle',
+					16 << 24 | 1 => 'fourteen times great-uncle',
+					17 << 24 | 1 => 'fifteen times great-uncle',
+					18 << 24 | 1 => 'sixteen times great-uncle',
 				);
 				my %female_relationships = (
-					1 << 8 | 1 => 'sister',
-					1 << 8 | 2 => 'niece',
-					2 << 8 | 1 => 'aunt',
-					2 << 8 | 2 => 'cousin',
-					2 << 8 | 3 => 'first cousin once-removed',
-					2 << 8 | 4 => 'first cousin twice-removed',
-					3 << 8 | 1 => 'great-aunt',
-					3 << 8 | 2 => 'first cousin once-removed',
-					3 << 8 | 3 => 'second cousin',
-					3 << 8 | 5 => 'second cousin twice-removed',
-					3 << 8 | 4 => 'second cousin once-removed',
-					4 << 8 | 1 => 'great-great-aunt',
-					4 << 8 | 2 => 'first cousin twice-removed',
-					4 << 8 | 3 => 'second cousin once-removed',
-					5 << 8 | 2 => 'first cousin three-times-removed',
-					5 << 8 | 3 => 'second cousin twice-removed',
-					5 << 8 | 4 => 'third cousin once-removed',
-					6 << 8 | 3 => 'second cousin three-times-removed',
-					6 << 8 | 4 => 'third cousin twice-removed',
-					6 << 8 | 5 => 'fourth cousin once-removed',
-					6 << 8 | 6 => 'sixth cousin',
-					7 << 8 | 3 => 'second cousin four-times-removed',
-					7 << 8 | 4 => 'third cousin three-times-removed',
-					7 << 8 | 5 => 'fourth cousin twice-removed',
-					7 << 8 | 6 => 'fifth cousin once-removed',
+					1 << 24 | 1 => 'sister',
+					1 << 24 | 2 => 'niece',
+					2 << 24 | 1 => 'aunt',
+					2 << 24 | 2 => 'cousin',
+					2 << 24 | 3 => 'first cousin once-removed',
+					2 << 24 | 4 => 'first cousin twice-removed',
+					2 << 24 | 5 => 'first cousin three-times-removed',
+					3 << 24 | 1 => 'great-aunt',
+					3 << 24 | 2 => 'first cousin once-removed',
+					3 << 24 | 3 => 'second cousin',
+					3 << 24 | 4 => 'second cousin once-removed',
+					3 << 24 | 5 => 'second cousin twice-removed',
+					3 << 24 | 6 => 'second cousin three-times-removed',
+					4 << 24 | 1 => 'great-great-aunt',
+					4 << 24 | 2 => 'first cousin twice-removed',
+					4 << 24 | 3 => 'second cousin once-removed',
+					4 << 24 | 4 => 'third cousin',
+					4 << 24 | 5 => 'third cousin once-removed',
+					4 << 24 | 6 => 'third cousin twice-removed',
+					5 << 24 | 1 => 'third times great-aunt',
+					5 << 24 | 2 => 'first cousin three-times-removed',
+					5 << 24 | 3 => 'second cousin twice-removed',
+					5 << 24 | 4 => 'third cousin once-removed',
+					5 << 24 | 5 => 'fourth cousin',
+					5 << 24 | 6 => 'fourth cousin once-removed',
+					6 << 24 | 1 => 'four times great-aunt',
+					6 << 24 | 2 => 'first cousin four-times-removed',
+					6 << 24 | 3 => 'second cousin three-times-removed',
+					6 << 24 | 4 => 'third cousin twice-removed',
+					6 << 24 | 5 => 'fourth cousin once-removed',
+					6 << 24 | 6 => 'fifth cousin',
+					6 << 24 | 7 => 'fifth cousin once-removed',
+					6 << 24 | 8 => 'fifth cousin twice-removed',
+					7 << 24 | 1 => 'fifth times great-uncle',
+					7 << 24 | 2 => 'first cousin five-times-removed',
+					7 << 24 | 3 => 'second cousin four-times-removed',
+					7 << 24 | 4 => 'third cousin three-times-removed',
+					7 << 24 | 5 => 'fourth cousin twice-removed',
+					7 << 24 | 6 => 'fifth cousin once-removed',
+					7 << 24 | 7 => 'sixth cousin',
+					7 << 24 | 8 => 'sixth cousin once-removed',
+					8 << 24 | 1 => 'six times great-aunt',
+					8 << 24 | 2 => 'first cousin six-times-removed',
+					9 << 24 | 1 => 'seven times great-aunt',
+					10 << 24 | 1 => 'eight times great-aunt',
+					10 << 24 | 2 => 'first cousin eight-times-removed',
+					11 << 24 | 1 => 'nine times great-aunt',
+					11 << 24 | 4 => 'third cousin seven-times-removed',
+					12 << 24 | 1 => 'ten times great-aunt',
+					13 << 24 | 1 => 'eleven times great-aunt',
+					14 << 24 | 1 => 'twelve times great-aunt',
+					15 << 24 | 1 => 'thirteen times great-aunt',
+					16 << 24 | 1 => 'fourteen times great-aunt',
+					17 << 24 | 1 => 'fifteen times great-aunt',
+					18 << 24 | 1 => 'sixteen times great-aunt',
 				);
 
 				my $rc = ($sex eq 'M') ?
-					$male_relationships{($steps1 << 8) | $steps2} :
-					$female_relationships{($steps1 << 8) | $steps2};
+					$male_relationships{($steps1 << 24) | $steps2} :
+					$female_relationships{($steps1 << 24) | $steps2};
 				if(defined($rc) && ($rc =~ /cousin/)) {
 					my $myfather = $self->father();
 					my $mymother = $self->mother();
 					if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
-						$rc .= ' on the father\'s side';
+						$rc .= ' on your father\'s side';
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
-						$rc .= ' on the mother\'s side';
+						$rc .= ' on your mother\'s side';
 					}
 				}
-				# print "$steps1, $steps2\n" if(!defined($rc));
+				if(!defined($rc)) {
+					complain({ person => $other, warning => "TODO: $steps1, $steps2" });
+				}
 
 				return $rc;
 			}
