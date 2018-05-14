@@ -1035,7 +1035,7 @@ sub print_person
 		if($dob eq 'UNKNOWN') {
 			$dob = undef;
 		} elsif($opts{'w'} && !$warned{$person}) {
-			complain({ person => $person, warning => ": invalid date of birth $dob" });
+			complain({ person => $person, warning => "invalid date of birth $dob" });
 			$warned{$person} = 1;
 		}
 	}
