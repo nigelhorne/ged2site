@@ -67,6 +67,7 @@ use Ged2site::Display::emmigrants;
 use Ged2site::Display::ww1;
 use Ged2site::Display::twins;
 use Ged2site::Display::reports;
+use Ged2site::Display::facts;
 use Ged2site::Display::mailto;
 
 use Ged2site::DB::people;
@@ -295,6 +296,8 @@ sub doit
 			$display = Ged2site::Display::twins->new($args);
 		} elsif($page eq 'reports') {
 			$display = Ged2site::Display::reports->new($args);
+		} elsif($page eq 'facts') {
+			$display = Ged2site::Display::facts->new($args);
 		} elsif($page eq 'mailto') {
 			$display = Ged2site::Display::mailto->new($args);
 		} else {
@@ -318,7 +321,8 @@ sub doit
 			history => $history,
 			todo => $todo,
 			names => $names,
-			cachedir => $cachedir
+			cachedir => $cachedir,
+			databasedir => $database_dir
 		});
 	} elsif($invalidpage) {
 		choose();

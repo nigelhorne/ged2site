@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 	<head>
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
-		<title>Reports for [% SiteTitle.join(' ') %]</title>
+		<title>Facts for [% SiteTitle.join(' ') %]</title>
 		<!--
 			<meta http-equiv="Content-Language" content="English">
 		-->
@@ -11,7 +11,7 @@
 	<body>
 		<div id="header_container">
 			<center>
-				<h1>Reports for [% SiteTitle.join(' ') %]</h1>
+				<h1>Facts for [% SiteTitle.join(' ') %]</h1>
 			</center>
 		</div>
 		<div id="container">
@@ -23,14 +23,20 @@
 				[ <a href="?page=calendar">Calendar</a> ] |
 				[ <a href="/visjs.html">Timeline</a> ]
 			</center>
-		<br>
-		<ul id="nav">
-			<li><a href="?page=todo">To Do</a></li>
-			<li><a href="?page=graphs">Analytics</a></li>
-			<li><a href="?page=emmigrants">Emigrants</a></li>
-			<li><a href="?page=facts">Facts</a></li>
-			<li><a href="?page=ww1">WW1 Fatalaties</a></li>
-		</ul>
+			[% IF error %]
+				<p><font color="red" size="+2">[% error %]</font></p>
+			[% END %]
+			<br>
+			[% IF facts %]
+				<ul>
+					[% IF facts.first_birth %]
+						<li>
+							First person in the tree:
+							<a href="?page=people&amp;entry=[%- facts.first_birth.person.entry %]">[% facts.first_birthperson.title %]</a>: [% facts.first_birth.date %]
+						</li>
+					[% END %]
+				</ul>
+			[% END %]
 		</div>
 		<p align="right">
 			<i>

@@ -948,6 +948,11 @@ if($facts && open(my $json, '>', 'dynamic-site/databases/facts.json')) {
 	if(my $fb = $facts->{'first_birth'}) {
 		$facts->{'first_birth'}->{'date'} = $fb->{'date'}->strftime('%x');
 	}
+	if(my $oa = $facts->{'oldest_age'}) {
+		$facts->{'oldest_age'}->{'years'} = $oa->years();
+		$facts->{'oldest_age'}->{'months'} = $oa->months();
+		$facts->{'oldest_age'}->{'days'} = $oa->days();
+	}
 	print $json encode_json($facts);
 	close $json;
 }
@@ -1352,6 +1357,20 @@ sub print_person
 		});
 	}
 	$death_dt = $dfg->parse_datetime(date => $dateofdeath);
+
+	if($birth_dt && $death_dt) {
+		my $age_at_death = $death_dt - $birth_dt;
+		if(defined($facts->{'oldest_age'})) {
+			# FIXME: Handle when there are more than one person with this age
+			if($age_at_death > $facts->{'oldest_age'}->{'age'}) {
+				$facts->{'oldest_age'}->{'age'} = $age_at_death;
+				$facts->{'oldest_age'}->{'xref'} = $person->{'xref'};
+			}
+		} else {
+			$facts->{'oldest_age'}->{'age'} = $age_at_death;
+			$facts->{'oldest_age'}->{'xref'} = $person->{'xref'};
+		}
+	}
 
 	if($opts{'l'} || !$is_alive) {
 		# RT114091
