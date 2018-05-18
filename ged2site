@@ -948,7 +948,7 @@ if($facts && open(my $json, '>', 'dynamic-site/databases/facts.json')) {
 	if(my $fb = $facts->{'first_birth'}) {
 		$facts->{'first_birth'}->{'date'} = $fb->{'date'}->strftime('%x');
 	}
-	if(my $oa = $facts->{'oldest_age'}) {
+	if(my $oa = delete $facts->{'oldest_age'}->{'age'}) {
 		$facts->{'oldest_age'}->{'years'} = $oa->years();
 		$facts->{'oldest_age'}->{'months'} = $oa->months();
 		$facts->{'oldest_age'}->{'days'} = $oa->days();
