@@ -1362,7 +1362,8 @@ sub print_person
 		my $age_at_death = $death_dt - $birth_dt;
 		if(defined($facts->{'oldest_age'})) {
 			# FIXME: Handle when there are more than one person with this age
-			if($age_at_death > $facts->{'oldest_age'}->{'age'}) {
+			# FIXME: add base_datetime argument
+			if(DateTime::Duration->compare($age_at_death, $facts->{'oldest_age'}->{'age'}) > 0) {
 				$facts->{'oldest_age'}->{'age'} = $age_at_death;
 				$facts->{'oldest_age'}->{'xref'} = $person->{'xref'};
 			}
