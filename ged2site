@@ -3327,7 +3327,7 @@ sub print_person
 			} else {
 				$bio .= ' and is buried' . place($opts);
 			}
-			if(length($notes) > 160) {
+			if($notes && (length($notes) > 160)) {
 				$bio .= ".</p><p>";
 				$end_of_sentence = 1;
 			} else {
@@ -4617,28 +4617,33 @@ sub print_person
 			if($javascript_key) {
 				$args{'api_key'} = $javascript_key;
 			}
-			foreach my $match(@{$location->{'match'}}) {
-				next if($match->{'confidence'} < 1.0);
-				my $place = $match->{'location'};
-				if(defined($current_place) && ($place ne $current_place)) {
-					# FIXME: no need to look up again, use $match->longt and lattt
-					if(!defined($map)) {
-						# my %args = (geocoder => $geocoder, z_index => -1);
-						my %args = (geocoder => $geocoder);
-						if($javascript_key) {
-							$args{'api_key'} = $javascript_key;
-						}
-						$map = HTML::GoogleMaps::V3->new(%args);
-						$map->center($current_place);
-					}
-					add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
-					$current_place = $place;
-					$annotation = undef;
-				} elsif(!defined($current_place)) {
-					$current_place = $place;
-				}
-				$annotation .= '<p>' . $location->{'text'} . '</p>';
+			my $match;
+			if($location->{'match'}) {
+				$match = $location->{'match'};
+			} else {
+				$match = $location;
 			}
+			# print Data::Dumper->new([$match])->Dump();
+			next if($match->{'confidence'} < 1.0);
+			my $place = $match->{'location'};
+			if(defined($current_place) && ($place ne $current_place)) {
+				# FIXME: no need to look up again, use $match->longt and lattt
+				if(!defined($map)) {
+					# my %args = (geocoder => $geocoder, z_index => -1);
+					my %args = (geocoder => $geocoder);
+					if($javascript_key) {
+						$args{'api_key'} = $javascript_key;
+					}
+					$map = HTML::GoogleMaps::V3->new(%args);
+					$map->center($current_place);
+				}
+				add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
+				$current_place = $place;
+				$annotation = undef;
+			} elsif(!defined($current_place)) {
+				$current_place = $place;
+			}
+			$annotation .= '<p>' . $location->{'text'} . '</p>';
 		}
 		if($current_place) {
 			if(!defined($map)) {
@@ -5789,48 +5794,76 @@ sub notes
 			complain('Notes field is empty');
 		}
 	}
-	if(defined($rc)) {
-		if(defined($note_locations) && (my $hr = $textgeocoder->geocode(scantext => $rc))) {
-			if(length($rc) > 15) {
-				$hr->{'text'} = substr($rc, 0, 14) . '...';
-			} else {
-				$hr->{'text'} = $rc;
+	if((!defined($rc)) || (length($rc) == 0)) {
+		return;
+	}
+	if($textgeocoder && defined($note_locations) && ($rc =~ /[\s,]/) && (my $hr = $textgeocoder->geocode(scantext => $rc))) {
+		if($hr->{'error'}) {
+			if($hr->{'error'}->{'description'} =~ /^We currently throttle/) {
+				$textgeocoder = undef;
 			}
-			push @{$note_locations}, $hr;
-		}
-
-		my $ufinder = URI::Find::Schemeless->new(sub {
-			my($uri, $orig_uri) = @_;
-
-			if($orig_uri =~ /(.+):$/) {
-				$orig_uri = $1;
-			}
-			my $u = URI->new($orig_uri);
-			if($u && (ref($u) ne 'URI::_generic')) {
-				# Some sites give 404 on HEAD but work on GET
-				if((!head($orig_uri)) && !get($orig_uri)) {
-					complain({ person => $person, warning => "$orig_uri: in notes is not found" });
+			# die "$rc: ", $hr->{'error'}->{'description'};
+		} else {
+			my $matches = $hr->{'match'};
+			if(ref($matches) eq 'ARRAY') {
+				my $text;
+				if(length($rc) > 15) {
+					$text = substr($rc, 0, 14) . '...';
+				} else {
+					$text = $rc;
 				}
-				$uri =~ s/:$//;
-				return "<a href=\"$uri\">" .
-					$u->host() .
-					'</a>';
+				foreach my $match(@{$matches}) {
+					# print Data::Dumper->new([$match])->Dump();
+					# my $place = $match->{'location'};
+					# print "$place\n";
+					$match->{'text'} = $text;
+					push @{$note_locations}, $match;
+				}
+			} elsif(ref($matches) eq 'HASH') {
+				my $match = $matches;
+				# print Data::Dumper->new([$match])->Dump();
+				# my $place = $match->{'location'};
+				if(length($rc) > 15) {
+					$hr->{'text'} = substr($rc, 0, 14) . '...';
+				} else {
+					$hr->{'text'} = $rc;
+				}
+				push @{$note_locations}, $hr;
 			}
-			return $orig_uri;
-		});
+		}
+	}
 
-		$rc =~ s/\n/<br>/g;
-		$rc =~ s/\s\s+/ /g;
-		$rc =~ s/ $//;
-		$rc =~ s/!/\&excl;/g;	# ! is the sep_char
-		$ufinder->find(\$rc);
+	my $ufinder = URI::Find::Schemeless->new(sub {
+		my($uri, $orig_uri) = @_;
 
-		if(defined($ENV{'LANG'})) {
-			if($ENV{'LANG'} =~ /^en_US/) {
-				return Lingua::EN::ABC::b2a($rc);
-			} elsif($ENV{'LANG'} =~ /^en_GB/) {
-				return Lingua::EN::ABC::a2b($rc);
+		if($orig_uri =~ /(.+):$/) {
+			$orig_uri = $1;
+		}
+		my $u = URI->new($orig_uri);
+		if($u && (ref($u) ne 'URI::_generic')) {
+			# Some sites give 404 on HEAD but work on GET
+			if((!head($orig_uri)) && !get($orig_uri)) {
+				complain({ person => $person, warning => "$orig_uri: in notes is not found" });
 			}
+			$uri =~ s/:$//;
+			return "<a href=\"$uri\">" .
+				$u->host() .
+				'</a>';
+		}
+		return $orig_uri;
+	});
+
+	$rc =~ s/\n/<br>/g;
+	$rc =~ s/\s\s+/ /g;
+	$rc =~ s/ $//;
+	$rc =~ s/!/\&excl;/g;	# ! is the sep_char
+	$ufinder->find(\$rc);
+
+	if(defined($ENV{'LANG'})) {
+		if($ENV{'LANG'} =~ /^en_US/) {
+			return Lingua::EN::ABC::b2a($rc);
+		} elsif($ENV{'LANG'} =~ /^en_GB/) {
+			return Lingua::EN::ABC::a2b($rc);
 		}
 	}
 	return $rc;
