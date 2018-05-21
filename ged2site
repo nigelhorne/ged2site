@@ -143,7 +143,7 @@ my %gp_args = (apiver => 3);
 my $geolocation_key;
 if($opts{'G'}) {
 	$geolocation_key = $opts{'G'};
-} elsif($ENV{'GMAP_KEY'}) {	# Compatability with various CPAN modules
+} elsif($ENV{'GMAP_KEY'}) {	# Compatibility with various CPAN modules
 	$geolocation_key = $ENV{'GMAP_KEY'};
 } elsif($config && $config->{'google_maps_geolocation_key'}) {
 	$geolocation_key = $config->{'google_maps_gelocation_key'};

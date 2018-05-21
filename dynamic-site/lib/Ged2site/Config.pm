@@ -3,7 +3,7 @@ package Ged2site::Config;
 # Ged2site is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
-# Site independant configuration file
+# Site independent configuration file
 # Takes three optional arguments:
 #	info (CGI::Info object)
 #	logger
