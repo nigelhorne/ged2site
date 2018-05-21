@@ -225,7 +225,7 @@ if($opts{'m'} || $opts{'w'}) {
 	$geocoder->ua($ua);
 
 	# $textgeocoder = Geo::Parser::Text->new('https://geocoder.ca');
-	$textgeocoder = Geo::Parser::Text->new(host => 'https://geocode.xyz');
+	$textgeocoder = Geo::Parser::Text->new('https://geocode.xyz');
 }
 
 # TODO: BMAP_KEY for Geo::Coder::Bing
@@ -4617,25 +4617,28 @@ sub print_person
 			if($javascript_key) {
 				$args{'api_key'} = $javascript_key;
 			}
-			my $place = $location->{'location'};
-			if(defined($current_place) && ($place ne $current_place)) {
-				if(!defined($map)) {
-					# my %args = (geocoder => $geocoder, z_index => -1);
-					my %args = (geocoder => $geocoder);
-					if($javascript_key) {
-						$args{'api_key'} = $javascript_key;
+			foreach my $match(@{$location->{'match'}}) {
+				next if($match->{'confidence'} < 1.0);
+				my $place = $match->{'location'};
+				if(defined($current_place) && ($place ne $current_place)) {
+					# FIXME: no need to look up again, use $match->longt and lattt
+					if(!defined($map)) {
+						# my %args = (geocoder => $geocoder, z_index => -1);
+						my %args = (geocoder => $geocoder);
+						if($javascript_key) {
+							$args{'api_key'} = $javascript_key;
+						}
+						$map = HTML::GoogleMaps::V3->new(%args);
+						$map->center($current_place);
 					}
-					$map = HTML::GoogleMaps::V3->new(%args);
-					$map->center($current_place);
+					add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
+					$current_place = $place;
+					$annotation = undef;
+				} elsif(!defined($current_place)) {
+					$current_place = $place;
 				}
-				# FIXME: no need to look up again, use current_place->longt and latt
-				add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
-				$current_place = $place;
-				$annotation = undef;
-			} elsif(!defined($current_place)) {
-				$current_place = $place;
+				$annotation .= '<p>' . $location->{'text'} . '</p>';
 			}
-			$annotation .= '<p>' . $location->{'text'} . '</p>';
 		}
 		if($current_place) {
 			if(!defined($map)) {
@@ -5754,7 +5757,6 @@ sub notes
 	my $note_locations = $params{note_locations};
 
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
-	# my @deathnotes = $person, value => 'death note' });
 	my $rc = $record->get_value();
 	$rc .= '.' if($rc && !scalar(@notes));
 
@@ -5788,6 +5790,15 @@ sub notes
 		}
 	}
 	if(defined($rc)) {
+		if(defined($note_locations) && (my $hr = $textgeocoder->geocode(scantext => $rc))) {
+			if(length($rc) > 15) {
+				$hr->{'text'} = substr($rc, 0, 14) . '...';
+			} else {
+				$hr->{'text'} = $rc;
+			}
+			push @{$note_locations}, $hr;
+		}
+
 		my $ufinder = URI::Find::Schemeless->new(sub {
 			my($uri, $orig_uri) = @_;
 
@@ -5822,15 +5833,7 @@ sub notes
 			}
 		}
 	}
-	if(defined($note_locations) && (my $hr = $textgeocoder->geocode(scantext => $rc))) {
-		if(length($rc) > 15) {
-			$hr->{'text'} = substr($rc, 0, 14) . '...';
-		} else {
-			$hr->{'text'} = $rc;
-		}
-		push @{$note_locations}, $hr;
-	}
-	return($rc);
+	return $rc;
 }
 
 sub validate_place
