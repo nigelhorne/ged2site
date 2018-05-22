@@ -49,7 +49,7 @@ use DateTime::Format::Genealogy;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::List 0.15;
-use Geo::Coder::Free 0.09;	# 0.10 really
+use Geo::Coder::Free 0.10;	# 0.11 really
 use Geo::Coder::Free::OpenAddresses;
 use Geo::Coder::Postcodes 0.02;
 use Geo::Coder::OSM;
@@ -160,6 +160,7 @@ if($opts{'J'}) {
 
 my $geocoder;
 my $textgeocoder;
+my $freegeocoder;
 
 if($opts{'m'} || $opts{'w'}) {
 	my $l = $ENV{'LANG'};
@@ -169,11 +170,13 @@ if($opts{'m'} || $opts{'w'}) {
 
 	$geocoder = Geo::Coder::List->new();
 	if(my $oa = $ENV{'OPENADDR_HOME'}) {
-		$geocoder->push({ regex => qr/,[\w\s]+,[\w\s]+$/, geocoder => Geo::Coder::Free->new(openaddr => $oa) });
+		$freegeocoder = Geo::Coder::Free->new(openaddr => $oa);
+		$geocoder->push({ regex => qr/,[\w\s]+,[\w\s]+$/, geocoder => $freegeocoder });
 		# $geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada|Australia)+$/, geocoder => Geo::Coder::Free::OpenAddresses->new(openaddr => $oa) })
 			# ->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 	} else {
-		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
+		$freegeocoder = Geo::Coder::Free->new();
+		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => $freegeocoder });
 	}
 	if(my $username = $ENV{'GEONAMES_USER'}) {
 		$geocoder->push(Geo::GeoNames->new(username => $username));
@@ -5797,14 +5800,48 @@ sub notes
 	if((!defined($rc)) || (length($rc) == 0)) {
 		return;
 	}
-	if($textgeocoder && defined($note_locations) && ($rc =~ /[\s,]/) && (my $hr = $textgeocoder->geocode(scantext => $rc))) {
+
+	my $hr;
+
+	if(defined($note_locations)) {
+		my $region;
+
+		if($record) {
+			$region = $record->place();
+		} elsif($person) {
+			$region = get_value({ person => $person, value => 'birth place' });
+			if(!$region) {
+				$region = get_value({ person => $person, value => 'death place' });
+			}
+		}
+		if($region && ($region =~ /^.+,\s([[a-z\s]+)$/i)) {
+			if($1 =~ /(England|United Kingdom)/i) {
+				$region = 'gb';
+			} elsif($1 =~ /(USA|US|United States)/i) {
+				$region = 'us';
+			} elsif(lc($1) eq 'Canada') {
+				$region = 'ca';
+			}
+		}
+
+		if($freegeocoder) {
+			$hr = $freegeocoder->geocode(scantext => $rc, region => $region);
+		} elsif($textgeocoder && ($rc =~ /[\s,]/)) {
+			$hr = $textgeocoder->geocode(scantext => $rc, region => $region);
+		}
+	}
+
+	if($hr) {
 		if($hr->{'error'}) {
 			if($hr->{'error'}->{'description'} =~ /^We currently throttle/) {
 				$textgeocoder = undef;
 			}
 			# die "$rc: ", $hr->{'error'}->{'description'};
 		} else {
-			my $matches = $hr->{'match'};
+			my $matches = $hr;
+			if($matches->{'match'}) {
+				$matches = $matches->{'match'};
+			}
 			if(ref($matches) eq 'ARRAY') {
 				my $text;
 				if(length($rc) > 15) {
