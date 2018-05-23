@@ -4629,6 +4629,10 @@ sub print_person
 			# print Data::Dumper->new([$match])->Dump();
 			next if($match->{'confidence'} < 1.0);
 			my $place = $match->{'location'};
+			if(!defined($place)) {
+				print STDERR "BUG: parse error on note_locations\n";
+				die Data::Dumper->new([\@note_locations])->Dump();
+			}
 			if(defined($current_place) && ($place ne $current_place)) {
 				# FIXME: no need to look up again, use $match->longt and lattt
 				if(!defined($map)) {
