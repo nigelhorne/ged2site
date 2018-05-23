@@ -5520,7 +5520,6 @@ sub year
 			}
 			if(my $must_predate = $params{'must_predate'}) {
 				complain({ person => $person, warning => "something is wrong with the date $string which should be before " . $must_predate->strftime('%x') }) if($d > $must_predate);
-				}
 			}
 			if($ENV{'LANG'}) {
 				$d->set_locale($ENV{'LANG'});
