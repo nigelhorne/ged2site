@@ -5808,7 +5808,8 @@ sub notes
 
 		if($record) {
 			$region = $record->place();
-		} elsif($person) {
+		}
+		if(!$region && (my $person = $params{'person'})) {
 			$region = get_value({ person => $person, value => 'birth place' });
 			if(!$region) {
 				$region = get_value({ person => $person, value => 'death place' });
