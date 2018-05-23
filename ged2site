@@ -5415,9 +5415,9 @@ sub Gedcom::Individual::relationship
 					my $myfather = $self->father();
 					my $mymother = $self->mother();
 					if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
-						$rc .= ' on your father\'s side';
+						$rc .= ' on the father\'s side';
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
-						$rc .= ' on your mother\'s side';
+						$rc .= ' on the mother\'s side';
 					}
 				}
 				if(!defined($rc)) {
@@ -5519,11 +5519,7 @@ sub year
 				complain({ person => $person, warning => "something is wrong with the date $string which should be after " . $must_postdate->strftime('%x') }) if($d < $must_postdate);
 			}
 			if(my $must_predate = $params{'must_predate'}) {
-				if($opts{'f'}) {
-					die $person->as_string(), ": Something is wrong with the date $string which should be before ", $must_predate->strftime('%x') if($d > $must_predate);
-				}
-				if($opts{'w'}) {
-					red_warning({ person => $person, warning => "something is wrong with the date $string which should be before " . $must_predate->strftime('%x') }) if($d > $must_predate);
+				complain({ person => $person, warning => "something is wrong with the date $string which should be before " . $must_predate->strftime('%x') }) if($d > $must_predate);
 				}
 			}
 			if($ENV{'LANG'}) {
