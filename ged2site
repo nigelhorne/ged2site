@@ -5771,7 +5771,6 @@ sub notes
 				# complain("Note record is just description ($note), infomation may have been lost");
 			}
 			$note =~ s/\r//g;
-			$note =~ tr/\n/ /;
 			$note =~ s/\.$//;
 			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
 			$note =~ s/\xe2\x80\x9d/"/g;	# right quotation
@@ -5781,11 +5780,14 @@ sub notes
 			$note =~ s/[\x91\x92]/'/g;
 			$note =~ s/[\xc2\xe2]//g;
 			if($paragraph) {
+				$note =~ s/\n{2,}/<\/p><p>/g;
+				$note =~ tr/\n/ /;
 				$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
 			} else {
 				if($rc) {
 					$rc .= ' ';
 				}
+				$note =~ tr/\n/ /;
 				$rc .= HTML::Entities::encode($note) . '.';
 			}
 		} else {
