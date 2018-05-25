@@ -4629,6 +4629,10 @@ sub print_person
 			# print Data::Dumper->new([$match])->Dump();
 			next if($match->{'confidence'} < 1.0);
 			my $place = $match->{'location'};
+			if(!defined($place)) {
+				print STDERR "BUG: parse error on note_locations\n";
+				die Data::Dumper->new([\@note_locations])->Dump();
+			}
 			if(defined($current_place) && ($place ne $current_place)) {
 				# FIXME: no need to look up again, use $match->longt and lattt
 				if(!defined($map)) {
@@ -5780,14 +5784,11 @@ sub notes
 			$note =~ s/[\x91\x92]/'/g;
 			$note =~ s/[\xc2\xe2]//g;
 			if($paragraph) {
-				$note =~ s/\n{2,}/<\/p><p>/g;
-				$note =~ tr/\n/ /;
 				$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
 			} else {
 				if($rc) {
 					$rc .= ' ';
 				}
-				$note =~ tr/\n/ /;
 				$rc .= HTML::Entities::encode($note) . '.';
 			}
 		} else {
@@ -5868,6 +5869,15 @@ sub notes
 		}
 	}
 
+	if($paragraph) {
+		$rc =~ s/\n{2,}/<\/p><p>/g;
+	} else {
+		$rc =~ s/\s\s+/ /g;
+	}
+	$rc =~ s/\n/<br>/g;
+	$rc =~ s/ $//;
+	$rc =~ s/!/\&excl;/g;	# ! is the sep_char
+
 	my $ufinder = URI::Find::Schemeless->new(sub {
 		my($uri, $orig_uri) = @_;
 
@@ -5888,10 +5898,6 @@ sub notes
 		return $orig_uri;
 	});
 
-	$rc =~ s/\n/<br>/g;
-	$rc =~ s/\s\s+/ /g;
-	$rc =~ s/ $//;
-	$rc =~ s/!/\&excl;/g;	# ! is the sep_char
 	$ufinder->find(\$rc);
 
 	if(defined($ENV{'LANG'})) {
