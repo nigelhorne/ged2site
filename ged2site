@@ -5844,7 +5844,7 @@ sub notes
 			if(ref($matches) eq 'ARRAY') {
 				my $text;
 				if(length($rc) > 15) {
-					$text = substr($rc, 0, 14) . '...';
+					$text = substr($rc, 0, 24) . '...';
 				} else {
 					$text = $rc;
 				}
@@ -5860,7 +5860,7 @@ sub notes
 				# print Data::Dumper->new([$match])->Dump();
 				# my $place = $match->{'location'};
 				if(length($rc) > 15) {
-					$hr->{'text'} = substr($rc, 0, 14) . '...';
+					$hr->{'text'} = substr($rc, 0, 24) . '...';
 				} else {
 					$hr->{'text'} = $rc;
 				}
