@@ -5798,7 +5798,7 @@ sub notes
 		return;
 	}
 
-	my $hr;
+	my @matches;
 
 	if(defined($note_locations)) {
 		my $region;
@@ -5823,13 +5823,13 @@ sub notes
 		}
 
 		if($freegeocoder) {
-			$hr = $freegeocoder->geocode(scantext => $rc, region => $region);
+			@matches = $freegeocoder->geocode(scantext => $rc, region => $region);
 		} elsif($textgeocoder && ($rc =~ /[\s,]/)) {
-			$hr = $textgeocoder->geocode(scantext => $rc, region => $region);
+			@matches = $textgeocoder->geocode(scantext => $rc, region => $region);
 		}
 	}
 
-	if($hr) {
+	foreach my $hr(@matches) {
 		if($hr->{'error'}) {
 			if($hr->{'error'}->{'description'} =~ /^We currently throttle/) {
 				$textgeocoder = undef;
