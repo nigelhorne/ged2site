@@ -5831,6 +5831,9 @@ sub notes
 	}
 
 	foreach my $hr(@matches) {
+		if(!ref($hr)) {
+			next;
+		}
 		if($hr->{'error'}) {
 			if($hr->{'error'}->{'description'} =~ /^We currently throttle/) {
 				$textgeocoder = undef;
