@@ -1569,6 +1569,12 @@ sub print_person
 				}
 			}
 		}
+		if((!$relationship) && (!$spouserelationship)) {
+			complain({
+				person => $person->person(),
+				warning => "Can't determine relationship with " . $person->as_string()
+			});
+		}
 		print 'relationship = ', ($relationship ? $relationship : 'unknown'), "\n" if($opts{'v'});
 	}
 
@@ -5335,17 +5341,21 @@ sub Gedcom::Individual::relationship
 					7 << 24 | 8 => 'sixth cousin once-removed',
 					8 << 24 | 1 => 'six times great-uncle',
 					8 << 24 | 2 => 'first cousin six-times-removed',
+					8 << 24 | 3 => 'second cousin five-times-removed',
 					9 << 24 | 1 => 'seven times great-uncle',
 					9 << 24 | 2 => 'first cousin seven-times-removed',
 					9 << 24 | 3 => 'second cousin six-times-removed',
+					9 << 24 | 4 => 'third cousin five-times-removed',
 					10 << 24 | 1 => 'eight times great-uncle',
 					10 << 24 | 2 => 'first cousin eight-times-removed',
 					10 << 24 | 3 => 'second cousin seven-times-removed',
 					10 << 24 | 4 => 'third cousin six-times-removed',
 					11 << 24 | 1 => 'nine times great-uncle',
 					11 << 24 | 2 => 'first cousin nine-times-removed',
+					11 << 24 | 3 => 'second cousin eight-times-removed',
 					11 << 24 | 4 => 'third cousin seven-times-removed',
 					12 << 24 | 1 => 'ten times great-uncle',
+					12 << 24 | 3 => 'second cousin nine-times-removed',
 					12 << 24 | 4 => 'third cousin eight-times-removed',
 					12 << 24 | 5 => 'fourth cousin seven-times-removed',
 					13 << 24 | 1 => 'eleven times great-uncle',
@@ -5399,17 +5409,21 @@ sub Gedcom::Individual::relationship
 					7 << 24 | 8 => 'sixth cousin once-removed',
 					8 << 24 | 1 => 'six times great-aunt',
 					8 << 24 | 2 => 'first cousin six-times-removed',
+					8 << 24 | 3 => 'second cousin five-times-removed',
 					9 << 24 | 1 => 'seven times great-aunt',
 					9 << 24 | 2 => 'first cousin seven-times-removed',
 					9 << 24 | 3 => 'second cousin six-times-removed',
+					9 << 24 | 4 => 'third cousin five-times-removed',
 					10 << 24 | 1 => 'eight times great-aunt',
 					10 << 24 | 2 => 'first cousin eight-times-removed',
 					10 << 24 | 3 => 'second cousin seven-times-removed',
 					10 << 24 | 4 => 'third cousin six-times-removed',
 					11 << 24 | 1 => 'nine times great-aunt',
 					11 << 24 | 2 => 'first cousin nine-times-removed',
+					11 << 24 | 3 => 'second cousin eight-times-removed',
 					11 << 24 | 4 => 'third cousin seven-times-removed',
 					12 << 24 | 1 => 'ten times great-aunt',
+					12 << 24 | 3 => 'second cousin nine-times-removed',
 					12 << 24 | 4 => 'third cousin eight-times-removed',
 					12 << 24 | 5 => 'fourth cousin seven-times-removed',
 					13 << 24 | 1 => 'eleven times great-aunt',
@@ -5433,6 +5447,7 @@ sub Gedcom::Individual::relationship
 					}
 				}
 				if(!defined($rc)) {
+					# die $other->as_string(), ": $steps1, $steps2";
 					complain({ person => $other, warning => "TODO: $steps1, $steps2" });
 				}
 
