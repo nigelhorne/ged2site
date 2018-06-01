@@ -32,7 +32,13 @@
 					[% IF facts.first_birth %]
 						<li>
 							First person in the tree:
-							<a href="?page=people&amp;entry=[%- facts.first_birth.person.entry %]">[% facts.first_birthperson.title %]</a>: [% facts.first_birth.date %]
+							<a href="?page=people&amp;entry=[%- facts.first_birth.person.entry %]">[% facts.first_birth.person.title %]</a> was born on [% facts.first_birth.date %]
+						</li>
+					[% END %]
+					[% IF facts.oldest_age %]
+						<li>
+							Person who lived the longest:
+							<a href="?page=people&amp;entry=[%- facts.oldest_age.person.entry %]">[% facts.oldest_age.person.title %]</a> who lived for [% facts.oldest_age.years %] years
 						</li>
 					[% END %]
 				</ul>
