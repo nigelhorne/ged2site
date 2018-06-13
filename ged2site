@@ -1914,6 +1914,11 @@ sub print_person
 			print $csv ', the husband of';
 			print $xml ', the husband of';
 		}
+		my $s = $spouse->as_string({ middle_names => 1, title => 1 });
+		if(!defined($s)) {
+			complain({ person => $spouse, warning => "seems to have no name" });
+			$s = 'your relation';
+		}
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 			$spouse->as_string({ middle_names => 1, title => 1 }),
 			"</a> the $spouserelationship of ",
@@ -2209,7 +2214,11 @@ sub print_person
 					$nameparser->parse($spouses[0]->name());
 
 					my %name_components = $nameparser->components();
-					$bio .= $name_components{'given_name_1'};
+					if(my $n = $name_components{'given_name_1'}) {
+						$bio .= $n;
+					} else {
+						complain({ person => $spouses[0], warning => "seems to have no name" });
+					}
 				} else {
 					print $html $bio;
 					print $csv $bio;
