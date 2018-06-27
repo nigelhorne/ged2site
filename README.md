@@ -97,6 +97,15 @@ site before you deploy. Be aware that you will also see debugging messages.
     ./page.fcgi page=surnames surname=horne lang=fr # List people whose surname is Horne, in French
     ./page.fcgi --mobile page=surnames surname=horne # List people whose surname is Horne, as it would appear on a smart-phone
 
+Pre-Requisites
+==============
+
+This program uses many CPAN modules. To install them all and run the program via Carton:
+
+    cpan -i Carton
+    carton install
+    carton exec ./gedcom [args]
+
 Ancestry on Windows
 ===================
 
