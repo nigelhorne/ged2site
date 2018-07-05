@@ -2446,7 +2446,7 @@ sub print_person
 					} @spouses;
 				}
 
-				my $spousenumber = 0;
+				my $spouse_number = 0;
 				my $previousplace;
 				foreach my $spouse(@spouses) {
 					print $html ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
@@ -2481,19 +2481,40 @@ sub print_person
 						}
 					}
 
+					my $printed_bracket = 0;
 					if($dateofmarriage && $placeofmarriage) {
 						$bio .= ' (' . year({ string => $dateofmarriage }) .
-							"$placeofmarriage)";
+							$placeofmarriage;
+						$printed_bracket = 1;
 					} elsif($placeofmarriage) {
 						$placeofmarriage =~ s/^\s+//;
-						$bio .= " ($placeofmarriage)";
+						$bio .= " ($placeofmarriage";
+						$printed_bracket = 1;
 					} elsif($dateofmarriage) {
-						$bio .= ' (' . year({ string => $dateofmarriage }) . ')';
+						$bio .= ' (' . year({ string => $dateofmarriage });
+						$printed_bracket = 1;
 					}
-					$spousenumber++;
-					if($spousenumber == (scalar(@spouses) - 1)) {
+					$spouse_number++;
+					if((scalar(@spouses) == 2) && $all_marriages_have_date && ($spouse_number == 2) &&
+					   (my $death_of_first_spouse = get_value({ person => $spouses[0], value => 'death date' }))) {
+						if($printed_bracket) {
+							$bio .= ', ';
+						} else {
+							$bio .= '(';
+							$printed_bracket = 1;
+						}
+						$bio .= 'following the death of ' .
+							$spouses[0]->as_string() . ' ' .
+							year({
+								person => $spouses[0],
+								record => $death_of_first_spouse,
+								must_predate => $dateofmarriage
+							})
+					}
+					$bio .= ')' if($printed_bracket);
+					if($spouse_number == (scalar(@spouses) - 1)) {
 						$bio .= ' and';
-					} elsif($spousenumber < (scalar(@spouses) - 1)) {
+					} elsif($spouse_number < (scalar(@spouses) - 1)) {
 						$bio .= ',';
 					}
 					print $html $bio;
@@ -5520,15 +5541,28 @@ sub year
 	}
 	if($string =~ /^(Abt|ca?)\.?\s*(.+)/i) {
 		my $rc = $2;
-		if($opts{'w'} && (my $must_postdate = $params{'must_postdate'})) {
-			my $dt;
-			if($rc !~ /^\d/) {
-				$dt = date_to_datetime("1 $rc");
-			} else {
-				$dt = date_to_datetime($rc);
+		if($opts{'w'}) {
+			if(my $must_postdate = $params{'must_postdate'}) {
+				my $dt;
+				if($rc !~ /^\d/) {
+					$dt = date_to_datetime("1 $rc");
+				} else {
+					$dt = date_to_datetime($rc);
+				}
+				if($dt && ($dt < $must_postdate)) {
+					complain({ person => $params{'person'}, warning => "something is wrong with the date $string which should be after $must_postdate" });
+				}
 			}
-			if($dt && ($dt < $must_postdate)) {
-				complain({ person => $params{'person'}, warning => "something is wrong with the date $string which should be after $must_postdate" });
+			if(my $must_predate = $params{'must_predate'}) {
+				my $dt;
+				if($rc !~ /^\d/) {
+					$dt = date_to_datetime("1 $rc");
+				} else {
+					$dt = date_to_datetime($rc);
+				}
+				if($dt && ($dt > $must_predate)) {
+					complain({ person => $params{'person'}, warning => "something is wrong with the date $string which should be before $must_predate" });
+				}
 			}
 		}
 		if($params{'circa'}) {
