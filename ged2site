@@ -2508,7 +2508,7 @@ sub print_person
 							year({
 								person => $spouses[0],
 								record => $death_of_first_spouse,
-								must_predate => $dateofmarriage
+								must_predate => date_to_datetime($dateofmarriage)
 							})
 					}
 					$bio .= ')' if($printed_bracket);
