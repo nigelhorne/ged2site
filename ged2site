@@ -3150,6 +3150,22 @@ sub print_person
 									}
 								}
 							}
+							# TODO: father, and both parents
+							if($mother) {
+								my @mr = get_all_residences(person => $mother);
+								foreach my $mr(@mr) {
+									my $mdate = $mr->date();
+									next if(!defined($mdate));
+									next if($mdate ne $rdate);
+									if(place({ person => $mother, record => $mr }) eq $place) {
+										$bio .= ($printed_sibling ? ' and ' : ' with ') .
+											($person->pronoun() eq 'She' ? 'her' : 'his') .
+											' mother,' .
+											$mother->given_names();
+										last;
+									}
+								}
+							}
 						}
 					}
 				}
