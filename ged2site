@@ -3160,7 +3160,7 @@ sub print_person
 									if(place({ person => $mother, record => $mr }) eq $place) {
 										$bio .= ($printed_sibling ? ' and ' : ' with ') .
 											($person->pronoun() eq 'She' ? 'her' : 'his') .
-											' mother,' .
+											' mother, ' .
 											$mother->given_names();
 										last;
 									}
