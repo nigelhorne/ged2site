@@ -3049,15 +3049,6 @@ sub print_person
 					}
 					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
-							$bio .= ' following the death of ' .
-								($person->pronoun() eq 'She' ? 'her' : 'his') .
-								(($sex eq 'M') ? ' wife ' : ' husband ') .
-								year(date => get_value({ person => $spouses[0], value => 'death date' }));
-							$spdeath_dt = undef;
-						}
-					}
-					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
-						if($rdate_dt > $spdeath_dt) {
 							# Living with a child following death of spouse?
 							CHILD: foreach my $child(@children) {
 								my @cevents = $child->event();
@@ -3093,6 +3084,13 @@ sub print_person
 										last CHILD;
 									}
 								}
+							}
+							if($spdeath_dt) {
+								# Outlived spouse, but not living with a child
+								$bio .= ' following the death of ' .
+									($person->pronoun() eq 'She' ? 'her' : 'his') .
+									(($sex eq 'M') ? ' wife ' : ' husband ') .
+									year(date => get_value({ person => $spouses[0], value => 'death date' }));
 							}
 						}
 					}
@@ -3151,6 +3149,7 @@ sub print_person
 								}
 							}
 							# TODO: father, and both parents
+							# FIXME: only checks when there are @siblings
 							if($mother) {
 								my @mr = get_all_residences(person => $mother);
 								foreach my $mr(@mr) {
@@ -3162,6 +3161,20 @@ sub print_person
 											($person->pronoun() eq 'She' ? 'her' : 'his') .
 											' mother, ' .
 											$mother->given_names();
+										last;
+									}
+								}
+							}
+							if($spouse && $marriage_dt && ($marriage_dt > $rdate)) {
+								my @sr = get_all_residences(person => $spouse);
+								foreach my $sr(@sr) {
+									my $sdate = $sr->date();
+									next if(!defined($sdate));
+									next if($sdate ne $rdate);
+									if(place({ person => $spouse, record => $sr }) eq $place) {
+										$bio .= ($printed_sibling ? ' and ' : ' with ') .
+											($person->pronoun() eq 'She' ? 'her future husband, ' : 'his future wife, ') .
+											$spouse->given_names();
 										last;
 									}
 								}
