@@ -3096,6 +3096,7 @@ sub print_person
 					}
 					# Find if they are an adult living with an adult sibling or in-law
 					if($all_residences_have_date && scalar(@siblings) && $birth_dt) {
+						my $printed_sibling = 0;
 						foreach my $r(@residences) {
 							next if($r->date() ne $rdate);
 							my $place = place({ person => $person, record => $r });
@@ -3144,6 +3145,7 @@ sub print_person
 											' ' .
 											(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
 											$sibling->given_names();
+										$printed_sibling = 1;
 										last;
 									}
 								}
@@ -3165,17 +3167,19 @@ sub print_person
 									}
 								}
 							}
-							if($spouse && $marriage_dt && ($marriage_dt > $rdate)) {
-								my @sr = get_all_residences(person => $spouse);
-								foreach my $sr(@sr) {
-									my $sdate = $sr->date();
-									next if(!defined($sdate));
-									next if($sdate ne $rdate);
-									if(place({ person => $spouse, record => $sr }) eq $place) {
-										$bio .= ($printed_sibling ? ' and ' : ' with ') .
-											($person->pronoun() eq 'She' ? 'her future husband, ' : 'his future wife, ') .
-											$spouse->given_names();
-										last;
+							if($spouse && $marriage_dt && (my $rdate_dt = date_to_datetime($rdate))) {
+								if($marriage_dt > $rdate_dt) {
+									my @sr = get_all_residences(person => $spouse);
+									foreach my $sr(@sr) {
+										my $sdate = $sr->date();
+										next if(!defined($sdate));
+										next if($sdate ne $rdate);
+										if(place({ person => $spouse, record => $sr }) eq $place) {
+											$bio .= ($printed_sibling ? ' and ' : ' with ') .
+												($person->pronoun() eq 'She' ? 'her future husband, ' : 'his future wife, ') .
+												$spouse->given_names();
+											last;
+										}
 									}
 								}
 							}
