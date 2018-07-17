@@ -453,6 +453,8 @@ if($opts{'w'}) {
 
 memoize('Gedcom::Individual::as_string');
 memoize('stepsabove');
+memoize('normalize_name');
+memoize('date_to_datetime');
 
 open(my $xml, '>', 'dynamic-site/databases/people.xml');
 print $xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>";
@@ -2497,7 +2499,8 @@ sub print_person
 					$spouse_number++;
 					if((scalar(@spouses) == 2) && $all_marriages_have_date && ($spouse_number == 2) &&
 					   (my $death_of_first_spouse = get_value({ person => $spouses[0], value => 'death date' }))) {
-						if(date_to_datetime($dateofmarriage) > date_to_datetime($death_of_first_spouse)) {
+						if(date_to_datetime($death_of_first_spouse) &&
+						   (date_to_datetime($dateofmarriage) > date_to_datetime($death_of_first_spouse))) {
 							if($printed_bracket) {
 								$bio .= ', ';
 							} else {
