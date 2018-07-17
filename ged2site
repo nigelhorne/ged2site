@@ -2497,19 +2497,20 @@ sub print_person
 					$spouse_number++;
 					if((scalar(@spouses) == 2) && $all_marriages_have_date && ($spouse_number == 2) &&
 					   (my $death_of_first_spouse = get_value({ person => $spouses[0], value => 'death date' }))) {
-						if($printed_bracket) {
-							$bio .= ', ';
-						} else {
-							$bio .= '(';
-							$printed_bracket = 1;
+						if(date_to_datetime($dateofmarriage) > date_to_datetime($death_of_first_spouse)) {
+							if($printed_bracket) {
+								$bio .= ', ';
+							} else {
+								$bio .= '(';
+								$printed_bracket = 1;
+							}
+							$bio .= 'following the death of ' .
+								$spouses[0]->as_string() . ' ' .
+								year({
+									person => $spouses[0],
+									record => $death_of_first_spouse,
+								});
 						}
-						$bio .= 'following the death of ' .
-							$spouses[0]->as_string() . ' ' .
-							year({
-								person => $spouses[0],
-								record => $death_of_first_spouse,
-								must_predate => date_to_datetime($dateofmarriage)
-							})
 					}
 					$bio .= ')' if($printed_bracket);
 					if($spouse_number == (scalar(@spouses) - 1)) {
