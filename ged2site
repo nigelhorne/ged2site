@@ -4680,10 +4680,6 @@ sub print_person
 			}
 		}
 		foreach my $location(@note_locations) {
-			my %args = (geocoder => $geocoder);
-			if($javascript_key) {
-				$args{'api_key'} = $javascript_key;
-			}
 			my $match;
 			if($location->{'match'}) {
 				$match = $location->{'match'};
@@ -5926,6 +5922,10 @@ sub notes
 				$region = 'us';
 			} elsif(lc($1) eq 'Canada') {
 				$region = 'ca';
+			} elsif(lc($1) eq 'Australia') {
+				$region = 'au';
+			} else {
+				$region = undef;
 			}
 		}
 
