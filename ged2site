@@ -6795,20 +6795,21 @@ sub datecmp
 	my $left = shift;
 	my $right = shift;
 
-	if(!ref($left)) {
-		if($left !~ /^\d{3,4}$/) {
-			$left = $dfg->parse_datetime($left);
-		}
+	if((!ref($left)) && ($left !~ /^\d{3,4}$/)) {
+		$left = $dfg->parse_datetime($left);
 	}
 	if(!ref($right)) {
-		if($right =~ /^\d{3,4}$/) {
+		if(($right =~ /^\d{3,4}$/) && ref($left)) {
 			return $left->year() <=> $right;
 		}
 		$right = $dfg->parse_datetime($right);
 	}
-	if(ref($left) && ref($right)) {
-		return $left <=> $right;
+	if((!ref($left)) && ref($right)) {
+		return $left <=> $right->year();
 	}
-	return $right->year() <=> $left;
-}
+	if(ref($left) && (!ref($right))) {
+		return $left->year() <=> $right;
+	}
 
+	return $left <=> $right;
+}
