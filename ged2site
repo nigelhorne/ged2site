@@ -2499,8 +2499,7 @@ sub print_person
 					$spouse_number++;
 					if((scalar(@spouses) == 2) && $all_marriages_have_date && ($spouse_number == 2) &&
 					   (my $death_of_first_spouse = get_value({ person => $spouses[0], value => 'death date' }))) {
-						if(date_to_datetime($death_of_first_spouse) &&
-						   (date_to_datetime($dateofmarriage) > date_to_datetime($death_of_first_spouse))) {
+						if(datecmp($dateofmarriage, $death_of_first_spouse) > 0) {
 							if($printed_bracket) {
 								$bio .= ', ';
 							} else {
@@ -6578,9 +6577,8 @@ sub date_to_datetime
 		if($date =~ /^bet (.+) and (.+)/i) {
 			if(wantarray) {
 				return date_to_datetime($1), date_to_datetime($2);
-			} else {
-				return;
 			}
+			return;
 		}
 		if($date !~ /^\d{3,4}$/) {
 			if(($date =~ /^\d/) && (my $d = date_parser_cached($date))) {
@@ -6790,3 +6788,27 @@ sub journey
 
 	return $rc;
 }
+
+# Compare two dates
+sub datecmp
+{
+	my $left = shift;
+	my $right = shift;
+
+	if(!ref($left)) {
+		if($left !~ /^\d{3,4}$/) {
+			$left = $dfg->parse_datetime($left);
+		}
+	}
+	if(!ref($right)) {
+		if($right =~ /^\d{3,4}$/) {
+			return $left->year() <=> $right;
+		}
+		$right = $dfg->parse_datetime($right);
+	}
+	if(ref($left) && ref($right)) {
+		return $left <=> $right;
+	}
+	return $right->year() <=> $left;
+}
+
