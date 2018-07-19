@@ -3105,8 +3105,8 @@ sub print_person
 							my $place = place({ person => $person, record => $r });
 							my $first = 1;
 
+							my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
 							foreach my $sibling(@siblings) {
-								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
 								if(my $ss = $sibling->spouse()) {
 									next if($bdiff->in_units('years') < 20);
 									# If they are living with an in-law, assume both are adults
@@ -3155,7 +3155,7 @@ sub print_person
 							}
 							# TODO: father, and both parents
 							# FIXME: only checks when there are @siblings
-							if($mother) {
+							if($mother && ($bdiff->in_units('years') >= 30)) {
 								my @mr = get_all_residences(person => $mother);
 								foreach my $mr(@mr) {
 									my $mdate = $mr->date();
