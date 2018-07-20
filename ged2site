@@ -5968,7 +5968,7 @@ sub notes
 					push @{$note_locations}, $match;
 				}
 			} elsif(ref($matches) eq 'HASH') {
-				my $match = $matches;
+				# my $match = $matches;
 				# print Data::Dumper->new([$match])->Dump();
 				# my $place = $match->{'location'};
 				if(length($rc) > 15) {
