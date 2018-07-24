@@ -5880,6 +5880,7 @@ sub notes
 				# complain("Note record is just description ($note), infomation may have been lost");
 			}
 			$note =~ s/\r//g;
+			$note =~ s/\s+$//g;
 			$note =~ s/\.$//;
 			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
 			$note =~ s/\xe2\x80\x9d/"/g;	# right quotation
