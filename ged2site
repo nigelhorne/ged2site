@@ -2991,21 +2991,14 @@ sub print_person
 							foreach my $child(@children) {
 								my $cyob = get_value({ person => $child, value => 'birth date' });
 								next if(!defined($cyob));
-								my $cbdt = date_to_datetime($cyob);
-								next if($rdt && $cbdt && ($rdt < $cbdt));	# Child wasn't born by that day
+								next if(datecmp($cyob, $rdt) >= 0);	# Child was not born yet
 								if($cyob =~ /(\d{3,4})\s*$/) {
 									$cyob = $1;
 								}
-								next if($yoe < $cyob);	# This child wasn't by born then
 								next if(($yoe - $cyob) > 10);	# Over 10 years old
 								my $cddt;
 								if(my $cyod = get_value({ person => $child, value => 'death date' })) {
-									$cddt = date_to_datetime($cyod);
-									if($cyod =~ /(\d{3,4})\s*$/) {
-										$cyod = $1;
-									}
-									next if($yoe > $cyod);	# Child was dead by that year
-									next if($rdt && $cddt && ($rdt > $cddt));	# Child was dead by that day
+									next if(datecmp($cyod, $rdt) <= 0);	# Child was dead by this event
 								}
 
 								my $missing_child = 1;
@@ -3013,16 +3006,9 @@ sub print_person
 
 								foreach my $event(@residences) {
 									my $edate = $event->date();
-									next if(!defined($edate));
-									if($edate eq $rdate) {	# Found residence of child on the same day
+									if($edate && (datecmp($edate, $rdate) >= 0)) {
 										$missing_child = 0;
 										last;
-									}
-									if($edate =~ /(\d{3,4})\s*$/) {
-										if($yoe eq $1) {	# Found residence of child in the same year
-											$missing_child = 0;
-											last;
-										}
 									}
 								}
 								if($missing_child) {
@@ -6790,18 +6776,24 @@ sub journey
 	return $rc;
 }
 
-# Compare two dates
+# Compare two dates. Approximate dates are compared.
 sub datecmp
 {
 	my $left = shift;
 	my $right = shift;
 
 	if((!ref($left)) && ($left !~ /^\d{3,4}$/)) {
+		if($left =~ /^(Abt|ca?)\s+(.+)/i) {
+			$left = $2;
+		}
 		$left = $dfg->parse_datetime($left);
 	}
 	if(!ref($right)) {
 		if(($right =~ /^\d{3,4}$/) && ref($left)) {
 			return $left->year() <=> $right;
+		}
+		if($right =~ /^(Abt|ca?)\s+(.+)/i) {
+			$right = $2;
 		}
 		$right = $dfg->parse_datetime($right);
 	}
