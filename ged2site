@@ -2996,7 +2996,6 @@ sub print_person
 									$cyob = $1;
 								}
 								next if(($yoe - $cyob) > 10);	# Over 10 years old
-								my $cddt;
 								if(my $cyod = get_value({ person => $child, value => 'death date' })) {
 									next if(datecmp($cyod, $rdt) <= 0);	# Child was dead by this event
 								}
@@ -6777,23 +6776,27 @@ sub journey
 }
 
 # Compare two dates. Approximate dates are compared.
+# TODO: handle when only months are known
+
 sub datecmp
 {
 	my $left = shift;
 	my $right = shift;
 
-	if((!ref($left)) && ($left !~ /^\d{3,4}$/)) {
+	if(!ref($left)) {
 		if($left =~ /^(Abt|ca?)\s+(.+)/i) {
 			$left = $2;
 		}
-		$left = $dfg->parse_datetime($left);
+		if($left !~ /^\d{3,4}$/) {
+			$left = $dfg->parse_datetime($left);
+		}
 	}
 	if(!ref($right)) {
-		if(($right =~ /^\d{3,4}$/) && ref($left)) {
-			return $left->year() <=> $right;
-		}
 		if($right =~ /^(Abt|ca?)\s+(.+)/i) {
 			$right = $2;
+		}
+		if(($right =~ /^\d{3,4}$/) && ref($left)) {
+			return $left->year() <=> $right;
 		}
 		$right = $dfg->parse_datetime($right);
 	}
