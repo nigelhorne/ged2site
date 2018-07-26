@@ -4898,7 +4898,7 @@ sub print_person
 			};
 			if(defined($b)) {
 				$birth_country = $b->code_alpha2();
-			} elsif($opts{'w'}) {
+			} else {
 				complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
 			}
 		}
@@ -4937,7 +4937,7 @@ sub print_person
 			};
 			if(defined($d)) {
 				$death_country = $d->code_alpha2();
-			} elsif($opts{'w'}) {
+			} else {
 				complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
 			}
 		}
