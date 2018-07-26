@@ -2985,7 +2985,7 @@ sub print_person
 								# FIXME: both parents could be dead
 								complain({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
 							}	# TODO: else warn if both parents locations are different
-						} elsif($numberofchildren) {
+						} elsif($numberofchildren && ($rdate !~ /^bet\s/i)) {
 							# Look if a young child isn't with this parent
 							foreach my $child(@children) {
 								my $cyob = get_value({ person => $child, value => 'birth date' });
@@ -6781,16 +6781,15 @@ sub datecmp
 	my $right = shift;
 
 	if((!defined($left)) || !defined($right)) {
-		print STDERR "\n";
+		if(!defined($left)) {
+			print STDERR "BUG: left not defined\n";
+		}
+		if(!defined($right)) {
+			print STDERR "BUG: right not defined\n";
+		}
 		my $i = 0;
 		while((my @call_details = caller($i++))) {
-			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
-			if(!defined($left)) {
-				print STDERR "BUG: left not defined\n";
-			}
-			if(!defined($right)) {
-				print STDERR "BUG: right not defined\n";
-			}
+			print "\t", STDERR colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
 	}
 	if(!ref($left)) {
@@ -6805,9 +6804,20 @@ sub datecmp
 		if($right =~ /^(Abt|ca?)\s+(.+)/i) {
 			$right = $2;
 		}
-		if(($right =~ /^\d{3,4}$/) && ref($left)) {
-			return $left->year() <=> $right;
+		if($right =~ /^\d{3,4}$/) {
+			if(ref($left)) {
+				return $left->year() <=> $right;
+			} else {
+				return $left <=> $right;
+			}
 		}
+		# if(!$dfg->parse_datetime($right)) {
+			# my $i = 0;
+			# while((my @call_details = caller($i++))) {
+				# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+			# }
+			# die $right;
+		# }
 		$right = $dfg->parse_datetime($right);
 	}
 	if((!ref($left)) && ref($right)) {
