@@ -1107,8 +1107,13 @@ sub print_person
 	my $xtitle = $title;
 	$xtitle =~ s/&eacute;/&#233;/g;
 	print $xml "\n\t\t<entry>", $person->{'xref'}, "</entry>\n\t\t<title>$xtitle</title>";
-	print $csv $person->{'xref'}, '!',
-		$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
+	if($is_alive && !$opts{'l'}) {
+		print $csv $person->{'xref'}, '!',
+			$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
+	} else {
+		print $csv $person->{'xref'}, '!',
+			$person->as_string({ middle_names => 1, title => 1 }), '!';
+	}
 
 	if($me && ($person eq $me)) {
 		my $name = $person->as_string(nee => 1);
@@ -1158,7 +1163,9 @@ sub print_person
 	if($is_alive && !$opts{'l'}) {
 		print $xml "\n\t\t<alive>1</alive>";
 		print $csv '1!';
-		$bio = '<i>This is the record of a living person, so not much data will be shown.</i></p><p>';
+		my $str = '<i>This is the record of a living person, so not much data will be shown.</i></p><p>';
+		print $html $str;
+		print $csv $str;
 		print "Living person\n" if($opts{'v'});
 	} else {
 		print $csv '0!';
