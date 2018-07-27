@@ -4898,16 +4898,10 @@ sub print_person
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Preußen') {	# Prussia
 			$birth_country = 'Germany';
+		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
+			$birth_country = $b->code_alpha2();
 		} else {
-			my $b;
-			eval {
-				$b = Locale::Object::Country->new(name => $c);
-			};
-			if(defined($b)) {
-				$birth_country = $b->code_alpha2();
-			} else {
-				complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
-			}
+			complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
 		}
 	}
 
@@ -4937,16 +4931,10 @@ sub print_person
 			$death_country = 'United Kingdom';
 		} elsif($c eq 'Preußen') {	# Prussia
 			$death_country = 'Germany';
+		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
+			$death_country = $b->code_alpha2();
 		} else {
-			my $d;
-			eval {
-				$d = Locale::Object::Country->new(name => $c);
-			};
-			if(defined($d)) {
-				$death_country = $d->code_alpha2();
-			} else {
-				complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
-			}
+			complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
 		}
 	}
 
@@ -6796,7 +6784,7 @@ sub datecmp
 		}
 		my $i = 0;
 		while((my @call_details = caller($i++))) {
-			print "\t", STDERR colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
 	}
 	if(!ref($left)) {
