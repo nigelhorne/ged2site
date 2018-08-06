@@ -1892,11 +1892,13 @@ sub print_person
 		$bio .= $pronoun;
 	}
 
-	print $html $bio;
-	print $csv $bio;
-	print $xml HTML::Entities::encode($bio);
+	if($bio) {
+		print $html $bio;
+		print $csv $bio;
+		print $xml HTML::Entities::encode($bio);
 
-	$fullbio .= $bio;
+		$fullbio .= $bio;
+	}
 	$bio = '';
 
 	my $haveprintedspousename;
