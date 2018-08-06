@@ -91,6 +91,7 @@ use Locale::Object::Country;
 use List::Util;
 use POSIX;
 use JSON;
+use File::Print::Many;
 
 no lib '.';
 
@@ -1892,9 +1893,10 @@ sub print_person
 		$bio .= $pronoun;
 	}
 
+	my $html_and_csv = File::Print::Many->new([$csv, $html]);
+
 	if($bio) {
-		print $html $bio;
-		print $csv $bio;
+		$html_and_csv->print($bio);
 		print $xml HTML::Entities::encode($bio);
 
 		$fullbio .= $bio;

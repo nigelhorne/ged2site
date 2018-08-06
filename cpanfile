@@ -14,6 +14,7 @@ requires 'FCGI::Buffer';
 requires 'File::Copy';
 requires 'File::HomeDir';
 requires 'File::pfopen';
+requires 'File::Print::Many';
 requires 'Gedcom';
 requires 'Genealogy::Gedcom::Date';
 requires 'Geo::Coder::Bing';
