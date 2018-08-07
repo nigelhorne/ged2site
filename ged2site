@@ -1070,12 +1070,6 @@ sub print_person
 			complain({ person => $person, warning => "not found in $ARGV[1]" });
 		}
 	}
-	my $title = $person->as_string({
-		include_years => 1,
-		nee => 1,
-		middle_names => 1,
-		title => 1,
-	});
 
 	my $name = $person->name();
 	$name =~ s/\///g;
@@ -1098,8 +1092,16 @@ sub print_person
 	}
 
 	my $is_alive = is_alive(person => $person);
+	my $title;
 	if($is_alive && !$opts{'l'}) {
 		$title = $firstname;
+	} else {
+		$title = $person->as_string({
+			include_years => 1,
+			nee => 1,
+			middle_names => 1,
+			title => 1,
+		});
 	}
 
 	print "Starting output\n" if($opts{'v'});
@@ -1110,10 +1112,10 @@ sub print_person
 	print $xml "\n\t\t<entry>", $person->{'xref'}, "</entry>\n\t\t<title>$xtitle</title>";
 	if($is_alive && !$opts{'l'}) {
 		print $csv $person->{'xref'}, '!',
-			$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
+			$person->as_string({ middle_names => 1, title => 1 }), '!';
 	} else {
 		print $csv $person->{'xref'}, '!',
-			$person->as_string({ middle_names => 1, title => 1 }), '!';
+			$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
 	}
 
 	if($me && ($person eq $me)) {
@@ -2233,8 +2235,7 @@ sub print_person
 						complain({ person => $spouses[0], warning => "seems to have no name" });
 					}
 				} else {
-					print $html $bio;
-					print $csv $bio;
+					$html_and_csv->print($bio);
 					$bio =~ s/&/&amp;/g;
 					$bio =~ s/</&lt;/g;
 					$bio =~ s/>/&gt;/g;
@@ -2424,8 +2425,7 @@ sub print_person
 
 				$bio .= ', to';
 
-				print $html $bio;
-				print $csv $bio;
+				$html_and_csv->print($bio);
 				$bio =~ s/</&lt;/g;
 				$bio =~ s/>/&gt;/g;
 				print $xml $bio;
@@ -2531,8 +2531,7 @@ sub print_person
 					} elsif($spouse_number < (scalar(@spouses) - 1)) {
 						$bio .= ',';
 					}
-					print $html $bio;
-					print $csv $bio;
+					$html_and_csv->print($bio);
 					print $xml $bio;
 
 					$fullbio .= $bio;
