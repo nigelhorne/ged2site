@@ -3075,7 +3075,7 @@ sub print_person
 											(($child->sex() eq 'F') ? ' daughter ' : ' son ') .
 											$child->given_names() .
 											' following the death of ' .
-											($sex eq 'M') ? 'his wife ' : 'her husband ' .
+											(($sex eq 'M') ? 'his wife ' : 'her husband ') .
 											year(date => get_value({ person => $spouses[0], value => 'death date' }));
 										$spdeath_dt = undef;
 										last CHILD;
