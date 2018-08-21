@@ -5080,6 +5080,10 @@ sub Gedcom::Individual::as_string
 				$rest = $1;
 			}
 			$surname .= $rest;
+
+			# Remove the middle name, since it's come in from the non_matching
+			$middle_name = undef;
+			delete $args{'middle_names'};
 		}
 	} elsif(!defined($surname)) {
 		$surname = $self->surname();
