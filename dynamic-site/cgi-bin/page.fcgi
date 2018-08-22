@@ -27,6 +27,7 @@ use Log::Any::Adapter;
 use Error qw(:try);
 use File::Spec;
 use Log::WarnDie 0.09;
+use HTTP::Date;
 use autodie qw(:all);
 
 # use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
@@ -263,6 +264,7 @@ sub doit
 	my $display;
 	my $invalidpage;
 	$args = {
+		cachedir => $cachedir,
 		info => $info,
 		logger => $logger,
 		lingua => $lingua,
