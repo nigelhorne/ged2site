@@ -3010,9 +3010,7 @@ sub print_person
 								}
 
 								my $missing_child = 1;
-								my @residences = get_all_residences($child);
-
-								foreach my $event(@residences) {
+								foreach my $event(get_all_residences($child)) {
 									my $edate = $event->date();
 									if($edate && (datecmp($edate, $rdate) >= 0)) {
 										$missing_child = 0;
@@ -6667,13 +6665,20 @@ sub get_all_residences
 
 	my @residences = $person->residence();
 	my @rc;
+	my $index = 0;
 	foreach my $residence(@residences) {
-		if(ref($residence)) {
+		if(!ref($residence)) {
+			my $r = $person->tag_record('RESI', $index);
+			if(ref($r) eq 'Gedcom::Record') {
+				$residence = $r;
+			}
+		}
+		if(ref($residence) eq 'Gedcom::Record') {
 			push @rc, $residence;
 		}
 	}
 	my @events = $person->event();
-	my $index = 0;
+	$index = 0;
 	foreach my $event(@events) {
 		$index++;
 		if(!ref($event)) {
