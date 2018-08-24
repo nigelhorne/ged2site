@@ -681,7 +681,9 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Census information not used to approximate a date of birth/) {
 					$summary = 'Date of Birth not Calculated';
 				} elsif($warning =~ /^Census information not used to determine a parent/) {
-					$summary = 'Parent not Determined in Census';
+					$summary = 'Parent not Determined from Census';
+				} elsif($warning =~ /^Baptism information not used to determine a parent/) {
+					$summary = 'Parent not Determined from Baptism';
 				} elsif($warning =~ /^Unknown state in/) {
 					$summary = 'Unknown US State';
 				} elsif($warning =~ /^Residence information in/) {
@@ -1591,6 +1593,10 @@ sub print_person
 			});
 		}
 		print 'relationship = ', ($relationship ? $relationship : 'unknown'), "\n" if($opts{'v'});
+	}
+
+	if(($dateofbaptism || $placeofbaptism) && !($mother || $father) && $relationship) {
+		complain({ person => $person, warning => 'Baptism information not used to determine a parent' });
 	}
 
 	while($occupations[0] && ($occupations[0] =~ /^scho(ol|lar)/i)) {
@@ -2994,7 +3000,10 @@ sub print_person
 								}
 							}
 							if((!$mother) && !$father) {
-								complain({ person => $person, warning => 'Census information not used to determine a parent' });
+								# People not related by blood tend not to have been researched
+								if($relationship) {
+									complain({ person => $person, warning => 'Census information not used to determine a parent' });
+								}
 							} elsif(!$found_parent) {
 								# FIXME: both parents could be dead
 								complain({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
