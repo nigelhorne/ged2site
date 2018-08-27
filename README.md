@@ -9,8 +9,10 @@ at https://genealogy.nigelhorne.com.
 This is quite complex software, so if you are a genealogist looking to create
 a website and aren't an IT guru,
 it would be better to e-mail me on `<njh at nigelhorne.com>` for help.
+If you contact me, please let me know the program you're using to create your
+Gedcom file, and the operating system you are using.
 
-It's been tested more extensively with GedComs exported and downloaded from
+It's been tested more extensively with Gedcoms exported and downloaded from
 FindMyPast and Family Tree Maker, though it should work fine with other systems
 such as GenesReunited and Ancestry.
 
