@@ -6679,6 +6679,7 @@ sub get_all_residences
 	my @rc;
 	my $index = 0;
 	foreach my $residence(@residences) {
+		$index++;
 		if(!ref($residence)) {
 			my $r = $person->tag_record('RESI', $index);
 			if(ref($r) eq 'Gedcom::Record') {
