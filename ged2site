@@ -660,7 +660,7 @@ if($opts{'w'}) {
 					$summary = 'URL in notes not found';
 				} elsif($warning =~ /^Unhandled event type:/) {
 					$summary = 'Unhandled Event Type';
-				} elsif($warning =~ /^Census citation missing between /) {
+				} elsif($warning =~ /^Census information missing between /) {
 					$summary = 'Missing Census';
 				} elsif($warning =~ /^Check the gender of the record/) {
 					$summary = 'Possibly Wrong Gender';
@@ -4120,17 +4120,11 @@ sub print_person
 						if($type =~ /^Census U[KS] (\d{4})$/) {
 							$year = $1;
 							if(!$event->date()) {
-								if($opts{'f'}) {
-									die $person->as_person(), "Census for $year is missing a date";
-								}
-								red_warning({ person => $person, warning => "Census for $year missing a date" });
+								complain({ person => $person, warning => "Census for $year missing a date" });
 							}
 						} elsif($type eq 'Register UK 1939') {
 							if(!$event->date()) {
-								if($opts{'f'}) {
-									die $person->as_person(), '1939 UK register is missing the date 29 Sep 1939';
-								}
-								red_warning({ person => $person, warning => '1939 UK register is missing the date 29 Sep 1939' });
+								complain({ person => $person, warning => '1939 UK register is missing the date 29 Sep 1939' });
 							}
 							$year = 1939;
 						} else {
@@ -4138,26 +4132,17 @@ sub print_person
 						}
 						$census_years{$year} = $type;
 						if(defined($yod) && ($year > $yod)) {
-							if($opts{'f'}) {
-								die $person->as_person(), "Census for $year is after year of death ($yod)";
-							}
-							red_warning({ person => $person, warning => "Census for $year after year of death ($yod)" });
+							complain({ person => $person, warning => "Census for $year after year of death ($yod)" });
 						} elsif(defined($yob) && ($year < $yob)) {
-							if($opts{'f'}) {
-								die $person->as_person(), "Census for $year is after year of birth ($yob)";
-							}
-							red_warning({ person => $person, warning => "Census for $year after year of birth ($yob)" });
+							complain({ person => $person, warning => "Census for $year before year of birth ($yob)" });
 						}
 					}
 				}
 				foreach my $year(sort { $a <=> $b } keys(%census_years)) {
 					if($census_years{$year + 20} && !$census_years{$year + 10}) {
-						if($opts{'f'}) {
-							die 'Census citation missing between ', $census_years{$year}, ' and ', $census_years{$year + 20};
-						}
-						red_warning({
+						complain({
 							person => $person,
-							warning => 'Census citation missing between ' . $census_years{$year} . ' and ' . $census_years{$year + 20}
+							warning => 'Census information missing between ' . $census_years{$year} . ' and ' . $census_years{$year + 20}
 						});
 					}
 				}
