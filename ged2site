@@ -1209,10 +1209,7 @@ sub print_person
 			if($opts{'w'}) {
 				foreach my $s($birth->source()) {
 					if(!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) {
-						if($opts{'f'}) {
-							die $person->as_string(), ': Citation is missing a source';
-						}
-						red_warning({ person => $person, warning => 'Citation is missing a source' });
+						complain({ person => $person, warning => 'Citation is missing a source' });
 					}
 				}
 			}
@@ -1435,13 +1432,8 @@ sub print_person
 				$src = $ged->get_source($src) unless ref($src);
 				# FIXME:  Only looks for matches in the first citations
 				if(!defined($src)) {
-					if($opts{'w'}) {
-						my $src = $marriage->source();
-						if($opts{'f'}) {
-							die $person->as_string(), ": marriage citation can't find source $src";
-						}
-						red_warning({ person => $person, warning => "marriage citation can't find source $src" });
-					}
+					my $src = $marriage->source();
+					complain({ person => $person, warning => "marriage citation can't find source $src" });
 				} elsif($birthcitations[0] && ($citations{$birthcitations[0]} eq $src)) {
 					$marriagecitation = $birthcitations[0];
 				} elsif($deathcitations[0] && ($citations{$deathcitations[0]} eq $src)) {
@@ -1465,10 +1457,8 @@ sub print_person
 				foreach my $src(@s) {
 					$src = $ged->get_source($src) unless ref($src);
 					if(!defined($src)) {
-						if($opts{'w'}) {
-							my $src = $burial->source();
-							complain({ person => $person, warning => "burial citation can't find source $src" });
-						}
+						my $src = $burial->source();
+						complain({ person => $person, warning => "burial citation can't find source $src" });
 						next;
 					}
 					my $seen;
