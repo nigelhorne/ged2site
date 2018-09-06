@@ -1644,10 +1644,39 @@ sub print_person
 		shift @occupations;
 	}
 
+	my @twins;
+	foreach my $s(@siblings) {
+		if(my $dob = get_value({ person => $s, value => 'birth date' })) {
+			if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
+				my $d;
+				eval {
+					$d = $date_parser->parse(date => $dob);
+				};
+				if($d) {
+					$d = @{$d}[0];
+				}
+				if($d) {
+					$d = $dfn->parse_datetime($d->{'canonical'});
+					if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
+						push @twins, $s;
+					}
+				}
+			}
+		}
+	}
+	if(scalar(@twins) == 1) {	# TODO triplets and higher order
+		if(scalar(@occupations)) {
+			$bio .= ', twin of ' . $twins[0]->given_names();
+		} else {
+			$bio .= 'The twin ' . (($person->sex() eq 'M') ? 'brother' : 'sister') .
+				' of ' . $twins[0]->given_names();
+		}
+	}
+
 	my $print_sibling_count = 0;
 	print $xml "\n\t\t<bio>";
 	if($father || $mother) {
-		if(scalar(@occupations)) {
+		if(scalar(@occupations) || scalar(@twins)) {
 			$bio .= ' and the ';
 		} else {
 			$bio = 'The ';
