@@ -2147,26 +2147,26 @@ sub print_person
 					});
 				}
 			} elsif($birth_dt) {
-				# my @twins;
-				# foreach my $s(@siblings) {
-					# if(my $dob = get_value({ person => $s, value => 'birth date' })) {
-						# if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
-							# my $d;
-							# eval {
-								# $d = $date_parser->parse(date => $dob);
-							# };
-							# if($d) {
-								# $d = @{$d}[0];
-							# }
-							# if($d) {
-								# $d = $dfn->parse_datetime($d->{'canonical'});
-								# if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
-									# push @twins, { sibling => $s, dob => $d };
-								# }
-							# }
-						# }
-					# }
-				# }
+				my @twins;
+				foreach my $s(@siblings) {
+					if(my $dob = get_value({ person => $s, value => 'birth date' })) {
+						if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
+							my $d;
+							eval {
+								$d = $date_parser->parse(date => $dob);
+							};
+							if($d) {
+								$d = @{$d}[0];
+							}
+							if($d) {
+								$d = $dfn->parse_datetime($d->{'canonical'});
+								if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
+									push @twins, { sibling => $s, dob => $d };
+								}
+							}
+						}
+					}
+				}
 				if(scalar(@twins) == 1) {	# TODO triplets and higher order
 					my $t = $twins[0];
 					my $sibling = $t->{'sibling'};
