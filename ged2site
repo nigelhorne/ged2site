@@ -3128,89 +3128,88 @@ sub print_person
 					# Find if they are an adult living with an adult sibling or in-law
 					if($all_residences_have_date && scalar(@siblings) && $birth_dt) {
 						my $printed_sibling = 0;
-						foreach my $r(@residences) {
-							next if($r->date() ne $rdate);
-							my $place = place({ person => $person, record => $r });
-							my $first = 1;
+						my $r = $residence;
+						next if($r->date() ne $rdate);
+						my $place = place({ person => $person, record => $r });
+						my $first = 1;
 
-							my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
-							foreach my $sibling(@siblings) {
-								if(my $ss = $sibling->spouse()) {
-									next if($bdiff->in_units('years') < 20);
-									# If they are living with an in-law, assume both are adults
-									my @ssr = get_all_residences(person => $ss);
-									foreach my $ssr(@ssr) {
-										if(my $d = $ssr->date()) {
-											next if($d ne $rdate);
-											if(my $ssp = place({ person => $ss, record => $ssr })) {
-												if($ssp eq $place) {
-													if($first) {
-														$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-															' ' .
-															(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
-															$ss->as_string();
-															$first = 0;
-													} else {
-														# FIXME: If possible, should say
-														#	sisters-in-law or
-														#	brothers-in-law
-														$bio .= ' and ' .
-															(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
-															$ss->as_string();
-														}
-													last;
-												}
+						my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
+						foreach my $sibling(@siblings) {
+							if(my $ss = $sibling->spouse()) {
+								next if($bdiff->in_units('years') < 20);
+								# If they are living with an in-law, assume both are adults
+								my @ssr = get_all_residences(person => $ss);
+								foreach my $ssr(@ssr) {
+									if(my $d = $ssr->date()) {
+										next if($d ne $rdate);
+										if(my $ssp = place({ person => $ss, record => $ssr })) {
+											if($ssp eq $place) {
+												if($first) {
+													$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+														' ' .
+														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
+														$ss->as_string();
+														$first = 0;
+												} else {
+													# FIXME: If possible, should say
+													#	sisters-in-law or
+													#	brothers-in-law
+													$bio .= ' and ' .
+														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
+														$ss->as_string();
+													}
+												last;
 											}
 										}
 									}
 								}
-								next if($bdiff->in_units('years') < 40);
-								# Safe to assume both are adults at this time
-								my @sr = get_all_residences(person => $sibling);
+							}
+							next if($bdiff->in_units('years') < 40);
+							# Safe to assume both are adults at this time
+							my @sr = get_all_residences(person => $sibling);
+							foreach my $sr(@sr) {
+								my $sdate = $sr->date();
+								next if(!defined($sdate));
+								next if($sdate ne $rdate);
+								if(place({ person => $sibling, record => $sr }) eq $place) {
+									$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+										' ' .
+										(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+										$sibling->given_names();
+									$printed_sibling = 1;
+									last;
+								}
+							}
+						}
+						# TODO: father, and both parents
+						# FIXME: only checks when there are @siblings
+						if($mother && ($bdiff->in_units('years') >= 30)) {
+							my @mr = get_all_residences(person => $mother);
+							foreach my $mr(@mr) {
+								my $mdate = $mr->date();
+								next if(!defined($mdate));
+								next if($mdate ne $rdate);
+								if(place({ person => $mother, record => $mr }) eq $place) {
+									$bio .= ($printed_sibling ? ' and ' : ' with ') .
+										($person->pronoun() eq 'She' ? 'her' : 'his') .
+										' mother, ' .
+										$mother->given_names();
+									last;
+								}
+							}
+						}
+						if($spouse && $marriage_dt && (my $rdate_dt = date_to_datetime($rdate))) {
+							if($marriage_dt > $rdate_dt) {
+								my @sr = get_all_residences(person => $spouse);
 								foreach my $sr(@sr) {
 									my $sdate = $sr->date();
 									next if(!defined($sdate));
 									next if($sdate ne $rdate);
-									if(place({ person => $sibling, record => $sr }) eq $place) {
-										$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-											' ' .
-											(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
-											$sibling->given_names();
-										$printed_sibling = 1;
-										last;
-									}
-								}
-							}
-							# TODO: father, and both parents
-							# FIXME: only checks when there are @siblings
-							if($mother && ($bdiff->in_units('years') >= 30)) {
-								my @mr = get_all_residences(person => $mother);
-								foreach my $mr(@mr) {
-									my $mdate = $mr->date();
-									next if(!defined($mdate));
-									next if($mdate ne $rdate);
-									if(place({ person => $mother, record => $mr }) eq $place) {
+									if(place({ person => $spouse, record => $sr }) eq $place) {
 										$bio .= ($printed_sibling ? ' and ' : ' with ') .
-											($person->pronoun() eq 'She' ? 'her' : 'his') .
-											' mother, ' .
-											$mother->given_names();
+											($person->pronoun() eq 'She' ? 'her future husband, ' : 'his future wife, ') .
+											$spouse->given_names();
 										last;
-									}
-								}
-							}
-							if($spouse && $marriage_dt && (my $rdate_dt = date_to_datetime($rdate))) {
-								if($marriage_dt > $rdate_dt) {
-									my @sr = get_all_residences(person => $spouse);
-									foreach my $sr(@sr) {
-										my $sdate = $sr->date();
-										next if(!defined($sdate));
-										next if($sdate ne $rdate);
-										if(place({ person => $spouse, record => $sr }) eq $place) {
-											$bio .= ($printed_sibling ? ' and ' : ' with ') .
-												($person->pronoun() eq 'She' ? 'her future husband, ' : 'his future wife, ') .
-												$spouse->given_names();
-											last;
-										}
 									}
 								}
 							}
