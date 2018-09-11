@@ -84,6 +84,8 @@ Some of the options can be stored in *ged2site.conf*:
 
 You can get free API keys from Google at https://console.developers.google.com/apis/credentials.
 
+ged2site also creates an XML file, people.xml, of parsed output which you can use in querying software.
+
 Debugging and Developing
 ========================
 
@@ -164,7 +166,8 @@ ExpiresByType text/javascript "access plus 1 day"
 </IfModule>
 ```
 
-## Environment Variables
+Environment Variables
+=====================
 
 For compatibility with other code, these environment variables are honoured:
 

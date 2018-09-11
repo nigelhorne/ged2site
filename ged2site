@@ -5028,6 +5028,20 @@ sub print_person
 			}
 		}
 		print $csv '!';
+		my @all_residences = get_all_residences($person);
+		if(scalar(@all_residences)) {
+			foreach my $residence(@all_residences) {
+				print $xml "\n\t\t\t<residence>";
+				if(my $rdate = $residence->date()) {
+					print $xml "\n\t\t\t\t<date>$rdate</date>";
+				}
+				if(my $rplace = place({ person => $person, record => $residence })) {
+					print $xml "\n\t\t\t\t<location>$rplace</location>";
+				}
+				print $xml "\n\t\t\t</residence>";
+			}
+		}
+
 		print $xml "\n\t\t</locations>";
 	} else {
 		print $csv '!!';
