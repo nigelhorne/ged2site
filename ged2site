@@ -4170,7 +4170,8 @@ sub print_person
 					}
 				}
 				if($placeofbirth && $placeofdeath && $dateofdeath && (!$census_years{1939}) &&
-				   (datecmp($dateofdeath, '1939') >= 0) && ($placeofbirth =~ /England$/) && ($placeofdeath =~ /England$/)) {
+				   (datecmp($dateofdeath, '1939') >= 0) && ($placeofbirth =~ /England$/) && ($placeofdeath =~ /England$/) &&
+				   ((!$dateofbirth) || (datecmp($dateofbirth, '1939') <= 0))) {
 				   	my $has1939 = 0;
 					foreach my $residence(@residences) {
 						if($residence->date() && ($residence->date() =~ /1939$/)) {
