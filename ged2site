@@ -2772,13 +2772,15 @@ sub print_person
 
 				if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
 					my $newresidence = 1;
+					my $rindex = 0;
 					foreach my $residence(@residences) {
+						$rindex++;
 						if(!ref($residence)) {
-							my $r = $person->tag_record('EVEN', $index);
+							my $r = $person->tag_record('EVEN', $rindex);
 							if(ref($r) eq 'Gedcom::Record') {
 								$residence = $r;
 							} else {
-								$r = $person->record(['residence', $index]);
+								$r = $person->record(['residence', $rindex]);
 								if(ref($r) eq 'Gedcom::Record') {
 									$residence = $r;
 								} else {
