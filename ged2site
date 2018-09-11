@@ -662,6 +662,8 @@ if($opts{'w'}) {
 					$summary = 'Unhandled Event Type';
 				} elsif($warning =~ /^Census information missing between /) {
 					$summary = 'Missing Census';
+				} elsif($warning eq '1939 UK register information missing') {
+					$summary = 'Missing Census';
 				} elsif($warning =~ /^Check the gender of the record/) {
 					$summary = 'Possibly Wrong Gender';
 				} elsif($warning =~ /^Two residence records for/) {
@@ -4164,6 +4166,22 @@ sub print_person
 						complain({
 							person => $person,
 							warning => 'Census information missing between ' . $census_years{$year} . ' and ' . $census_years{$year + 20}
+						});
+					}
+				}
+				if($placeofbirth && $placeofdeath && $dateofdeath && (!$census_years{1939}) &&
+				   (datecmp($dateofdeath, '1939') >= 0) && ($placeofbirth =~ /England$/) && ($placeofdeath =~ /England$/)) {
+				   	my $has1939 = 0;
+					foreach my $residence(@residences) {
+						if($residence->date() && ($residence->date() =~ /1939$/)) {
+							$has1939 = 1;
+							last;
+						}
+					}
+					if(!$has1939) {
+						complain({
+							person => $person,
+							warning => '1939 UK register information missing'
 						});
 					}
 				}
