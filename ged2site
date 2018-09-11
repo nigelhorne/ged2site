@@ -2716,7 +2716,7 @@ sub print_person
 
 	my $printed_residence = 0;
 	my %citationnotes;
-	my @residences = $person->residence();
+	my @residences = get_all_residences($person);
 	my @note_locations;
 
 	if($opts{'l'} || !$is_alive) {
@@ -2752,62 +2752,36 @@ sub print_person
 
 		print "Handling residences\n" if($opts{'v'});
 		# FMP stores Censuses as events
-		my $index = 0;
-		foreach my $event(@events) {
-			$index++;
-			if(!ref($event)) {
-				my $e = $person->tag_record('EVEN', $index);
-				if(ref($e) eq 'Gedcom::Record') {
-					$event = $e;
-				} else {
-					red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
+		if($opts{'w'}) {
+			my $index = 0;
+			foreach my $event(@events) {
+				$index++;
+				if(!ref($event)) {
+					my $e = $person->tag_record('EVEN', $index);
+					if(ref($e) eq 'Gedcom::Record') {
+						$event = $e;
+					} else {
+						red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
+					}
 				}
-			}
-			if(ref($event) eq 'Gedcom::Record') {
-				my $type = $event->type();
-				if(!defined($type)) {
-					red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
-					next;
-				}
+				if(ref($event) eq 'Gedcom::Record') {
+					my $type = $event->type();
+					if(!defined($type)) {
+						red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
+						next;
+					}
 
-				if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
-					my $newresidence = 1;
-					my $rindex = 0;
-					foreach my $residence(@residences) {
-						$rindex++;
-						if(!ref($residence)) {
-							my $r = $person->tag_record('EVEN', $rindex);
-							if(ref($r) eq 'Gedcom::Record') {
-								$residence = $r;
-							} else {
-								$r = $person->record(['residence', $rindex]);
-								if(ref($r) eq 'Gedcom::Record') {
-									$residence = $r;
-								} else {
-									next;	# Will warn below
-								}
-							}
-						}
-						if((ref($residence) eq 'Gedcom::Record') &&
-						  $residence->date() &&
-						  $event->date() &&
-						  $residence->date() eq $event->date()) {
-							$newresidence = 0;
-							last;
+					if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
+						if(!$dateofbirth) {
+							complain({ person => $person, warning => 'Census information not used to approximate a date of birth' });
 						}
 					}
-					if(!$dateofbirth) {
-						complain({ person => $person, warning => 'Census information not used to approximate a date of birth' });
-					}
-					push @residences, $event if($newresidence);
-				} elsif($type eq 'Hospitalisation') {	# Find My Past
-					push @residences, $event;
 				}
 			}
 		}
 
 		if(scalar(@residences)) {
-			# FIXME, handle duplicate locations better
+			# FIXME: handle duplicate locations better
 			my @residencelist;
 			my %residencecitations;
 
@@ -4137,6 +4111,21 @@ sub print_person
 			print $xml "\n\t\t</citations>";
 
 			if($opts{'w'}) {
+				my %unused_censuses = %census_years;
+				foreach my $residence(@residences) {
+					if(my $rdate = $residence->date()) {
+						if($rdate =~ /(\d{3,4})$/) {
+							$rdate = $1;
+							delete $unused_censuses{$1};
+						}
+					}
+				}
+				foreach my $year(sort keys %unused_censuses) {
+					complain({
+						person => $person,
+						warning => "The census for year $year has been citied, but its information has not been used as a residence"
+					});
+				}
 				foreach my $event(@events) {
 					if(ref($event) eq 'Gedcom::Record') {
 						my $type = $event->type();
