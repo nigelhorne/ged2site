@@ -6433,7 +6433,7 @@ sub print_graphviz
 		my @thumbname = File::Basename::fileparse($profile_image);
 		# use PNG to try to avoid
 		#	'Warning: No loadimage plugin for "jpeg:cairo"'
-		$thumbname[0] =~ s/\.jpg$/.png/;
+		$thumbname[0] =~ s/\.jpg$/.png/i;
 		$thumbnail = "thumbs/$thumbname[0]";
 		$thumb->Write($thumbnail);
 
