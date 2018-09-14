@@ -5027,6 +5027,8 @@ sub print_person
 					print $xml "\n\t\t\t\t<date>$rdate</date>";
 				}
 				if(my $rplace = place({ person => $person, record => $residence })) {
+					$rplace =~ s/^\sat\s//;
+					$rplace =~ s/^\sin\s//;
 					print $xml "\n\t\t\t\t<location>$rplace</location>";
 				}
 				print $xml "\n\t\t\t</residence>";
