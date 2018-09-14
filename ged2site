@@ -667,7 +667,7 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Check the gender of the record/) {
 					$summary = 'Possibly Wrong Gender';
 				} elsif($warning =~ /^Two residence records for/) {
-					$summary = 'Duplicate Residence Records';
+					$summary = 'Residence Records for the Same Date that Don\' Match';
 				} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
 					$summary = 'Baptism Before Birth';
 				} elsif($warning =~ /^Born less than 10 months before sibling /) {
@@ -3042,7 +3042,7 @@ sub print_person
 					if(scalar(@residencelist) > 1) {
 						my $this_date = year({ person => $person, date => $rdate });
 						if($prev_residence && (year(record => $prev_residence) eq $this_date) && (place(record => $prev_residence) ne place(record => $residence))) {
-							complain({ person => $person, warning => "Two residence records for $rdate" });
+							complain({ person => $person, warning => "Two residence records for $rdate differ in location" });
 						}
 						if($print_year_only) {
 							if($count == (scalar(@residencelist) - 1)) {
