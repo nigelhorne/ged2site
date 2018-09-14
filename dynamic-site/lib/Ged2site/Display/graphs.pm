@@ -1023,8 +1023,6 @@ sub _namecloud
 
 	my $names = $args->{'names'};
 
-	my $bucket = 60;
-
 	my @rc;
 
 	for(my $bucket = 60; $bucket <= 80; $bucket++) {
