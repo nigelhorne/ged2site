@@ -107,6 +107,7 @@ my %printed;
 my %places;
 my $surnames;
 my %censuses;
+my %twins;
 my %images;
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
@@ -769,6 +770,18 @@ if(scalar(%censuses)) {
 	}
 	print $html '</ul></body></html>';
 	close $html;
+	close $csv;
+}
+
+if(scalar(%twins)) {
+	print "Creating twins index\n";
+
+	open($csv, '>', 'dynamic-site/databases/twins.csv');
+	print $csv "entry!twin\n";
+
+	foreach my $twin(sort keys(%twins)) {
+		print $csv "$twin!$twins{$twin}\n";
+	}
 	close $csv;
 }
 
@@ -1646,7 +1659,7 @@ sub print_person
 		shift @occupations;
 	}
 
-	my @twins;
+	my @person_twins;
 	if($birth_dt) {
 		foreach my $s(@siblings) {
 			if(my $dob = get_value({ person => $s, value => 'birth date' })) {
@@ -1661,18 +1674,19 @@ sub print_person
 					if($d) {
 						$d = $dfn->parse_datetime($d->{'canonical'});
 						if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
-							push @twins, $s;
+							push @person_twins, $s;
+							$twins{$person->{'xref'}} = $s->{'xref'};
 						}
 					}
 				}
 			}
 		}
-		if(scalar(@twins) == 1) {	# TODO triplets and higher order
+		if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
 			if(scalar(@occupations)) {
-				$bio .= ', twin of ' . $twins[0]->given_names();
+				$bio .= ', twin of ' . $person_twins[0]->given_names();
 			} else {
 				$bio .= 'The twin ' . (($person->sex() eq 'M') ? 'brother' : 'sister') .
-					' of ' . $twins[0]->given_names();
+					' of ' . $person_twins[0]->given_names();
 			}
 		}
 	}
@@ -1680,7 +1694,7 @@ sub print_person
 	my $print_sibling_count = 0;
 	print $xml "\n\t\t<bio>";
 	if($father || $mother) {
-		if(scalar(@occupations) || scalar(@twins)) {
+		if(scalar(@occupations) || scalar(@person_twins)) {
 			$bio .= ' and the ';
 		} else {
 			$bio = 'The ';
@@ -2149,7 +2163,7 @@ sub print_person
 					});
 				}
 			} elsif($birth_dt) {
-				my @twins;
+				my @person_twins;
 				foreach my $s(@siblings) {
 					if(my $dob = get_value({ person => $s, value => 'birth date' })) {
 						if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
@@ -2163,14 +2177,15 @@ sub print_person
 							if($d) {
 								$d = $dfn->parse_datetime($d->{'canonical'});
 								if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
-									push @twins, { sibling => $s, dob => $d };
+									push @person_twins, { sibling => $s, dob => $d };
+									$twins{$person->{'xref'}} = $s->{'xref'};
 								}
 							}
 						}
 					}
 				}
-				if(scalar(@twins) == 1) {	# TODO triplets and higher order
-					my $t = $twins[0];
+				if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
+					my $t = $person_twins[0];
 					my $sibling = $t->{'sibling'};
 					my $dob = $t->{'dob'};
 					if($dob == $birth_dt) {
