@@ -1544,11 +1544,7 @@ sub print_person
 	if($opts{'w'} && $numberofchildren) {
 		foreach my $child(@children) {
 			if($child eq $person) {
-				if($opts{'f'}) {
-					die $person->as_string(), ': person is own parent';
-				} else {
-					red_warning({ person => $person, warning => 'person is own parent' });
-				}
+				complain({ person => $person, warning => 'person is own parent' });
 			}
 		}
 	}
