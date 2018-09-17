@@ -3054,16 +3054,17 @@ sub print_person
 						my $this_date = year({ person => $person, date => $rdate });
 						if($prev_residence && (year(record => $prev_residence) eq $this_date) && (place(record => $prev_residence) ne place(record => $residence))) {
 							complain({ person => $person, warning => "Two residence records for $rdate differ in location" });
-						}
-						if($print_year_only) {
-							if($count == (scalar(@residencelist) - 1)) {
-								$bio .= $rdate;
-								# $print_year_only = 0;
-							}
 						} else {
-							$bio .= " $this_date";
+							if($print_year_only) {
+								if($count == (scalar(@residencelist) - 1)) {
+									$bio .= $rdate;
+									# $print_year_only = 0;
+								}
+							} else {
+								$bio .= " $this_date";
+							}
+							$prev_residence = $residence;
 						}
-						$prev_residence = $residence;
 					}
 					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
