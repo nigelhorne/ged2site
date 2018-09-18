@@ -1545,6 +1545,8 @@ sub print_person
 		foreach my $child(@children) {
 			if($child eq $person) {
 				complain({ person => $person, warning => 'person is own parent' });
+				# Avoid loops in G::I::Relationship
+				return;
 			}
 		}
 	}
@@ -1562,10 +1564,7 @@ sub print_person
 			my $siblingbirth = get_value({ person => $sibling, value => 'birth date' });
 			if($siblingbirth && ($siblingbirth eq $dateofbirth) &&
 			  (($sibling->name() eq $person->name()) || Text::Names::samePerson($sibling->name(), $person->name()))) {
-				if($opts{'f'}) {
-					die $person->name(), ': Possible duplicate person';
-				}
-				red_warning({ person => $sibling, warning => 'possible duplicate person' });
+				complain({ person => $sibling, warning => 'possible duplicate person' });
 			}
 		}
 	}
