@@ -704,6 +704,8 @@ if($opts{'w'}) {
 					$summary = 'Born before Parent was born';
 				} elsif($warning =~ /^Date of residence .+ is after date of death/) {
 					$summary = 'Date of Residence After Date of Death';
+				} elsif($warning =~ /^Location for the event on /) {
+					$summary = 'Event is missing a location';
 				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
 					$summary = 'Child Missing From Parent Location Record';
 				} else {
