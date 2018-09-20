@@ -36,13 +36,15 @@
 				<ul id="nav">
 					[% FOREACH twin IN twins %]
 						<li>
-							<a href="?page=people&entry=[%- twin.left.entry %]">[% twin.left.title %]</a>
-							<a href="?page=people&entry=[%- twin.right.entry %]">[% twin.right.title %]</a>
+							<p>
+								<a href="?page=people&entry=[%- twin.left.entry %]">[% twin.left.title %]</a>
+								<a href="?page=people&entry=[%- twin.right.entry %]">[% twin.right.title %]</a>
+							<p>
 						</li>
 					[% END %]
 				</ul>
 				<p>
-					This page lists twins.
+					This page lists twins, where both twins have died.
 					Triplets, and higher order, are not yet supported.
 				</p>
 			[% ELSE %]

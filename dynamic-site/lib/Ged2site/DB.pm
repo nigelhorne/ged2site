@@ -106,7 +106,7 @@ sub _open {
 		((ref($_[0]) eq 'HASH') ? %{$_[0]} : @_)
 	);
 
-	my $table = $self->{table} || ref($self);
+	my $table = $self->{'table'} || ref($self);
 	$table =~ s/.*:://;
 
 	if($self->{'logger'}) {
@@ -119,6 +119,9 @@ sub _open {
 
 	my $dir = $self->{'directory'} || $directory;
 	my $slurp_file = File::Spec->catfile($dir, "$table.sql");
+	if($self->{'logger'}) {
+		$self->{'logger'}->debug("_open: try to open $slurp_file");
+	}
 
 	if(-r $slurp_file) {
 		$dbh = DBI->connect("dbi:SQLite:dbname=$slurp_file", undef, undef, {
@@ -185,6 +188,16 @@ sub _open {
 					# }
 				# }
 			};
+
+			# my %options = (
+				# allow_loose_quotes => 1,
+				# blank_is_undef => 1,
+				# empty_is_undef => 1,
+				# binary => 1,
+				# f_file => $slurp_file,
+				# escape_char => '\\',
+				# sep_char => $sep_char,
+			# );
 
 			# $dbh->{csv_tables}->{$table} = \%options;
 			# delete $options{f_file};
@@ -263,8 +276,10 @@ sub selectall_hash {
 		}
 		return @{$self->{'data'}};
 	}
+	# if((scalar(keys %args) == 1) && $self->{'data'} && defined($args{'entry'})) {
+	# }
 
-	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL";
+	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	my @args;
 	foreach my $c1(sort keys(%args)) {	# sort so that the key is always the same
 		$query .= " AND $c1 LIKE ?";
@@ -278,9 +293,6 @@ sub selectall_hash {
 			$self->{'logger'}->debug("selectall_hash $query");
 		}
 	}
-	my $sth = $self->{$table}->prepare($query);
-	$sth->execute(@args) || throw Error::Simple("$query: @args");
-
 	my $key = $query;
 	if(defined($args[0])) {
 		$key .= ' ' . join(', ', @args);
@@ -291,6 +303,9 @@ sub selectall_hash {
 			return @{$rc};
 		}
 	}
+	my $sth = $self->{$table}->prepare($query);
+	$sth->execute(@args) || throw Error::Simple("$query: @args");
+
 	my @rc;
 	while(my $href = $sth->fetchrow_hashref()) {
 		push @rc, $href;
@@ -308,20 +323,27 @@ sub selectall_hash {
 #	which is worked out from the class name
 sub fetchrow_hashref {
 	my $self = shift;
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $table = $self->{'table'} || ref($self);
 	$table =~ s/.*:://;
 
 	$self->_open() if(!$self->{$table});
 
-	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL";
-	my @args;
-	foreach my $c1(sort keys(%args)) {	# sort so that the key is always the same
-		$query .= " AND $c1 LIKE ?";
-		push @args, $args{$c1};
+	my $query = 'SELECT * FROM ';
+	if(my $t = delete $params{'table'}) {
+		$query .= $t;
+	} else {
+		$query .= $table;
 	}
-	$query .= ' ORDER BY entry LIMIT 1';
+	$query .= " WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	my @args;
+	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
+		$query .= " AND $c1 LIKE ?";
+		push @args, $params{$c1};
+	}
+	# $query .= ' ORDER BY entry LIMIT 1';
+	$query .= ' LIMIT 1';
 	if($self->{'logger'}) {
 		if(defined($args[0])) {
 			$self->{'logger'}->debug("fetchrow_hashref $query: " . join(', ', @args));
@@ -414,9 +436,9 @@ sub AUTOLOAD {
 
 	my $query;
 	if(wantarray && !delete($params{'distinct'})) {
-		$query = "SELECT $column FROM $table WHERE entry IS NOT NULL";
+		$query = "SELECT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	} else {
-		$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL";
+		$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	}
 	my @args;
 	foreach my $c1(keys(%params)) {
