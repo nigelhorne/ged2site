@@ -1655,7 +1655,7 @@ sub print_person
 	}
 
 	my @person_twins;
-	if($birth_dt) {
+	if($birth_dt && ($opts{'l'} || !$is_alive)) {
 		foreach my $s(@siblings) {
 			if(my $dob = get_value({ person => $s, value => 'birth date' })) {
 				if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
@@ -2173,7 +2173,9 @@ sub print_person
 								$d = $dfn->parse_datetime($d->{'canonical'});
 								if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
 									push @person_twins, { sibling => $s, dob => $d };
-									$twins{$person->{'xref'}} = $s->{'xref'};
+									if($opts{'l'} || !$is_alive) {
+										$twins{$person->{'xref'}} = $s->{'xref'};
+									}
 								}
 							}
 						}

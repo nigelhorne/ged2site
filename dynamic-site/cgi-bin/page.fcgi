@@ -81,6 +81,7 @@ use Ged2site::DB::surnames;
 use Ged2site::DB::history;
 use Ged2site::DB::todo;
 use Ged2site::DB::names;
+use Ged2site::DB::twins;
 
 my $database_dir = "$script_dir/../databases";
 Ged2site::DB::init({ directory => $database_dir, logger => $logger });
@@ -95,6 +96,7 @@ my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::DB::history->new();
 my $todo = Ged2site::DB::todo->new();
 my $names = Ged2site::DB::names->new();
+my $twins = Ged2site::DB::twins->new();
 
 # open STDERR, ">&STDOUT";
 close STDERR;
@@ -280,6 +282,8 @@ sub doit
 			$display = Ged2site::Display::censuses->new($args);
 		} elsif($page eq 'surnames') {
 			$display = Ged2site::Display::surnames->new($args);
+		} elsif($page eq 'twins') {
+			$display = Ged2site::Display::twins->new($args);
 		} elsif($page eq 'history') {
 			$display = Ged2site::Display::history->new($args);
 		} elsif($page eq 'todo') {
@@ -323,6 +327,7 @@ sub doit
 			history => $history,
 			todo => $todo,
 			names => $names,
+			twins => $twins,
 			cachedir => $cachedir,
 			databasedir => $database_dir
 		});

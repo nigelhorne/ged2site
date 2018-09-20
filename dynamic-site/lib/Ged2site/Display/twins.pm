@@ -1,7 +1,10 @@
 package Ged2site::Display::twins;
+;
 
-# Display the twins in the database
+# Display the list of twins
 
+use warnings;
+use strict;
 use Ged2site::Display;
 
 our @ISA = ('Ged2site::Display');
@@ -16,15 +19,21 @@ sub html {
 		'lang' => qr/^[A-Z][A-Z]/i,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
-	delete $params{'page'};
+	return "" if(delete($params{'page'}) ne 'twins');
 
-	# Handle into the database
 	my $people = $args{'people'};
+	my @all_twins = $args{'twins'}->selectall_hash();
+	my @twins;
+	my %done;	# Avoid printing the twins twice
+	foreach my $twin(@all_twins) {
+		next if($done{$twin->{'twin'}});
 
-	my $query = 'SELECT DISTINCT p1.* FROM people p1, people p2 WHERE (p1.dob IS NOT NULL) AND (p1.dob <> "") AND (p1.dob = p2.dob) AND (p1.mother = p2.mother) AND (p1.title <> p2.title) AND (p1.alive = 0)';
-
-	my @twins = sort { $a->{'title'} cmp $b->{'title'} } @{$people->execute(query => $query)};
-
+		push @twins, {
+			left => $people->fetchrow_hashref(entry => $twin->{'entry'}),
+			right => $people->fetchrow_hashref(entry => $twin->{'twin'}),
+		};
+		$done{$twin->{'entry'}} = $twin->{'twin'};
+	}
 	return $self->SUPER::html({ twins => \@twins, updated => $people->updated() });
 }
 

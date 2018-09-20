@@ -34,14 +34,16 @@
 			[% IF twins %]
 				<br>
 				<ul id="nav">
-					[% FOREACH person IN twins %]
+					[% FOREACH twin IN twins %]
 						<li>
-							<a href="?page=people&entry=[%- person.entry %]">[% person.title %]</a>
+							<a href="?page=people&entry=[%- twin.left.entry %]">[% twin.left.title %]</a>
+							<a href="?page=people&entry=[%- twin.right.entry %]">[% twin.right.title %]</a>
 						</li>
 					[% END %]
 				</ul>
 				<p>
-					This page lists twins, triplets and so on.
+					This page lists twins.
+					Triplets, and higher order, are not yet supported.
 				</p>
 			[% ELSE %]
 				<p>There are no twins in your family tree.</p>
