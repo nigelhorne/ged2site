@@ -669,7 +669,7 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Check the gender of the record/) {
 					$summary = 'Possibly Wrong Gender';
 				} elsif($warning =~ /^Two residence records for/) {
-					$summary = 'Residence Records for the Same Date that Don\' Match';
+					$summary = 'Residence Records for the Same Date that Don\'t Match';
 				} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
 					$summary = 'Baptism Before Birth';
 				} elsif($warning =~ /^Born less than 10 months before sibling /) {
