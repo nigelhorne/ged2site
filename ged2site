@@ -2925,7 +2925,7 @@ sub print_person
 			if($spouses[0]) {
 				$spdeath_dt = date_to_datetime(date => get_value({ person => $spouses[0], value => 'death date' }));
 			}
-			my $print_year_only;
+			my $print_year_only;	# used when printing a range, e.g. 1871-1891
 			my $printed_following_message;
 			# my $yod;
 			# my $dod = get_value({ person => $person, value => 'death date' });
@@ -3059,8 +3059,10 @@ sub print_person
 					}
 					if(scalar(@residencelist) > 1) {
 						my $this_date = year({ person => $person, date => $rdate });
-						if($prev_residence && (year(record => $prev_residence) eq $this_date) && (place(record => $prev_residence) ne place(record => $residence))) {
-							complain({ person => $person, warning => "Two residence records for $rdate differ in location" });
+						if($prev_residence && (year(record => $prev_residence) eq $this_date)) {
+							if(place(record => $prev_residence) ne place(record => $residence)) {
+								complain({ person => $person, warning => "Two residence records for $rdate differ in location" });
+							}
 						} else {
 							if($print_year_only) {
 								if($count == (scalar(@residencelist) - 1)) {
