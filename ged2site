@@ -2926,11 +2926,12 @@ sub print_person
 				$spdeath_dt = date_to_datetime(date => get_value({ person => $spouses[0], value => 'death date' }));
 			}
 			my $print_year_only;
-			my $yod;
-			my $dod = get_value({ person => $person, value => 'death date' });
-			if($dod && ($dod =~ /.*?(\d{3,4})/)) {
-				$yod = $1;
-			}
+			my $printed_following_message;
+			# my $yod;
+			# my $dod = get_value({ person => $person, value => 'death date' });
+			# if($dod && ($dod =~ /.*?(\d{3,4})/)) {
+				# $yod = $1;
+			# }
 			foreach my $residence(@residencelist) {
 				my $rdate = $residence->date();
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
@@ -3072,7 +3073,7 @@ sub print_person
 							$prev_residence = $residence;
 						}
 					}
-					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
+					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
 							# Living with a child following death of spouse?
 							CHILD: foreach my $child(@children) {
@@ -3117,6 +3118,7 @@ sub print_person
 									(($sex eq 'M') ? ' wife ' : ' husband ') .
 									year(date => get_value({ person => $spouses[0], value => 'death date' }));
 							}
+							$printed_following_message = 1;
 						}
 					}
 					# Find if they are an adult living with an adult sibling or in-law
