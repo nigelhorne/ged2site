@@ -1,5 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-    "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html lang="en" dir="ltr">
 	<head>
 		<title>Facts for [% SiteTitle.join(' ') %]</title>
@@ -10,22 +9,19 @@
 	</head>
 	<body>
 		<h1>Facts for [% SiteTitle.join(' ') %]</h1>
-		<ul>
-			<li><a href="?page=todo">To Do</a></li>
-			<li><a href="?page=graphs">Analytics</a></li>
-			<li><a href="?page=emmigrants">Emigrants</a></li>
-			<li><a href="?page=facts">Facts</a></li>
-			<li><a href="?page=ww1">WW1 Fatalaties</a></li>
-		</ul>
 		[% IF facts %]
-			<ul>
-				[% IF facts.first_birth %]
-					<li>
-						First person in the tree:
-						<a href="?page=people&amp;entry=[%- facts.first_birth.person.entry %]">[% facts.first_birthperson.title %]</a>: [% facts.first_birth.date %]
-					</li>
-				[% END %]
-			</ul>
+			[% IF facts.first_birth %]
+				<p>
+					First person in the tree:
+					<a href="?page=people&amp;entry=[%- facts.first_birth.person.entry %]">[% facts.first_birth.person.title %]</a> was born on [% facts.first_birth.date %]
+				</p>
+			[% END %]
+			[% IF facts.oldest_age %]
+				<p>
+					Person who lived the longest:
+					<a href="?page=people&amp;entry=[%- facts.oldest_age.person.entry %]">[% facts.oldest_age.person.title %]</a> who lived for [% facts.oldest_age.years %] years
+				</p>
+			[% END %]
 		[% END %]
 		<p align="right">
 			<i>
@@ -36,5 +32,11 @@
 			[% END %]
 			</i>
 		</p>
+		<a href="?page=people&amp;home=1" class="myButton">Home</a>
+		<a href="?page=censuses" class="myButton">Census Index</a>
+		<a href="?page=surnames" class="myButton">Surname Index</a>
+		<a href="?page=history" class="myButton">Family History</a>
+		<a href="?page=calendar" class="myButton">Calendar</a>
+		<a href="/visjs.html" class="myButton">Timeline</a>
 	</body>
 </html>
