@@ -135,6 +135,7 @@ my $date_parser = Genealogy::Gedcom::Date->new();
 my $oneday = DateTime::Duration->new(days => 1);
 my $tenmonths = DateTime::Duration->new(months => 10);
 my $sixteenyears = DateTime::Duration->new(years => 16);
+my $fortyyears = DateTime::Duration->new(years => 40);
 my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
@@ -672,6 +673,8 @@ if($opts{'w'}) {
 					$summary = 'Residence Records for the Same Date that Don\'t Match';
 				} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
 					$summary = 'Baptism Before Birth';
+				} elsif($warning =~ /^Year of residence .+ is after the year of death /) {
+					$summary = 'Residence After Death';
 				} elsif($warning =~ /^Born less than 10 months before sibling /) {
 					$summary = 'Born Under 10 Months Before Sibling';
 				} elsif($warning =~ /^married when less than 16 years old/) {
@@ -708,7 +711,7 @@ if($opts{'w'}) {
 					$summary = 'Location is empty';
 				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
 					$summary = 'Child Missing From Parent Location Record';
-				} elsif($warning =~ /The census for year \d{4} has been cited'/) {
+				} elsif($warning =~ /^The census for year \d{4} has been cited,/) {
 					$summary = 'Census exists but no residence added';
 				} else {
 					$summary = $warning;
@@ -1057,7 +1060,7 @@ sub print_person
 		# FIXME: needs to only complain about more than two biological parents
 		my @parents = $person->parents();
 		if(scalar(@parents) > 2) {
-			complain({ person => $person, warning => 'has more than two parents' });
+			complain({ person => $person, warning => 'Has more than two parents' });
 		}
 	}
 
@@ -1071,7 +1074,7 @@ sub print_person
 		if($dob eq 'UNKNOWN') {
 			$dob = undef;
 		} elsif($opts{'w'} && !$warned{$person}) {
-			complain({ person => $person, warning => "invalid date of birth $dob" });
+			complain({ person => $person, warning => "Invalid date of birth $dob" });
 			$warned{$person} = 1;
 		}
 	}
@@ -1378,6 +1381,26 @@ sub print_person
 		} else {
 			$facts->{'first_birth'}->{'date'} = $birth_dt;
 			$facts->{'first_birth'}->{'xref'} = $person->{'xref'};
+		}
+
+		if($birth_dt && (my $spouse = $spouses[0])) {
+			my $sdob = get_value({ person => $spouse, value => 'birth date' });
+			if((!$sdob) && (my $sb = $spouse->get_record('birth'))) {
+				$sdob = $sb->date();
+			}
+			if($sdob && (my $sbirth_dt = date_to_datetime(date => $sdob))) {
+				if($sbirth_dt > ($birth_dt + $fortyyears)) {
+					complain({
+						person => $person,
+						warning => 'Spouse born more than 40 years after date of birth'
+					});
+				} elsif($birth_dt > ($sbirth_dt + $fortyyears)) {
+					complain({
+						person => $person,
+						warning => 'Born more than 40 years after date of birth of spouse'
+					});
+				}
+			}
 		}
 	}
 
