@@ -26,7 +26,7 @@ sub html {
 
 	if(scalar(keys %params) == 0) {
 		# Display list of censuses
-		my @c = $censuses->census();
+		my @c = $censuses->census(distinct => 1);
 		@c = sort @c;
 		return $self->SUPER::html({ censuses => \@c, updated => $censuses->updated() });
 	}
