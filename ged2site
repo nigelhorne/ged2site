@@ -694,7 +694,7 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Unknown state in/) {
 					$summary = 'Unknown US State';
 				} elsif($warning =~ /^Residence information in/) {
-					$summary = 'Parent Missing From Child Location Record';
+					$summary = 'Child\'s Location is Known but Parent\'s is not';
 				} elsif($warning =~ /^Unknown birth location/) {
 					$summary = 'Birth location not found';
 				} elsif($warning =~ /^Unknown death location/) {
@@ -710,9 +710,13 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Location for the event on /) {
 					$summary = 'Location is empty';
 				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
-					$summary = 'Child Missing From Parent Location Record';
+					$summary = 'Parent\'s Location is Known but Child\'s is not';
 				} elsif($warning =~ /^The census for year \d{4} has been cited,/) {
 					$summary = 'Census exists but no residence added';
+				} elsif($warning =~ /^Residence record for .+ contains no location/) {
+					$summary = 'Residence Record Missing Location';
+				} elsif($warning =~ /^Census for \d{4} after year of death/) {
+					$summary = 'Census after death';
 				} else {
 					$summary = $warning;
 				}
@@ -2916,19 +2920,13 @@ sub print_person
 			foreach my $residence(@residencelist) {
 				my $date = $residence->date();
 				if(!$date) {
-					if($opts{'f'}) {
-						die $person->name(), ': Contains a residence without a date';
-					}
-					red_warning({ person => $person, warning => 'Contains a residence' . place(record => $residence) . ' without a date' });
+					complain({ person => $person, warning => 'Contains a residence' . place(record => $residence) . ' without a date' });
 					$all_residences_have_date = 0;
 					last;
 				}
 				$date = $date_parser->parse(date => $date);
 				if(!defined($date)) {
-					if($opts{'f'}) {
-						die $person->name(), ": Can't parse date '$date'";
-					}
-					red_warning({ person => $person, warning => "Can't parse date '$date'" });
+					complain({ person => $person, warning => "Can't parse date '$date'" });
 					$all_residences_have_date = 0;
 					last;
 				}
