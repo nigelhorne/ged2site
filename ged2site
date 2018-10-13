@@ -108,6 +108,7 @@ my %places;
 my $surnames;
 my %censuses;
 my %twins;
+my %military;
 my %images;
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
@@ -782,6 +783,21 @@ if(scalar(%censuses)) {
 	}
 	print $html '</ul></body></html>';
 	close $html;
+	close $csv;
+}
+
+if(scalar(%military)) {
+	print "Creating military records\n";
+	open($csv, '>', 'dynamic-site/databases/military.csv');
+	print $csv "entry!person!date!place!notes\n";
+
+	$index = 1;
+	foreach my $xref(sort keys(%military)) {
+		foreach my $entry($military{$xref}) {
+			print $csv "$index!$xref!", $entry->{'date'}, '!', $entry->{'place'}, '!', $eentry->{'notes'}, "\n";
+			$index++;
+		}
+	}
 	close $csv;
 }
 
@@ -5071,33 +5087,39 @@ sub print_person
 		print $xml "\n\t\t</locations>";
 
 		my $military_count = 0;
+		my $xref = $person->{'xref'};
 		foreach my $event(@events) {
 			if(my $type = $event->type()) {
 				if($type eq 'Military service') {
 					if($military_count == 0) {
 						print $xml "\n\t\t<military>";
+						$military{$xref} = ();
 					}
 					$military_count++;
+					my $entry;
 					print $xml "\n\t\t\t<entry>";
-					if(my $place = place({ person => $person, record => $event })) {
-						print $xml "\n\t\t\t\t<location>",
-							"\n\t\t\t\t\t$place",
-							"\n\t\t\t\t</location>";
-					}
 					if(my $date = year(record => $event)) {
 						print $xml "\n\t\t\t\t<date>",
 							"\n\t\t\t\t\t$date",
 							"\n\t\t\t\t</date>";
+						$entry->{'date'} = $date;
 					}
-
+					if(my $place = place({ person => $person, record => $event })) {
+						print $xml "\n\t\t\t\t<location>",
+							"\n\t\t\t\t\t$place",
+							"\n\t\t\t\t</location>";
+						$entry->{'place'} = $place;
+					}
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 						$notes =~ s/[\s\.]+$//;
 						print $xml "\n\t\t\t\t<notes>",
 							"\n\t\t\t\t\t$notes",
 							"\n\t\t\t\t</notes>";
+						$entry->{'note'} = $note;
 					}
 					print $xml "\n\t\t\t</entry>";
+					push $military{$xref}, $entry;
 				}
 			}
 		}
