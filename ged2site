@@ -794,7 +794,7 @@ if(scalar(%military)) {
 	$index = 1;
 	foreach my $xref(sort keys(%military)) {
 		foreach my $entry($military{$xref}) {
-			print $csv "$index!$xref!", $entry->{'date'}, '!', $entry->{'place'}, '!', $eentry->{'notes'}, "\n";
+			print $csv "$index!$xref!", $entry->{'date'}, '!', $entry->{'place'}, '!', $entry->{'notes'}, "\n";
 			$index++;
 		}
 	}
@@ -5116,10 +5116,10 @@ sub print_person
 						print $xml "\n\t\t\t\t<notes>",
 							"\n\t\t\t\t\t$notes",
 							"\n\t\t\t\t</notes>";
-						$entry->{'note'} = $note;
+						$entry->{'note'} = $notes;
 					}
 					print $xml "\n\t\t\t</entry>";
-					push $military{$xref}, $entry;
+					push @{$military{$xref}}, $entry;
 				}
 			}
 		}
