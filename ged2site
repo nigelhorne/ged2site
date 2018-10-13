@@ -3670,22 +3670,12 @@ sub print_person
 				if(my $p = place({ person => $person, record => $events[0] })) {
 					$bio .= $p;
 				} else {
-					if($opts{'f'}) {
-						die $person->as_string() . ": arrival record with no place";
-					}
-					if($opts{'w'}) {
-						red_warning({ person => $person, warning => "Arrival record has no place" });
-					}
+					complain({ person => $person, warning => "Arrival record has no place" });
 				}
 				if(my $y = year({ person => $person, record => $events[0] })) {
 					$bio .= " $y";
 				} else {
-					if($opts{'f'}) {
-						die $person->as_string() . ": arrival record with no date";
-					}
-					if($opts{'w'}) {
-						red_warning({ person => $person, warning => "Arrival record has no date" });
-					}
+					complain({ person => $person, warning => "Arrival record has no date" });
 				}
 				if(my $spouse = $person->spouse()) {
 					foreach my $sevent($spouse->event()) {
@@ -5079,6 +5069,41 @@ sub print_person
 		}
 
 		print $xml "\n\t\t</locations>";
+
+		my $military_count = 0;
+		foreach my $event(@events) {
+			if(my $type = $event->type()) {
+				if($type eq 'Military service') {
+					if($military_count == 0) {
+						print $xml "\n\t\t<military>";
+					}
+					$military_count++;
+					print $xml "\n\t\t\t<entry>";
+					if(my $place = place({ person => $person, record => $event })) {
+						print $xml "\n\t\t\t\t<location>",
+							"\n\t\t\t\t\t$place",
+							"\n\t\t\t\t</location>";
+					}
+					if(my $date = year(record => $event)) {
+						print $xml "\n\t\t\t\t<date>",
+							"\n\t\t\t\t\t$date",
+							"\n\t\t\t\t</date>";
+					}
+
+					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
+						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
+						$notes =~ s/[\s\.]+$//;
+						print $xml "\n\t\t\t\t<notes>",
+							"\n\t\t\t\t\t$notes",
+							"\n\t\t\t\t</notes>";
+					}
+					print $xml "\n\t\t\t</entry>";
+				}
+			}
+		}
+		if($military_count > 0) {
+			print $xml "\n\t\t</military>";
+		}
 	} else {
 		print $csv '!!';
 	}
