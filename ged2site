@@ -1712,13 +1712,12 @@ sub print_person
 						$d = $date_parser->parse(date => $dob);
 					};
 					if($d) {
-						$d = @{$d}[0];
-					}
-					if($d) {
-						$d = $dfn->parse_datetime($d->{'canonical'});
-						if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
-							push @person_twins, $s;
-							$twins{$person->{'xref'}} = $s->{'xref'};
+						if($d = @{$d}[0]) {
+							$d = $dfn->parse_datetime($d->{'canonical'});
+							if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
+								push @person_twins, $s;
+								$twins{$person->{'xref'}} = $s->{'xref'};
+							}
 						}
 					}
 				}
