@@ -1735,7 +1735,7 @@ sub print_person
 	}
 
 	my $print_sibling_count = 0;
-	print $xml "\n\t\t<bio>";
+	print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
 	if($father || $mother) {
 		if(scalar(@occupations) || scalar(@person_twins)) {
 			$bio .= ' and the ';
@@ -1825,7 +1825,7 @@ sub print_person
 		print $xml $bio;
 
 		$fullbio = $bio;
-		$bio = '';
+		$bio = undef;
 
 		if($opts{'l'} || !$is_alive) {
 			if($father) {
@@ -1951,7 +1951,7 @@ sub print_person
 		if((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
 			if($opts{'l'} || $is_alive) {
 				if($relationship) {
-					$bio .= ', ' unless($printed_comma);
+					$bio .= ', ' if($bio && !$printed_comma);
 					$bio .= "<b>$firstname</b>";
 					if(($dob || $marriage) && (!($is_alive || $opts{'l'}))) {
 						$bio .= ',';
@@ -1963,7 +1963,7 @@ sub print_person
 				}
 			} else {
 				if($father || $mother || $occupations[0]) {
-					$bio .= ', ' unless($printed_comma);
+					$bio .= ', ' if($bio && !$printed_comma);
 				}
 				$bio .= "<b>$firstname " .
 					$name_components{'surname_1'} .
@@ -3986,7 +3986,7 @@ sub print_person
 		print $xml $bio;
 	}
 	print $csv '!';
-	print $xml '</bio>';
+	print $xml "\n\t\t\t</en>\n\t\t</bio>";
 
 	if($opts{'l'} || !$is_alive) {
 		print "Create parents\n" if($opts{'v'});
