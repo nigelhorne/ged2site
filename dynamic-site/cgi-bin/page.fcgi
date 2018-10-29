@@ -66,6 +66,7 @@ use Ged2site::Display::descendants;
 use Ged2site::Display::graphs;
 use Ged2site::Display::emmigrants;
 use Ged2site::Display::ww1;
+use Ged2site::Display::military;
 use Ged2site::Display::twins;
 use Ged2site::Display::reports;
 use Ged2site::Display::facts;
@@ -82,6 +83,7 @@ use Ged2site::DB::history;
 use Ged2site::DB::todo;
 use Ged2site::DB::names;
 use Ged2site::DB::twins;
+use Ged2site::DB::military;
 
 my $database_dir = "$script_dir/../databases";
 Ged2site::DB::init({ directory => $database_dir, logger => $logger });
@@ -97,6 +99,7 @@ my $history = Ged2site::DB::history->new();
 my $todo = Ged2site::DB::todo->new();
 my $names = Ged2site::DB::names->new();
 my $twins = Ged2site::DB::twins->new();
+my $military = Ged2site::DB::military->new();
 
 # open STDERR, ">&STDOUT";
 close STDERR;
@@ -282,8 +285,6 @@ sub doit
 			$display = Ged2site::Display::censuses->new($args);
 		} elsif($page eq 'surnames') {
 			$display = Ged2site::Display::surnames->new($args);
-		} elsif($page eq 'twins') {
-			$display = Ged2site::Display::twins->new($args);
 		} elsif($page eq 'history') {
 			$display = Ged2site::Display::history->new($args);
 		} elsif($page eq 'todo') {
@@ -298,6 +299,8 @@ sub doit
 			$display = Ged2site::Display::emmigrants->new($args);
 		} elsif($page eq 'ww1') {
 			$display = Ged2site::Display::ww1->new($args);
+		} elsif($page eq 'military') {
+			$display = Ged2site::Display::military->new($args);
 		} elsif($page eq 'twins') {
 			$display = Ged2site::Display::twins->new($args);
 		} elsif($page eq 'reports') {
@@ -328,6 +331,7 @@ sub doit
 			todo => $todo,
 			names => $names,
 			twins => $twins,
+			military => $military,
 			cachedir => $cachedir,
 			databasedir => $database_dir
 		});
@@ -399,6 +403,7 @@ sub choose
 			"/cgi-bin/page.fcgi?page=graphs\n",
 			"/cgi-bin/page.fcgi?page=emmigrants\n",
 			"/cgi-bin/page.fcgi?page=ww1\n",
+			"/cgi-bin/page.fcgi?page=military\n",
 			"/cgi-bin/page.fcgi?page=twins\n",
 			"/cgi-bin/page.fcgi?page=reports\n",
 			"/cgi-bin/page.fcgi?page=mailto\n";
