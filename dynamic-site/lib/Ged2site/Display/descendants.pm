@@ -81,7 +81,7 @@ sub _build_nodes {
 
 	if($person->{'children'}) {
 		$level++;
-		foreach my $child(split('----' ,$person->{'children'})) {
+		foreach my $child(split(/----/ ,$person->{'children'})) {
 			if($child =~ /entry=([PI]\d+)">.+<\/a>/) {
 				$child = $people->fetchrow_hashref({ entry => $1 });
 				next if($child->{'alive'});
