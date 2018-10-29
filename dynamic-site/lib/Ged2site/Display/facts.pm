@@ -27,6 +27,7 @@ sub html {
 
 	if(open(my $json, '<', $json_file)) {
 		my $facts = JSON->new()->utf8()->decode(<$json>);
+		close($json);
 		if(my $fb = $facts->{'first_birth'}) {
 			$fb->{'person'} = $people->fetchrow_hashref(entry => delete $fb->{'xref'});
 		}
