@@ -22,14 +22,14 @@ sub html {
 
 	my @military = $args{'military'}->selectall_hash(\%params);
 
-	@military = sort { $a->{'title'} cmp $b->{'title'} } @military;
-
 	my $people = $args{'people'} || die;
 
 	# Lookup the full name of the person
 	foreach my $person(@military) {
 		$person->{'title'} = $people->title(entry => $person->{'person'});
 	}
+
+	@military = sort { $a->{'title'} cmp $b->{'title'} } @military;
 
 	return $self->SUPER::html({ military => \@military, updated => $people->updated() });
 }
