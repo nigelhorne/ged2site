@@ -12,15 +12,7 @@ sub html {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $info = $self->{_info};
-	my $allowed = {
-		'page' => 'military',
-		'lang' => qr/^[A-Z][A-Z]/i,
-	};
-	my %params = %{$info->params({ allow => $allowed })};
-	delete $params{'page'};
-
-	my @military = $args{'military'}->selectall_hash(\%params);
+	my @military = $args{'military'}->selectall_hash();
 
 	my $people = $args{'people'} || die;
 
