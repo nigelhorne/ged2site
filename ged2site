@@ -4461,18 +4461,22 @@ sub print_person
 									$h *= 175 / $w;
 									$h = int($h);
 									# print $html "<a href=\"$file\" target=\"_blank\">",
+									my $escaped_file = $localfile;
+									$escaped_file =~ s/&/&amp;/g;
 									if($title) {
 										print $html "<a href=\"$localfile\" target=\"_blank\">",
 											'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
 											'</a>';
 										print $csv "/$localfile---$title---$h----";
-										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$localfile</file>\n\t\t\t\t<title>$title</title>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
+										my $escaped_title = $title;
+										$escaped_title =~ s/&/&amp;/g;
+										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$escaped_file</file>\n\t\t\t\t<title>$escaped_title</title>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
 									} else {
 										print $html "<a href=\"$localfile\" target=\"_blank\">",
 											'<img src="', $localfile, "\" width=\"175\" height=\"$h\">",
 											'</a>';
 										print $csv "/$localfile--- ---$h----";
-										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$localfile</file>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
+										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$escaped_file</file>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
 									}
 									if(defined($profile_object) && ($obje eq $profile_object)) {
 										$s_profile_image = "static-site/$localfile";
@@ -5113,6 +5117,7 @@ sub print_person
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 						$notes =~ s/[\s\.]+$//;
+						$notes =~ s/<br>/ /g;
 						print $xml "\n\t\t\t\t<notes>",
 							"\n\t\t\t\t\t$notes",
 							"\n\t\t\t\t</notes>";
