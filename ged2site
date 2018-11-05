@@ -1730,6 +1730,7 @@ sub print_person
 				$bio .= 'The twin ' . (($person->sex() eq 'M') ? 'brother' : 'sister') .
 					' of ' . $person_twins[0]->given_names();
 			}
+			$printed_comma = 0;
 		}
 	}
 
@@ -1864,12 +1865,6 @@ sub print_person
 					print $csv ' and';
 					print $xml ' and';
 					$fullbio .= ' and';
-				} else {
-					print $html ', ';
-					print $csv ', ';
-					print $xml ', ';
-					$fullbio .= ', ';
-					$printed_comma = 1;
 				}
 			}
 			if($mother) {
@@ -1944,6 +1939,7 @@ sub print_person
 					'&lt;/a&gt;';
 			}
 		}
+		$printed_comma = 0;
 	}
 
 	if($firstname) {
