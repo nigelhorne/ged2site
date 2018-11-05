@@ -1946,7 +1946,7 @@ sub print_person
 		if((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person ne $me)) {
 			if($opts{'l'} || $is_alive) {
 				if($relationship) {
-					$bio .= ', ' if(($bio || $mother || $father) && !$printed_comma);
+					$bio .= ', ' if(($mother || $father) && !$printed_comma);
 					$bio .= "<b>$firstname</b>";
 					if(($dob || $marriage) && (!($is_alive || $opts{'l'}))) {
 						$bio .= ',';
@@ -1958,7 +1958,7 @@ sub print_person
 				}
 			} else {
 				if($father || $mother || $occupations[0]) {
-					$bio .= ', ' if($bio && !$printed_comma);
+					$bio .= ', ' if(!$printed_comma);
 				}
 				$bio .= "<b>$firstname " .
 					$name_components{'surname_1'} .
