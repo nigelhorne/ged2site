@@ -4768,7 +4768,7 @@ sub print_person
 			# print Data::Dumper->new([$match])->Dump();
 			next if(defined($match->{'confidence'}) && ($match->{'confidence'} < 1.0));
 			my $place = $match->{'location'};
-			next(!defined($place));	# The text didn't match a location
+			next if(!defined($place));	# The text didn't match a location
 			if(defined($current_place) && ($place ne $current_place)) {
 				# FIXME: no need to look up again, use $match->longt and lattt
 				if(!defined($map)) {
