@@ -94,8 +94,6 @@ use POSIX;
 use JSON;
 use File::Print::Many;
 
-no lib '.';
-
 my %opts;
 getopts('cdfFG:g:h:J:lL:mwv', \%opts);
 
