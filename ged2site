@@ -3615,22 +3615,12 @@ sub print_person
 			if(defined($departure->place())) {
 				$bio .= ' from ' . $departure->place();
 			} else {
-				if($opts{'f'}) {
-					die $person->as_string() . ': departure record has no location';
-				}
-				if($opts{'w'}) {
-					red_warning({ person => $person, warning => 'Departure record has no location' });
-				}
+				complain({ person => $person, warning => 'Departure record has no location' });
 			}
 			if(defined($arrival->place())) {
 				$bio .= ' to ' . $arrival->place();
 			} else {
-				if($opts{'f'}) {
-					die $person->as_string() . ': arrival record has no location';
-				}
-				if($opts{'w'}) {
-					red_warning({ person => $person, warning => 'Arrival record has no location' });
-				}
+				complain({ person => $person, warning => 'Arrival record has no location' });
 			}
 
 			if(defined($dod) && !$only_have_departure_year) {
