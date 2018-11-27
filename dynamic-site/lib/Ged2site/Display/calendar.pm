@@ -20,6 +20,7 @@ sub html {
 		'page' => 'calendar',
 		# 'month' => qr(^\d{1,2}$),	# must be one or two digits
 		'lang' => qr/^[A-Z][A-Z]/i,
+		'lint_content' => qr/^\d$/,
 	};
 	my $params = $info->params({ allow => $allowed });
 

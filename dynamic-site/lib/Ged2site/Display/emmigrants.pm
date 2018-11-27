@@ -23,9 +23,9 @@ sub html {
 	my $allowed = {
 		'page' => 'emmigrants',
 		'lang' => qr/^[A-Z][A-Z]/i,
+		'lint_content' => qr/^\d$/,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
-	delete $params{'page'};
 
 	# Handle into the database
 	my $people = $args{'people'};

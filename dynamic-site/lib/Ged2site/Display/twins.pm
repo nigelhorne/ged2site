@@ -17,6 +17,7 @@ sub html {
 	my $allowed = {
 		'page' => 'twins',
 		'lang' => qr/^[A-Z][A-Z]/i,
+		'lint_content' => qr/^\d$/,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
 	return "" if(delete($params{'page'}) ne 'twins');

@@ -16,9 +16,9 @@ sub html {
 	my $allowed = {
 		'page' => 'facts',
 		'lang' => qr/^[A-Z][A-Z]/i,
+		'lint_content' => qr/^\d$/,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
-	delete $params{'page'};
 
 	my $json_file = File::Spec->catfile($args{'databasedir'}, 'facts.json');
 

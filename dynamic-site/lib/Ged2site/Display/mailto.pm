@@ -22,6 +22,7 @@ sub html {
 		'yemail' => undef,
 		'yname' => undef,
 		'lang' => qr/^[A-Z][A-Z]/i,
+		'lint_content' => qr/^\d$/,
 	};
 	my $params = $info->params({ allow => $allowed });
 

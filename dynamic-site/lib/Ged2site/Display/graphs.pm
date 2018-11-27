@@ -51,6 +51,7 @@ sub html {
 		'page' => 'graphs',
 		'graph' => qr/^[a-z]+$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
+		'lint_content' => qr/^\d$/,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
 
