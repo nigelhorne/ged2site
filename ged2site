@@ -94,8 +94,6 @@ use POSIX;
 use JSON;
 use File::Print::Many;
 
-no lib '.';
-
 my %opts;
 getopts('cdfFG:g:h:J:lL:mwv', \%opts);
 
@@ -3617,22 +3615,12 @@ sub print_person
 			if(defined($departure->place())) {
 				$bio .= ' from ' . $departure->place();
 			} else {
-				if($opts{'f'}) {
-					die $person->as_string() . ': departure record has no location';
-				}
-				if($opts{'w'}) {
-					red_warning({ person => $person, warning => 'Departure record has no location' });
-				}
+				complain({ person => $person, warning => 'Departure record has no location' });
 			}
 			if(defined($arrival->place())) {
 				$bio .= ' to ' . $arrival->place();
 			} else {
-				if($opts{'f'}) {
-					die $person->as_string() . ': arrival record has no location';
-				}
-				if($opts{'w'}) {
-					red_warning({ person => $person, warning => 'Arrival record has no location' });
-				}
+				complain({ person => $person, warning => 'Arrival record has no location' });
 			}
 
 			if(defined($dod) && !$only_have_departure_year) {
@@ -6162,6 +6150,7 @@ sub validate_place
 	}
 
 	$place =~ s/^\s+//;
+	$place =~ s/^at\s+//;
 	if(defined($places{$place})) {
 		return $places{$place};
 	}
@@ -6213,6 +6202,10 @@ sub validate_place
 			$town = $1;
 		}
 		if($opts{'w'}) {
+			# Strange locations in censuses
+			if($town =~ /Royal Navy/) {
+				return 0;
+			}
 			# Force wantarray for improved caching in
 			# G:C:L
 			my @locations = $geocoder->geocode($town);
