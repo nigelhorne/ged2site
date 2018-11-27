@@ -6201,6 +6201,10 @@ sub validate_place
 			$town = $1;
 		}
 		if($opts{'w'}) {
+			# Strange locations in censuses
+			if($town =~ /Royal Navy/) {
+				return 0;
+			}
 			# Force wantarray for improved caching in
 			# G:C:L
 			my @locations = $geocoder->geocode($town);
