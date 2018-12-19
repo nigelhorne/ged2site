@@ -99,6 +99,9 @@ getopts('cdfFG:g:h:J:lL:mwv', \%opts);
 
 die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
 
+use	constant	MAX_INDEX => 0;	# Debugging, set this to the number of records to print.
+						# Set to 0 to run on the entire database
+
 my $me;
 my @myancestors;
 my %warned;
@@ -109,6 +112,7 @@ my %censuses;
 my %twins;
 my %military;
 my %images;
+my %all_locations;
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
@@ -574,6 +578,7 @@ foreach my $person(@everyone) {
 		}
 	}
 	last if($opts{'L'} && ($index == $opts{'L'}));
+	last if(MAX_INDEX && ($index >= MAX_INDEX));
 }
 print $xml "\n</table>\n";
 close $xml;
@@ -795,6 +800,24 @@ if(scalar(%censuses)) {
 	close $csv;
 }
 
+if(scalar(%all_locations)) {
+	print "Creating locations database\n";
+
+	open($csv, '>', 'dynamic-site/databases/locations.csv');
+	print $csv "entry!location!person!year\n";
+
+	$index = 1;
+	foreach my $year(sort keys(%all_locations)) {
+		foreach my $l(@{$all_locations{$year}}) {
+			my $place = place(record => $l->{'residence'}, nopreposition => 1);
+			$place =~ s/^\s*//;
+			print $csv "$index!$place!",
+				$l->{'person'}->as_string(), '!',
+				"$year\n";
+			$index++;
+		}
+	}
+}
 if(scalar(%military)) {
 	print "Creating military records\n";
 	open($csv, '>', 'dynamic-site/databases/military.csv');
@@ -1023,6 +1046,7 @@ if($facts && open(my $json, '>', 'dynamic-site/databases/facts.json')) {
 sub print_person
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
 
 	# Gather the information on this person
 	my $person = $params{'person'};
@@ -3013,6 +3037,9 @@ sub print_person
 						$places_printed{$p} = 1;
 					}
 					$place_records{"Residence/$count"} = $residence;
+					if($rdate && (my $rdate_dt = date_to_datetime($rdate))) {
+						push @{$all_locations{$rdate_dt->year()}}, { 'residence' => $residence, 'person' => $person };
+					}
 				}
 				if($rdate) {	# residence has a date?
 					if($opts{'w'} && ($rdate =~ /(\d{3,4})$/)) {
