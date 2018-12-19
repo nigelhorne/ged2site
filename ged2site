@@ -563,10 +563,10 @@ foreach my $person(@everyone) {
 			my $log = $geocoder->log();
 			$geocoder->flush();
 			foreach my $l(@{$log}) {
-				print $l->{location}, ': ';
+				print $l->{location}, ': ' if($l->{'location'});
 				if($l->{geocoder}) {
 					if($l->{error}) {
-						print $l->{timetaken}, 's with ',  $l->{geocoder}, '(', $l->{error}, ")";
+						print $l->{timetaken}, 's with ',  $l->{geocoder}, '(', $l->{error}, ')';
 					} else {
 						print $l->{timetaken}, 's with ',  $l->{geocoder};
 					}
@@ -639,115 +639,6 @@ if($me) {
 	$name = 'of ' . $me->as_string(nee => 1);
 } else {
 	$name = 'on this site';
-}
-
-if($opts{'w'}) {
-	open(my $html, '>', 'static-site/todo.html');
-	print $html "<html><head><title>Errors in the Family Tree $name</title>",
-		"</head><body><center><h1>Errors in the Family Tree $name</h1>";
-	if($me) {
-		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
-	}
-	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
-		' | [ <a href="censuses.html">Census Index</a> ]',
-		' | [ <a href="calendar/index.html">Calendar</a> ]',
-		' | [ <a href="history.html">Family History</a> ]</center><br>';
-
-	open(my $csv, '>', 'dynamic-site/databases/todo.csv');
-	print $csv "entry!person!title!summary!error\n";
-	my $index = 1;
-
-	foreach my $person(@everyone) {
-		if($person->{'warnings'}) {
-			print $html '<h2>',
-				'<a href="', make_filename_from_person(person => $person), '">', $person->as_string(include_years => 1), '</a></h2>',
-				map { HTML::Entities::encode($_) . '<br>' } @{$person->{'warnings'}};
-			my %seen_warnings;
-			foreach my $warning(@{$person->{'warnings'}}) {
-				next if($seen_warnings{$warning});
-				my $summary;
-				if($warning =~ /^\[\d+\]: no citation title/) {
-					$summary = 'Citation Title Missing';
-				} elsif($warning =~ /^(.+) date .+ has no citations/) {
-					$summary = "$1 date without citation";
-				} elsif($warning =~ /^(.+) place .+ has no citations/) {
-					$summary = "$1 place without citation";
-				} elsif($warning =~ /^Contains a residence .+ without a date/) {
-					$summary = 'Residence Without a Date';
-				} elsif($warning =~ /.+in notes is not found$/) {
-					$summary = 'URL in notes not found';
-				} elsif($warning =~ /^Unhandled event type:/) {
-					$summary = 'Unhandled Event Type';
-				} elsif($warning =~ /^Census information missing between /) {
-					$summary = 'Missing Census';
-				} elsif($warning eq '1939 UK register information missing') {
-					$summary = 'Missing Census';
-				} elsif($warning =~ /^Check the gender of the record/) {
-					$summary = 'Possibly Wrong Gender';
-				} elsif($warning =~ /^Two residence records for/) {
-					$summary = 'Residence Records for the Same Date that Don\'t Match';
-				} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
-					$summary = 'Baptism Before Birth';
-				} elsif($warning =~ /^Year of residence .+ is after the year of death /) {
-					$summary = 'Residence After Death';
-				} elsif($warning =~ /^Born less than 10 months before sibling /) {
-					$summary = 'Born Under 10 Months Before Sibling';
-				} elsif($warning =~ /^married when less than 16 years old/) {
-					$summary = 'Under Age 16 When Married';
-				} elsif($warning =~ /^unknown sex/) {
-					$summary = 'Sex Not Specified';
-				} elsif($warning =~ /^married, but not husband relationship/) {
-					$summary = 'Husband Relationship Missing';
-				} elsif($warning =~ /^Departure record without destination/) {
-					$summary = 'Departure Without Destination';
-				} elsif($warning =~ /^Census information not used to approximate a date of birth/) {
-					$summary = 'Date of Birth not Calculated';
-				} elsif($warning =~ /^Census information not used to determine a parent/) {
-					$summary = 'Parent not Determined from Census';
-				} elsif($warning =~ /^Baptism information not used to determine a parent/) {
-					$summary = 'Parent not Determined from Baptism';
-				} elsif($warning =~ /^Unknown state in/) {
-					$summary = 'Unknown US State';
-				} elsif($warning =~ /^Residence information in/) {
-					$summary = 'Child\'s Location is Known but Parent\'s is not';
-				} elsif($warning =~ /^Unknown birth location/) {
-					$summary = 'Birth location not found';
-				} elsif($warning =~ /^Unknown death location/) {
-					$summary = 'Death location not found';
-				} elsif($warning =~ /\sisn't found$/) {
-					$summary = 'Location not found';
-				} elsif($warning =~ /^something is wrong with the date /) {
-					$summary = 'Inconsistent date';
-				} elsif($warning =~ /^born before parent was born/) {
-					$summary = 'Born before Parent was born';
-				} elsif($warning =~ /^Date of residence .+ is after date of death/) {
-					$summary = 'Date of Residence After Date of Death';
-				} elsif($warning =~ /^Location for the event on /) {
-					$summary = 'Location is empty';
-				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
-					$summary = 'Parent\'s Location is Known but Child\'s is not';
-				} elsif($warning =~ /^The census for year \d{4} has been cited,/) {
-					$summary = 'Census exists but no residence added';
-				} elsif($warning =~ /^Residence record for .+ contains no location/) {
-					$summary = 'Residence Record Missing Location';
-				} elsif($warning =~ /^Census for \d{4} after year of death/) {
-					$summary = 'Census after death';
-				} else {
-					$summary = $warning;
-				}
-				print $csv "$index!",
-					$person->{'xref'}, '!',
-					$person->as_string(include_years => 1),
-					"!$summary!",
-					HTML::Entities::encode($warning),
-					"\n";
-				$seen_warnings{$warning} = $index;
-				$index++;
-			}
-		}
-	}
-	close $csv;
-	close $html;
 }
 
 if(scalar(%censuses)) {
@@ -945,6 +836,116 @@ if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
 		}
 	}
 	close $csv;
+}
+
+# Output the warnings last, so that all are included
+if($opts{'w'}) {
+	open(my $html, '>', 'static-site/todo.html');
+	print $html "<html><head><title>Errors in the Family Tree $name</title>",
+		"</head><body><center><h1>Errors in the Family Tree $name</h1>";
+	if($me) {
+		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
+	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
+		' | [ <a href="censuses.html">Census Index</a> ]',
+		' | [ <a href="calendar/index.html">Calendar</a> ]',
+		' | [ <a href="history.html">Family History</a> ]</center><br>';
+
+	open(my $csv, '>', 'dynamic-site/databases/todo.csv');
+	print $csv "entry!person!title!summary!error\n";
+	my $index = 1;
+
+	foreach my $person(@everyone) {
+		if($person->{'warnings'}) {
+			print $html '<h2>',
+				'<a href="', make_filename_from_person(person => $person), '">', $person->as_string(include_years => 1), '</a></h2>',
+				map { HTML::Entities::encode($_) . '<br>' } @{$person->{'warnings'}};
+			my %seen_warnings;
+			foreach my $warning(@{$person->{'warnings'}}) {
+				next if($seen_warnings{$warning});
+				my $summary;
+				if($warning =~ /^\[\d+\]: no citation title/) {
+					$summary = 'Citation Title Missing';
+				} elsif($warning =~ /^(.+) date .+ has no citations/) {
+					$summary = "$1 date without citation";
+				} elsif($warning =~ /^(.+) place .+ has no citations/) {
+					$summary = "$1 place without citation";
+				} elsif($warning =~ /^Contains a residence .+ without a date/) {
+					$summary = 'Residence Without a Date';
+				} elsif($warning =~ /.+in notes is not found$/) {
+					$summary = 'URL in notes not found';
+				} elsif($warning =~ /^Unhandled event type:/) {
+					$summary = 'Unhandled Event Type';
+				} elsif($warning =~ /^Census information missing between /) {
+					$summary = 'Missing Census';
+				} elsif($warning eq '1939 UK register information missing') {
+					$summary = 'Missing Census';
+				} elsif($warning =~ /^Check the gender of the record/) {
+					$summary = 'Possibly Wrong Gender';
+				} elsif($warning =~ /^Two residence records for/) {
+					$summary = 'Residence Records for the Same Date that Don\'t Match';
+				} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
+					$summary = 'Baptism Before Birth';
+				} elsif($warning =~ /^Year of residence .+ is after the year of death /) {
+					$summary = 'Residence After Death';
+				} elsif($warning =~ /^Born less than 10 months before sibling /) {
+					$summary = 'Born Under 10 Months Before Sibling';
+				} elsif($warning =~ /^married when less than 16 years old/) {
+					$summary = 'Under Age 16 When Married';
+				} elsif($warning =~ /^unknown sex/) {
+					$summary = 'Sex Not Specified';
+				} elsif($warning =~ /^married, but not husband relationship/) {
+					$summary = 'Husband Relationship Missing';
+				} elsif($warning =~ /^Departure record without destination/) {
+					$summary = 'Departure Without Destination';
+				} elsif($warning =~ /^Census information not used to approximate a date of birth/) {
+					$summary = 'Date of Birth not Calculated';
+				} elsif($warning =~ /^Census information not used to determine a parent/) {
+					$summary = 'Parent not Determined from Census';
+				} elsif($warning =~ /^Baptism information not used to determine a parent/) {
+					$summary = 'Parent not Determined from Baptism';
+				} elsif($warning =~ /^Unknown state in/) {
+					$summary = 'Unknown US State';
+				} elsif($warning =~ /^Residence information in/) {
+					$summary = 'Child\'s Location is Known but Parent\'s is not';
+				} elsif($warning =~ /^Unknown birth location/) {
+					$summary = 'Birth location not found';
+				} elsif($warning =~ /^Unknown death location/) {
+					$summary = 'Death location not found';
+				} elsif($warning =~ /\sisn't found$/) {
+					$summary = 'Location not found';
+				} elsif($warning =~ /^something is wrong with the date /) {
+					$summary = 'Inconsistent date';
+				} elsif($warning =~ /^born before parent was born/) {
+					$summary = 'Born before Parent was born';
+				} elsif($warning =~ /^Date of residence .+ is after date of death/) {
+					$summary = 'Date of Residence After Date of Death';
+				} elsif($warning =~ /^Location for the event on /) {
+					$summary = 'Location is empty';
+				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
+					$summary = 'Parent\'s Location is Known but Child\'s is not';
+				} elsif($warning =~ /^The census for year \d{4} has been cited,/) {
+					$summary = 'Census exists but no residence added';
+				} elsif($warning =~ /^Residence record for .+ contains no location/) {
+					$summary = 'Residence Record Missing Location';
+				} elsif($warning =~ /^Census for \d{4} after year of death/) {
+					$summary = 'Census after death';
+				} else {
+					$summary = $warning;
+				}
+				print $csv "$index!",
+					$person->{'xref'}, '!',
+					$person->as_string(include_years => 1),
+					"!$summary!",
+					HTML::Entities::encode($warning),
+					"\n";
+				$seen_warnings{$warning} = $index;
+				$index++;
+			}
+		}
+	}
+	close $csv;
+	close $html;
 }
 
 if($gedcal) {
@@ -4234,7 +4235,7 @@ sub print_person
 				} elsif($placeofbirth && $placeofdeath && $dateofdeath && (!$census_years{1939}) &&
 				   (datecmp($dateofdeath, '1939') >= 0) && ($placeofbirth =~ /England$/) && ($placeofdeath =~ /England$/) &&
 				   ((!$dateofbirth) || (datecmp($dateofbirth, '1939') <= 0))) {
-				   	my $has1939 = 0;
+					my $has1939 = 0;
 					foreach my $residence(@residences) {
 						if($residence->date() && ($residence->date() =~ /1939$/)) {
 							$has1939 = 1;
