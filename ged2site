@@ -695,19 +695,60 @@ if(scalar(%all_locations)) {
 	print "Creating locations database\n";
 
 	open($csv, '>', 'dynamic-site/databases/locations.csv');
-	print $csv "entry!location!person!year\n";
+	print $csv "entry!location!person!year!date\n";
 
 	$index = 1;
+
+	open(my $locations_xml, '>', 'dynamic-site/databases/locations.xml');
+	print $locations_xml "<locations>\n\t<maps>\n";
+	my ($head, $div);
 	foreach my $year(sort keys(%all_locations)) {
+		my %markers;
 		foreach my $l(@{$all_locations{$year}}) {
 			my $place = place(record => $l->{'residence'}, nopreposition => 1);
 			$place =~ s/^\s*//;
+			push @{$markers{$place}}, $l;
 			print $csv "$index!$place!",
 				$l->{'person'}->as_string(), '!',
-				"$year\n";
+				"$year!",
+				$l->{'date'}, "\n";
 			$index++;
 		}
+
+		# Create a map of where everyone lived in each year
+		my %args = (geocoder => $geocoder);
+		if($javascript_key) {
+			$args{'api_key'} = $javascript_key;
+		}
+		my $map = HTML::GoogleMaps::V3->new(%args);
+		foreach my $place(keys %markers) {
+			my @annotations = @{$markers{$place}};
+			my $html = $place;
+			my $previous_date;
+			foreach my $annotation(@annotations) {
+				my $date = $annotation->{'date'};
+				if($previous_date && ($date eq $previous_date)) {
+					$html .= ', ' . $annotation->{'person'}->as_string();
+				} else {
+					$html .= '<br>' . $annotation->{'date'} . ': ' . $annotation->{'person'}->as_string();
+					$previous_date = $date;
+				}
+			}
+			$map->add_marker(point => $place, html => $html);
+		}
+		($head, $div) = $map->onload_render();
+		$head =~ s/\n\n*/\n/g;
+		$head =~ s/http:/https:/;
+		$head =~ s/</&lt;/g;
+		$head =~ s/>/&gt;/g;
+		print $locations_xml "\t\t<map>\n\t\t\t<year>$year</year>\n\t\t\t<html>$head\n\t\t\t</html>\n\t\t</map>\n";
 	}
+	close $csv;
+
+	$div =~ s/</&lt;/g;
+	$div =~ s/>/&gt;/g;
+	print $locations_xml "\t</maps>\n\t<div>$div</div>\n</locations>\n";
+	close $locations_xml;
 }
 if(scalar(%military)) {
 	print "Creating military records\n";
@@ -894,7 +935,7 @@ if($opts{'w'}) {
 					$summary = 'Under Age 16 When Married';
 				} elsif($warning =~ /^unknown sex/) {
 					$summary = 'Sex Not Specified';
-				} elsif($warning =~ /^married, but not husband relationship/) {
+				} elsif($warning =~ /^married, but no husband relationship/) {
 					$summary = 'Husband Relationship Missing';
 				} elsif($warning =~ /^Departure record without destination/) {
 					$summary = 'Departure Without Destination';
@@ -930,6 +971,8 @@ if($opts{'w'}) {
 					$summary = 'Residence Record Missing Location';
 				} elsif($warning =~ /^Census for \d{4} after year of death/) {
 					$summary = 'Census after death';
+				} elsif($warning =~ /not living at same residence as spouse/) {
+					$summary = 'Spouses not at same address';
 				} else {
 					$summary = $warning;
 				}
@@ -3039,7 +3082,33 @@ sub print_person
 					}
 					$place_records{"Residence/$count"} = $residence;
 					if($rdate && (my $rdate_dt = date_to_datetime($rdate))) {
-						push @{$all_locations{$rdate_dt->year()}}, { 'residence' => $residence, 'person' => $person };
+						my $year = $rdate_dt->year();
+						my $strftime = $rdate_dt->strftime('%x');
+						push @{$all_locations{$year}},
+							{
+								'residence' => $residence,
+								'person' => $person,
+								'date' => $strftime,
+							};
+						if($opts{'w'} && $marriage_dt && ($rdate_dt > $marriage_dt)) {
+							# Check this person was living at the same place as their spouse.
+							# TODO: Also check all children under 10
+							foreach my $l(@{$all_locations{$year}}) {
+								if(($l->{'person'} eq $spouses[0]) &&
+								   ($l->{'date'} eq $strftime)) {
+								   	my $r1 = place(record => $residence, nopreposition => 1);
+								   	my $r2 = place(record => $l->{'residence'}, nopreposition => 1);
+									if($r1 ne $r2) {
+										$r1 =~ s/^\s+//;
+										$r2 =~ s/^\s+//;
+										complain({
+											person => $person,
+											warning => "$strftime: not living at same address as spouse " . $spouses[0]->as_string() . " ('$r1'/'$r2')"
+										});
+									}
+								}
+							}
+						}
 					}
 				}
 				if($rdate) {	# residence has a date?
@@ -4825,6 +4894,7 @@ sub print_person
 			# Can't put $head into the head since it's far too
 			# late now!
 			my ($head, $map_div) = $map->onload_render();
+			$head =~ s/\n\n*/\n/g;
 			$head =~ s/http:/https:/;
 			# if($opts{'M'}) {
 				# # Don't include the key in the webpage.
@@ -5508,6 +5578,7 @@ sub Gedcom::Individual::relationship
 				my %male_relationships = (
 					1 << 24 | 1 => 'brother',
 					1 << 24 | 2 => 'nephew',
+					1 << 24 | 3 => 'great-nephew',
 					2 << 24 | 1 => 'uncle',
 					2 << 24 | 2 => 'cousin',
 					2 << 24 | 3 => 'first cousin once-removed',
@@ -5579,6 +5650,7 @@ sub Gedcom::Individual::relationship
 				my %female_relationships = (
 					1 << 24 | 1 => 'sister',
 					1 << 24 | 2 => 'niece',
+					1 << 24 | 3 => 'great-niece',
 					2 << 24 | 1 => 'aunt',
 					2 << 24 | 2 => 'cousin',
 					2 << 24 | 3 => 'first cousin once-removed',
