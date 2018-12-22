@@ -1469,7 +1469,7 @@ sub print_person
 		die "BUG: $title is marked as alive yet we have burial information";
 	}
 
-	if($birth_dt = $dfg->parse_datetime(date => $dateofbirth)) {
+	if($dateofbirth & ($birth_dt = $dfg->parse_datetime(date => $dateofbirth))) {
 		if(defined($facts->{'first_birth'})) {
 			if($birth_dt < $facts->{'first_birth'}->{'date'}) {
 				$facts->{'first_birth'}->{'date'} = $birth_dt;
@@ -1505,7 +1505,9 @@ sub print_person
 	if((!$dateofmarriage) && $marriage) {
 		$dateofmarriage = $marriage->date();
 	}
-	$marriage_dt = $dfg->parse_datetime(date => $dateofmarriage);
+	if($dateofmarriage) {
+		$marriage_dt = $dfg->parse_datetime(date => $dateofmarriage);
+	}
 
 	if($birth_dt && $marriage_dt && $opts{'w'} && ($marriage_dt < ($birth_dt + $sixteenyears))) {
 		complain({
@@ -1513,7 +1515,9 @@ sub print_person
 			warning => 'married when less than 16 years old'
 		});
 	}
-	$death_dt = $dfg->parse_datetime(date => $dateofdeath);
+	if($dateofdeath) {
+		$death_dt = $dfg->parse_datetime(date => $dateofdeath);
+	}
 
 	if($birth_dt && $death_dt) {
 		my $age_at_death = $death_dt - $birth_dt;
