@@ -65,6 +65,7 @@ use Ged2site::Display::calendar;
 use Ged2site::Display::descendants;
 use Ged2site::Display::graphs;
 use Ged2site::Display::emmigrants;
+use Ged2site::Display::locations;
 use Ged2site::Display::ww1;
 use Ged2site::Display::military;
 use Ged2site::Display::twins;
@@ -84,6 +85,7 @@ use Ged2site::DB::todo;
 use Ged2site::DB::names;
 use Ged2site::DB::twins;
 use Ged2site::DB::military;
+use Ged2site::DB::locations;
 
 my $database_dir = "$script_dir/../databases";
 Ged2site::DB::init({ directory => $database_dir, logger => $logger });
@@ -97,6 +99,8 @@ my $censuses = Ged2site::DB::censuses->new();
 my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::DB::history->new();
 my $todo = Ged2site::DB::todo->new();
+# TODO: why are these arguments needed?
+my $locations = Ged2site::DB::locations->new(directory => $database_dir, logger => $logger);
 my $names = Ged2site::DB::names->new();
 my $twins = Ged2site::DB::twins->new();
 my $military = Ged2site::DB::military->new();
@@ -236,7 +240,6 @@ sub doit
 	my $args = {
 		info => $info,
 		optimise_content => 1,
-		lint_content => 0,
 		logger => $logger,
 		lint_content => $info->param('lint_content') // $args{'debug'},
 		lingua => $lingua
@@ -297,6 +300,8 @@ sub doit
 			$display = Ged2site::Display::graphs->new($args);
 		} elsif($page eq 'emmigrants') {
 			$display = Ged2site::Display::emmigrants->new($args);
+		} elsif($page eq 'locations') {
+			$display = Ged2site::Display::locations->new($args);
 		} elsif($page eq 'ww1') {
 			$display = Ged2site::Display::ww1->new($args);
 		} elsif($page eq 'military') {
@@ -326,6 +331,7 @@ sub doit
 		print $display->as_string({
 			people => $people,
 			censuses => $censuses,
+			locations => $locations,
 			surnames => $surnames,
 			history => $history,
 			todo => $todo,
