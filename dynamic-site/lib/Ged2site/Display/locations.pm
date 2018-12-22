@@ -23,18 +23,20 @@ sub html {
 	delete $params{'lint_content'};
 	delete $params{'lang'};
 
-	# Handles into the databases
-	my $locations = $args{'locations'};
+	my $db = $args{'locations'};
+	my @locations = $db->locations();
 
 	if(scalar(keys %params) == 0) {
 		# Display list of locations
-		my @locations = $locations->locations();
-		return $self->SUPER::html({ locations => \@locations, updated => $locations->updated() });
+		return $self->SUPER::html({ locations => \@locations, updated => $db->updated() });
 	}
 
-	my $location = $locations->location(year => $params{'year'});
 
-	return $self->SUPER::html({ location => $location, updated => $locations->updated() });
+	return $self->SUPER::html({
+		head => $db->head(year => $params{'year'}),
+		locations => \@locations,
+		updated => $db->updated()
+	});
 }
 
 1;

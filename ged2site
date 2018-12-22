@@ -701,7 +701,7 @@ if(scalar(%all_locations)) {
 
 	open(my $locations_xml, '>', 'dynamic-site/databases/locations.xml');
 	print $locations_xml "<locations>\n\t<maps>\n";
-	my ($head, $div);
+	my ($head, $body);
 	foreach my $year(sort keys(%all_locations)) {
 		my %markers;
 		foreach my $l(@{$all_locations{$year}}) {
@@ -736,18 +736,18 @@ if(scalar(%all_locations)) {
 			}
 			$map->add_marker(point => $place, html => $html);
 		}
-		($head, $div) = $map->onload_render();
+		($head, $body) = $map->onload_render();
 		$head =~ s/\n\n*/\n/g;
 		$head =~ s/http:/https:/;
 		$head =~ s/</&lt;/g;
 		$head =~ s/>/&gt;/g;
-		print $locations_xml "\t\t<map>\n\t\t\t<year>$year</year>\n\t\t\t<html>$head\n\t\t\t</html>\n\t\t</map>\n";
+		print $locations_xml "\t\t<map>\n\t\t\t<year>$year</year>\n\t\t\t<head>$head\n\t\t\t</head>\n\t\t</map>\n";
 	}
 	close $csv;
 
-	$div =~ s/</&lt;/g;
-	$div =~ s/>/&gt;/g;
-	print $locations_xml "\t</maps>\n\t<div>$div</div>\n</locations>\n";
+	$body =~ s/</&lt;/g;
+	$body =~ s/>/&gt;/g;
+	print $locations_xml "\t</maps>\n\t<body>$body</body>\n</locations>\n";
 	close $locations_xml;
 }
 if(scalar(%military)) {

@@ -34,24 +34,32 @@ sub locations {
 	return $self->{'locations'};
 }
 
-sub location {
+sub head {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $year = $args{'year'};
+	my $year = $args{'year'} || shift;
 
 	if(!defined($self->{'locations'})) {
 		$self->_open();
 	}
-	return $self->{'locations'}->{$year};
+	# print Data::Dumper->new([$self->{'locations'}->{'maps'}->{'map'}])->Dump();
+	# exit;
+	foreach my $location(@{$self->{'locations'}->{'maps'}->{'map'}}) {
+		if($location->{'year'} == $year) {
+			return $location->{'head'};
+		}
+	}
 }
 
 sub _open {
 	my $self = shift;
 
-	$self->{'locations'} = XML::Simple::XMLin($self->{'directory'} . '/locations.xml');
+	my $xmlfile = File::Spec->catfile($self->{'directory'}, 'locations.xml');
+	$self->{'locations'} = XML::Simple::XMLin($xmlfile);
 
-	# TODO - set $self->{'_updated'};
+	my @statb = stat($xmlfile);
+	$self->{'_updated'} = $statb[9];
 }
 
 1;

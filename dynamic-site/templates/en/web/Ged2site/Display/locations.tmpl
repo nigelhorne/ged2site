@@ -12,8 +12,15 @@
 		<meta name="msvalidate.01" content="deadbeef" />
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+		[% IF head %]
+			[% head %]
+		[% END %]
 	</head>
-	<body>
+	[% IF head %]
+		<body onload="html_googlemaps_initialize()">
+	[% ELSE %]
+		<body>
+	[% END %]
 		<div id="header_container">
 			<center>
 				[% IF year %]
@@ -39,7 +46,11 @@
 			</center>
 			<br>
 			[% IF year %]
-				<B>TODO - Insert map here</B>
+				<!--
+					[% USE Dumper %]
+					[% Dumper.dump(locations) %]
+				-->
+				[% locations.0.body %]
 			[% ELSE %]
 				<ul id="nav">
 					<!-- ged2site sorts them numerically -->
