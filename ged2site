@@ -1469,7 +1469,7 @@ sub print_person
 		die "BUG: $title is marked as alive yet we have burial information";
 	}
 
-	if($dateofbirth & ($birth_dt = $dfg->parse_datetime(date => $dateofbirth))) {
+	if($dateofbirth && ($birth_dt = $dfg->parse_datetime(date => $dateofbirth))) {
 		if(defined($facts->{'first_birth'})) {
 			if($birth_dt < $facts->{'first_birth'}->{'date'}) {
 				$facts->{'first_birth'}->{'date'} = $birth_dt;
