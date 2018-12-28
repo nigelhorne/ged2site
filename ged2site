@@ -191,7 +191,7 @@ if($opts{'m'} || $opts{'w'}) {
 		$geocoder->push({ regex => qr/^([\w\s\-]+?,)[\w\s]+,[\w\s]+?$/, geocoder => $freegeocoder });
 	}
 	# E.g. 'Nebraska, USA'
-	$geocoder->push({ regex => qr/[\w\s]+?,\s*(UK|England|Canada|USA|US|United States)$/i, geocoder => Geo::Coder::Free->new() });
+	$geocoder->push({ regex => qr/[\w\s]+?,\s*(UK|England|Canada|USA|US|United States)$/i, geocoder => $freegeocoder });
 
 	if(my $username = $ENV{'GEONAMES_USER'}) {
 		$geocoder->push(Geo::GeoNames->new(username => $username));
