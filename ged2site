@@ -729,9 +729,9 @@ if(scalar(%all_locations)) {
 				my $date = $annotation->{'date'};
 				my $person = $annotation->{'person'};
 				if($previous_date && ($date eq $previous_date)) {
-					$html .= ', <a href="?page=people&entry=' . $person->{'xref'} . '">' . $person->as_string() . '">';
+					$html .= ', <a href="?page=people&entry=' . $person->{'xref'} . '">' . $person->as_string() . '</a>';
 				} else {
-					$html .= "<br>$date: <a href=\"?page=people&entry=" . $person->{'xref'} . '">' . $person->as_string() . '">';
+					$html .= "<br>$date: <a href=\"?page=people&entry=" . $person->{'xref'} . '">' . $person->as_string() . '</a>';
 					$previous_date = $date;
 				}
 			}
