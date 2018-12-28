@@ -619,9 +619,9 @@ var options = {
     }
 
     // attach events to the navigation buttons
-    document.getElementById('zoomIn').onclick    = function () { timeline.zoomIn( 0.2); };
-    document.getElementById('zoomOut').onclick   = function () { timeline.zoomOut( 0.2); };
-    document.getElementById('moveLeft').onclick  = function () { move( 0.2); };
+    document.getElementById('zoomIn').onclick   = function () { timeline.zoomIn( 0.2); };
+    document.getElementById('zoomOut').onclick  = function () { timeline.zoomOut( 0.2); };
+    document.getElementById('moveLeft').onclick = function () { move( 0.2); };
 	document.getElementById('moveRight').onclick = function () { move(-0.2); };
 </script>
 </body>
@@ -729,9 +729,9 @@ if(scalar(%all_locations)) {
 				my $date = $annotation->{'date'};
 				my $person = $annotation->{'person'};
 				if($previous_date && ($date eq $previous_date)) {
-					$html .= ', <a href="?page=people&entry=' . $person->{'xref'} . '">' . $person->as_string() . '</a>';
+					$html .= ', <a href="?page=people&amp;entry=' . $person->{'xref'} . '">' . $person->as_string() . '</a>';
 				} else {
-					$html .= "<br>$date: <a href=\"?page=people&entry=" . $person->{'xref'} . '">' . $person->as_string() . '</a>';
+					$html .= "<br>$date: <a href=\"?page=people&amp;entry=" . $person->{'xref'} . '">' . $person->as_string() . '</a>';
 					$previous_date = $date;
 				}
 			}
