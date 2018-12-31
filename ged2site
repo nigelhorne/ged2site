@@ -238,6 +238,7 @@ if($opts{'m'} || $opts{'w'}) {
 		'a2ageo.rmservers.com' => 1,
 		'dev.virtualearth.net' => 1,	# Bing
 		'api.geonames.org' => 1,
+		'yboss.yahooapis.com' => 1,	# Geo::Coder::PlaceFinder
 	});
 
 	# G::C::GooglePlaces
