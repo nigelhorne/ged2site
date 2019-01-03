@@ -220,9 +220,6 @@ if($opts{'m'} || $opts{'w'}) {
 	if(my $key = $ENV{BMAP_KEY}) {
 		$geocoder->push(Geo::Coder::Bing->new(key => $key));
 	}
-	if((my $ckey = $ENV{'YAHOO_CONSUMER'}) && (my $skey = $ENV{'YAHOO_SECRET'})) {
-		$geocoder->push(Geo::Coder::PlaceFinder->new(consumer_key => $ckey, secret_key => $skey));
-	}
 
 	my $ua = LWP::UserAgent::Throttled->new(agent => 'ged2site', keep_alive => 1);
 	$ua->env_proxy(1);
@@ -246,11 +243,14 @@ if($opts{'m'} || $opts{'w'}) {
 	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
 
+	# Geo::Coder::PlaceFinder doesn't support the ua() method
+	if((my $ckey = $ENV{'YAHOO_CONSUMER'}) && (my $skey = $ENV{'YAHOO_SECRET'})) {
+		$geocoder->push(Geo::Coder::PlaceFinder->new(consumer_key => $ckey, secret_key => $skey, ua => $ua));
+	}
+
 	# $textgeocoder = Geo::Parser::Text->new('https://geocoder.ca');
 	$textgeocoder = Geo::Parser::Text->new('https://geocode.xyz');
 }
-
-# TODO: BMAP_KEY for Geo::Coder::Bing
 
 # FIXME: Do this properly
 my %censusmaps = (
