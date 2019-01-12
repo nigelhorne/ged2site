@@ -5415,7 +5415,16 @@ sub Gedcom::Individual::as_string
 
 		my $yod;	# Year of death
 		if($dod && ($dod =~ /.*?(\d{3,4})/)) {
-			$yod = $1;
+			if($dod =~ /^(Abt|ca?)\.?\s*(.+)/i) {
+				my $year = $2;
+				if($year =~ /^[A-Z]{3}\s(.+)/i) {
+					$yod = "c$1";	# Get the "1951" from "Feb 1951"
+				} else {
+					$yod = "c$year";
+				}
+			} else {
+				$yod = $1;
+			}
 		} else {
 			$dod = get_value({ person => $self, value => 'burial date' });
 			if($dod && ($dod =~ /.*?(\d{3,4})/)) {
