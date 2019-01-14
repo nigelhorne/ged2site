@@ -136,6 +136,7 @@ sub _open {
 		my $fin;
 		($fin, $slurp_file) = File::pfopen::pfopen($dir, $table, 'csv.gz:db.gz');
 		if(defined($slurp_file) && (-r $slurp_file)) {
+			close($fin);
 			$fin = File::Temp->new(SUFFIX => '.csv', UNLINK => 0);
 			print $fin gunzip_file($slurp_file);
 			$slurp_file = $fin->filename();
@@ -303,19 +304,22 @@ sub selectall_hash {
 			return @{$rc};
 		}
 	}
-	my $sth = $self->{$table}->prepare($query);
-	$sth->execute(@args) || throw Error::Simple("$query: @args");
+	if(my $sth = $self->{$table}->prepare($query)) {
+		$sth->execute(@args) || throw Error::Simple("$query: @args");
 
-	my @rc;
-	while(my $href = $sth->fetchrow_hashref()) {
-		push @rc, $href;
-		last if(!wantarray);
-	}
-	if($c && wantarray) {
-		$c->set($key, \@rc, '1 hour');
-	}
+		my @rc;
+		while(my $href = $sth->fetchrow_hashref()) {
+			push @rc, $href;
+			last if(!wantarray);
+		}
+		if($c && wantarray) {
+			$c->set($key, \@rc, '1 hour');
+		}
 
-	return @rc;
+		return @rc;
+	}
+	$self->{'logger'}->warn("selectall_hash failure on  $query: @args");
+        throw Error::Simple("$query: @args");
 }
 
 # Returns a hash reference for one row in a table
