@@ -15,6 +15,7 @@
 # TODO: Finish XML
 # TODO: add warning for 'bet 2000 and 1999'
 # TODO: Can I use a kdTree to determine events or residences close by each other?
+# TODO: note if a child was orphaned by both parents dying before they were 16
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
