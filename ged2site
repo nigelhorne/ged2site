@@ -16,6 +16,7 @@
 # TODO: add warning for 'bet 2000 and 1999'
 # TODO: Can I use a kdTree to determine events or residences close by each other?
 # TODO: note if a child was orphaned by both parents dying before they were 16
+# TODO: add education ("attended school at")
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -25,6 +26,17 @@
 #	http://www.simile-widgets.org/wiki/Timeline_EventSources
 # For visjs see
 #	http://visjs.org/docs/timeline/
+
+BEGIN {
+	eval 'use Geo::Coder::List';
+	if($@) {
+		system('cpan -i Gedcom Genealogy::Gedcom::Date Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi');
+		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes');
+		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
+		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime::Format::Natural');
+		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Data::Fetch HTTP::Cache::Transparent');
+	}
+}
 
 use strict;
 use warnings;
