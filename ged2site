@@ -142,7 +142,11 @@ my %known_locations = (
 
 # Help OSM to match
 my %location_mappings = (
-	'Coventry, Warwickshire, England' => 'Coventry, England'
+	'Coventry, Warwickshire, England' => 'Coventry, England',
+	'Minster, Sheppey, Kent' => 'Minster, Swale, Kent',
+	'Bromley, Kent, Endland' => 'Bromley, London, England',
+	'Croydon, Surrey, Endland' => 'Croydon, London, England',
+	'Thornton Heath, Surrey, Endland' => 'Thornton Heath, London, England',
 );
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
