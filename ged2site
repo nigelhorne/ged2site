@@ -140,6 +140,11 @@ my %known_locations = (
 	}
 );
 
+# Help OSM to match
+my %location_mappings = (
+	'Coventry, Warwickshire, England' => 'Coventry, England'
+);
+
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
 my $ged2;
@@ -3110,20 +3115,24 @@ sub print_person
 								'date' => $strftime,
 							};
 						if($opts{'w'} && $marriage_dt && ($rdate_dt > $marriage_dt)) {
-							# Check this person was living at the same place as their spouse.
-							# TODO: Also check all children under 10
-							foreach my $l(@{$all_locations{$year}}) {
-								if(($l->{'person'} eq $spouses[0]) &&
-								   ($l->{'date'} eq $strftime)) {
-								   	my $r1 = place(record => $residence, nopreposition => 1);
-								   	my $r2 = place(record => $l->{'residence'}, nopreposition => 1);
-									if($r1 ne $r2) {
-										$r1 =~ s/^\s+//;
-										$r2 =~ s/^\s+//;
-										complain({
-											person => $person,
-											warning => "$strftime: not living at same address as spouse " . $spouses[0]->as_string() . " ('$r1'/'$r2')"
-										});
+							if(!defined($spouse[0]) {
+								complain({ person => $person, warning => 'Has a date of marriage but no spouse' });
+							} else {
+								# Check this person was living at the same place as their spouse.
+								# TODO: Also check all children under 10
+								foreach my $l(@{$all_locations{$year}}) {
+									if(($l->{'person'} eq $spouses[0]) &&
+									   ($l->{'date'} eq $strftime)) {
+										my $r1 = place(record => $residence, nopreposition => 1);
+										my $r2 = place(record => $l->{'residence'}, nopreposition => 1);
+										if($r1 ne $r2) {
+											$r1 =~ s/^\s+//;
+											$r2 =~ s/^\s+//;
+											complain({
+												person => $person,
+												warning => "$strftime: not living at same address as spouse " . $spouses[0]->as_string() . " ('$r1'/'$r2')"
+											});
+										}
 									}
 								}
 							}
@@ -6858,6 +6867,14 @@ sub add_marker
 	if($place =~ /\d/) {	# We have the address, so no need to include the name of the building in the search
 		# FIXME: changes Silver Spring, MD 20910, USA to 20910, USA
 		$place =~ s/^\D+(.+)/$1/;
+	}
+
+	# OSM isn't that clever with fuzzy matching
+	foreach my $map(keys %location_mappings) {
+		if($place =~ /(.*)$map(.*)/) {
+			$place = $1 . $location_mappings{$map} . $2;
+			last;
+		}
 	}
 
 	if(my $annotation = $params{'annotation'}) {
