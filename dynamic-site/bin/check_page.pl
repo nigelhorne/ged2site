@@ -3,6 +3,13 @@
 use strict;
 use warnings;
 
+BEGIN {
+	if($ENV{'REMOTE_ADDR'}) {
+		# A web crawler has found this file stored on a site
+		exit(0);
+	}
+}
+
 no lib '.';
 
 use Gzip::Faster;
