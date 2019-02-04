@@ -3214,7 +3214,7 @@ sub print_person
 								my $missing_child = 1;
 								foreach my $event(get_all_residences($child)) {
 									my $edate = $event->date();
-									if($edate && (datecmp($edate, $rdate) >= 0)) {
+									if($edate && ($edate !~ /^bet\s/i) && (datecmp($edate, $rdate) >= 0)) {
 										$missing_child = 0;
 										last;
 									}
