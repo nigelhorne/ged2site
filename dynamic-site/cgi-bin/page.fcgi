@@ -171,7 +171,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		doit(debug => 0);
 	} catch Error with {
 		my $msg = shift;
-		$logger->error($msg);
+		$logger->error($msg, $msg->stacktrace());
 		if($buffercache) {
 			$buffercache->clear();
 		}
