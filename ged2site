@@ -6569,10 +6569,12 @@ sub red_warning
 		} else {
 			warn colored(['red'], $params{'warning'}, ' at line ', $call_details[2]);
 		}
-		# my $i = 0;
-		# while((my @call_details = (caller($i++)))) {
-			# print STDERR "\t", colored($call_details[1] . ':' . $call_details[2] . ' calling function ' . $call_details[3], 'red'), "\n";
-		# }
+		if($params{'stack_trace'}) {
+			my $i = 0;
+			while((my @call_details = (caller($i++)))) {
+				print STDERR "\t", colored($call_details[1] . ':' . $call_details[2] . ' calling function ' . $call_details[3], 'red'), "\n";
+			}
+		}
 	}
 }
 
@@ -6887,9 +6889,7 @@ sub add_marker
 		if($map->add_marker(point => $place, html => "$place<br>$annotation")) {
 			return;
 		}
-		if($opts{'w'}) {
-			red_warning({ person => $person, warning => "$place isn't found" });
-		}
+		red_warning({ person => $person, warning => "$place isn't found", stack_trace => 1 });
 		if($place =~ /,?(.+?),(.+?),(.+?),(.+?)$/) {
 			$place = "$1, $2, $3, $4";
 			if($map->add_marker(point => $place, html => "$place<br>$annotation")) {
@@ -6903,9 +6903,7 @@ sub add_marker
 		if($map->add_marker(point => $place, html => $place)) {
 			return;
 		}
-		if($opts{'w'}) {
-			red_warning({ person => $person, warning => "$place isn't found" });
-		}
+		red_warning({ person => $person, warning => "$place isn't found", stack_trace => 1 });
 		if($place =~ /,?(.+?),(.+?),(.+?),(.+?)$/) {
 			$place = "$1, $2, $3, $4";
 			if($map->add_marker(point => $place, html => $place)) {
