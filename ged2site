@@ -148,6 +148,7 @@ my %location_mappings = (
 	'Bromley, Kent, Endland' => 'Bromley, London, England',
 	'Croydon, Surrey, Endland' => 'Croydon, London, England',
 	'Thornton Heath, Surrey, Endland' => 'Thornton Heath, London, England',
+	'Edinburgh, Midlothian, Scotland' => 'Edinburgh, Scotland',
 );
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
