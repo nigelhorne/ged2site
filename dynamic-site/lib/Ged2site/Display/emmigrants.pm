@@ -4,9 +4,9 @@ use warnings;
 use strict;
 
 # Display the emmigrants page
-# FIXME:  This is slow because of the reverse_geocode calls.  Would be better to use the original
-#	data, but that can't always be trusted to be of normalised form.  Need to find a way of
-#	speeding this up.
+# FIXME:  This is slow because of the reverse_geocode calls.  Would be better
+#	to use the original data, but that can't always be trusted to be of
+#	normalised form.  Need to find a way of speeding this up.
 
 use Ged2site::Display;
 # use Geo::Coder::XYZ;
@@ -19,18 +19,10 @@ sub html {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $info = $self->{_info};
-	my $allowed = {
-		'page' => 'emmigrants',
-		'lang' => qr/^[A-Z][A-Z]/i,
-		'lint_content' => qr/^\d$/,
-	};
-	my %params = %{$info->params({ allow => $allowed })};
-
 	# Handle into the database
 	my $people = $args{'people'};
 
-	my @everyone = $people->selectall_hash(\%params);
+	my @everyone = $people->selectall_hash();
 
 	my @emmigrants;
 
