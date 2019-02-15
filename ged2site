@@ -3352,7 +3352,6 @@ sub print_person
 								}
 							}
 						}
-						# TODO: father, and both parents
 						# FIXME: only checks when there are @siblings
 						if($mother && ($bdiff->in_units('years') >= 30)) {
 							my @mr = get_all_residences(person => $mother);
@@ -3365,6 +3364,22 @@ sub print_person
 										($person->pronoun() eq 'She' ? 'her' : 'his') .
 										' mother, ' .
 										$mother->given_names();
+									$printed_sibling = 1;
+									last;
+								}
+							}
+						}
+						if($father && ($bdiff->in_units('years') >= 30)) {
+							my @fr = get_all_residences(person => $father);
+							foreach my $fr(@fr) {
+								my $fdate = $fr->date();
+								next if(!defined($fdate));
+								next if($fdate ne $rdate);
+								if(place({ person => $father, record => $fr }) eq $place) {
+									$bio .= ($printed_sibling ? ' and ' : ' with ') .
+										($person->pronoun() eq 'She' ? 'her' : 'his') .
+										' father, ' .
+										$father->given_names();
 									last;
 								}
 							}
