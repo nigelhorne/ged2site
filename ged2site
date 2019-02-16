@@ -3279,7 +3279,7 @@ sub print_person
 							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
 								if($distance < 1) {
 									$bio .= ', less than a mile from ';
-									if($l->{'person'} eq $spouses[0]) {
+									if($spouses[0] && ($l->{'person'} eq $spouses[0])) {
 										# FIXME: Only when before they married, though when
 										#	they are married it should be the same place, right?
 										$bio .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
