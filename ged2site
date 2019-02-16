@@ -3173,8 +3173,8 @@ sub print_person
 							   ($l->{longitude} != $longitude)) {
 							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
 								if($distance < 1) {
-									$bio .= " less than a mile from $pronoun $relationship ", 
-											$l->{'person'}->as_string();
+									$bio .= " less than a mile from $pronoun $relationship " .
+											$l->{'person'}->as_string() . ',';
 								}
 							}
 						}
