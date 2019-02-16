@@ -3276,6 +3276,7 @@ sub print_person
 							   ($l->{latitude} != $latitude) &&
 							   ($l->{longitude} != $longitude) &&
 							   (($spouses[0] && ($l->{'person'} eq $spouses[0])) ||
+							   (my $relationship = $person->relationship($l->{'person'})) &&
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
@@ -3291,7 +3292,7 @@ sub print_person
 										$bio .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
 									} else {
 										$bio .= ($sex eq 'M' ? 'his' : 'her') .
-											' ' . $person->relationship($l->{'person'});
+											" $relationship";
 									}
 									$bio .= $l->{'person'}->as_string() .
 										' who was living' .
