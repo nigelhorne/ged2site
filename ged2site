@@ -3266,8 +3266,10 @@ sub print_person
 						}
 					}
 					if(defined($latitude)) {
-						my $year = date_to_datetime($rdate)->year();
 						# Print close relatives living close by
+						my $year = date_to_datetime($rdate)->year();
+						my $printed_person = 0;
+
 						foreach my $l(@{$all_locations{$year}}) {
 							# print Data::Dumper->new([$l])->Dump();
 							if(($l->{'person'} ne $person) &&
@@ -3278,24 +3280,30 @@ sub print_person
 							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
 								if($distance < 1) {
-									$bio .= ', less than a mile from ';
+									if($printed_person) {
+										$bio .= 'and ';
+									} else {
+										$bio .= ', less than a mile from ';
+									}
 									if($spouses[0] && ($l->{'person'} eq $spouses[0])) {
 										# FIXME: Only when before they married, though when
 										#	they are married it should be the same place, right?
 										$bio .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
 									} else {
-										$bio .= (($sex eq 'M' ? 'his' : 'her') . " $relationship ");
+										$bio .= ($sex eq 'M' ? 'his' : 'her') .
+											' ' . $person->relationship($l->{'person'});
 									}
 									$bio .= $l->{'person'}->as_string() .
-										' who was then living' .
+										' who was living' .
 										place({
 											person => $l->{'person'},
 											record => $l->{'residence'}
-										}) .
-										',';
+										});
+									$printed_person = 1;
 								}
 							}
 						}
+						$bio .= ',' if($printed_person);
 					}
 					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
