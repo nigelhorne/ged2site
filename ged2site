@@ -1731,7 +1731,7 @@ sub print_person
 		$relationship = $me->relationship($person);
 		if((!$relationship) && scalar(@spouses)) {
 			print "find spousal relationship\n" if($opts{'v'});
-			if($person->spouse() eq $me) {
+			if($spouses[0] eq $me) {
 				$relationship = ($sex eq 'F') ? 'wife' : 'husband';
 			} else {
 				foreach my $s(@spouses) {
@@ -3164,21 +3164,6 @@ sub print_person
 					}
 				}
 				if($rdate) {	# residence has a date?
-					if(defined($latitude)) {
-						# Print relatives living close by
-						# TODO:  Only up to say 2nd cousins
-						foreach my $l(@{$all_locations{$year}}) {
-							if(($l->{'person'} ne $person) &&
-							   ($l->{latitude} != $latitude) &&
-							   ($l->{longitude} != $longitude)) {
-							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
-								if($distance < 1) {
-									$bio .= " less than a mile from $pronoun $relationship " .
-											$l->{'person'}->as_string() . ',';
-								}
-							}
-						}
-					}
 					if($opts{'w'} && ($rdate =~ /(\d{3,4})$/)) {
 						my $yoe = $1;
 						if($yod) {
@@ -3278,6 +3263,38 @@ sub print_person
 								$bio .= " $this_date";
 							}
 							$prev_residence = $residence;
+						}
+					}
+					if(defined($latitude)) {
+						my $year = date_to_datetime($rdate)->year();
+						# Print close relatives living close by
+						foreach my $l(@{$all_locations{$year}}) {
+							# print Data::Dumper->new([$l])->Dump();
+							if(($l->{'person'} ne $person) &&
+							   ($l->{latitude} != $latitude) &&
+							   ($l->{longitude} != $longitude) &&
+							   (($spouses[0] && ($l->{'person'} eq $spouses[0])) ||
+							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
+							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
+							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
+								if($distance < 1) {
+									$bio .= ', less than a mile from ';
+									if($l->{'person'} eq $spouses[0]) {
+										# FIXME: Only when before they married, though when
+										#	they are married it should be the same place, right?
+										$bio .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
+									} else {
+										$bio .= (($sex eq 'M' ? 'his' : 'her') . " $relationship ");
+									}
+									$bio .= $l->{'person'}->as_string() .
+										' who was then living' .
+										place({
+											person => $l->{'person'},
+											record => $l->{'residence'}
+										}) .
+										',';
+								}
+							}
 						}
 					}
 					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
@@ -3866,7 +3883,7 @@ sub print_person
 				} else {
 					complain({ person => $person, warning => "Arrival record has no date" });
 				}
-				if(my $spouse = $person->spouse()) {
+				if(my $spouse = $spouses[0]) {
 					foreach my $sevent($spouse->event()) {
 						if(ref($sevent) eq 'Gedcom::Record') {
 							my $type = $event->type();
