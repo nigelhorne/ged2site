@@ -118,6 +118,7 @@ use	constant	MAX_INDEX => 0;	# Debugging, set this to the number of records to p
 
 my $me;
 my @myancestors;
+my @mydescendents;
 my %warned;
 my %printed;
 my %places;
@@ -1118,7 +1119,6 @@ if($facts && open(my $json, '>', 'dynamic-site/databases/facts.json')) {
 sub print_person
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
-
 
 	# Gather the information on this person
 	my $person = $params{'person'};
@@ -3280,7 +3280,7 @@ sub print_person
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
-								if($distance < 1) {
+								if(($distance < 1) && (my $place = place({ person => $l->{'person'}, record => $l->{'residence'} }))) {
 									if($printed_person) {
 										$bio .= 'and ';
 									} else {
@@ -3292,14 +3292,10 @@ sub print_person
 										$bio .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
 									} else {
 										$bio .= ($sex eq 'M' ? 'his' : 'her') .
-											" $relationship";
+											" $relationship ";
 									}
 									$bio .= $l->{'person'}->as_string() .
-										' who was living' .
-										place({
-											person => $l->{'person'},
-											record => $l->{'residence'}
-										});
+										" who was living$place";
 									$printed_person = 1;
 								}
 							}
@@ -5610,10 +5606,11 @@ sub Gedcom::Individual::possessive
 # FIXME: currently only finds ancestors
 # TODO: find in-laws
 # See http://www.myrelative.com/html/relationship.html for inspiration
-sub Gedcom::Individual::relationship
-{
+sub Gedcom::Individual::relationship {
 	my $self = shift;
 	my $other = shift;
+
+	die $self->as_string() if($other eq $self);
 
 	if($self->mother() && $other->mother() && $self->father() && $other->father()) {
 		my $sex = get_value({ person => $other, value => 'sex' });
@@ -5625,19 +5622,37 @@ sub Gedcom::Individual::relationship
 		}
 	}
 
+	return $self->relationship_down($other) || $self->relationship_up($other);
+}
+
+sub Gedcom::Individual::relationship_up
+{
+	my $self = shift;
+	my $other = shift;
+	my @ancestors;
+
 	unless(@myancestors) {
 		@myancestors = $self->ancestors();
 	}
-	return unless @myancestors;
+	return unless scalar(@myancestors);
+	if($self eq $me) {
+		unless(@myancestors) {
+			@myancestors = $me->ancestors();
+		}
+		return unless scalar(@myancestors);
+		@ancestors = @myancestors;
+	} else {
+		@ancestors = $self->ancestors();
+	}
 
-	my $sex = get_value({ person => $other, value => 'sex' }) || $other->sex();
+	my $sex = get_value({ person => $other, value => 'sex' });
 	if((!defined($sex)) || ($sex !~ /[MF]/)) {
 		complain({ person => $other, warning => 'unknown sex' });
 		return;
 	}
 
-	foreach my $person1(@myancestors) {
-		die if($person1 eq $self);
+	foreach my $person1(@ancestors) {
+		die $person1->as_string() if($person1 eq $self);
 		if($person1 eq $other) {
 			# Direct ancestor
 			my $steps = stepsabove($self, $other, 0);
@@ -5661,11 +5676,7 @@ sub Gedcom::Individual::relationship
 						return;
 					}
 				}
-				if($opts{'f'}) {
-					die $other->as_string(), ": BUG - not a direct ancestor, steps = $steps";
-				} else {
-					warn colored($other->as_string() . ": BUG - not a direct ancestor, steps = $steps", 'red');
-				}
+				complain({ person => $other, warning => ": BUG - not a direct ancestor, steps = $steps" });
 			}
 		}
 	}
@@ -5673,7 +5684,7 @@ sub Gedcom::Individual::relationship
 	my @ancestors2 = $other->ancestors();
 	return unless(@ancestors2);
 
-	foreach my $person1(@myancestors) {
+	foreach my $person1(@ancestors) {
 		foreach my $person2(@ancestors2) {
 			# print $person1->as_string(), '->', $person2->as_string(), "\n";
 			# G::C is noisy
@@ -5682,6 +5693,7 @@ sub Gedcom::Individual::relationship
 			# if($c->identical($person2)) {
 				# die 'match found';
 			# }
+
 			if($person1 eq $person2) {
 				# Common ancestor is $person2
 				my $steps1 = stepsabove($self, $person1, 0);
@@ -5844,17 +5856,75 @@ sub Gedcom::Individual::relationship
 					my $myfather = $self->father();
 					my $mymother = $self->mother();
 					if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
-						$rc .= ' on the father\'s side';
+						$rc .= ' on your father\'s side';
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
-						$rc .= ' on the mother\'s side';
+						$rc .= ' on your mother\'s side';
 					}
 				}
 				if(!defined($rc)) {
 					# die $other->as_string(), ": $steps1, $steps2";
 					complain({ person => $other, warning => "TODO: $steps1, $steps2" });
 				}
-
 				return $rc;
+			}
+		}
+	}
+}
+
+sub Gedcom::Individual::relationship_down
+{
+	my $self = shift;
+	my $other = shift;
+	my @descendents;
+
+	if($self eq $me) {
+		unless(@mydescendents) {
+			@mydescendents = $me->descendents();
+		}
+		return unless scalar(@mydescendents);
+		@descendents = @mydescendents;
+	} else {
+		@descendents = $self->descendents();
+	}
+
+	my $sex = get_value({ person => $other, value => 'sex' });
+	if((!defined($sex)) || ($sex !~ /[MF]/)) {
+		complain({ person => $other, warning => 'unknown sex' });
+		return;
+	}
+
+	# print __LINE__, ': ', $self->as_string(), '/', $other->as_string(), "\n";
+	# my $i = 0;
+	# while((my @call_details = caller($i++))) {
+		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+	# }
+	foreach my $person1(@descendents) {
+		# print "\t", $person1->as_string(), "\n";
+		die $person1->as_string() if($person1 eq $self);
+		if($person1 eq $other) {
+			# Direct desendent
+			my $steps = stepsabove($other, $self, 0);
+			my $title = ($sex eq 'M') ? 'son' : 'daughter';
+			if($steps >= 5) {
+				$steps -= 2;
+				return "$steps times great-grand$title";
+			} elsif($steps == 1) {
+				return $title;
+			} elsif($steps == 2) {
+				return "grand$title";
+			} elsif($steps == 3) {
+				return "great-grand$title";
+			} elsif($steps == 4) {
+				return "great-great-grand$title";
+			} elsif($steps <= 0) {
+				if(my $spouse = $other->spouse()) {
+					if(stepsabove($self, $spouse, 0)) {
+						# The caller should now check
+						# the spouse's relationship
+						return;
+					}
+				}
+				complain({ person => $other, warning => ": BUG - not a direct ancestor, steps = $steps" });
 			}
 		}
 	}
