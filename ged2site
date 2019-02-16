@@ -3282,7 +3282,7 @@ sub print_person
 							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
 								if(($distance < 1) && (my $place = place({ person => $l->{'person'}, record => $l->{'residence'} }))) {
 									if($printed_person) {
-										$bio .= 'and ';
+										$bio .= ' and ';
 									} else {
 										$bio .= ', less than a mile from ';
 									}
