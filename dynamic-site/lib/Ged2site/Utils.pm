@@ -161,9 +161,9 @@ sub distance {
 	$dist = _rad2deg($dist);
 	$dist = $dist * 60 * 1.1515;
 	if ($unit eq "K") {
-		$dist = $dist * 1.609344;
+		return $dist * 1.609344;
 	} elsif ($unit eq "N") {
-		$dist = $dist * 0.8684;
+		return $dist * 0.8684;
 	}
 	return ($dist);
 }

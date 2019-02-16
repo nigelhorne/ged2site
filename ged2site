@@ -131,6 +131,7 @@ my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
 my $facts;
+my $pi = atan2(1,1) * 4;
 
 # FIXME: Should be in a configuration file
 # Will be removed when new G:C:Free is published
@@ -3074,6 +3075,8 @@ sub print_person
 			# }
 			foreach my $residence(@residencelist) {
 				my $rdate = $residence->date();
+				my $latitude;
+				my $longitude;
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
 					if($birth && $dob && $rdate && ($rdate eq $dob) &&
 					   places_are_the_same({ person => $person, first => $birth, second => $residence})) {
@@ -3115,12 +3118,26 @@ sub print_person
 					if($rdate && (my $rdate_dt = date_to_datetime($rdate))) {
 						my $year = $rdate_dt->year();
 						my $strftime = $rdate_dt->strftime('%x');
-						push @{$all_locations{$year}},
-							{
-								'residence' => $residence,
-								'person' => $person,
-								'date' => $strftime,
-							};
+						my $place = place({
+							person => $person,
+							record => $residence,
+						});
+						if($place) {
+							$place =~ s/^\s(at|in)\s//;
+							my @locations = $geocoder->geocode($place);
+							if(defined($locations[0]->{geometry}{location}{lat}) && !defined($locations[0]->{'error'})) {
+								$latitude = $locations[0]->{geometry}{location}{lat};
+								$longitude = $locations[0]->{geometry}{location}{lng};
+								push @{$all_locations{$year}},
+									{
+										'residence' => $residence,
+										'person' => $person,
+										'date' => $strftime,
+										'latitude' => $latitude,
+										'longitude' => $longitude,
+									};
+							}
+						}
 						if($opts{'w'} && $marriage_dt && ($rdate_dt > $marriage_dt)) {
 							if(!defined($spouses[0])) {
 								complain({ person => $person, warning => 'Has a date of marriage but no spouse' });
@@ -3147,6 +3164,21 @@ sub print_person
 					}
 				}
 				if($rdate) {	# residence has a date?
+					if(defined($latitude)) {
+						# Print relatives living close by
+						# TODO:  Only up to say 2nd cousins
+						foreach my $l(@{$all_locations{$year}}) {
+							if(($l->{'person'} ne $person) &&
+							   ($l->{latitude} != $latitude) &&
+							   ($l->{longitude} != $longitude)) {
+							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
+								if($distance < 1) {
+									$bio .= " less than a mile from $pronoun $relationship ", 
+											$l->{'person'}->as_string();
+								}
+							}
+						}
+					}
 					if($opts{'w'} && ($rdate =~ /(\d{3,4})$/)) {
 						my $yoe = $1;
 						if($yod) {
@@ -7163,4 +7195,46 @@ sub Geo::Coder::PlaceFinder::ua
 	}
 
 	return $self->{_ua};
+}
+
+# From http://www.geodatasource.com/developers/perl
+# FIXME:  use Math::Trig
+sub distance {
+	my ($lat1, $lon1, $lat2, $lon2, $unit) = @_;
+	my $theta = $lon1 - $lon2;
+	my $dist = sin(_deg2rad($lat1)) * sin(_deg2rad($lat2)) + cos(_deg2rad($lat1)) * cos(_deg2rad($lat2)) * cos(_deg2rad($theta));
+	$dist = _acos($dist);
+	$dist = _rad2deg($dist);
+	$dist = $dist * 60 * 1.1515;
+	if ($unit eq "K") {
+		return $dist * 1.609344;
+	} elsif ($unit eq "N") {
+		return  $dist * 0.8684;
+	}
+	return ($dist);
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function get the arccos function using arctan function   :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _acos {
+	my ($rad) = @_;
+	my $ret = atan2(sqrt(1 - $rad**2), $rad);
+	return $ret;
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function converts decimal degrees to radians             :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _deg2rad {
+	my ($deg) = @_;
+	return ($deg * $pi / 180);
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::  This function converts radians to decimal degrees             :::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+sub _rad2deg {
+	my ($rad) = @_;
+	return ($rad * 180 / $pi);
 }
