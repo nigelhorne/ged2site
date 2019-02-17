@@ -2905,7 +2905,7 @@ sub print_person
 
 		if($same_occupation_as_father) {
 			$bio .= '.' if(!$end_of_sentence);
-			$bio .= ' Like ' . ($pronoun eq 'He' ? 'his' : 'her' ) . ' father, ' . lcfirst($pronoun) .
+			$bio .= ' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
 				(is_alive(person => $person) ? ' is a' : ' was a');
 			if($same_occupation_as_father =~ /^[aeiou]/i) {
 				$bio .= 'n';
@@ -5859,7 +5859,7 @@ sub Gedcom::Individual::relationship_up
 							$rc .= " on your father's side";
 						} else {
 							$rc .= ' on ' .
-								$fetcher->get(object => $self, message => 'pronoun') .
+								lcfirst($self->possessive()) .
 								" father's side";
 						}
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
@@ -5867,7 +5867,7 @@ sub Gedcom::Individual::relationship_up
 							$rc .= " on your mother's side";
 						} else {
 							$rc .= ' on ' .
-								$fetcher->get(object => $self, message => 'pronoun') .
+								lcfirst($self->possessive()) .
 								" mother's side";
 						}
 					}
@@ -6652,7 +6652,7 @@ sub sibling_baptism_string
 	}
 
 	if($allsamesex) {
-		return ', the same day as ' . lcfirst($person->possessive()), ' ' .
+		return ', the same day as ' . lcfirst($person->possessive()) . ' ' .
 			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ') .
 			Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @onsameday), {final_sep => ''});
 	}
