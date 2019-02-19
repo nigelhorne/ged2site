@@ -4938,7 +4938,7 @@ sub print_person
 						$map = HTML::GoogleMaps::V3->new(%args);
 						$map->center($current_place);
 					}
-					add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
+					add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
 					$current_place = $place;
 					$annotation = undef;
 				} elsif(!defined($current_place)) {
@@ -4974,7 +4974,7 @@ sub print_person
 					$map = HTML::GoogleMaps::V3->new(%args);
 					$map->center($current_place);
 				}
-				add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
+				add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
 				$current_place = $place;
 				$annotation = undef;
 			} elsif(!defined($current_place)) {
@@ -4992,7 +4992,7 @@ sub print_person
 				$map = HTML::GoogleMaps::V3->new(%args);
 				$map->center($current_place);
 			}
-			add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
+			add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
@@ -7038,6 +7038,8 @@ sub add_marker
 		$place =~ s/^\D+(.+)/$1/;
 	}
 
+	$place =~ s/'//g;
+
 	# OSM isn't that clever with fuzzy matching
 	foreach my $map(keys %location_mappings) {
 		if($place =~ /(.*)$map(.*)/) {
@@ -7074,6 +7076,7 @@ sub add_marker
 			$map->add_marker(point => $place, html => $place);
 		}
 	}
+	die;
 }
 
 sub cite
