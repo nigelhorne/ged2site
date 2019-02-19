@@ -3279,7 +3279,7 @@ sub print_person
 							   (my $relationship = $person->relationship($l->{'person'})) &&
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
-							   	my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
+								my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
 								if(($distance < 1) && (my $place = place({ person => $l->{'person'}, record => $l->{'residence'} }))) {
 									if($printed_person) {
 										$bio .= ' and ';
