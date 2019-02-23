@@ -7076,7 +7076,6 @@ sub add_marker
 			$map->add_marker(point => $place, html => $place);
 		}
 	}
-	die;
 }
 
 sub cite
