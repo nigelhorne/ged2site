@@ -3183,7 +3183,11 @@ sub print_person
 							}
 						}
 						# Check if spouse listed at all residences when we only know the year
-						if(($dateofmarriage =~ /(\d{3,4})$/) && (my $spouse = $spouses[0])) {
+						my $spyod = get_value({ person => $spouses[0], value => 'death date' }) || ($yoe + 1);
+						if($spyod =~ /(\d{3,4})$/) {
+							$spyod = $1;
+						}
+						if(($dateofmarriage =~ /(\d{3,4})$/) && (my $spouse = $spouses[0]) && ($yoe < $spyod)) {
 							my $yom = $1;
 							if($yom < $yoe) {
 								my $found_spouse;
