@@ -3187,7 +3187,10 @@ sub print_person
 						if($spyod =~ /(\d{3,4})$/) {
 							$spyod = $1;
 						}
-						if(($dateofmarriage =~ /(\d{3,4})$/) && (my $spouse = $spouses[0]) && ($yoe < $spyod)) {
+						if(defined($dateofmarriage) &&
+						   ($dateofmarriage =~ /(\d{3,4})$/) &&
+						   (my $spouse = $spouses[0]) &&
+						   ($yoe < $spyod)) {
 							my $yom = $1;
 							if($yom < $yoe) {
 								my $found_spouse;
