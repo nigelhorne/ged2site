@@ -571,7 +571,7 @@ HEADER
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dolly Cowell')) {
-# foreach my $person($ged->get_individual('Edmund Frank Horne')) {
+# foreach my $person($ged->get_individual('Sophia Chapple')) {
 
 foreach my $person(@everyone) {
 	$index++;
@@ -3206,7 +3206,7 @@ sub print_person
 									}
 								}
 								if(!$found_spouse) {
-									complain({ person => $person, warning => [" is listed in the residence for $rdate, but spouse ", $spouse->as_string(), ' is not'] });
+									complain({ person => $person, warning => ["Listed in the residence for $rdate, but spouse ", $spouse->as_string(), ' is not'] });
 								}
 							}
 						}
@@ -7071,6 +7071,8 @@ sub add_marker
 	}
 
 	$place =~ s/'//g;
+	$place =~ s/&quot;//g;
+	$place =~ s/ & / and /g;
 
 	# OSM isn't that clever with fuzzy matching
 	foreach my $map(keys %location_mappings) {
