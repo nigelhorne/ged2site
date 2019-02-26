@@ -3206,7 +3206,7 @@ sub print_person
 									}
 								}
 								if(!$found_spouse) {
-									complain({ person => $spouse, warning => $person->as_string() . " is listed in the residence for $rdate, but spouse is not" });
+									complain({ person => $person, warning => [" is listed in the residence for $rdate, but spouse ", $spouse->as_string(), ' is not'] });
 								}
 							}
 						}
@@ -6729,6 +6729,10 @@ sub complain
 		die "What do you want to say on line $call_details[2]?";
 	}
 
+	# Support warning being a ref to an array
+	if(ref($params{'warning'}) eq 'ARRAY') {
+		$params{'warning'} = join('', @{$params{'warning'}});
+	}
 	if($opts{'f'}) {
 		my @call_details = caller(0);
 		if($params{'person'}) {
