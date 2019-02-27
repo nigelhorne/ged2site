@@ -25,6 +25,16 @@ sub new {
 
 	my $class = ref($proto) || $proto;
 
+	if(defined($ENV{'HTTP_REFERER'})) {
+		# Protect against Shellshocker
+		require Data::Validate::URI;
+		Data::Validate::URI->import();
+
+		unless(Data::Validate::URI->new()->is_uri($ENV{'HTTP_REFERER'})) {
+			return 0;
+		}
+	}
+
 	my $info = $args{info} || CGI::Info->new();
 	my $config = $args{config} || Ged2site::Config->new({ logger => $args{logger}, info => $info, lingua => $args{lingua} });
 
@@ -170,18 +180,19 @@ sub http {
 
 	my $filename = $self->get_template_path();
 	if($filename =~ /\.txt$/) {
-		$rc = "Content-type: text/plain\n";
+		$rc = "Content-Type: text/plain\n";
 	} elsif($language eq 'Japanese') {
 		binmode(STDOUT, ':utf8');
 
-		$rc = "Content-type: text/html; charset=UTF-8\n";
+		$rc = "Content-Type: text/html; charset=UTF-8\n";
 	} elsif($language eq 'Polish') {
 		binmode(STDOUT, ':utf8');
 
 		# print "Content-type: text/html; charset=ISO-8859-2\n";
-		$rc = "Content-type: text/html; charset=UTF-8\n";
+		$rc = "Content-Type: text/html; charset=UTF-8\n";
 	} else {
-		$rc = "Content-type: text/html; charset=ISO-8859-1\n";
+		# $rc = "Content-Type: text/html; charset=ISO-8859-1\n";
+		$rc = "Content-Type: text/html; charset=UTF-8\n";
 	}
 
 	# https://www.owasp.org/index.php/Clickjacking_Defense_Cheat_Sheet
