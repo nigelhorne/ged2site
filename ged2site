@@ -324,6 +324,7 @@ my %censusmaps = (
 
 	'1850 United States Federal Census' => '1850 US Census',
 	'US Census 1850 - Findmypast' => '1850 US Census',
+	'Us Census 1850 - Findmypast' => '1850 US Census',	# Strange...
 
 	'New York, State Census, 1855' => '1855 New York Census',
 
