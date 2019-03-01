@@ -2938,7 +2938,8 @@ sub print_person
 						next;
 					}
 
-					if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
+					# if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939')) {
+					if(($type =~ /^Census/) || ($type eq 'Register UK 1939')) {
 						if(!$dateofbirth) {
 							complain({ person => $person, warning => 'Census information not used to approximate a date of birth' });
 						}
@@ -3350,7 +3351,8 @@ sub print_person
 									}
 									my $type = $event->type();
 
-									if(($type !~ /^Census U[KS] (\d{4})$/) && ($type ne 'Register UK 1939')) {
+									# if(($type !~ /^Census U[KS] (\d{4})$/) && ($type ne 'Register UK 1939')) {
+									if(($type !~ /^Census/) && ($type ne 'Register UK 1939')) {
 										next EVENT;
 									}
 									if((ref($event) eq 'Gedcom::Record') &&
@@ -3978,7 +3980,8 @@ sub print_person
 					$bio .= " (<em>$notes</em>)";
 				}
 				$end_of_sentence = 0;
-			} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
+			# } elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
+			} elsif(($type !~ /^Census/) &&
 				($type ne 'Race') &&
 				($type ne 'Custom Marriage') &&
 				($type ne 'Register UK 1939')) {
@@ -4145,7 +4148,8 @@ sub print_person
 					}
 					$bio .= '.';
 					$end_of_sentence = 1;
-				} elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
+				# } elsif(($type !~ /^Census U[KS] (\d{4})$/) &&
+				} elsif(($type !~ /^Census/) &&
 					($type ne 'Register UK 1939') &&
 					($type ne 'Race') &&
 					($type ne 'Hospitalisation')) {
@@ -4403,7 +4407,8 @@ sub print_person
 					if(ref($event) eq 'Gedcom::Record') {
 						my $type = $event->type();
 						my $year;
-						if($type =~ /^Census U[KS] (\d{4})$/) {
+						# if($type =~ /^Census U[KS] (\d{4})$/) {
+						if($type =~ /^Census/) {
 							$year = $1;
 							if(!$event->date()) {
 								complain({ person => $person, warning => "Census for $year missing a date" });
@@ -7179,7 +7184,8 @@ sub get_all_residences
 		next if(ref($event) ne 'Gedcom::Record');
 		my $type = $event->type();
 		next if(!defined($type));
-		if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939') || ($type eq 'Hospitalisation')) {
+		# if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939') || ($type eq 'Hospitalisation')) {
+		if(($type =~ /^Census/) || ($type eq 'Register UK 1939') || ($type eq 'Hospitalisation')) {
 			push @rc, $event;
 		}
 	}
