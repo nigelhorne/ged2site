@@ -1003,7 +1003,7 @@ if($opts{'w'}) {
 					$summary = 'Census after death';
 				} elsif($warning =~ /not living at same address as spouse/) {
 					$summary = 'Spouses not at same address';
-				} elsif($warning =~ /is listed in the residence for .+, but spouse is not/) {
+				} elsif($warning =~ /listed in the residence for .+, but spouse.+is not/i) {
 					$summary = 'Spouse location is missing';
 				} else {
 					$summary = $warning;
@@ -2430,7 +2430,7 @@ sub print_person
 					if(my $n = $name_components{'given_name_1'}) {
 						$bio .= $n;
 					} else {
-						complain({ person => $spouses[0], warning => "seems to have no name" });
+						complain({ person => $spouses[0], warning => 'seems to have no first name' });
 					}
 				} else {
 					$html_and_csv->print($bio);
