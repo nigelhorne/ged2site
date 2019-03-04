@@ -318,6 +318,7 @@ my %censusmaps = (
 	'1901 Census of Canada' => '1901 Canadian Census',
 	'Canada Census 1901 - Findmypast' => '1901 Canadian Census',
 	'1906 Canada Census of Manitoba, Saskatchewan, and Alberta' => '1906 Canadian Census',
+	'Canada Census 1911 - Findmypast' => '1911 Canadian Census',
 	'1911 Census of Canada' => '1911 Canadian Census',
 	'1916 Canada Census of Manitoba, Saskatchewan, and Alberta' => '1916 Canadian Census',
 	'1921 Census of Canada' => '1921 Canadian Census',
