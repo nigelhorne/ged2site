@@ -1343,9 +1343,27 @@ sub print_person
 		$placeofbirth = $birth->place();
 	}
 
+	if($placeofbirth && ($placeofbirth =~ /,\s*$/)) {
+		complain({ person => $person, warning => 'Trailing comma in birth location' });
+		$placeofbirth =~ s/\s*,\s*$//;
+	}
 	my $placeofdeath = get_value({ person => $person, value => 'death place' });
 	if((!$placeofdeath) && $death) {
 		$placeofdeath = $death->place();
+	}
+
+	if($placeofdeath && ($placeofdeath =~ /\s\s/)) {
+		complain({ person => $person, warning => 'Removing successive spaces from place of death' });
+		$placeofdeath =~ s/\s\s+/ /g;
+	}
+
+	if($placeofdeath && ($placeofdeath =~ /,\s*$/)) {
+		complain({ person => $person, warning => 'Trailing comma in death location' });
+		$placeofdeath =~ s/\s*,\s*$//;
+	}
+	if($placeofdeath && ($placeofdeath =~ /^,/)) {
+		complain({ person => $person, warning => 'Leading comma in death location' });
+		$placeofdeath =~ s/^,\s*//g;
 	}
 
 	if($is_alive && ($placeofdeath || $dateofdeath)) {
@@ -2837,6 +2855,7 @@ sub print_person
 							# } @children);
 							$childnames = join(', ', map { $_->given_names() } @children);
 						} elsif($sex eq 'M') {
+							# FIXME: children from the same parent should be listed together
 							# $childnames = join(', ', map {
 								# my $mother = $_->mother();
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
@@ -2864,7 +2883,11 @@ sub print_person
 					}
 				}
 			}
-			$end_of_sentence = 0;
+			if($bio =~ /\.$/) {
+				$end_of_sentence = 1;
+			} else {
+				$end_of_sentence = 0;
+			}
 		} elsif($numberofchildren) {
 			if($end_of_sentence) {
 				$bio .= " $pronoun";
@@ -3767,6 +3790,11 @@ sub print_person
 			if(length($d) > 160) {
 				$bio .= ".</p><p>";
 			}
+		}
+		if($bio =~ /\.$/) {
+			$end_of_sentence = 1;
+		} else {
+			$end_of_sentence = 0;
 		}
 	}
 	$bio .= '.' if(!$end_of_sentence);
@@ -6059,7 +6087,7 @@ sub year
 					$dt = date_to_datetime($rc);
 				}
 				if($dt && ($dt < $must_postdate)) {
-					complain({ person => $params{'person'}, warning => "something is wrong with the date $string which should be after $must_postdate" });
+					complain({ person => $params{'person'}, warning => "Something is wrong with the date $string which should be after $must_postdate" });
 				}
 			}
 			if(my $must_predate = $params{'must_predate'}) {
@@ -6070,7 +6098,7 @@ sub year
 					$dt = date_to_datetime($rc);
 				}
 				if($dt && ($dt > $must_predate)) {
-					complain({ person => $params{'person'}, warning => "something is wrong with the date $string which should be before $must_predate" });
+					complain({ person => $params{'person'}, warning => "Something is wrong with the date $string which should be before $must_predate" });
 				}
 			}
 		}
@@ -6102,7 +6130,11 @@ sub year
 		if(my $d = date_parser_cached(date => $string)) {
 			$d = $dfn->parse_datetime($d->{'canonical'});
 			if(my $must_postdate = $params{'must_postdate'}) {
-				complain({ person => $person, warning => "something is wrong with the date $string which should be after " . $must_postdate->strftime('%x') }) if($d < $must_postdate);
+				complain({
+					person => $person,
+					warning => [ "something is wrong with the date $string which should be after ", $must_postdate->strftime('%x') ],
+					# stack_trace => 1,
+				}) if($d < $must_postdate);
 			}
 			if(my $must_predate = $params{'must_predate'}) {
 				complain({ person => $person, warning => "something is wrong with the date $string which should be before " . $must_predate->strftime('%x') }) if($d > $must_predate);
@@ -6117,7 +6149,7 @@ sub year
 			chomp $@;
 			if($opts{'f'}) {
 				if($person) {
-					die $person->as_string() . ": $@";
+					die $person->as_string(), ": $@";
 				} else {
 					die $@;
 				}
@@ -6138,7 +6170,7 @@ sub year
 		my $person = $params{'person'};
 		if($opts{'f'}) {
 			if($person) {
-				die $person->as_string() . " says 'By' instead of 'Bef'";
+				die $person->as_string(), " says 'By' instead of 'Bef'";
 			} else {
 				die "Got 'By' instead of 'Bef'";
 			}
@@ -7027,6 +7059,11 @@ sub date_parser_cached
 
 	my $date = $params{'date'};
 
+	if($date =~ /^([A-Z]{3})\s+(\d{1,2}),\s+(\d{3,4})$/i) {
+		complain(warning => "Changing US format date '$date' to Gedcom format '$2 $1 $3'");
+		$date = "$2 $1 $3";
+	}
+
 	if($all_dates{$date}) {
 		print "$date is already known\n" if($opts{'v'});
 		return $all_dates{$date};
@@ -7069,6 +7106,10 @@ sub date_to_datetime
 			return;
 		}
 		if($date !~ /^\d{3,4}$/) {
+			if($date =~ /[A-Z]{4}/i) {
+				complain(warning => "Unparseable date $date - often because the month name isn't 3 letters");
+				return;
+			}
 			if(($date =~ /^\d/) && (my $d = date_parser_cached($date))) {
 				return $dfn->parse_datetime($d->{'canonical'});
 			}
@@ -7315,8 +7356,7 @@ sub journey
 # TODO: handle when only months are known
 sub datecmp
 {
-	my $left = shift;
-	my $right = shift;
+	my ($left, $right) = @_;
 
 	if((!defined($left)) || !defined($right)) {
 		if(!defined($left)) {
@@ -7336,7 +7376,8 @@ sub datecmp
 			$left = $2;
 		}
 		if($left !~ /^\d{3,4}$/) {
-			my $rc = $dfg->parse_datetime($left);
+			my @l = $dfg->parse_datetime($left);
+			my $rc = $l[1] || $l[0];
 			if(!defined($rc)) {
 				print STDERR "Date parse failure: ($left):\n";
 				my $i = 0;
@@ -7364,9 +7405,10 @@ sub datecmp
 			# while((my @call_details = caller($i++))) {
 				# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			# }
-			# die $right;
+			# die join('<=>', @_);
 		# }
-		$right = $dfg->parse_datetime($right);
+		my @r = $dfg->parse_datetime($right);
+		$right = $r[0];
 	}
 	if((!ref($left)) && ref($right)) {
 		return $left <=> $right->year();
@@ -7382,9 +7424,8 @@ sub datecmp
 sub Geo::Coder::PlaceFinder::ua
 {
 	my $self = shift;
-	my $ua = shift;
 
-	if($ua = shift) {
+	if(my $ua = shift) {
 		return $self->{_ua} = $ua;
 	}
 
