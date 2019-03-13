@@ -2610,8 +2610,11 @@ sub print_person
 					}
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
-						$bio .= ' there ' .
-							year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
+						$bio .= ' there ';
+						if(my $address = $marriage->address()) {
+							$bio .= "at $address ";
+						}
+						$bio .= year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
 					} else {
 						if($placeofmarriage) {
 							my $args = {
@@ -4065,7 +4068,7 @@ sub print_person
 						complain({ person => $person, warning => 'Arrival record without destination' });
 						next;
 					}
-					if($events[$index] && (ref($events[$index]) eq 'Gedcom::Record') && ($events[$index]->type() eq 'Arrival') && $event->date()) {
+					if($events[$index] && (ref($events[$index]) eq 'Gedcom::Record') && ($events[$index]->type() eq 'Departure') && $event->date()) {
 						if($events[$index]->date()) {
 							$previous = $event;
 							$prev_type = 'Arrival';
