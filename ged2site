@@ -3337,11 +3337,11 @@ sub print_person
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
-								my $p1 = place(record => $l->{'residence'});
-								my $p2 = place(record => $residence);
+								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1});
+								my $p2 = place({ record => $residence, nopreposition => 1});
 								if(($l->{'latitude'} == $latitude) && ($l->{'longitude'} == $longitude) &&
 								   ($p1 ne $p2)) {
-									# Too many false positives in the UK
+									# FIXME: Too many false positives in the UK
 									# complain({
 										# person => $person,
 										# warning => [ $l->{'person'}->as_string(), " residence is same location probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
@@ -3349,9 +3349,9 @@ sub print_person
 								} elsif(($distance->yards() < 20) && ($p1 ne $p2)) {
 									complain({
 										person => $person,
-										warning => [ $l->{'person'}->as_string(), " residence is very slose probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
+										warning => [ $l->{'person'}->as_string(), " residence is very close probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
 									});
-								} elsif(($distance->miles() < 1) && $p1) {
+								} elsif(($distance->miles() < 1) && ($p1 ne $p2)) {
 									if($printed_person) {
 										$bio .= ' and ';
 									} else {
