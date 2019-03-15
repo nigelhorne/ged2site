@@ -3332,20 +3332,26 @@ sub print_person
 						foreach my $l(@{$all_locations{$year}}) {
 							# print Data::Dumper->new([$l])->Dump();
 							if(($l->{'person'} ne $person) &&
-							   ($l->{latitude} != $latitude) &&
-							   ($l->{longitude} != $longitude) &&
 							   (($spouses[0] && ($l->{'person'} eq $spouses[0])) ||
 							   (my $relationship = $person->relationship($l->{'person'})) &&
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
-								my $distance = $gis->distance($->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
-								if($distance->yards() < 10) {
+								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
+								my $p1 = place(record => $l->{'residence'});
+								my $p2 = place(record => $residence);
+								if(($l->{'latitude'} == $latitude) && ($l->{'longitude'} == $longitude) &&
+								   ($p1 ne $p2)) {
+									# Too many false positives in the UK
+									# complain({
+										# person => $person,
+										# warning => [ $l->{'person'}->as_string(), " residence is same location probably should be recorded as the same address ('$p1'/'$p2')" ]
+									# });
+								} elsif(($distance->yards() < 20) && ($p1 ne $p2)) {
 									complain({
 										person => $person,
-										warning => [ $l->{'person'}, ' residence is very close probably should be recorded as the same' ]
+										warning => [ $l->{'person'}->as_string(), " residence is very slose probably should be recorded as the same address ('$p1'/'$p2')" ]
 									});
-								}
-								if(($distance->miles() < 1) && (my $place = place({ person => $l->{'person'}, record => $l->{'residence'} }))) {
+								} elsif(($distance->miles() < 1) && $p1) {
 									if($printed_person) {
 										$bio .= ' and ';
 									} else {
@@ -3360,7 +3366,7 @@ sub print_person
 											" $relationship ";
 									}
 									$bio .= $l->{'person'}->as_string() .
-										" who was living$place";
+										" who was living$p1";
 									$printed_person = 1;
 								}
 							}
