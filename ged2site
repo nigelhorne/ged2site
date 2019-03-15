@@ -3344,12 +3344,12 @@ sub print_person
 									# Too many false positives in the UK
 									# complain({
 										# person => $person,
-										# warning => [ $l->{'person'}->as_string(), " residence is same location probably should be recorded as the same address ('$p1'/'$p2')" ]
+										# warning => [ $l->{'person'}->as_string(), " residence is same location probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
 									# });
 								} elsif(($distance->yards() < 20) && ($p1 ne $p2)) {
 									complain({
 										person => $person,
-										warning => [ $l->{'person'}->as_string(), " residence is very slose probably should be recorded as the same address ('$p1'/'$p2')" ]
+										warning => [ $l->{'person'}->as_string(), " residence is very slose probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
 									});
 								} elsif(($distance->miles() < 1) && $p1) {
 									if($printed_person) {
