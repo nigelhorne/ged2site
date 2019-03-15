@@ -80,6 +80,7 @@ use Geo::Coder::Ovi;
 use Geo::Coder::RandMcnally;
 use Geo::Coder::US::Census;
 use Geo::Parser::Text;
+use GIS::Distance;
 use HTML::GoogleMaps::V3 0.13;
 use Term::ANSIColor;
 use HTML::Entities;
@@ -3326,6 +3327,7 @@ sub print_person
 						# Print close relatives living close by
 						my $year = date_to_datetime($rdate)->year();
 						my $printed_person = 0;
+						my $gis = GIS::Distance->new('MathTrig');
 
 						foreach my $l(@{$all_locations{$year}}) {
 							# print Data::Dumper->new([$l])->Dump();
@@ -3336,8 +3338,14 @@ sub print_person
 							   (my $relationship = $person->relationship($l->{'person'})) &&
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
-								my $distance = distance($l->{latitude}, $l->{longitude}, $latitude, $longitude, 'M');
-								if(($distance < 1) && (my $place = place({ person => $l->{'person'}, record => $l->{'residence'} }))) {
+								my $distance = $gis->distance($->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
+								if($distance->yards() < 10) {
+									complain({
+										person => $person,
+										warning => [ $l->{'person'}, ' residence is very close probably should be recorded as the same' ]
+									});
+								}
+								if(($distance->miles() < 1) && (my $place = place({ person => $l->{'person'}, record => $l->{'residence'} }))) {
 									if($printed_person) {
 										$bio .= ' and ';
 									} else {
@@ -7433,46 +7441,4 @@ sub Geo::Coder::PlaceFinder::ua
 	}
 
 	return $self->{_ua};
-}
-
-# From http://www.geodatasource.com/developers/perl
-# FIXME:  use Math::Trig
-sub distance {
-	my ($lat1, $lon1, $lat2, $lon2, $unit) = @_;
-	my $theta = $lon1 - $lon2;
-	my $dist = sin(_deg2rad($lat1)) * sin(_deg2rad($lat2)) + cos(_deg2rad($lat1)) * cos(_deg2rad($lat2)) * cos(_deg2rad($theta));
-	$dist = _acos($dist);
-	$dist = _rad2deg($dist);
-	$dist = $dist * 60 * 1.1515;
-	if ($unit eq "K") {
-		return $dist * 1.609344;
-	} elsif ($unit eq "N") {
-		return  $dist * 0.8684;
-	}
-	return ($dist);
-}
-
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#:::  This function get the arccos function using arctan function   :::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-sub _acos {
-	my ($rad) = @_;
-	my $ret = atan2(sqrt(1 - $rad**2), $rad);
-	return $ret;
-}
-
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#:::  This function converts decimal degrees to radians             :::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-sub _deg2rad {
-	my ($deg) = @_;
-	return ($deg * $pi / 180);
-}
-
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#:::  This function converts radians to decimal degrees             :::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-sub _rad2deg {
-	my ($rad) = @_;
-	return ($rad * 180 / $pi);
 }
