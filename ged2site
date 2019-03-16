@@ -211,14 +211,14 @@ if($opts{'m'} || $opts{'w'}) {
 			# ->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
 		# US, Canada and Australia are full
 		# Counties and towns in the UK are full
-		$geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada|Australia)\s*$/, geocoder => $freegeocoder })
-			->push({ regex => qr/^([\w\s]+,)?\s*[\w\s]+,\s*[\w\s]+\s*$/, geocoder => $freegeocoder });
+		$geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada|Australia)\s*$/, geocoder => $textgeocoder })
+			->push({ regex => qr/^([\w\s]+,)?\s*[\w\s]+,\s*[\w\s]+\s*$/, geocoder => $textgeocoder });
 	} else {
 		$freegeocoder = Geo::Coder::Free->new();
-		$geocoder->push({ regex => qr/^([\w\s\-]+?,)[\w\s]+,[\w\s]+?$/, geocoder => $freegeocoder });
+		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => $textgeocoder })
+			# E.g. 'Nebraska, USA'
+			->push({ regex => qr/^[\w\s]+,\s*(UK|England|Canada|USA|US|United States)$/i, geocoder => $textgeocoder });
 	}
-	# E.g. 'Nebraska, USA'
-	$geocoder->push({ regex => qr/^[\w\s]+,\s*(UK|England|Canada|USA|US|United States)$/i, geocoder => $freegeocoder });
 
 	if(my $username = $ENV{'GEONAMES_USER'}) {
 		$geocoder->push(Geo::GeoNames->new(username => $username));
