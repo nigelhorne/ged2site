@@ -206,7 +206,12 @@ if($opts{'m'} || $opts{'w'}) {
 	}
 
 	# my $geocoder = Geo::Coder::List->new(cache => CHI->new(driver => 'Memcached', servers => [ '192.168.1.15:11211', '127.0.0.1:11211' ]));
-	my $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', basename($0));
+	my $cachedir;
+	if(my $e = $ENV{'CACHEDIR'}) {
+		$cachedir = File::Spec->catfile($e, basename($0));
+	} else {
+		$cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', basename($0));
+	}
 	$geocoder = Geo::Coder::List->new(cache => CHI->new(driver => 'File', root_dir => $cachedir));
 
 	if(my $oa = $ENV{'OPENADDR_HOME'}) {
@@ -482,7 +487,13 @@ my $browser;
 if($opts{'d'} || $opts{'m'}) {
 	$browser = LWP::UserAgent->new();
 	$browser->env_proxy(1);
-	my $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'http-cache-transparent');
+	my $cachedir;
+	if(my $e = $ENV{'CACHEDIR'}) {
+		$cachedir = File::Spec->catfile($e, 'http-cache-transparent');
+	} else {
+		$cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'http-cache-transparent');
+	}
+
 	if(!-d $cachedir) {
 		mkdir $cachedir || die "$cachedir: $!";
 	}
