@@ -67,6 +67,7 @@ use Geo::Coder::DataScienceToolkit;
 use Geo::Coder::List 0.15;
 use Geo::Coder::Free 0.10;	# 0.11 really
 use Geo::Coder::Free::OpenAddresses;
+use Geo::Coder::Free::Local;
 use Geo::Coder::Postcodes 0.02;
 use Geo::Coder::OSM;
 use Geo::Coder::XYZ;
@@ -223,6 +224,8 @@ if($opts{'m'} || $opts{'w'}) {
 			# E.g. 'Nebraska, USA'
 			->push({ regex => qr/^[\w\s]+,\s*(UK|England|Canada|USA|US|United States)$/i, geocoder => $freegeocoder });
 	}
+	$geocoder->push({ regex => qr/^[\w\s]+,\s*[\w\s],\s*(UK|England|Wales|Scotland)$/i, geocoder => $freegeocoder })
+		->push(Geo::Coder::Free::Local->new());
 
 	if(my $username = $ENV{'GEONAMES_USER'}) {
 		$geocoder->push(Geo::GeoNames->new(username => $username));
