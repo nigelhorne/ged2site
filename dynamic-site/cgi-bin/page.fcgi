@@ -46,12 +46,15 @@ my $config;
 my @suffixlist = ('.pl', '.fcgi');
 my $script_name = basename($info->script_name(), @suffixlist);
 
+my $vwflog = File::Spec->catfile($info->logdir(), 'vwf.log');
+
 my $infocache;
 my $linguacache;
 my $buffercache;
 
 Log::Log4perl->init("$script_dir/../conf/$script_name.l4pconf");
 my $logger = Log::Log4perl->get_logger($script_name);
+Log::WarnDie->filter(\&filter);
 Log::WarnDie->dispatcher($logger);
 
 # my $pagename = "Ged2site::Display::$script_name";
@@ -154,7 +157,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 			doit(debug => 1);
 		} catch Error with {
 			my $msg = shift;
-			warn "$msg\n", $msg->stacktrace;
+			warn "$msg\n", $msg->stacktrace();
 			$logger->error($msg);
 		};
 		last;
@@ -236,6 +239,17 @@ sub doit
 		debug => $args{'debug'},
 		syslog => $syslog,
 	});
+
+	if($vwflog) {
+		open(my $fout, '>>', $vwflog);
+		print $fout
+			'"', $info->domain_name(), '",',
+			'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
+			'"', $info->browser_type(), '",',
+			'"', $lingua->language(), '",',
+			'"', $info->as_string(), "\"\n";
+		close($fout);
+	}
 
 	my $args = {
 		info => $info,
@@ -414,4 +428,12 @@ sub choose
 			"/cgi-bin/page.fcgi?page=reports\n",
 			"/cgi-bin/page.fcgi?page=mailto\n";
 	}
+}
+
+sub filter {
+	return 0 if($_[0] =~ /Can't locate Net\/OAuth\/V1_0A\/ProtectedResourceRequest.pm in /);
+	return 0 if($_[0] =~ /Can't locate auto\/NetAddr\/IP\/InetBase\/AF_INET6.al in /);
+	return 0 if($_[0] =~ /S_IFFIFO is not a valid Fcntl macro at /);
+
+	return 1;
 }
