@@ -3077,7 +3077,8 @@ sub print_person
 						}
 					} elsif(my $dor = $residence->date()) {
 						if(my $type = $residence->type()) {
-							if($type ne 'Military service') {
+							if(($type ne 'Military service') &&
+							   ($type ne 'Story')) {
 								red_warning({ person => $person, warning => "Residence record for $dor contains no location" });
 							}
 						}
@@ -4216,6 +4217,20 @@ sub print_person
 					}
 					$bio .= '.';
 					$end_of_sentence = 1;
+				} elsif($type eq 'Story') {
+					if(my $notes = notes(record => $event)) {
+						if(!$end_of_sentence) {
+							$bio .= '. ';
+						}
+						$notes =~ s/\.$//;
+						# TODO:  Do this if the notes doesn't include a date
+						# if(my $date = year(record => $event)) {
+							# $bio .= ' ' . ucfirst($notes) . " $date. ";
+						# } else {
+							$bio .= ' ' . ucfirst($notes) . '. ';
+						# }
+						$end_of_sentence = 1;
+					}
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 				} elsif(($type !~ /Census/) &&
 					($type ne 'Register UK 1939') &&
@@ -7287,7 +7302,7 @@ sub get_all_residences
 		my $type = $event->type();
 		next if(!defined($type));
 		# if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939') || ($type eq 'Hospitalisation')) {
-		if(($type =~ /Census/) || ($type eq 'Register UK 1939') || ($type eq 'Hospitalisation')) {
+		if(($type =~ /Census/) || ($type eq 'Register UK 1939') || ($type eq 'Hospitalisation') || ($type eq 'Story')) {
 			push @rc, $event;
 		}
 	}
