@@ -3492,10 +3492,14 @@ sub print_person
 								next if(!defined($sdate));
 								next if($sdate ne $rdate);
 								if(place({ person => $sibling, record => $sr }) eq $place) {
-									$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-										' ' .
-										(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
-										$sibling->given_names();
+									if($first) {
+										$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his');
+										$first = 0;
+									}
+									$printed_sibling = 1;
+									$bio .= ' ' .
+										(($sibling->sex() eq 'F') ? 'sister ' : 'brother ') .
+										$sibling->given_names() . ',';
 									$printed_sibling = 1;
 									last;
 								}
@@ -3509,10 +3513,14 @@ sub print_person
 								next if(!defined($mdate));
 								next if($mdate ne $rdate);
 								if(place({ person => $mother, record => $mr }) eq $place) {
-									$bio .= ($printed_sibling ? ' and ' : ' with ') .
-										($person->pronoun() eq 'She' ? 'her' : 'his') .
-										' mother, ' .
-										$mother->given_names();
+									if($first) {
+										$bio .= ($printed_sibling ? ' and ' : ' with ') .
+											($person->pronoun() eq 'She' ? 'her' : 'his');
+									} else {
+										$bio =~ s/,$//;
+										$bio .= ' and';
+									}
+									$bio .= ' mother ' . $mother->given_names();
 									$printed_sibling = 1;
 									last;
 								}
@@ -3525,10 +3533,14 @@ sub print_person
 								next if(!defined($fdate));
 								next if($fdate ne $rdate);
 								if(place({ person => $father, record => $fr }) eq $place) {
-									$bio .= ($printed_sibling ? ' and ' : ' with ') .
-										($person->pronoun() eq 'She' ? 'her' : 'his') .
-										' father, ' .
-										$father->given_names();
+									if($first) {
+										$bio .= ($printed_sibling ? ' and ' : ' with ') .
+											($person->pronoun() eq 'She' ? 'her' : 'his');
+									} else {
+										$bio =~ s/,$//;
+										$bio .= ' and';
+									}
+									$bio .= ' father ' . $father->given_names();
 									last;
 								}
 							}
@@ -3559,6 +3571,7 @@ sub print_person
 				} elsif($opts{'c'}) {
 					my $incitation = 0;
 					if($residencecitations{$residence}) {
+						$bio =~ s/,$//;
 						my $citation = $residencecitations{$residence};
 						$bio .= "<span class=\"citation\">$citation";
 						$incitation = 1;
@@ -3611,6 +3624,7 @@ sub print_person
 								$bio .= ',';
 							}
 						} elsif(!$print_year_only) {
+							$bio =~ s/,$//;
 							$bio .= ' and';
 						}
 					} elsif($count == (scalar(@residencelist) - 1)) {
