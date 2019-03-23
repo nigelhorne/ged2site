@@ -6979,6 +6979,9 @@ sub print_graphviz
 	# instead:
 	# if(0) {
 	if($profile_image && (defined($dod) || $opts{'l'})) {
+		if(!-r $profile_image) {
+			die $person->as_string(), ": can't read $profile_image";
+		}
 		if(defined($dob)) {
 			$dob .= "<TR><TD>b. $dob</TD></TR>";
 		} else {
@@ -7499,3 +7502,38 @@ sub Geo::Coder::PlaceFinder::ua
 
 	return $self->{_ua};
 }
+
+sub HTML::GoogleMaps::V3::_text_to_point {
+    my ( $self,$point_text ) = @_;
+
+    # IE, already a long/lat pair
+    return [ reverse @$point_text ] if ref( $point_text ) eq "ARRAY";
+
+    if ( my @loc = $self->{geocoder}->geocode( location => $point_text ) ) {
+        if ( my $location = $loc[0] ) {
+		##################################################
+		# ADDITION:
+		if(ref($location) eq 'Geo::Location::Point') {
+			return [ $location->lat(), $location->long() ];
+		}
+		# END OF ADDITION
+		##################################################
+
+            if ( ref( $location ) ne 'HASH' ) {
+                warn "$point_text didn't return a HASH ref as first element from ->geocode";
+                return 0;
+            }
+
+            if(defined($location->{geometry}{location}{lat}) && defined($location->{geometry}{location}{lng})) {
+                return [
+                    $location->{geometry}{location}{lat},
+                    $location->{geometry}{location}{lng},
+                ];
+            }
+        }
+    }
+
+    # Unknown
+    return 0;
+}
+
