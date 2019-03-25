@@ -1030,6 +1030,8 @@ if($opts{'w'}) {
 					$summary = 'Spouses not at same address';
 				} elsif($warning =~ /listed in the residence for .+, but spouse.+is not/i) {
 					$summary = 'Spouse location is missing';
+				} elsif($warning =~ /residence is very close probably should be recorded as the same address/i) {
+					$summary = 'Possible address errors';
 				} else {
 					$summary = $warning;
 				}
