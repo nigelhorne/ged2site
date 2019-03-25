@@ -3129,6 +3129,7 @@ sub print_person
 			# if($dod && ($dod =~ /.*?(\d{3,4})/)) {
 				# $yod = $1;
 			# }
+			my %printed_dates;
 			foreach my $residence(@residencelist) {
 				my $rdate = $residence->date();
 				my $latitude;
@@ -3220,6 +3221,8 @@ sub print_person
 					}
 				}
 				if($rdate) {	# residence has a date?
+					next if($printed_dates{$rdate});
+					$printed_dates{$rdate}++;
 					if($opts{'w'} && ($rdate =~ /(\d{3,4})$/)) {
 						my $yoe = $1;
 						if($yod) {
@@ -3522,6 +3525,7 @@ sub print_person
 									}
 									$bio .= ' mother ' . $mother->given_names();
 									$printed_sibling = 1;
+									$first = 0;
 									last;
 								}
 							}
@@ -3644,6 +3648,7 @@ sub print_person
 				$printed_residence = 1;
 			}
 			if($printed_residence) {
+				$bio =~ s/ and$//;
 				$bio .= '.';
 				$end_of_sentence = 1;
 			}
