@@ -6021,7 +6021,7 @@ sub Gedcom::Individual::relationship_up
 					my $mymother = $self->mother();
 					if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
 						if($me && ($self eq $me)) {
-							$rc .= " on your father's side";
+							$rc .= " on the father's side";
 						} else {
 							$rc .= ' on ' .
 								lcfirst($self->possessive()) .
@@ -6029,7 +6029,7 @@ sub Gedcom::Individual::relationship_up
 						}
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
 						if($me && ($self eq $me)) {
-							$rc .= " on your mother's side";
+							$rc .= " on the mother's side";
 						} else {
 							$rc .= ' on ' .
 								lcfirst($self->possessive()) .
