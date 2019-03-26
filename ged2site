@@ -7521,7 +7521,7 @@ sub HTML::GoogleMaps::V3::_text_to_point {
 		##################################################
 		# ADDITION:
 		if(ref($location) eq 'Geo::Location::Point') {
-			if((!defined($location->lat()) || !defined($locatin->long())) {
+			if((!defined($location->lat()) || !defined($location->long())) {
 				return 0;
 			}
 			return [ $location->lat(), $location->long() ];
