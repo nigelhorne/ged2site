@@ -1742,10 +1742,7 @@ sub print_person
 
 	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
 
-	my @children;
-	foreach my $f($person->fams()) {
-		@children = (@children, $f->children());
-	}
+	my @children = map { $_->children() } $person->fams();
 	my $numberofchildren = scalar(@children);
 
 	if($opts{'w'} && $numberofchildren) {
