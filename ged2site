@@ -3395,7 +3395,8 @@ sub print_person
 											" $relationship ";
 									}
 									$bio .= $l->{'person'}->as_string() .
-										" who was living$p1";
+										' who was living',
+										place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
 								}
 							}
@@ -6273,8 +6274,7 @@ sub year
 	return "in $string";
 }
 
-sub place
-{
+sub place {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $place = $params{'place'};
