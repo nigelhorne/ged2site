@@ -3355,12 +3355,19 @@ sub print_person
 					}
 					if(defined($latitude)) {
 						# Print close relatives living close by
+						# This really only works when printing a lot of people, for example with the -a
+						#	flag, or when producing a PDF book, since it relies on having found data
+						#	on people beforehand
 						my $year = date_to_datetime($rdate)->year();
 						my $printed_person = 0;
 						my $gis = GIS::Distance->new('MathTrig');
-						my $p2 = place({ record => $residence, nopreposition => 1});
+						my $p2 = place({ record => $residence, nopreposition => 1 });
+						my $count = 0;
+						my $p3;	# previous place
+						my @people_at_p3;
 
 						foreach my $l(@{$all_locations{$year}}) {
+							$count++;
 							# print Data::Dumper->new([$l])->Dump();
 							if(($l->{'person'} ne $person) &&
 							   (($spouses[0] && ($l->{'person'} eq $spouses[0])) ||
@@ -3381,6 +3388,14 @@ sub print_person
 										warning => [ $l->{'person'}->as_string(), " residence is very close probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
 									});
 								} elsif(($distance->miles() < 1) && ($p1 ne $p2)) {
+									if($p3) {
+										my $peek = (@{$all_locations{$year}})[$count];
+										if($peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
+											push @people_at_p3, $l;
+											next;
+										}
+									}
+									$p3 = $p1;
 									if($printed_person) {
 										$bio .= ' and ';
 									} else {
@@ -3394,9 +3409,22 @@ sub print_person
 										$bio .= ($sex eq 'M' ? 'his' : 'her') .
 											" $relationship ";
 									}
-									$bio .= $l->{'person'}->as_string() .
-										' who was living' .
-										place({ record => $l->{'residence'}, there => $p2 });
+									$bio .= $l->{'person'}->as_string();
+									if(scalar(@people_at_p3)) {
+										while(my $p = pop(@people_at_p3)) {
+											if(scalar(@people_at_p3)) {
+												$bio .= ',';
+											} else {
+												$bio .= ' and';
+											}
+											$bio .= " $relationship " .
+												$p->{'person'}->as_string();
+										}
+										$bio .= ' who were living';
+									} else {
+										$bio .= ' who was living';
+									}
+									$bio .= place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
 								}
 							}
