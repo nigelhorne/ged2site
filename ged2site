@@ -3395,7 +3395,7 @@ sub print_person
 											" $relationship ";
 									}
 									$bio .= $l->{'person'}->as_string() .
-										' who was living',
+										' who was living' .
 										place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
 								}
