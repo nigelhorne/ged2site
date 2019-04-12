@@ -3358,6 +3358,7 @@ sub print_person
 						my $year = date_to_datetime($rdate)->year();
 						my $printed_person = 0;
 						my $gis = GIS::Distance->new('MathTrig');
+						my $p2 = place({ record => $residence, nopreposition => 1});
 
 						foreach my $l(@{$all_locations{$year}}) {
 							# print Data::Dumper->new([$l])->Dump();
@@ -3368,7 +3369,6 @@ sub print_person
 							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
 								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1});
-								my $p2 = place({ record => $residence, nopreposition => 1});
 								if(($l->{'latitude'} == $latitude) && ($l->{'longitude'} == $longitude) &&
 								   ($p1 ne $p2)) {
 									complain({
