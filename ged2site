@@ -3366,14 +3366,16 @@ sub print_person
 						my $p3;	# previous place
 						my @people_at_p3;
 
-						foreach my $l(@{$all_locations{$year}}) {
+						my @sorted_locations = sort { $a->{'latitude'} <=> $b->{'latitude'} } @{$all_locations{$year}};
+
+						foreach my $l(@sorted_locations) {
 							$count++;
 							# print Data::Dumper->new([$l])->Dump();
 							if(($l->{'person'} ne $person) &&
 							   (($spouses[0] && ($l->{'person'} eq $spouses[0])) ||
 							   (my $relationship = $person->relationship($l->{'person'})) &&
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
-							    (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
+							     (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
 								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1});
 								if(($l->{'latitude'} == $latitude) && ($l->{'longitude'} == $longitude) &&
