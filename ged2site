@@ -3170,9 +3170,13 @@ sub print_person
 						if($residence->type() && ($residence->type() eq 'Hospitalisation')) {
 							$bio .= ' in hospital';
 						}
-						$places_printed{$p} = 1;
-						$bio .= HTML::Entities::encode($p);
-						$places_printed{$p} = 1;
+						if((!defined($prev_residence)) ||
+						   !places_are_the_same({ person => $person, first => $prev_residence, second => $residence })) {
+							# Actually prints the place here
+							$places_printed{$p} = 1;
+							$bio .= HTML::Entities::encode($p);
+							$places_printed{$p} = 1;
+						}
 					}
 					$place_records{"Residence/$count"} = $residence;
 					if($rdate && (my $rdate_dt = date_to_datetime($rdate))) {
@@ -3668,7 +3672,12 @@ sub print_person
 									$bio .= $rdate;
 									$print_year_only = 0;
 								}
-								$bio .= ',';
+								$peek = $residencelist[$count + 2];
+								if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+									$bio .= ',';
+								} else {
+									$bio .= ' and';
+								}
 							}
 						} elsif(!$print_year_only) {
 							$bio =~ s/,$//;
