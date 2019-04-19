@@ -4478,11 +4478,14 @@ sub print_person
 				}
 				my $title = $citations{$citation}->title();
 				if(!defined($title)) {
-					complain({
-						person => $person,
-						warning => "[$citation]: no citation title"
-					});
-					next;
+					$title = notes(record => $citations{$citation});
+					if(!defined($title)) {
+						complain({
+							person => $person,
+							warning => "[$citation]: no citation title"
+						});
+						next;
+					}
 				}
 				my $c;
 				if(my $file = $citations{$citation}->file()) {
@@ -4515,7 +4518,7 @@ sub print_person
 
 					if($note && ($note !~ /^This information comes from/)) {
 						$ufinder->find(\$note);
-						$c .= ' (' . HTML::Entities::encode($note) . ')';
+						$c .= ' (' . HTML::Entities::encode($note) . ')' unless($note eq $title);
 					}
 				}
 				if($citationnotes{$citation}) {
