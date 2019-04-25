@@ -1,12 +1,16 @@
 #!/usr/bin/env perl
 
-# Ged2site is licensed under GPL2.0 for personal use only
+# Ged2side is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
 # Based on VWF - https://github.com/nigelhorne/vwf
 
-# use File::HomeDir;
-# use lib File::HomeDir->my_home() . '/lib/perl5';
+# Can be tested at the command line, e.g.:
+#	rootdir=$(pwd)/.. ./page.fcgi page=index
+# To mimic a French mobile site:
+#	rootdir=$(pwd)/.. ./page.fcgi mobile=1 page=index lang=fr
+# To turn off linting of HTML on a search-engine landing page
+#	rootdir=$(pwd)/.. ./page.fcgi --search-engine page=index lint_content=0
 
 use strict;
 use warnings;
@@ -37,6 +41,8 @@ use lib '../lib';
 
 use Ged2site::Config;
 
+Log::WarnDie->filter(\&filter);
+
 my $info = CGI::Info->new();
 my $tmpdir = $info->tmpdir();
 my $cachedir = "$tmpdir/cache";
@@ -54,7 +60,6 @@ my $buffercache;
 
 Log::Log4perl->init("$script_dir/../conf/$script_name.l4pconf");
 my $logger = Log::Log4perl->get_logger($script_name);
-Log::WarnDie->filter(\&filter);
 Log::WarnDie->dispatcher($logger);
 
 # my $pagename = "Ged2site::Display::$script_name";
@@ -136,6 +141,9 @@ $SIG{PIPE} = 'IGNORE';
 
 my $request = FCGI::Request();
 
+# It would be really good to send 429 to search engines when there are more than, say, 5 requests being handled.
+# But I don't think that's possible with the FCGI module
+
 while($handling_request = ($request->Accept() >= 0)) {
 	unless($ENV{'REMOTE_ADDR'}) {
 		# debugging from the command line
@@ -174,7 +182,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		doit(debug => 0);
 	} catch Error with {
 		my $msg = shift;
-		$logger->error($msg, $msg->stacktrace());
+		$logger->error("$msg: ", $msg->stacktrace());
 		if($buffercache) {
 			$buffercache->clear();
 		}
@@ -267,9 +275,7 @@ sub doit
 		};
 	}
 
-	my $fb = FCGI::Buffer->new();
-
-	$fb->init($args);
+	my $fb = FCGI::Buffer->new()->init($args);
 
 	if($fb->can_cache()) {
 		$buffercache ||= create_disc_cache(config => $config, logger => $logger, namespace => $script_name, root_dir => $cachedir);
@@ -430,6 +436,7 @@ sub choose
 	}
 }
 
+# False positives we don't need in the logs
 sub filter {
 	return 0 if($_[0] =~ /Can't locate Net\/OAuth\/V1_0A\/ProtectedResourceRequest.pm in /);
 	return 0 if($_[0] =~ /Can't locate auto\/NetAddr\/IP\/InetBase\/AF_INET6.al in /);

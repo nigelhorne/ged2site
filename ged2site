@@ -1441,7 +1441,7 @@ sub print_person
 			Genealogy::ChroniclingAmerica->import();
 			if(my $loc = Genealogy::ChroniclingAmerica->new(\%chronicling_params)) {
 				while(my $url = $loc->get_next_entry()) {
-					complain({ person => $person, "Check out $url" });
+					complain({ person => $person, warning => "Check out $url" });
 				}
 			}
 		}
