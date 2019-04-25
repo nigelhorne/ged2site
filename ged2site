@@ -4173,11 +4173,16 @@ sub print_person
 				$bio .= '. ';
 			} elsif($type eq 'Military service') {
 				$bio .= '.' if(!$end_of_sentence);
-				$bio .= " $pronoun served in the military";
+				my $date = year(record => $event);
+				if($date && ($date !~ /^from /i)) {
+					$bio .= ' ' . ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
+				} else {
+					$bio .= " $pronoun served in the military";
+				}
 				if(my $place = place({ person => $person, record => $event })) {
 					$bio .= $place;
 				}
-				if(my $date = year(record => $event)) {
+				if($date && ($date =~ /^from /i)) {
 					$bio .= " $date";
 				}
 
