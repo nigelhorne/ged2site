@@ -1450,7 +1450,7 @@ sub print_person
 			if((!$us->{code2state}{$stateofdeath}) && !$us->{state2code}{$stateofdeath}) {
 				complain({ person => $params{'person'}, warning => "Unknown state '$stateofdeath' in death place $placeofbirth" });
 			}
-			if($stateofdeath ne $stateofbirth) {
+			if((!defined($stateofbirth)) || ($stateofdeath ne $stateofbirth)) {
 				$chronicling_params{'state'} = ucfirst(lc($stateofdeath));
 
 				require Genealogy::ChroniclingAmerica;
