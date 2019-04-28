@@ -35,7 +35,8 @@ our $mapper = {
 	'ageatmarriage' => \&_ageatmarriage,
 	'dist' => \&_dist,
 	'distcount' => \&_distcount,
-	'ageatfirstborn' => \&_ageatfirstborn,
+	'ageatfirstchild' => \&_ageatfirstchild,
+	'ageatlastchild' => \&_ageatlastchild,
 	'familysizetime' => \&_familysizetime,
 	'motherchildren' => \&_motherchildren,
 	'percentagedying' => \&_percentagedying,
@@ -746,7 +747,7 @@ sub _distcount
 	return { datapoints => $datapoints, units => ($units eq 'K') ? 'Kilometres' : 'Miles' };
 }
 
-sub _ageatfirstborn
+sub _ageatfirstchild
 {
 	my $self = shift;
 	my $args = shift;
@@ -785,6 +786,79 @@ sub _ageatfirstborn
 			}
 			if(defined($firstborn)) {
 				my $age = $firstborn - $yob;
+				if($person->{'sex'} eq 'M') {
+					$mtotals{$bucket} += $age;
+					$mcounts{$bucket}++;
+				} else {
+					$ftotals{$bucket} += $age;
+					$fcounts{$bucket}++;
+				}
+			}
+		}
+	}
+
+	my $mdatapoints;
+	my $fdatapoints;
+
+	foreach my $bucket(sort keys %mcounts) {
+		if($mcounts{$bucket} >= 5) {
+			my $average = ceil($mtotals{$bucket} / $mcounts{$bucket});
+			$mdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($mdatapoints) {
+			$mdatapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+	foreach my $bucket(sort keys %fcounts) {
+		if($fcounts{$bucket} >= 5) {
+			my $average = ceil($ftotals{$bucket} / $fcounts{$bucket});
+			$fdatapoints .= "{ label: \"$bucket\", y: $average },\n";
+		} elsif($fdatapoints) {
+			$fdatapoints .= "{ label: \"$bucket\", y: null },\n";
+		}
+	}
+
+	return { mdatapoints => $mdatapoints, fdatapoints => $fdatapoints };
+}
+
+sub _ageatlastchild
+{
+	my $self = shift;
+	my $args = shift;
+	my %mtotals;
+	my %mcounts;
+	my %ftotals;
+	my %fcounts;
+
+	my $people = $args->{'people'};
+
+	$dfn ||= DateTime::Format::Natural->new();
+	foreach my $person($people->selectall_hash()) {
+		if($person->{'dob'} && $person->{'children'}) {
+			my $dob = $person->{'dob'};
+			my $yob;
+			if($dob =~ /^(\d{3,4})/) {
+				$yob = $1;
+			} else {
+				next;
+			}
+			my $bucket = $yob - ($yob % BUCKETYEARS);
+
+			my $lastborn;
+			CHILD: foreach my $child(split(/----/, $person->{'children'})) {
+				if($child =~ /page=people&entry=([IP]\d+)"/) {
+					$child = $people->fetchrow_hashref({ entry => $1 });
+					my $cdob = $child->{'dob'};
+					next CHILD unless($cdob);
+					if($cdob =~ /^(\d{3,4})/) {
+						my $cyob = $1;
+						if((!defined($lastborn)) || ($cyob > $lastborn)) {
+							$lastborn = $cyob;
+						}
+					}
+				}
+			}
+			if(defined($lastborn)) {
+				my $age = $lastborn - $yob;
 				if($person->{'sex'} eq 'M') {
 					$mtotals{$bucket} += $age;
 					$mcounts{$bucket}++;

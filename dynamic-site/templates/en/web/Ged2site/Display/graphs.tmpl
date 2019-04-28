@@ -17,8 +17,10 @@
 			[% SET title = 'Months between marriage and first born' %]
 		[% ELSIF graph == 'sex' %]
 			[% SET title = 'Sex of people born in each year' %]
-		[% ELSIF graph == 'ageatfirstborn' %]
-			[% SET title = 'Age of Parents on Birth of First Born' %]
+		[% ELSIF graph == 'ageatfirstchild' %]
+			[% SET title = 'Age of Parents on Birth of First Child' %]
+		[% ELSIF graph == 'ageatlastchild' %]
+			[% SET title = 'Age of Parents on Birth of Last Child' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSIF graph == 'distcount' %]
@@ -434,7 +436,7 @@
 			<p>This graph only includes data from 5 year periods that contain at least 10 births.</p>
 			<p>People who moved much further away than most (for example emigrants) are not included so that the graph more reflects the norm.</p>
 			<p>Select an area to zoom in.</p>
-		[% ELSIF graph == 'ageatfirstborn' %]
+		[% ELSIF graph == 'ageatfirstchild' || graph == 'ageatlastchild' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
@@ -490,7 +492,8 @@
 					<li><a href="?page=graphs&amp;graph=sex">Sex of people born in each year</a></li>
 					<li><a href="?page=graphs&amp;graph=dist">Average distance between birth and death</a></li>
 					<li><a href="?page=graphs&amp;graph=distcount">Distance count</a></li>
-					<li><a href="?page=graphs&amp;graph=ageatfirstborn">Age of Parents on birth of first born</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatfirstchild">Age of Parents on birth of first child</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatlastchild">Age of Parents on birth of last child</a></li>
 					<li><a href="?page=graphs&amp;graph=familysizetime">How family size changes over time</a></li>
 					<li><a href="?page=graphs&amp;graph=motherchildren">Number of children by women</a></li>
 					<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>

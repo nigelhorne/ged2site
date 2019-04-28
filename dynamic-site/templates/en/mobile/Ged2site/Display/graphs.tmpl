@@ -18,8 +18,10 @@
 			[% SET title = 'Months between marriage and first born' %]
 		[% ELSIF graph == 'sex' %]
 			[% SET title = 'Sex of people born in each year' %]
-		[% ELSIF graph == 'ageatfirstborn' %]
-			[% SET title = 'Age of Parents on Birth of First Born' %]
+		[% ELSIF graph == 'ageatfirstchild' %]
+			[% SET title = 'Age of Parents on Birth of First Child' %]
+		[% ELSIF graph == 'ageatlastchild' %]
+			[% SET title = 'Age of Parents on Birth of Last Child' %]
 		[% ELSIF graph == 'percentagedying' %]
 			[% SET title = 'Percentage of people alive who died' %]
 		[% ELSIF graph == 'dist' %]
@@ -175,7 +177,7 @@
 		[% ELSIF graph == 'dist' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data from 5 year periods that contain at least 10 births.</p>
-		[% ELSIF graph == 'ageatfirstborn' %]
+		[% ELSIF graph == 'ageatfirstchild' || graph == 'ageatlastchild' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
@@ -203,7 +205,8 @@
 				<a href="?page=graphs&graph=sex" class="myButton">Sex of people born in each year</a><br><br>
 				<a href="?page=graphs&graph=dist" class="myButton">Average distance between birth and death</a><br><br>
 				<a href="?page=graphs&amp;graph=percentagedying" class="myButton">Percentage of the people dying</a><br><br>
-				<a href="?page=graphs&graph=ageatfirstborn" class="myButton">Age of Parents on Birth of First Born</a><br><br>
+				<a href="?page=graphs&graph=ageatfirstchild" class="myButton">Age of Parents on Birth of First Child</a><br><br>
+				<a href="?page=graphs&graph=ageatlastchild" class="myButton">Age of Parents on Birth of Last Child</a><br><br>
 			</center>
 		[% END %]
 		<center><font size="+2">
