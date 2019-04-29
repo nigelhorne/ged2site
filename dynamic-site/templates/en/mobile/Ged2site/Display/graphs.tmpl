@@ -19,9 +19,9 @@
 		[% ELSIF graph == 'sex' %]
 			[% SET title = 'Sex of people born in each year' %]
 		[% ELSIF graph == 'ageatfirstchild' %]
-			[% SET title = 'Age of Parents on Birth of First Child' %]
+			[% SET title = 'Age of Parents at Birth of First Child' %]
 		[% ELSIF graph == 'ageatlastchild' %]
-			[% SET title = 'Age of Parents on Birth of Last Child' %]
+			[% SET title = 'Age of Parents at Birth of Last Child' %]
 		[% ELSIF graph == 'percentagedying' %]
 			[% SET title = 'Percentage of people alive who died' %]
 		[% ELSIF graph == 'dist' %]
@@ -31,7 +31,7 @@
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2019 Nigel Horne">
 		<title>[% title %]</title>
 		[% IF datapoints %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
@@ -205,8 +205,8 @@
 				<a href="?page=graphs&graph=sex" class="myButton">Sex of people born in each year</a><br><br>
 				<a href="?page=graphs&graph=dist" class="myButton">Average distance between birth and death</a><br><br>
 				<a href="?page=graphs&amp;graph=percentagedying" class="myButton">Percentage of the people dying</a><br><br>
-				<a href="?page=graphs&graph=ageatfirstchild" class="myButton">Age of Parents on Birth of First Child</a><br><br>
-				<a href="?page=graphs&graph=ageatlastchild" class="myButton">Age of Parents on Birth of Last Child</a><br><br>
+				<a href="?page=graphs&graph=ageatfirstchild" class="myButton">Age of Parents at birth of first child</a><br><br>
+				<a href="?page=graphs&graph=ageatlastchild" class="myButton">Age of Parents at birth of last child</a><br><br>
 			</center>
 		[% END %]
 		<center><font size="+2">
@@ -214,7 +214,8 @@
 			[ <a href="?page=censuses">Census Index</a> ]<br>
 			[ <a href="?page=surnames">Surname Index</a> ]<br>
 			[ <a href="?page=history">Family History</a> ]<br>
-			[ <a href="?page=reports">Reports</a> ]
+			[ <a href="?page=reports">Reports</a> ]<br>
+			[ <a href="?page=graphs">Analytics</a> ]<br>
 		</font></center>
 		<p align="right">
 			<i>
