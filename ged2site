@@ -7303,7 +7303,12 @@ sub date_to_datetime
 		}
 		if($date =~ /^bet (.+) and (.+)/i) {
 			if(wantarray) {
-				return date_to_datetime($1), date_to_datetime($2);
+				my $rc0 = date_to_datetime($1);
+				my $rc1 = date_to_datetime($2);
+				if($rc0 < $rc1) {
+					return ($rc0, $rc1);
+				}
+				complain("Invalid date range $date");
 			}
 			return;
 		}
