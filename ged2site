@@ -13,7 +13,6 @@
 # TODO: Geo::Coder::GeocodeFarm, once github issue 1 has been fixed
 # TODO: Investigate BGS
 # TODO: Finish XML
-# TODO: add warning for 'bet 2000 and 1999'
 # TODO: Can I use a kdTree to determine events or residences close by each other?
 # TODO: note if a child was orphaned by both parents dying before they were 16
 # TODO: add education ("attended school at")
