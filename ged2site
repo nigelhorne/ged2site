@@ -3452,12 +3452,12 @@ sub print_person
 								   ($p1 ne $p2)) {
 									complain({
 										person => $person,
-										warning => [ $l->{'person'}->as_string(), " residence is same location probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
+										warning => [ $l->{'person'}->as_string(nee => 1), " residence is same location probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
 									});
 								} elsif(($distance->yards() < 20) && ($p1 ne $p2)) {
 									complain({
 										person => $person,
-										warning => [ $l->{'person'}->as_string(), " residence is very close probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
+										warning => [ $l->{'person'}->as_string(nee => 1), " residence is very close probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
 									});
 								} elsif(($distance->miles() < 1) && ($p1 ne $p2)) {
 									if($p3) {
@@ -6995,7 +6995,7 @@ sub complain
 	if($opts{'f'}) {
 		my @call_details = caller(0);
 		if($params{'person'}) {
-			die $params{'person'}->as_string(), ': ', ucfirst($params{'warning'}), ' at line ', $call_details[2];
+			die $params{'person'}->as_string(nee => 1), ': ', ucfirst($params{'warning'}), ' at line ', $call_details[2];
 		}
 		die ucfirst($params{'warning'}), ' at line ', $call_details[2];
 	}
@@ -7016,7 +7016,7 @@ sub red_warning
 		my $warning = HTML::Entities::decode($params{'warning'});
 		my @call_details = caller(0);
 		if($params{'person'}) {
-			warn colored(['red'], $params{'person'}->as_string(), ": $warning at line ", $call_details[2]);
+			warn colored(['red'], $params{'person'}->as_string(middle_names => 1, nee => 1), ": $warning at line ", $call_details[2]);
 			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
 			warn colored(['red'], $params{'warning'}, ' at line ', $call_details[2]);
