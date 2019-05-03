@@ -1885,6 +1885,9 @@ sub print_person
 			last;
 		}
 	}
+	if($occupations[0] && ($occupations[0] =~ /works? on (.+)/i)) {
+		$occupations[0] = "$1 worker";
+	}
 
 	my $same_occupation_as_father;
 	my $printed_comma = 0;
