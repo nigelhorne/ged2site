@@ -2673,6 +2673,8 @@ sub print_person
 							} @childrenofthisspouse);
 							substr($childnames, rindex($childnames, ', '), 2, ' and ');
 							print $html $childnames;
+							# FIXME: breaks static HTML page, because of the print $bio
+							#	later on
 							$childnames = join(', ', map {
 								'<a href="?page=people&entry=' . $_->{'xref'} . '">'.
 									$_->given_names() . '</a>'
@@ -2777,8 +2779,8 @@ sub print_person
 				my $spouse_number = 0;
 				my $previousplace;
 				foreach my $spouse(@spouses) {
-					print $html ' <a href="' . make_filename_from_person(person => $spouse) . '">' .
-						$spouse->as_string() . '</a>';
+					print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
+						$spouse->as_string(), '</a>';
 					print $csv ' <a href="?page=people&entry=', $spouse->{'xref'}, '">',
 						$spouse->as_string(),
 						'</a>';
