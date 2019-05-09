@@ -1161,7 +1161,7 @@ sub print_person
 	my $dob = get_value({ person => $person, value => 'birth date' });
 
 	# ACOM starts approximate dates with "Abt." instead of "ABT".
-	if(defined($dob) && length($dob)) {
+	if(defined($dob) && length($dob) && ($dob ne '?')) {
 		$dob =~ s/[\.\-]/ /g;
 		$dob =~ s/\s{2,}/ /g;
 		$dob =~ s/\(.+$//;	# some people put information in brackets after the date
@@ -1229,7 +1229,7 @@ sub print_person
 	if($dob && ($dob =~ /.*?(\d{3,4})/)) {
 		$yob = $1;
 	} elsif($dob) {
-		if($dob eq 'UNKNOWN') {
+		if(($dob eq 'UNKNOWN') || ($dob eq '?')) {
 			$dob = undef;
 		} elsif($opts{'w'} && !$warned{$person}) {
 			complain({ person => $person, warning => "Invalid date of birth $dob" });
