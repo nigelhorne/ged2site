@@ -1376,6 +1376,7 @@ sub print_person
 		complain({ person => $person, warning => 'Trailing comma in birth location' });
 		$placeofbirth =~ s/\s*,\s*$//;
 	}
+
 	my $placeofdeath = get_value({ person => $person, value => 'death place' });
 	if((!$placeofdeath) && $death) {
 		$placeofdeath = $death->place();
@@ -5449,8 +5450,6 @@ sub print_person
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
 			$birth_country = 'United States';
-		} elsif($c eq 'Texas') {
-			$birth_country = 'United States';
 		} elsif($c eq 'United States of America') {
 			$birth_country = 'United States';
 		} elsif($c eq 'Scotland') {
@@ -5463,6 +5462,25 @@ sub print_person
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Preußen') {	# Prussia
 			$birth_country = 'Germany';
+		} elsif(($c eq 'Holland') || ($c eq 'The Netherlands')) {
+			$birth_country = 'Netherlands';
+		} elsif($c eq 'NL') {
+			$birth_country = 'Netherlands';
+			complain({ person => $person, warning => 'Assuming country of birth is Netherlands' });
+		} elsif(($c =~ /[A-Z]{2}/) && ($us->{code2state}{$c})) {
+			$birth_country = 'United States';
+			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
+		} elsif($us->{state2code}{uc($c)}) {
+			$birth_country = 'United States';
+			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
+		} elsif(($c eq 'Nova Scotia') || (uc($c) eq 'NFLD') || ($c eq 'Newfoundland') || ($c eq 'NS')) {
+			$birth_country = 'Canada';
+			complain({ person => $person, warning => 'Assuming country of birth is Canada' });
+		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex')) {
+			$birth_country = 'United Kingdom';
+			complain({ person => $person, warning => 'Assuming country of birth is UK' });
+		} elsif($c =~ 'England,?\sUK') {
+			$birth_country = 'United Kingdom';
 		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
 			$birth_country = $b->code_alpha2();
 		} else {
@@ -5475,29 +5493,45 @@ sub print_person
 	if($placeofdeath && ($placeofdeath =~ /(.+[a-z]) USA$/)) {
 		complain({ person => $person, warning => "Comma missing before USA in death location '$placeofdeath'" });
 		$placeofdeath = "$1, USA";
-		$death_country = 'United States';
 	} elsif($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
 		if($c eq 'England') {
-			$death_country = 'United Kingdom';
+			# $death_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
-			$death_country = 'United States';
-		} elsif($c eq 'Texas') {
-			$death_country = 'United States';
+			# $death_country = 'United States';
+		# } elsif($c eq 'Texas') {
+			# $death_country = 'United States';
+		} elsif(($c =~ /[A-Z]{2}/) && ($us->{code2state}{$c})) {
+			complain({ person => $person, warning => "$c: assuming country of death is USA" });
+			# $death_country = 'United States';
+		} elsif($us->{state2code}{uc($c)}) {
+			complain({ person => $person, warning => "$c: assuming country of death is USA" });
+			# $death_country = 'United States';
 		} elsif($c eq 'United States of America') {
-			$death_country = 'United States';
+			# $death_country = 'United States';
 		} elsif($c eq 'Scotland') {
-			$death_country = 'United Kingdom';
+			# $death_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
-			$death_country = 'United Kingdom';
-		} elsif($c eq 'Isle of Man') {
-			$death_country = 'United Kingdom';
-		} elsif($c eq 'Northern Ireland') {
-			$death_country = 'United Kingdom';
-		} elsif($c eq 'Preußen') {	# Prussia
-			$death_country = 'Germany';
+			# $death_country = 'United Kingdom';
+		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex')) {
+			# $death_country = 'United Kingdom';
+			complain({ person => $person, warning => 'Assuming country of death is UK' });
+		} elsif(($c eq 'Nova Scotia') || (uc($c) eq 'NFLD') || ($c eq 'Newfoundland') || ($c eq 'NS')) {
+			complain({ person => $person, warning => "Country 'Canada' missing from death record" });
+			# $death_country = 'Canada';
+		} elsif(($c eq 'Holland') || ($c eq 'The Netherlands')) {
+			# $death_country = 'Netherlands';
+		# } elsif($c eq 'Isle of Man') {
+			# $death_country = 'United Kingdom';
+		# } elsif($c eq 'Northern Ireland') {
+			# $death_country = 'United Kingdom';
+		# } elsif($c eq 'Preußen') {	# Prussia
+			# $death_country = 'Germany';
+		} elsif($c =~ /Can\./) {
+			complain({ person => $person, warning => 'Assuming country of death is Canada' });
+			# $death_country = 'Canada';
 		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
-			$death_country = $b->code_alpha2();
+			# $death_country = $b->code_alpha2();
 		} else {
 			complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
 		}
