@@ -2245,20 +2245,17 @@ sub print_person
 			$s = 'your relation';
 		}
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
-			$spouse->as_string({ middle_names => 1, title => 1 }),
-			"</a> the $spouserelationship of ",
+			"$s</a> the $spouserelationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>';
 		print $csv ' <a href="?page=people&entry=', $spouse->{'xref'}, '">',
-			$spouse->as_string({ middle_names => 1, title => 1 }),
-			"</a> the $spouserelationship of ",
+			"$s</a> the $spouserelationship of ",
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>';
 		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->{'xref'}, '"&gt;',
-			$spouse->as_string({ middle_names => 1, title => 1 }),
-			"&lt;/a&gt; the $spouserelationship of ",
+			"$s&lt;/a&gt; the $spouserelationship of ",
 			'&lt;a href="?page=people&amp;home=1"&gt;',
 			$me->as_string(nee => 1),
 			'&lt;/a&gt;';
