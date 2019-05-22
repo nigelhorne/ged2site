@@ -3630,43 +3630,50 @@ sub print_person
 							}
 						}
 						# FIXME: only checks when there are @siblings
-						if($mother && ($bdiff->in_units('years') >= 30)) {
-							my @mr = get_all_residences(person => $mother);
-							foreach my $mr(@mr) {
-								my $mdate = $mr->date();
-								next if(!defined($mdate));
-								next if($mdate ne $rdate);
-								if(place({ person => $mother, record => $mr }) eq $place) {
-									if($first) {
-										$bio .= ($printed_sibling ? ' and ' : ' with ') .
-											($person->pronoun() eq 'She' ? 'her' : 'his');
-									} else {
-										$bio =~ s/,$//;
-										$bio .= ' and';
+						if($bdiff->in_units('years') >= 30) {
+							my $with_mother;
+							if($mother) {
+								my @mr = get_all_residences(person => $mother);
+								foreach my $mr(@mr) {
+									my $mdate = $mr->date();
+									next if(!defined($mdate));
+									next if($mdate ne $rdate);
+									if(place({ person => $mother, record => $mr }) eq $place) {
+										$with_mother++;
+										last;
 									}
-									$bio .= ' mother ' . $mother->given_names();
-									$printed_sibling = 1;
-									$first = 0;
-									last;
 								}
 							}
-						}
-						if($father && ($bdiff->in_units('years') >= 30)) {
-							my @fr = get_all_residences(person => $father);
-							foreach my $fr(@fr) {
-								my $fdate = $fr->date();
-								next if(!defined($fdate));
-								next if($fdate ne $rdate);
-								if(place({ person => $father, record => $fr }) eq $place) {
-									if($first) {
-										$bio .= ($printed_sibling ? ' and ' : ' with ') .
-											($person->pronoun() eq 'She' ? 'her' : 'his');
-									} else {
-										$bio =~ s/,$//;
-										$bio .= ' and';
+							my $with_father;
+							if($father) {
+								my @fr = get_all_residences(person => $father);
+								foreach my $fr(@fr) {
+									my $fdate = $fr->date();
+									next if(!defined($fdate));
+									next if($fdate ne $rdate);
+									if(place({ person => $father, record => $fr }) eq $place) {
+										$with_father++;
+										last;
 									}
+								}
+							}
+							if($with_mother || $with_father) {
+								if($first) {
+									$bio .= ($printed_sibling ? ' and ' : ' with ') .
+										($person->pronoun() eq 'She' ? 'her' : 'his');
+								} else {
+									$bio =~ s/,$//;
+									$bio .= ' and';
+								}
+								$printed_sibling = 1;
+								$first = 0;
+
+								if($with_mother && $with_father) {
+									$bio .= ' parents ';
+								} elsif($with_mother) {
+									$bio .= ' mother ' . $mother->given_names();
+								} elsif($with_father) {
 									$bio .= ' father ' . $father->given_names();
-									last;
 								}
 							}
 						}
