@@ -1393,7 +1393,7 @@ sub print_person
 	}
 	if($placeofdeath && ($placeofdeath =~ /^,/)) {
 		complain({ person => $person, warning => 'Leading comma in death location' });
-		$placeofdeath =~ s/^,\s*//g;
+		1 while($placeofdeath =~ s/^,\s*//g);
 	}
 
 	if($is_alive && ($placeofdeath || $dateofdeath)) {
