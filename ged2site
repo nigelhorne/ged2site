@@ -3165,6 +3165,18 @@ sub print_person
 				}
 			}
 
+			if(scalar(@residencelist) == 2) {
+				my $date1 = $residencelist[0]->date();
+				my $date2 = $residencelist[1]->date();
+
+				if($date1 && $date2 && ($date1 eq $date2)) {
+					if(places_are_the_same({ person => $person, first => $residencelist[0], second => $residencelist[1] })) {
+						complain({ person => $person, warning => "Duplicate residence on $date1" });
+						@residencelist = ($residencelist[0]);
+					}
+				}
+			}
+
 			# TODO: See RT110333
 
 			# Sort residences chronologically
