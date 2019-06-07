@@ -3237,52 +3237,43 @@ sub print_person
 				# $yod = $1;
 			# }
 			my %printed_dates;
+
+			my @residencestringarray;
+
+			# Create a list of residence strings
 			foreach my $residence(@residencelist) {
 				my $rdate = $residence->date();
 				my $latitude;
 				my $longitude;
+				my $residencestring;
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
 					if($birth && $dob && $rdate && ($rdate eq $dob) &&
 					   places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 						# This residence record is for the place of birth, which is
 						# printed elsewhere
-						$place_records{"Residence/$count"} = $residence;
 						$count++;
 						next;
 					}
-					if(!$have_printed) {
-						$bio .= '.' unless($end_of_sentence);
-						if((scalar(@residencelist) == 1) && $rdate) {
-							$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' })) .
-								', ' . lcfirst($pronoun) . ' was living';
-						} else {
-							$bio .= '<p>During ' .
-								lc($person->possessive()) .
-								' life, ' . lcfirst($pronoun) . ' was living';
-						}
-						$have_printed = 1;
-					}
 					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
-						$bio .= ' at ' . ($person->pronoun() eq 'She' ? 'her' : 'his') . ' birthplace';
+						$residencestring = ' at ' . ($person->pronoun() eq 'She' ? 'her' : 'his')
+								. ' birthplace';
 					} else {
 						my $p = place({
 							person => $person,
 							record => $residence,
-							must_predate => $death_dt,
 							places_printed => \%places_printed
 						});
 						if($residence->type() && ($residence->type() eq 'Hospitalisation')) {
-							$bio .= ' in hospital';
+							$residencestring = ' in hospital';
 						}
+
 						if((!defined($prev_residence)) ||
 						   !places_are_the_same({ person => $person, first => $prev_residence, second => $residence })) {
 							# Actually prints the place here
-							$places_printed{$p} = 1;
-							$bio .= HTML::Entities::encode($p);
+							$residencestring .= $p;
 							$places_printed{$p} = 1;
 						}
 					}
-					$place_records{"Residence/$count"} = $residence;
 					if($rdate && (my $rdate_dt = date_to_datetime($rdate))) {
 						my $year = $rdate_dt->year();
 						my $strftime = $rdate_dt->strftime('%x');
@@ -3296,14 +3287,13 @@ sub print_person
 							if(defined($locations[0]->{geometry}{location}{lat}) && !defined($locations[0]->{'error'})) {
 								$latitude = $locations[0]->{geometry}{location}{lat};
 								$longitude = $locations[0]->{geometry}{location}{lng};
-								push @{$all_locations{$year}},
-									{
-										'residence' => $residence,
-										'person' => $person,
-										'date' => $strftime,
-										'latitude' => $latitude,
-										'longitude' => $longitude,
-									};
+								push @{$all_locations{$year}}, {
+									'residence' => $residence,
+									'person' => $person,
+									'date' => $strftime,
+									'latitude' => $latitude,
+									'longitude' => $longitude,
+								};
 							}
 						}
 						if($opts{'w'} && $marriage_dt && ($rdate_dt > $marriage_dt)) {
@@ -3322,7 +3312,11 @@ sub print_person
 											$r2 =~ s/^\s+//;
 											complain({
 												person => $person,
-												warning => "$strftime: not living at same address as spouse " . $spouses[0]->as_string() . " ('$r1'/'$r2')"
+												warning => [ 
+													"$strftime: not living at same address as spouse ",
+													$spouses[0]->as_string(),
+													" ('$r1'/'$r2')"
+												]
 											});
 										}
 									}
@@ -3331,6 +3325,7 @@ sub print_person
 						}
 					}
 				}
+				# Citation residence notes print later
 				if($rdate) {	# residence has a date?
 					next if($printed_dates{$rdate});
 					$printed_dates{$rdate}++;
@@ -3452,11 +3447,11 @@ sub print_person
 						} else {
 							if($print_year_only) {
 								if($count == (scalar(@residencelist) - 1)) {
-									$bio .= $rdate;
+									$residencestring .= $rdate;
 									# $print_year_only = 0;
 								}
 							} else {
-								$bio .= " $this_date";
+								$residencestring .= " $this_date";
 							}
 							$prev_residence = $residence;
 						}
@@ -3509,39 +3504,39 @@ sub print_person
 									}
 									$p3 = $p1;
 									if($printed_person) {
-										$bio .= ' and ';
+										$residencestring .= ' and ';
 									} else {
-										$bio .= ', less than a mile from ';
+										$residencestring .= ', less than a mile from ';
 									}
 									if($spouses[0] && ($l->{'person'} eq $spouses[0])) {
 										# FIXME: Only when before they married, though when
 										#	they are married it should be the same place, right?
-										$bio .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
+										$residencestring .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
 									} else {
-										$bio .= ($sex eq 'M' ? 'his' : 'her') .
+										$residencestring .= ($sex eq 'M' ? 'his' : 'her') .
 											" $relationship ";
 									}
-									$bio .= $l->{'person'}->as_string();
+									$residencestring .= $l->{'person'}->as_string();
 									if(scalar(@people_at_p3)) {
 										while(my $p = pop(@people_at_p3)) {
 											if(scalar(@people_at_p3)) {
-												$bio .= ',';
+												$residencestring .= ',';
 											} else {
-												$bio .= ' and';
+												$residencestring .= ' and';
 											}
-											$bio .= " $relationship " .
+											$residencestring .= " $relationship " .
 												$p->{'person'}->as_string();
 										}
-										$bio .= ' who were living';
+										$residencestring .= ' who were living';
 									} else {
-										$bio .= ' who was living';
+										$residencestring .= ' who was living';
 									}
-									$bio .= place({ record => $l->{'residence'}, there => $p2 });
+									$residencestring .= place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
 								}
 							}
 						}
-						$bio .= ',' if($printed_person);
+						$residencestring .= ',' if($printed_person);
 					}
 					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
@@ -3569,7 +3564,8 @@ sub print_person
 									if((ref($event) eq 'Gedcom::Record') &&
 									   $event->date() && ($event->date() eq $rdate) &&
 									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
-										$bio .= ' when ' . lcfirst($person->pronoun()) .
+										$residencestring .= ' when ' .
+											lcfirst($person->pronoun()) .
 											' was living with ' .
 											lcfirst($person->possessive()) .
 											(($child->sex() eq 'F') ? ' daughter ' : ' son ') .
@@ -3584,7 +3580,7 @@ sub print_person
 							}
 							if($spdeath_dt) {
 								# Outlived spouse, but not living with a child
-								$bio .= ' following the death of ' .
+								$residencestring .= ' following the death of ' .
 									($person->pronoun() eq 'She' ? 'her' : 'his') .
 									(($sex eq 'M') ? ' wife ' : ' husband ') .
 									year(date => get_value({ person => $spouses[0], value => 'death date' }));
@@ -3601,6 +3597,7 @@ sub print_person
 						my $first = 1;
 
 						my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
+
 						foreach my $sibling(@siblings) {
 							if(my $ss = $sibling->spouse()) {
 								next if($bdiff->in_units('years') < 20);
@@ -3615,9 +3612,8 @@ sub print_person
 										if(($place =~ /^d/ && (my $ssp = place({ person => $ss, record => $ssr })))) {
 											if($ssp eq $place) {
 												if($first) {
-													$bio .= ' when ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													$residencestring .= ' when ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-														' ' .
 														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
 														$ss->as_string();
 														$first = 0;
@@ -3625,13 +3621,13 @@ sub print_person
 													# FIXME: If possible, should say
 													#	sisters-in-law or
 													#	brothers-in-law
-													$bio .= ' and ' .
+													$residencestring .= ' and ' .
 														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
 														$ss->as_string();
-													}
+												}
 												$printed_sibling = 1;
 												# May be removed later
-												$bio .= ' and';
+												$residencestring .= ' and';
 												last;
 											}
 										}
@@ -3647,11 +3643,10 @@ sub print_person
 								next if($sdate ne $rdate);
 								if(($place =~ /^\d/) && (place({ person => $sibling, record => $sr }) eq $place)) {
 									if($first) {
-										$bio .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his');
+										$residencestring .= ' with ' . ($person->pronoun() eq 'She' ? 'her' : 'his');
 										$first = 0;
 									}
-									$printed_sibling = 1;
-									$bio .= ' ' .
+									$residencestring .= ' ' .
 										(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
 										$sibling->given_names() . ',';
 									$printed_sibling = 1;
@@ -3689,21 +3684,21 @@ sub print_person
 							}
 							if($with_mother || $with_father) {
 								if($first) {
-									$bio .= ($printed_sibling ? ' and ' : ' with ') .
+									$residencestring .= ($printed_sibling ? ' and ' : ' with ') .
 										($person->pronoun() eq 'She' ? 'her' : 'his');
 								} else {
-									$bio =~ s/,$//;
-									$bio .= ' and';
+									$residencestring =~ s/,$//;
+									$residencestring .= ' and';
 								}
 								$printed_sibling = 1;
 								$first = 0;
 
 								if($with_mother && $with_father) {
-									$bio .= ' parents ';
+									$residencestring .= ' parents ';
 								} elsif($with_mother) {
-									$bio .= ' mother ' . $mother->given_names();
+									$residencestring .= ' mother ' . $mother->given_names();
 								} elsif($with_father) {
-									$bio .= ' father ' . $father->given_names();
+									$residencestring .= ' father ' . $father->given_names();
 								}
 							}
 						}
@@ -3715,7 +3710,7 @@ sub print_person
 									next if(!defined($sdate));
 									next if($sdate ne $rdate);
 									if(place({ person => $spouse, record => $sr }) eq $place) {
-										$bio .= ($printed_sibling ? ' and ' : ' with ') .
+										$residencestring .= ($printed_sibling ? ' and ' : ' with ') .
 											($person->pronoun() eq 'She' ? 'her future husband, ' : 'his future wife, ') .
 											$spouse->given_names();
 										last;
@@ -3725,18 +3720,20 @@ sub print_person
 						}
 					}
 				}
-				# Citation residence notes print later
-				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence, note_locations => \@note_locations }))) {
+				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence }))) {
 					$notes =~ s/\.$//;
 					$notes = lcfirst($notes);
-					$bio .= " ($notes)";
+					$residencestring .= " ($notes)";
 				} elsif($opts{'c'}) {
-					my $incitation = 0;
 					if($residencecitations{$residence}) {
-						$bio =~ s/,$//;
-						my $citation = $residencecitations{$residence};
-						$bio .= "<span class=\"citation\">$citation";
-						$incitation = 1;
+						my $remove_comma = 0;
+						if($residencestring =~ s/,$//) {
+							$remove_comma = 1;
+						}
+						$residencestring .= '[' . $residencecitations{$residence} . ']';
+						if($remove_comma) {
+							$residencestring .= ',';
+						}
 					}
 					if($residence->place() &&
 					  (!$rdate) &&
@@ -3745,74 +3742,57 @@ sub print_person
 						my $peek = $residencelist[$count + 1];
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							if($residencecitations{$peek}) {
-								my $citation = $residencecitations{$peek};
-								if($incitation) {
-									$bio .= ',';
-								} else {
-									$bio .= "<span class=\"citation\">";
-								}
-								$bio .= $citation;
-								$incitation = 1;
+								$residencestring .= '[' . $residencecitations{$peek} . ']';
 							}
 						}
 					}
-					$bio .= '</span>' if($incitation);
 				}
 				$count++;
 				if(($count == 1) && (scalar(@residencelist) == 2)) {
 					if($print_year_only) {
-						$bio .= $rdate;
+						$residencestring .= $rdate;
 						$print_year_only = 0;
 					}
-					$bio .= ' and';
 				} else {
 					my $peek = $residencelist[$count];
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						$peek = $residencelist[$count + 1];
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-							# Don't do the print_year_only code (which condenses "in 1841, in 1842 and in 1843"
-							# to "in 1841-1842") when citations are enabled since each year will likely have
-							# a separate citation
 							if((!$opts{'c'}) && $rdate && ($rdate =~ /^\d{4}$/) && $peek->date() && ($peek->date() =~ /^\d{4}$/)) {
 								if(!$print_year_only) {
-									$bio .= '-';
+									$residencestring .= '-';
 									$print_year_only = 1;
 								}
 							} else {
 								if($print_year_only && $rdate) {
-									$bio .= $rdate;
+									$residencestring .= $rdate;
 									$print_year_only = 0;
 								}
-								$peek = $residencelist[$count + 2];
-								if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-									$bio .= ',';
-								} else {
-									$bio .= ' and';
-								}
 							}
-						} elsif(!$print_year_only) {
-							$bio =~ s/,$//;
-							$bio .= ' and';
 						}
-					} elsif($count == (scalar(@residencelist) - 1)) {
-						if($print_year_only) {
-							$bio .= $rdate;
-							$print_year_only = 0;
-						}
-						$bio .= '; and';
-					} elsif($count < (scalar(@residencelist) - 1)) {
-						if($print_year_only) {
-							$bio .= $rdate;
-							$print_year_only = 0;
-						}
-						$bio .= ';';
+					} elsif($print_year_only) {
+						$residencestring .= $rdate;
+						$print_year_only = 0;
 					}
 				}
+				$residencestring =~ s/^\s//;
+				push @residencestringarray, $residencestring;
 				$printed_residence = 1;
 			}
-			if($printed_residence) {
-				$bio =~ s/ and$//;
-				$bio .= '.';
+
+			# Print out the residence strings with semi-colons between each residence
+			if(scalar(@residencestringarray)) {
+				$bio .= '. ' unless($end_of_sentence);
+				my $first = $residencelist[0];
+				if((scalar(@residencelist) == 1) && (my $rdate = $first->date())) {
+					$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' }));
+				} else {
+					$bio .= '<br>During ' . lc($person->possessive()) . ' life';
+				}
+
+				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
+					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {final_sep => ''}) . '. ';
+
 				$end_of_sentence = 1;
 			}
 		}
