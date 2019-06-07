@@ -1,7 +1,7 @@
 package Ged2site::DB;
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2018, Nigel Horne
+# Copyright (C) 2015-2019, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -11,8 +11,12 @@ package Ged2site::DB;
 #	above e-mail.
 
 # Abstract class giving read-only access to CSV, XML and SQLite databases via Perl without writing any SQL.
+# Look for databases in $directory in this order;
+#	SQLite (file ends with .sql)
+#	CSV (file ends with .csv or .db, can be gzipped)
+#	XML (file ends with .xml)
 
-# You can access the files in $directory/foo.csv via this class:
+# For example, you can access the files in /var/db/foo.csv via this class:
 
 # package MyPackageName::DB::foo;
 
@@ -23,7 +27,7 @@ package Ged2site::DB;
 # 1;
 
 # You can then access the data using:
-# my $foo = NJH::Snippets::DB::foo->new();
+# my $foo = MyPackageName::DB::foo->new(directory => '/var/db');
 # my $row = $foo->fetchrow_hashref(customer_id => '12345);
 # print Data::Dumper->new([$row])->Dump();
 
@@ -54,7 +58,7 @@ sub new {
 
 	my $class = ref($proto) || $proto;
 
-	if($class eq 'Ged2site::DB') {
+	if($class eq __PACKAGE__) {
 		die "$class: abstract class";
 	}
 
@@ -69,7 +73,7 @@ sub new {
 	}, $class;
 }
 
-# Can also be run as a class level Ged2site::DB::init(directory => '../databases')
+# Can also be run as a class level NJH::Snippets::DB::init(directory => '../databases')
 sub init {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -98,6 +102,8 @@ sub set_logger {
 
 	$self->{'logger'} = $args{'logger'};
 }
+
+# Open the database.
 
 sub _open {
 	my $self = shift;
@@ -257,46 +263,47 @@ sub _open {
 # Returns a reference to an array of hash references of all the data meeting
 # the given criteria
 sub selectall_hashref {
-	my @rc = selectall_hash(@_);
+	my $self = shift;
+	my @rc = $self->selectall_hash(@_);
 	return \@rc;
 }
 
 # Returns an array of hash references
 sub selectall_hash {
 	my $self = shift;
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
 
 	$self->_open() if(!$self->{$table});
 
-	if((scalar(keys %args) == 0) && $self->{'data'}) {
+	if((scalar(keys %params) == 0) && $self->{'data'}) {
 		if($self->{'logger'}) {
 			$self->{'logger'}->trace("$table: selectall_hash fast track return");
 		}
 		return @{$self->{'data'}};
 	}
-	# if((scalar(keys %args) == 1) && $self->{'data'} && defined($args{'entry'})) {
+	# if((scalar(keys %params) == 1) && $self->{'data'} && defined($params{'entry'})) {
 	# }
 
 	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
-	my @args;
-	foreach my $c1(sort keys(%args)) {	# sort so that the key is always the same
+	my @query_args;
+	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
 		$query .= " AND $c1 LIKE ?";
-		push @args, $args{$c1};
+		push @query_args, $params{$c1};
 	}
 	$query .= ' ORDER BY entry';
 	if($self->{'logger'}) {
-		if(defined($args[0])) {
-			$self->{'logger'}->debug("selectall_hash $query: " . join(', ', @args));
+		if(defined($query_args[0])) {
+			$self->{'logger'}->debug("selectall_hash $query: ", join(', ', @query_args));
 		} else {
 			$self->{'logger'}->debug("selectall_hash $query");
 		}
 	}
 	my $key = $query;
-	if(defined($args[0])) {
-		$key .= ' ' . join(', ', @args);
+	if(defined($query_args[0])) {
+		$key .= ' ' . join(', ', @query_args);
 	}
 	my $c;
 	if($c = $self->{cache}) {
@@ -304,8 +311,9 @@ sub selectall_hash {
 			return @{$rc};
 		}
 	}
+
 	if(my $sth = $self->{$table}->prepare($query)) {
-		$sth->execute(@args) || throw Error::Simple("$query: @args");
+		$sth->execute(@query_args) || throw Error::Simple("$query: @query_args");
 
 		my @rc;
 		while(my $href = $sth->fetchrow_hashref()) {
@@ -318,8 +326,8 @@ sub selectall_hash {
 
 		return @rc;
 	}
-	$self->{'logger'}->warn("selectall_hash failure on $query: @args");
-	throw Error::Simple("$query: @args");
+	$self->{'logger'}->warn("selectall_hash failure on $query: @query_args");
+	throw Error::Simple("$query: @query_args");
 }
 
 # Returns a hash reference for one row in a table
@@ -350,7 +358,7 @@ sub fetchrow_hashref {
 	$query .= ' LIMIT 1';
 	if($self->{'logger'}) {
 		if(defined($args[0])) {
-			$self->{'logger'}->debug("fetchrow_hashref $query: " . join(', ', @args));
+			$self->{'logger'}->debug("fetchrow_hashref $query: ", join(', ', @args));
 		} else {
 			$self->{'logger'}->debug("fetchrow_hashref $query");
 		}
@@ -373,7 +381,8 @@ sub fetchrow_hashref {
 }
 
 # Execute the given SQL on the data
-# In an array context, returns an array of hash refs, in a scalar context returns a hash of the first row
+# In an array context, returns an array of hash refs,
+#	in a scalar context returns a hash of the first row
 sub execute {
 	my $self = shift;
 	my %args;
@@ -405,7 +414,7 @@ sub execute {
 		push @rc, $href;
 	}
 
-	return \@rc;
+	return @rc;
 }
 
 # Time that the database was last updated
@@ -447,7 +456,9 @@ sub AUTOLOAD {
 	my @args;
 	foreach my $c1(keys(%params)) {
 		if(!defined($params{$c1})) {
-			$self->{'logger'}->debug("AUTOLOAD params $c1 isn't defined");
+			if($self->{'logger'}) {
+				$self->{'logger'}->debug("AUTOLOAD params $c1 isn't defined");
+			}
 		}
 		# $query .= " AND $c1 LIKE ?";
 		$query .= " AND $c1 = ?";
@@ -459,7 +470,7 @@ sub AUTOLOAD {
 	}
 	if($self->{'logger'}) {
 		if(scalar(@args) && $args[0]) {
-			$self->{'logger'}->debug("AUTOLOAD $query: " . join(', ', @args));
+			$self->{'logger'}->debug("AUTOLOAD $query: ", join(', ', @args));
 		} else {
 			$self->{'logger'}->debug("AUTOLOAD $query");
 		}

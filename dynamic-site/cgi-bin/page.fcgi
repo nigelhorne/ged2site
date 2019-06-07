@@ -32,6 +32,7 @@ use Error qw(:try);
 use File::Spec;
 use Log::WarnDie 0.09;
 use HTTP::Date;
+use Taint::Runtime qw($TAINT taint_env);
 use autodie qw(:all);
 
 # use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
@@ -41,11 +42,13 @@ use lib '../lib';
 
 use Ged2site::Config;
 
+$TAINT = 1;
+taint_env();
+
 Log::WarnDie->filter(\&filter);
 
 my $info = CGI::Info->new();
 my $tmpdir = $info->tmpdir();
-my $cachedir = "$tmpdir/cache";
 my $script_dir = $info->script_dir();
 my $config;
 
@@ -213,7 +216,7 @@ sub doit
 
 	$logger->debug('In doit - domain is ', $info->domain_name());
 
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 	$config ||= Ged2site::Config->new({ logger => $logger, info => $info });
 	$infocache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
 
@@ -244,7 +247,7 @@ sub doit
 		cache => $linguacache,
 		info => $info,
 		logger => $logger,
-		debug => $args{'debug'},
+		debug => $params{'debug'},
 		syslog => $syslog,
 	});
 
@@ -263,7 +266,7 @@ sub doit
 		info => $info,
 		optimise_content => 1,
 		logger => $logger,
-		lint_content => $info->param('lint_content') // $args{'debug'},
+		lint_content => $info->param('lint_content') // $params{'debug'},
 		lingua => $lingua
 	};
 
@@ -277,6 +280,7 @@ sub doit
 
 	my $fb = FCGI::Buffer->new()->init($args);
 
+	my $cachedir = $params{'cachedir'} || $config->{disc_cache}->{root_dir} || "$tmpdir/cache";
 	if($fb->can_cache()) {
 		$buffercache ||= create_disc_cache(config => $config, logger => $logger, namespace => $script_name, root_dir => $cachedir);
 		$fb->init(
@@ -393,7 +397,7 @@ sub doit
 				"Pragma: no-cache\n\n";
 
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "There is a problem with your connection. Please contact your ISP.\n";
+				print "Access Denied\n";
 			}
 		}
 		throw Error::Simple($error ? $error : $info->as_string());

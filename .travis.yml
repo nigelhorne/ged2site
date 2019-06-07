@@ -31,3 +31,4 @@ script:
   - perl -c -Mwarnings::unused ./ged2site
   - cd dynamic-site/cgi-bin && perl -c -MO=Lint ./page.fcgi '' && perl -c -Mwarnings::unused ./page.fcgi ''
   - rootdir=$(pwd)/../.. perl page.fcgi page=reports
+  - rootdir=$(pwd)/../.. perl page.fcgi page=surnames surname='Stock%20or%20(1,2\)=(select*from(select%20name_const(CHAR(111,108,111,108,111,115,104,101,114\),1\),name_const(CHAR( <-- HERE 111,108,111,108,111,115,104,101,114\),1\)\)a\)%20--%20and%201%3D1'
