@@ -3451,7 +3451,11 @@ sub print_person
 									# $print_year_only = 0;
 								}
 							} else {
-								$residencestring .= " $this_date";
+								if((!defined($residencestring)) && (my $p = shift(@residencestringarray))) {
+									$residencestring = "$p and $this_date";
+								} else {
+									$residencestring .= " $this_date";
+								}
 							}
 							$prev_residence = $residence;
 						}
