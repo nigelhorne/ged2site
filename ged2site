@@ -2751,7 +2751,11 @@ sub print_person
 			} elsif($opts{'l'} || !$is_alive) {
 				$bio .= ' was married ';
 				if(scalar(@spouses) == 2) {
-					$bio .= 'twice';
+					if($spouses[0] eq $spouses[1]) {
+						complain({ person => $person, warning => [ 'Married twice to ', $spouses[0]->as_string() ] });
+					} else {
+						$bio .= 'twice';
+					}
 				} else {
 					$bio .= scalar(@spouses) . ' times';
 				}
