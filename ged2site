@@ -3779,9 +3779,11 @@ sub print_person
 						$print_year_only = 0;
 					}
 				}
-				$residencestring =~ s/^\s//;
-				push @residencestringarray, $residencestring;
-				$printed_residence = 1;
+				if($residencestring) {
+					$residencestring =~ s/^\s//;
+					push @residencestringarray, $residencestring;
+					$printed_residence = 1;
+				}
 			}
 
 			# Print out the residence strings with semi-colons between each residence
