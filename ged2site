@@ -983,6 +983,8 @@ if($opts{'w'}) {
 					$summary = "$1 date without citation";
 				} elsif($warning =~ /^(.+) place .+ has no citations/) {
 					$summary = "$1 place without citation";
+				} elsif($warning =~ /^Residence record for .+ contains no citation$/) {
+					$summary = 'Residence Without Citation';
 				} elsif($warning =~ /^Contains a residence .+ without a date/) {
 					$summary = 'Residence Without a Date';
 				} elsif($warning =~ /.+in notes is not found$/) {
@@ -1053,6 +1055,9 @@ if($opts{'w'}) {
 					$summary = 'Possible address errors';
 				} elsif($warning =~ /^http.+ not found$/) {
 					$summary = 'Website in notes is not found';
+				} elsif($warning =~ /^Check out http:\/\/chroniclingamerica.loc.gov/) {
+					# FIXME: Lots of false positives
+					next;
 				} else {
 					$summary = $warning;
 				}
