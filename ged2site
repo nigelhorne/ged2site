@@ -2612,8 +2612,14 @@ sub print_person
 							$bio .= ' (';
 							$parentheses = 1;
 							if(ref($soccupation) eq 'Gedcom::Record') {
-								my @items = $soccupation->items();
-								$soccupation = $items[0]->value();
+								foreach my $item($soccupation->items()) {
+									my $value = $item->value();
+									if((length($value) > 1) &&
+									   ($value !~ /^[1-9]/)) {
+										$soccupation = $value;
+										last;
+									}
+								}
 							}
 							if(lc($soccupation) eq 'self-employed') {
 								$bio .= 'self-employed ';
