@@ -6667,6 +6667,7 @@ sub notes
 			# } else {
 				# complain("Note record is just description ($note), infomation may have been lost");
 			}
+			$note =~ s/\n/; /g;
 			$note =~ s/\r//g;
 			$note =~ s/\s+$//g;
 			$note =~ s/\.$//;
