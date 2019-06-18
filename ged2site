@@ -3467,7 +3467,7 @@ sub print_person
 									# $print_year_only = 0;
 								}
 							} else {
-								if((!defined($residencestring)) && (my $p = shift(@residencestringarray))) {
+								if((!defined($residencestring)) && (my $p = pop(@residencestringarray))) {
 									$residencestring = "$p and $this_date";
 								} else {
 									$residencestring .= " $this_date";
