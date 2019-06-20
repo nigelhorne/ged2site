@@ -6973,16 +6973,28 @@ sub places_are_the_same
 	my $place2 = $record2->place();
 	return 0 unless(defined($place2));
 
-	if(my $person = $params{'person'}) {
+	my $person = $params{'person'};
+	if($person) {
 		validate_place({ person => $person, place => $place1 });
 		validate_place({ person => $person, place => $place2 }) unless($place1 eq $place2);
 	}
 
+	if($place1 =~ /(.+?)\s*United States$/i) {
+		$place1 = "$1 USA";
+	}
 	if(my $address = $record1->address()) {
 		$place1 = "$address, $place1";
 	}
 	if(my $address = $record2->address()) {
 		$place2 = "$address, $place2";
+	}
+	if($place2 =~ /(.+?)\s*United States$/i) {
+		if($person) {
+			complain({ person => $person, warning => "Changing 'United States' to 'USA' in $place2" });
+		} else {
+			complain("Changing 'United States' to 'USA' in $place2");
+		}
+		$place2 = "$1 USA";
 	}
 	return $place1 eq $place2;
 }
