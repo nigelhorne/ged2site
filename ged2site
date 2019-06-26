@@ -3239,7 +3239,6 @@ sub print_person
 				@residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
 			}
 			my $count = 0;
-			my $have_printed = 0;
 			my $prev_residence;
 			my $spdeath_dt;
 			if($spouses[0]) {
