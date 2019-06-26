@@ -29,7 +29,7 @@
 BEGIN {
 	eval 'use Geo::Coder::List';
 	if($@) {
-		system('cpan -i Gedcom Genealogy::Gedcom::Date Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi');
+		system('cpan -i Gedcom Genealogy::Gedcom::Date Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare');
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime::Format::Natural');
@@ -107,6 +107,7 @@ use Config::Auto;
 use Locale::Object::Country;
 use List::Util;
 use POSIX;
+use String::Compare;
 use JSON;
 use File::Print::Many;
 
@@ -6996,7 +6997,37 @@ sub places_are_the_same
 		}
 		$place2 = "$1 USA";
 	}
-	return $place1 eq $place2;
+	if($place2 =~ /(.+)\sSt\.?$/) {
+		if($person) {
+			complain({ person => $person, warning => "Changing 'St' to 'Street' in $place2" });
+		} else {
+			complain("Changing 'St' to 'Street' in $place2");
+		}
+		$place2 = "$1 Street";
+	} elsif($place2 =~ /(.+)\sAve\.?$/) {
+		if($person) {
+			complain({ person => $person, warning => "Changing 'Ave' to 'Avenue' in $place2" });
+		} else {
+			complain("Changing 'Ave' to 'Avenue' in $place2");
+		}
+		$place2 = "$1 Avenue";
+	} elsif($place2 =~ /(.+)\sRd\.?$/) {
+		if($person) {
+			complain({ person => $person, warning => "Changing 'Rd' to 'Road' in $place2" });
+		} else {
+			complain("Changing 'Rd' to 'Road' in $place2");
+		}
+		$place2 = "$1 Road";
+	}
+	return 1 if($place1 eq $place2);
+	if(compare($place1, $place2) > 0.5) {
+		if($person) {
+			complain({ $person => $person, warning => "The places '$place1' and '$place2' seem similar; is there a typo?" });
+		} else {
+			complain("The places '$place1' and '$place2' seem similar; is there a typo?");
+		}
+	}
+	return 0;
 }
 
 sub sibling_baptism_string
