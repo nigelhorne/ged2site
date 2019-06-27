@@ -1919,14 +1919,16 @@ sub print_person
 	my $printed_comma = 0;
 
 	if($occupations[0]) {
+		if($occupations[0] =~ /^works on (.+)/i) {
+			$occupations[0] = "$1 worker";
+		} elsif($occupations[0] eq 'Ag Lab') {
+			$occupations[0] = 'Agricultural Labourer';
+		}
 		if($father && $father->occupation() && ($occupations[0] eq $father->occupation())) {
 			$same_occupation_as_father = $occupations[0];
 			@occupations = ();
 		} else {
 			$bio = 'A';
-			if($occupations[0] =~ /^works on (.+)/i) {
-				$occupations[0] = "$1 worker";
-			}
 			if($occupations[0] =~ /^[aeiou]/i) {
 				$bio .= 'n';
 			}
