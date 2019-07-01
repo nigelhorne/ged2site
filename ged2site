@@ -1835,10 +1835,6 @@ sub print_person
 			}
 		}
 	}
-	my @occupations = $person->get_value('occupation');
-
-	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
-
 	my @children = map { $_->children() } $person->fams();
 	my $numberofchildren = scalar(@children);
 
@@ -1900,34 +1896,14 @@ sub print_person
 		complain({ person => $person, warning => 'Baptism information not used to determine a parent' });
 	}
 
-	while($occupations[0] && ($occupations[0] =~ /^scho(ol|lar)/i)) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] =~ /wife$/i)) {
-		shift @occupations;
-	}
-	while(scalar(@occupations) > 1) {
-		if(($occupations[0] =~ /labou?rer/i) && ($occupations[1] =~ /labou?rer/i)) {
-			shift @occupations;
-		} elsif($occupations[0] eq $occupations[1]) {
-			shift @occupations;
-		} else {
-			last;
-		}
-	}
-	if($occupations[0] && ($occupations[0] =~ /works? on (.+)/i)) {
-		$occupations[0] = "$1 worker";
-	}
+	my @occupations = get_all_occupations($person);
+
+	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
 
 	my $same_occupation_as_father;
 	my $printed_comma = 0;
 
 	if($occupations[0]) {
-		if($occupations[0] =~ /^works on (.+)/i) {
-			$occupations[0] = "$1 worker";
-		} elsif($occupations[0] eq 'Ag Lab') {
-			$occupations[0] = 'Agricultural Labourer';
-		}
 		if($father && $father->occupation() && ($occupations[0] eq $father->occupation())) {
 			$same_occupation_as_father = $occupations[0];
 			@occupations = ();
@@ -2098,10 +2074,7 @@ sub print_person
 					'</a>';
 
 				if(!$same_occupation_as_father) {
-					my @occupations = $father->get_value('occupation');
-					while($occupations[0] && ($occupations[0] =~ /^scho(ol|lar)/i)) {
-						shift @occupations;
-					}
+					my @occupations = get_all_occupations(person => $father);
 					# TODO: print all occupations
 					if($occupations[0]) {
 						print $html ' (a';
@@ -2132,16 +2105,7 @@ sub print_person
 					print $xml ' &lt;a href="?page=people&amp;entry=', $mother->{'xref'}, "\"&gt;$m&lt;/a&gt;";
 				}
 
-				my @occupations = $mother->get_value('occupation');
-				while($occupations[0] && ($occupations[0] =~ /^scho(ol|lar)/i)) {
-					shift @occupations;
-				}
-				while($occupations[0] && ($occupations[0] =~ /wife$/i)) {
-					shift @occupations;
-				}
-				while($occupations[0] && ($occupations[0] =~ /Unpaid domestic duties/i)) {
-					shift @occupations;
-				}
+				my @occupations = get_all_occupations($mother);
 				# TODO: print all occupations
 				if($occupations[0]) {
 					print $html ' (a';
@@ -2719,16 +2683,7 @@ sub print_person
 						}
 					}
 				} else {
-					my @spouse_occupations = $spouses[0]->get_value('occupation');
-					while($spouse_occupations[0] && ($spouse_occupations[0] =~ /^scho(ol|lar)/i)) {
-						shift @spouse_occupations;
-					}
-					while($spouse_occupations[0] && ($spouse_occupations[0] =~ /wife$/i)) {
-						shift @spouse_occupations;
-					}
-					while($spouse_occupations[0] && ($spouse_occupations[0] =~ /Unpaid domestic duties/i)) {
-						shift @spouse_occupations;
-					}
+					my @spouse_occupations = get_all_occupations($spouses[0]);
 					if($spouse_occupations[0]) {
 						$bio .= ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
 						$parentheses = 1;
@@ -7604,6 +7559,56 @@ sub get_all_residences
 	}
 
 	return @rc;
+}
+
+sub get_all_occupations
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'person'} = shift;
+	}
+
+	my $person = $params{'person'};
+
+	die "Usage: get_all_occupations(\$person')" unless($person);
+
+	my @occupations = $person->get_value('occupation');
+	while($occupations[0] && ($occupations[0] =~ /^scho(ol|lar)/i)) {
+		shift @occupations;
+	}
+	while($occupations[0] && ($occupations[0] =~ /wife$/i)) {
+		shift @occupations;
+	}
+	while($occupations[0] && ($occupations[0] =~ /Unpaid domestic duties/i)) {
+		shift @occupations;
+	}
+	if(scalar(@occupations)) {
+		if($occupations[0] =~ /works? on (.+)/i) {
+			$occupations[0] = "$1 worker";
+		} elsif(($occupations[0] eq 'Ag Lab') ||
+			($occupations[0] eq 'Labourer (Ag)')) {
+			$occupations[0] = 'Farm Labourer';
+		}
+	}
+	while(scalar(@occupations) > 1) {
+		if(($occupations[0] =~ /labou?rer/i) && ($occupations[1] =~ /labou?rer/i)) {
+			shift @occupations;
+		} elsif($occupations[0] eq $occupations[1]) {
+			shift @occupations;
+		} else {
+			last;
+		}
+	}
+	if($occupations[0] && ($occupations[0] =~ /works? on (.+)/i)) {
+		$occupations[0] = "$1 worker";
+	}
+
+	return @occupations;
 }
 
 sub journey
