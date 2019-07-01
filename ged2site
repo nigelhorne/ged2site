@@ -1928,12 +1928,6 @@ sub print_person
 				$printed_comma = 1;
 			}
 		}
-	} elsif(scalar(@occupations)) {
-		complain({
-			person => $person,
-			warning => 'occupation is empty'
-		});
-		shift @occupations;
 	}
 
 	my @person_twins;
@@ -7604,8 +7598,19 @@ sub get_all_occupations
 			last;
 		}
 	}
-	if($occupations[0] && ($occupations[0] =~ /works? on (.+)/i)) {
-		$occupations[0] = "$1 worker";
+
+	if(scalar(@occupations)) {
+		if($occupations[0]) {
+			if($occupations[0] =~ /works? on (.+)/i) {
+				$occupations[0] = "$1 worker";
+			}
+		} else {
+			complain({
+				person => $person,
+				warning => 'occupation is empty'
+			});
+			shift @occupations;
+		}
 	}
 
 	return @occupations;
