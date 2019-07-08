@@ -2513,6 +2513,19 @@ sub print_person
 
 		print "bio so far: $bio\n" if($opts{'v'});
 
+		my @education = $person->education();
+
+		if(scalar(@education)) {
+			if($end_of_sentence) {
+				$bio .= " $pronoun";
+			}
+			# FIXME: do all schools
+			$bio .= ' went to'.
+				place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }) .
+				'. ';
+			$end_of_sentence = 1;
+		}
+
 		# TODO: children != 0 && spouses == 0
 		if(scalar(@spouses) &&
 		   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
@@ -7571,7 +7584,12 @@ sub get_all_occupations
 
 	die "Usage: get_all_occupations(\$person')" unless($person);
 
-	my @occupations = $person->get_value('occupation');
+	my @occupations = get_value({ person => $person, value => 'occupation' });
+
+	if((scalar(@occupations) == 1) && !defined($occupations[0])) {
+		return;
+	}
+
 	while($occupations[0] && ($occupations[0] =~ /^scho(ol|lar)/i)) {
 		shift @occupations;
 	}
