@@ -3436,6 +3436,7 @@ sub print_person
 								}
 							} else {
 								if((!defined($residencestring)) && (my $p = pop(@residencestringarray))) {
+									$p =~ s/ and /, /g;
 									$residencestring = "$p and $this_date";
 								} else {
 									$residencestring .= " $this_date";
@@ -3780,8 +3781,9 @@ sub print_person
 					$bio .= '<br>During ' . lc($person->possessive()) . ' life';
 				}
 
+				# print Data::Dumper->new([\@residencestringarray])->Dump();
 				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
-					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {final_sep => ''}) . '. ';
+					Lingua::EN::Inflect::WORDLIST(@residencestringarray) . '. ';
 
 				$end_of_sentence = 1;
 			}
