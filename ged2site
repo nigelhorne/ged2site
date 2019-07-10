@@ -4619,6 +4619,7 @@ sub print_person
 
 				my $h = $c;
 				if($h =~ s/&lt;a href=&quot;http/<a href="http/gi) {
+					$h =~ s/&quot;&gt;/">/g;
 					$h =~ s/&lt;\/a&gt;/<\/a>/gi;
 				}
 				print $html "<li>$h</li>";
