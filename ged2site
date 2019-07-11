@@ -1962,8 +1962,11 @@ sub print_person
 		}
 	}
 
-	my $print_sibling_count = 0;
 	print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
+
+	my $print_sibling_count = 0;
+	my $html_and_csv = File::Print::Many->new([$csv, $html]);
+
 	if($father || $mother) {
 		if(scalar(@occupations) || scalar(@person_twins)) {
 			$bio .= ' and the ';
@@ -2046,8 +2049,7 @@ sub print_person
 
 		$bio .= ' of';
 
-		print $html $bio;
-		print $csv $bio;
+		$html_and_csv->print($bio);
 		$bio =~ s/\s&\s/ &amp; /g;
 		$bio =~ s/&eacute;/&#233;/g;
 		print $xml $bio;
@@ -2193,8 +2195,6 @@ sub print_person
 	} else {
 		$bio .= $pronoun;
 	}
-
-	my $html_and_csv = File::Print::Many->new([$csv, $html]);
 
 	if($bio) {
 		$html_and_csv->print($bio);
@@ -2678,6 +2678,7 @@ sub print_person
 									$_->given_names() . '</a>'
 							} @childrenofthisspouse);
 							substr($childnames, rindex($childnames, ', '), 2, ' and ');
+							$childnames =~ s/&entry=/&amp;entry=/g;
 							print $html $childnames;
 							# FIXME: breaks static HTML page, because of the print $bio
 							#	later on
@@ -5683,10 +5684,11 @@ sub print_person
 			return $orig_uri;
 		});
 		my @issues = map { my $s = HTML::Entities::decode($_); if($s =~ /<a href="/i) { $s } else { $ufinder->find(\$s); "<p>$s</p>" } } @{$person->{'warnings'}};
-		print $html "<h2>Known Issues</h2>@issues";
+		print $html '<h2>Known Issues</h2>';
 		print $csv @issues;
 		print $xml "\n\t\t<issues>";
 		foreach my $issue(@issues) {
+			print $html HTML::Entities::encode($issue);
 			$issue =~ s/^<p>//;
 			$issue =~ s/<\/p>$//;
 			$issue =~ s/</&lt;/g;
