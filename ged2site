@@ -5691,10 +5691,9 @@ sub print_person
 			print $html HTML::Entities::encode($issue);
 			$issue =~ s/^<p>//;
 			$issue =~ s/<\/p>$//;
-			$issue =~ s/</&lt;/g;
-			$issue =~ s/>/&gt;/g;
-			$issue =~ s/&/&amp;/g;
-			print $xml "\n\t\t\t<issue>$issue</issue>";
+			print $xml "\n\t\t\t<issue>",
+				HTML::Entities::encode($issue),
+				'<issue>';
 		}
 		print $xml "\n\t\t</issues>";
 	}
