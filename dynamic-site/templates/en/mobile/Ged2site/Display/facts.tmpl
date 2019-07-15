@@ -6,6 +6,7 @@
 		<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta charset="utf8">
+		<meta name="Copyright" content="Copyright (C) 2019 Nigel Horne">
 	</head>
 	<body>
 		<h1>Facts for [% SiteTitle.join(' ') %]</h1>
@@ -13,16 +14,20 @@
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
 		[% IF facts %]
+			<p>
+				There are [% facts.count %] people in the tree,
+				of which [% facts.sex.'M' %] are male and [% facts.sex.'F' %] are female.
+			</p>
 			[% IF facts.first_birth %]
 				<p>
 					First person in the tree:
-					<a href="?page=people&amp;entry=[%- facts.first_birth.person.entry %]">[% facts.first_birth.person.title %]</a> was born on [% facts.first_birth.date %]
+					<a href="?page=people&amp;entry=[%- facts.first_birth.person.entry %]">[% facts.first_birth.person.title %]</a> was born on [% facts.first_birth.date %].
 				</p>
 			[% END %]
 			[% IF facts.oldest_age %]
 				<p>
 					Person who lived the longest:
-					<a href="?page=people&amp;entry=[%- facts.oldest_age.person.entry %]">[% facts.oldest_age.person.title %]</a> who lived for [% facts.oldest_age.years %] years
+					<a href="?page=people&amp;entry=[%- facts.oldest_age.person.entry %]">[% facts.oldest_age.person.title %]</a> who lived for [% facts.oldest_age.years %] years.
 				</p>
 			[% END %]
 		[% END %]

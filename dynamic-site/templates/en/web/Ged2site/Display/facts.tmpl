@@ -7,6 +7,7 @@
 			<meta http-equiv="Content-Language" content="English">
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+		<meta name="Copyright" content="Copyright (C) 2019 Nigel Horne">
 	</head>
 	<body>
 		<div id="header_container">
@@ -29,6 +30,10 @@
 			<br>
 			[% IF facts %]
 				<ul>
+					<li>
+						There are [% facts.count %] people in the tree,
+						of which [% facts.sex.'M' %] are male and [% facts.sex.'F' %] are female
+					</li>
 					[% IF facts.first_birth %]
 						<li>
 							First person in the tree:

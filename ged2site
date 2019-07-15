@@ -15,7 +15,7 @@
 # TODO: Finish XML
 # TODO: Can I use a kdTree to determine events or residences close by each other?
 # TODO: note if a child was orphaned by both parents dying before they were 16
-# TODO: add education ("attended school at")
+# TODO: add male and female average lifespan to the facts
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -1809,6 +1809,9 @@ sub print_person
 
 	my $pronoun = $fetcher->get(object => $person, message => 'pronoun');
 	my $sex = $fetcher->get(object => $person, message => 'sex');
+
+	$facts->{'count'}++;
+	$facts->{'sex'}->{$sex}++;
 
 	if($opts{'w'} && $firstname) {
 		# FIXME: This throws up a number of false positives
@@ -7836,4 +7839,3 @@ sub HTML::GoogleMaps::V3::_text_to_point {
     # Unknown
     return 0;
 }
-
