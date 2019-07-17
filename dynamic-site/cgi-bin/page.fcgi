@@ -436,6 +436,7 @@ sub choose
 			"/cgi-bin/page.fcgi?page=military\n",
 			"/cgi-bin/page.fcgi?page=twins\n",
 			"/cgi-bin/page.fcgi?page=reports\n",
+			"/cgi-bin/page.fcgi?page=facts\n",
 			"/cgi-bin/page.fcgi?page=mailto\n";
 	}
 }

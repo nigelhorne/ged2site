@@ -9,7 +9,7 @@
 		<meta name="object" content="Index">
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne, all rights reserved">
+		<meta name="Copyright" content="Copyright (C) 2019 Nigel Horne, all rights reserved">
 		<meta name="description" content="Facts for [% SiteTitle.join(' ') %] - A ged2site webpage">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 	</head>
@@ -22,6 +22,10 @@
 			[ <a href="?page=calendar">Calendar</a> ]
 		</center>
 		[% IF facts %]
+			<p>
+				There are [% facts.count %] people in the tree,
+				of which [% facts.sex.M %] are male and [% facts.sex.F %] are female.
+			</p>
 			[% IF facts.first_birth %]
 				<p>
 					First person in the tree:
