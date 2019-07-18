@@ -3300,7 +3300,7 @@ sub print_person
 											$r2 =~ s/^\s+//;
 											complain({
 												person => $person,
-												warning => [ 
+												warning => [
 													"$strftime: not living at same address as spouse ",
 													$spouses[0]->as_string(),
 													" ('$r1'/'$r2')"
@@ -6642,8 +6642,11 @@ sub notes
 			# } else {
 				# complain("Note record is just description ($note), infomation may have been lost");
 			}
-			$note =~ s/\n/; /g;
 			$note =~ s/\r//g;
+			next if($note =~ /^\s*$/);
+			if(!$paragraph) {
+				$note =~ s/\n+/; /g;
+			}
 			$note =~ s/\s+$//g;
 			$note =~ s/\.$//;
 			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
@@ -6668,6 +6671,7 @@ sub notes
 	if((!defined($rc)) || (length($rc) == 0)) {
 		return;
 	}
+	$rc =~ s/([\.:]); /$1 /g;
 
 	my @matches;
 
