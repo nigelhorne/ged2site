@@ -4421,7 +4421,7 @@ sub print_person
 		}
 	}
 
-	if(defined($ENV{'LANG'})) {
+	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en/)) {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			$bio = Lingua::EN::ABC::b2a($bio);
 		} elsif($ENV{'LANG'} =~ /^en_GB/) {
@@ -6746,7 +6746,7 @@ sub notes
 
 	$ufinder->find(\$rc);
 
-	if(defined($ENV{'LANG'})) {
+	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en/)) {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			return Lingua::EN::ABC::b2a($rc);
 		} elsif($ENV{'LANG'} =~ /^en_GB/) {
