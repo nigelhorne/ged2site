@@ -1915,8 +1915,6 @@ sub print_person
 			if($occupations[0] =~ /^[aeiou]/i) {
 				$bio .= 'n';
 			}
-			my $occupations = join(', ', @occupations);
-			substr($occupations, rindex($occupations, ', '), 2, ' and ');
 			$bio .= ' ';
 			if($occupations[1]) {
 				# my $alloccupations = join(', ', @occupations);
@@ -1969,6 +1967,8 @@ sub print_person
 
 	my $print_sibling_count = 0;
 	my $html_and_csv = File::Print::Many->new([$csv, $html]);
+	my $html_and_xml = File::Print::Many->new([$xml, $html]);
+	my $all = File::Print::Many->new([$xml, $html, $csv]);
 
 	if($father || $mother) {
 		if(scalar(@occupations) || scalar(@person_twins)) {
@@ -2052,8 +2052,9 @@ sub print_person
 
 		$bio .= ' of';
 
-		$html_and_csv->print($bio);
+		print $csv $bio;
 		$bio =~ s/\s&\s/ &amp; /g;
+		print $html $bio;
 		$bio =~ s/&eacute;/&#233;/g;
 		print $xml $bio;
 
@@ -2076,24 +2077,16 @@ sub print_person
 					my @occupations = get_all_occupations(person => $father);
 					# TODO: print all occupations
 					if($occupations[0]) {
-						print $html ' (a';
-						print $csv ' (a';
-						print $xml ' (a';
+						$all->print(' (a');
 						if($occupations[0] =~ /^[aeiou]/i) {
-							print $html 'n';
-							print $csv 'n';
-							print $xml 'n';
+							$all->print('n');
 						}
-						print $html ' ', HTML::Entities::encode(lc($occupations[0])), ')';
-						print $csv ' ', HTML::Entities::encode(lc($occupations[0])), ')';
-						print $xml ' ', HTML::Entities::encode(lc($occupations[0])), ')';
+						$all->print(' ', HTML::Entities::encode(lc($occupations[0])), ')');
 					}
 				}
 				$fullbio .= ' ' . $father->as_string();
 				if($mother) {
-					print $html ' and';
-					print $csv ' and';
-					print $xml ' and';
+					$all->print(' and');
 					$fullbio .= ' and';
 				}
 			}
@@ -2107,17 +2100,11 @@ sub print_person
 				my @occupations = get_all_occupations($mother);
 				# TODO: print all occupations
 				if($occupations[0]) {
-					print $html ' (a';
-					print $csv ' (a';
-					print $xml ' (a';
+					$all->print(' (a');
 					if($occupations[0] =~ /^[aeiou]/i) {
-						print $html 'n';
-						print $csv 'n';
-						print $xml 'n';
+						$all->print('n');
 					}
-					print $html ' ', lc($occupations[0]), ')';
-					print $csv ' ', lc($occupations[0]), ')';
-					print $xml ' ', lc($occupations[0]), ')';
+					$all->print(' ', lc($occupations[0]), ')');
 				}
 				$fullbio .= ' ' . $mother->as_string();
 				if($opts{'w'}) {
@@ -2143,9 +2130,7 @@ sub print_person
 					$father->given_names(),
 					'&lt;/a&gt;';
 				if($mother) {
-					print $html ' and';
-					print $csv ' and';
-					print $xml ' and';
+					$all->print(' and');
 				}
 			}
 			if($mother) {
