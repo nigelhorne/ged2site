@@ -4856,10 +4856,7 @@ sub print_person
 									if($images{$key}) {
 										# Flag a person having two images of the same
 										# name
-										if($opts{'f'}) {
-											die $person->as_string(), ": $localfile duplicate filename";
-										}
-										red_warning({ person => $person, warning => "duplicate filename: $localfile" });
+										complain({ person => $person, warning => "duplicate filename: $localfile" });
 									}
 									my $tmp;
 									if($jpegtran) {
@@ -4886,12 +4883,7 @@ sub print_person
 							my $srcfile = $1;
 							if(!-r $srcfile) {
 								# Patch from github.com/cablespaghetti
-								if($opts{'f'}) {
-									die $person->as_string(), ": $srcfile file not found";
-								}
-								if($opts{'w'}) {
-									red_warning({ person => $person, warning => "$srcfile: file not found" });
-								}
+								complain({ person => $person, warning => "$srcfile: file not found" });
 								next OBJE;
 							}
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
@@ -4955,10 +4947,7 @@ sub print_person
 									my $info = Image::Info::image_info("static-site/$localfile");
 									my ($w, $h) = Image::Info::dim($info);
 									if(!defined($w)) {
-										if($opts{'f'}) {
-											die "Can't get image information for static-site/$localfile";
-										}
-										red_warning({ person => $person, warning => "Can't get image information for static-site/$localfile" });
+										complain({ person => $person, warning => "Can't get image information for static-site/$localfile" });
 										# unlink "static-site/$localfile";
 										next OBJE;
 									}
@@ -5212,11 +5201,7 @@ sub print_person
 				print $xml '</family_tree>';
 			}
 		} elsif(defined($dot)) {
-			if($opts{'f'}) {
-				die "$dot: $!";
-			} else {
-				red_warning(warning => "$dot: $!");
-			}
+			complain(warning => "$dot: $!");
 		}
 	}
 	print $csv '!';
@@ -5817,11 +5802,8 @@ sub Gedcom::Individual::as_string
 	}
 
 	if(!defined($rc)) {
-		if($opts{'f'}) {
-			die "Can't determine name of this person";
-		}
 		if($opts{'w'}) {
-			red_warning({ warning => "Can't determine name of this person" });
+			complain({ warning => "Can't determine name of this person" });
 			$args{'include_years'} = 1;
 			$rc = 'Unknown person ';
 		}
@@ -5883,10 +5865,7 @@ sub Gedcom::Individual::as_string
 	}
 
 	if((!defined($rc)) && $opts{'w'}) {
-		if($opts{'f'}) {
-			die "\nCan't determine the name for record " . $self->{'xref'};
-		}
-		red_warning({ "Can't determine the name for record " . $self->{'xref'} });
+		complain("Can't determine the name for record " . $self->{'xref'});
 		return '';
 	}
 
@@ -7182,12 +7161,7 @@ sub print_graphviz
 		if(defined($gender)) {
 			$gender = $gender;
 		} else {
-			if($opts{'f'}) {
-				die "\n", $person->as_string(), ": unknown sex\n";
-			}
-			if($opts{'w'}) {
-				red_warning({ person => $person, warning => 'unknown sex' });
-			}
+			complain({ person => $person, warning => 'unknown sex' });
 			$gender = 'M';	# Avoid "Use of uninitialized value" in Tree::Family
 		}
 		$colour = ($gender eq 'M' ? '#093AB5' : '#C666B8');
