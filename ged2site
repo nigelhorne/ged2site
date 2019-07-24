@@ -1894,7 +1894,7 @@ sub print_person
 		}
 		print 'relationship = ', ($relationship ? $relationship : 'unknown'), "\n" if($opts{'v'});
 		if($relationship) {
-			$facts->{$relationship}++;
+			$facts->{'relations'}->{$relationship}++;
 		}
 	}
 
