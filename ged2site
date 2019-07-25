@@ -6433,7 +6433,11 @@ sub place {
 			if(!defined($place)) {
 				if(!$params{'allow_empty'}) {
 					if(my $date = $p->date()) {
-						complain({ person => $params{'person'}, warning => "Location for the event on $date is empty" });
+						if($date =~ /^bet\s*(.+)/i) {
+							complain({ person => $params{'person'}, warning => "Location for the event between $1 is empty" });
+						} else {
+							complain({ person => $params{'person'}, warning => "Location for the event on $date is empty" });
+						}
 					} else {
 						complain({ person => $params{'person'}, warning => 'Location is empty' });
 					}
