@@ -1893,8 +1893,11 @@ sub print_person
 			});
 		}
 		print 'relationship = ', ($relationship ? $relationship : 'unknown'), "\n" if($opts{'v'});
-		if($relationship) {
-			$facts->{'relations'}->{$relationship}++;
+		if(my $r = $relationship) {
+			# Remove spaces from the relationship so that the Template Toolkit can
+			# use it as a key
+			$r =~ s/ /_/g;
+			$facts->{'relations'}->{$r}++;
 		}
 	}
 
@@ -6389,20 +6392,10 @@ sub year
 		return "by $1";
 	}
 	if($string =~ /^By (\d{3,4})/i) {
-		my $person = $params{'person'};
-		if($opts{'f'}) {
-			if($person) {
-				die $person->as_string(), " says 'By' instead of 'Bef'";
-			} else {
-				die "Got 'By' instead of 'Bef'";
-			}
-		}
-		if($opts{'w'}) {
-			if($person) {
-				red_warning({ person => $person, warning => "says 'By' instead of 'Bef'" });
-			} else {
-				warn colored("Got 'By' instead of 'Bef'", 'red');
-			}
+		if(my $person = $params{'person'}) {
+			complain({ person => $person, warning => "says 'By' instead of 'Bef'" });
+		} else {
+			complain("says 'By' instead of 'Bef'");
 		}
 		return "before $1";
 	}
