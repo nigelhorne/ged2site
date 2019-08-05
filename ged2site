@@ -1031,7 +1031,7 @@ if($opts{'w'}) {
 					$summary = 'Death location not found';
 				} elsif($warning =~ /\sisn't found$/) {
 					$summary = 'Location not found';
-				} elsif($warning =~ /^something is wrong with the date /) {
+				} elsif($warning =~ /^Something is wrong with the date /) {
 					$summary = 'Inconsistent date';
 				} elsif($warning =~ /^born before parent was born/) {
 					$summary = 'Born before Parent was born';
@@ -2309,12 +2309,12 @@ sub print_person
 						if(($yob - $mumdateofbirth) <= 13) {
 							complain({
 								person => $person,
-								warning => "something is wrong with the date of birth which is less than 13 years after the mother was born ($mumdateofbirth)"
+								warning => "Something is wrong with the date of birth which is less than 13 years after the mother was born ($mumdateofbirth)"
 							});
 						} elsif(($yob - $mumdateofbirth) >= 52) {
 							complain({
 								person => $person,
-								warning => "something is wrong with the date of birth which is more than 52 years after the mother was born ($mumdateofbirth)"
+								warning => "Something is wrong with the date of birth which is more than 52 years after the mother was born ($mumdateofbirth)"
 							});
 						}
 					}
