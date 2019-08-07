@@ -3346,22 +3346,52 @@ sub print_person
 						if($yob && (($yoe - $yob) <= 10)) {
 							my $found_parent = 0;
 							if($mother) {
-								foreach my $residence(get_all_residences($mother)) {
-									my $date = $residence->date();
+								foreach my $m_residence(get_all_residences($mother)) {
+									my $date = $m_residence->date();
 									if(defined($date) && ($date =~ /(\d{3,4})$/)) {
 										if($1 == $yoe) {
-											$found_parent = $residence;
+											$found_parent = $m_residence;
+											my $p1 = place({
+													person => $mother,
+													record => $m_residence,
+													nopreposition => 1
+												});
+											my $p2 = place({
+													person => $person,
+													record => $residence,
+													nopreposition => 1
+												});
+											if($p1 ne $p2) {
+												$p1 =~ s/^\s+//;
+												$p2 =~ s/^\s+//;
+												complain({ person => $person, warning => "Location for $date ($p1) differs from mother's ($p2)" });
+											}
 											last;
 										}
 									}
 								}
 							}
 							if($father && !$found_parent) {
-								foreach my $residence(get_all_residences($father)) {
-									my $date = $residence->date();
+								foreach my $f_residence(get_all_residences($father)) {
+									my $date = $f_residence->date();
 									if(defined($date) && ($date =~ /(\d{3,4})$/)) {
 										if($1 == $yoe) {
-											$found_parent = $residence;
+											$found_parent = $f_residence;
+											my $p1 = place({
+													person => $father,
+													record => $f_residence,
+													nopreposition => 1
+												});
+											my $p2 = place({
+													person => $person,
+													record => $residence,
+													nopreposition => 1
+												});
+											if($p1 ne $p2) {
+												$p1 =~ s/^\s+//;
+												$p2 =~ s/^\s+//;
+												complain({ person => $person, warning => "Location for $date ($p1) differs from father's ($p2)" });
+											}
 											last;
 										}
 									}
