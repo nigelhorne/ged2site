@@ -1464,14 +1464,8 @@ sub print_person
 					complain({ person => $params{'person'}, warning => "Unknown state '$stateofbirth' in birth place $placeofbirth" });
 				}
 				$chronicling_params{'state'} = ucfirst(lc($stateofbirth));
+				chronicling_america($person, \%chronicling_params);
 
-				require Genealogy::ChroniclingAmerica;
-				Genealogy::ChroniclingAmerica->import();
-				if(my $loc = Genealogy::ChroniclingAmerica->new(\%chronicling_params)) {
-					while(my $url = $loc->get_next_entry()) {
-						complain({ person => $person, warning => "Check out $url" });
-					}
-				}
 			}
 			if($placeofdeath && (($placeofdeath =~ /USA$/) || ($placeofdeath =~ /United States$/)) && ($placeofdeath =~ /^.+,\s*([\w\s]+),[\w\s]+$/)) {
 				my $stateofdeath = uc($1);
@@ -1480,17 +1474,8 @@ sub print_person
 				}
 				if((!defined($stateofbirth)) || ($stateofdeath ne $stateofbirth)) {
 					$chronicling_params{'state'} = ucfirst(lc($stateofdeath));
-
-					require Genealogy::ChroniclingAmerica;
-					Genealogy::ChroniclingAmerica->import();
-
 					# TODO: married and maiden names, could be two searches
-
-					if(my $loc = Genealogy::ChroniclingAmerica->new(\%chronicling_params)) {
-						while(my $url = $loc->get_next_entry()) {
-							complain({ person => $person, warning => "Check out $url" });
-						}
-					}
+					chronicling_america($person, \%chronicling_params);
 				}
 			}
 		}
@@ -7770,6 +7755,26 @@ sub Geo::Coder::PlaceFinder::ua
 	}
 
 	return $self->{_ua};
+}
+
+sub chronicling_america
+{
+	my ($person, $chronicling_params) = @_;
+
+	return unless($opts{'w'});
+
+	require Genealogy::ChroniclingAmerica;
+	Genealogy::ChroniclingAmerica->import();
+
+	if(my $loc = Genealogy::ChroniclingAmerica->new($chronicling_params)) {
+		while(my $url = $loc->get_next_entry()) {
+			if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
+				complain({ person => $person, warning => "Visitez $url" });
+			} else {
+				complain({ person => $person, warning => "Check out $url" });
+			}
+		}
+	}
 }
 
 sub HTML::GoogleMaps::V3::_text_to_point {
