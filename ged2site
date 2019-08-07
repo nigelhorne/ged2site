@@ -2527,7 +2527,7 @@ sub print_person
 
 			if(scalar(@spouses) == 1) {
 				if($placeofmarriage || $dateofmarriage) {
-					if($placeofbaptism and ($placeofmarriage eq $placeofbaptism)) {
+					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism)) {
 						$bio .= ' also';
 					}
 					$bio .= ' married ';
