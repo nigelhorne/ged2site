@@ -1958,7 +1958,7 @@ sub print_person
 
 	my $print_sibling_count = 0;
 	my $html_and_csv = File::Print::Many->new([$csv, $html]);
-	my $html_and_xml = File::Print::Many->new([$xml, $html]);
+	# my $html_and_xml = File::Print::Many->new([$xml, $html]);
 	my $all = File::Print::Many->new([$xml, $html, $csv]);
 
 	if($father || $mother) {
