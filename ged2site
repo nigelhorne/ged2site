@@ -7433,9 +7433,9 @@ sub add_marker
 	$place =~ s/ & / and /g;
 
 	# OSM isn't that clever with fuzzy matching
-	foreach my $map(keys %location_mappings) {
-		if($place =~ /(.*)$map(.*)/) {
-			$place = $1 . $location_mappings{$map} . $2;
+	foreach my $m(keys %location_mappings) {
+		if($place =~ /(.*)$m(.*)/) {
+			$place = $1 . $location_mappings{$m} . $2;
 			last;
 		}
 	}
