@@ -1061,7 +1061,7 @@ if($opts{'w'}) {
 					$summary = 'Duplicate Residence';
 				} elsif($warning =~ /^Changing 'United States' to 'USA' in /) {
 					$summary = 'Change &quot;United States&quot; to &quot;USA&quot;';
-				} elsif($warning =~ /^Check out http:\/\/chroniclingamerica.loc.gov/) {
+				} elsif($warning =~ /^Check out https?:\/\/chroniclingamerica.loc.gov/) {
 					# FIXME: Lots of false positives
 					next;
 				} else {
