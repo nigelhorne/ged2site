@@ -3366,7 +3366,7 @@ sub print_person
 											if($p1 ne $p2) {
 												$p1 =~ s/^\s+//;
 												$p2 =~ s/^\s+//;
-												complain({ person => $person, warning => "Location for $date ($p1) differs from mother's ($p2)" });
+												complain({ person => $person, warning => "Location for $date ($p2) differs from mother's ($p1)" });
 											}
 											last;
 										}
@@ -3392,7 +3392,7 @@ sub print_person
 											if($p1 ne $p2) {
 												$p1 =~ s/^\s+//;
 												$p2 =~ s/^\s+//;
-												complain({ person => $person, warning => "Location for $date ($p1) differs from father's ($p2)" });
+												complain({ person => $person, warning => "Location for $date ($p2) differs from father's ($p1)" });
 											}
 											last;
 										}
