@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Ged2side is licensed under GPL2.0 for personal use only
+# Ged2site is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
 # Based on VWF - https://github.com/nigelhorne/vwf
