@@ -3478,6 +3478,7 @@ sub print_person
 
 						my @sorted_locations = sort { $a->{'latitude'} <=> $b->{'latitude'} } @{$all_locations{$year}};
 
+						# $Data::Dumper::Maxdepth = 2;
 						foreach my $l(@sorted_locations) {
 							$count++;
 							# print Data::Dumper->new([$l])->Dump();
@@ -3488,16 +3489,13 @@ sub print_person
 							     (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
 								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1});
+								my $peek = $sorted_locations[$count];
 								if($p1 eq $p2) {
-									if($p3) {
-										# my $peek = (@{$all_locations{$year}})[$count];
-										my $peek = $sorted_locations[$count];
-										if($peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
-											if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'} ne $l->{'person'})) {
-												push @people_at_p3, $l;
-											}
-											next;
+									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
+										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'} ne $l->{'person'})) {
+											push @people_at_p3, $l;
 										}
+										next;
 									}
 									$p3 = $p1;
 								} elsif(($l->{'latitude'} == $latitude) && ($l->{'longitude'} == $longitude)) {
@@ -3511,15 +3509,11 @@ sub print_person
 										warning => [ $l->{'person'}->as_string(nee => 1), " residence is very close probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
 									});
 								} elsif($distance->miles() < 1) {
-									if($p3) {
-										# my $peek = (@{$all_locations{$year}})[$count];
-										my $peek = $sorted_locations[$count];
-										if($peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
-											if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'} ne $l->{'person'})) {
-												push @people_at_p3, $l;
-											}
-											next;
+									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
+										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'} ne $l->{'person'})) {
+											push @people_at_p3, $l;
 										}
+										next;
 									}
 									$p3 = $p1;
 									if($printed_person) {
@@ -3543,7 +3537,9 @@ sub print_person
 											} else {
 												$residencestring .= ' and';
 											}
-											$residencestring .= " $relationship " .
+											$residencestring .= ' ' .
+												$person->relationship($p->{'person'}) .
+												' ' .
 												$p->{'person'}->as_string();
 										}
 										$residencestring .= ' who were living';
@@ -3822,6 +3818,7 @@ sub print_person
 		print $csv '.!!!';
 		print $xml '.';
 	}
+	$bio =~ s/,;/;/g;
 	$bio =~ s/;$//;
 
 	if($placeofburial || $dateofburial) {
