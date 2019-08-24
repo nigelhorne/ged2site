@@ -3488,9 +3488,9 @@ sub print_person
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							     (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
-								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1});
 								my $peek = $sorted_locations[$count];
 								next if($peek && ($peek->{'person'} eq $l->{'person'}));
+								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1});
 								if($p1 eq $p2) {
 									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
 										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'} ne $l->{'person'})) {
@@ -3518,7 +3518,7 @@ sub print_person
 									}
 									$p3 = $p1;
 									if($printed_person) {
-										$residencestring .= ' and ';
+										$residencestring .= ', ';
 									} else {
 										$residencestring .= ', less than a mile from ';
 									}
@@ -3793,6 +3793,11 @@ sub print_person
 				}
 				if($residencestring) {
 					$residencestring =~ s/^\s//;
+					if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
+						$residencestring =~ s/(.+), (his|her) /$1 et $2 /;
+					} else {
+						$residencestring =~ s/(.+), (his|her) /$1 and $2 /;
+					}
 					push @residencestringarray, $residencestring;
 					$printed_residence = 1;
 				}
