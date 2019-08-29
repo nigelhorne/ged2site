@@ -2578,7 +2578,7 @@ sub print_person
 							if(lc($soccupation) eq 'self-employed') {
 								$bio .= 'self-employed ';
 							} else {
-								$bio .= ' ' . Lingua::EN::Inflect::A(lc($soccupation)) . ' ';
+								$bio .= Lingua::EN::Inflect::A(lc($soccupation)) . ' ';
 							}
 						}
 					}
