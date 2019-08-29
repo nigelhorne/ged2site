@@ -2070,11 +2070,7 @@ sub print_person
 					my @occupations = get_all_occupations(person => $father);
 					# TODO: print all occupations
 					if($occupations[0]) {
-						$all->print(' (a');
-						if($occupations[0] =~ /^[aeiou]/i) {
-							$all->print('n');
-						}
-						$all->print(' ', HTML::Entities::encode(lc($occupations[0])), ')');
+						$all->print(' (', Lingua::EN::Inflect::A(HTML::Entities::encode(lc($occupations[0]))), ')');
 					}
 				}
 				$fullbio .= ' ' . $father->as_string();
@@ -2093,11 +2089,7 @@ sub print_person
 				my @occupations = get_all_occupations($mother);
 				# TODO: print all occupations
 				if($occupations[0]) {
-					$all->print(' (a');
-					if($occupations[0] =~ /^[aeiou]/i) {
-						$all->print('n');
-					}
-					$all->print(' ', lc($occupations[0]), ')');
+					$all->print(' ', Lingua::EN::Inflect::A(lc($occupations[0])), ')');
 				}
 				$fullbio .= ' ' . $mother->as_string();
 				if($opts{'w'}) {
@@ -2586,11 +2578,7 @@ sub print_person
 							if(lc($soccupation) eq 'self-employed') {
 								$bio .= 'self-employed ';
 							} else {
-								$bio .= 'a';
-								if($soccupation =~ /^[aeiou]/i) {
-									$bio .= 'n';
-								}
-								$bio .= ' ' . lc($soccupation) . ' ';
+								$bio .= ' ' . Lingua::EN::Inflect::A(lc($soccupation)) . ' ';
 							}
 						}
 					}
@@ -2677,7 +2665,7 @@ sub print_person
 				} else {
 					my @spouse_occupations = get_all_occupations($spouses[0]);
 					if($spouse_occupations[0]) {
-						$bio .= ' (a ' . HTML::Entities::encode(lc($spouse_occupations[0]));
+						$bio .= ' (' . HTML::Entitites::encode(Lingua::EN::Inflect::A(lc($spouse_occupations[0])));
 						$parentheses = 1;
 					}
 				}
@@ -3022,11 +3010,8 @@ sub print_person
 		if($same_occupation_as_father) {
 			$bio .= '.' if(!$end_of_sentence);
 			$bio .= ' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
-				(is_alive(person => $person) ? ' is a' : ' was a');
-			if($same_occupation_as_father =~ /^[aeiou]/i) {
-				$bio .= 'n';
-			}
-			$bio .= ' ' . lc($same_occupation_as_father) . '.';
+				(is_alive(person => $person) ? ' is' : ' was');
+			$bio .= ' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father)) . '. ';
 			$end_of_sentence = 1;
 		}
 
