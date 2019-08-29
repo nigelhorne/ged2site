@@ -2069,8 +2069,8 @@ sub print_person
 				if(!$same_occupation_as_father) {
 					my @occupations = get_all_occupations(person => $father);
 					# TODO: print all occupations
-					if($occupations[0]) {
-						$all->print(' (', Lingua::EN::Inflect::A(HTML::Entities::encode(lc($occupations[0]))), ')');
+					if(my $occupation = $occupations[0]) {
+						$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
 					}
 				}
 				$fullbio .= ' ' . $father->as_string();
