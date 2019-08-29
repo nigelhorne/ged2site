@@ -2203,7 +2203,7 @@ sub print_person
 		}
 		my $s = $spouse->as_string({ middle_names => 1, title => 1 });
 		if(!defined($s)) {
-			complain({ person => $spouse, warning => "seems to have no name" });
+			complain({ person => $spouse, warning => 'Seems to have no name' });
 			$s = 'your relation';
 		}
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
@@ -4654,6 +4654,16 @@ sub print_person
 			print $xml "\n\t\t</citations>";
 
 			if($opts{'w'}) {
+				# People alive during the years when censues have been available must
+				# have appeared in at least one census
+				# FIXME:  should be a better test, e.g. catch people 1861-1930, don't
+				#	catch 1862-1865.  The current test misses some but should have
+				#	no false positives
+				if((defined($yob) && ($yob >= 1841)) &&
+				  ((defined($yod)) && ($yod <= 1911)) &&
+				  (scalar(keys(%census_years)) == 0)) {
+					complain({ person => $person, message => 'Appears in no censuses' });
+				}
 				my %unused_censuses = %census_years;
 				foreach my $residence(@residences) {
 					if(my $rdate = $residence->date()) {
