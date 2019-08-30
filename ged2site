@@ -1437,7 +1437,7 @@ sub print_person
 		$nameparser->parse($name);
 		my %name_components = $nameparser->components();
 		my $firstname = $name_components{'given_name_1'};
-		if(my $lastname = $name_components{'surname_1'}) {
+		if($firstname && (my $lastname = $name_components{'surname_1'})) {
 			my %chronicling_params = ( ua => $cached_browser );
 			if($dateofbirth && ($dateofbirth =~ /(\d{4})$/)) {
 				if($1 <= 1789) {
