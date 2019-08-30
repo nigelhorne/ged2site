@@ -7809,6 +7809,14 @@ sub chronicling_america
 	require Genealogy::ChroniclingAmerica;
 	Genealogy::ChroniclingAmerica->import();
 
+	if(!defined($chronicling_params->{'firstname'})) {
+		my $i = 0;
+		while((my @call_details = (caller($i++)))) {
+			print STDERR "\t", $call_details[1], ':', $call_details[2], ' calling function ', $call_details[3], "\n";
+		}
+		die $person->as_string(), ': BUG: no first name given';
+	}
+
 	if(my $loc = Genealogy::ChroniclingAmerica->new($chronicling_params)) {
 		while(my $url = $loc->get_next_entry()) {
 			if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
