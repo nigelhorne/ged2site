@@ -4662,7 +4662,7 @@ sub print_person
 				if((defined($yob) && ($yob >= 1841)) &&
 				  ((defined($yod)) && ($yod <= 1911)) &&
 				  (scalar(keys(%census_years)) == 0)) {
-					complain({ person => $person, message => 'Appears in no censuses' });
+					complain({ person => $person, warning => 'Appears in no censuses' });
 				}
 				my %unused_censuses = %census_years;
 				foreach my $residence(@residences) {
