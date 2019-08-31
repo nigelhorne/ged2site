@@ -1240,10 +1240,23 @@ sub print_person
 			}
 		}
 
-		if((!$family) && (scalar(@siblings) == 0) && (!$mother) && (!$father) && (scalar(@spouses) == 0)) {
-			# This person isn't connected to anyone
-			# TODO: catch "islands" of people connected to each other, but nobody else
-			complain({ person => $person, warning => 'not connected to the tree' });
+		if((!$family) && (scalar(@siblings) == 0) && (!$mother) && !$father) {
+			if(scalar(@spouses) == 0) {
+				# This person isn't connected to anyone
+				# TODO: catch "islands" of people connected to each other, but nobody else
+				complain({ person => $person, warning => 'Not connected to the tree' });
+			} elsif(scalar(@spouses) == 1) {
+				my $spouse = $spouses[0];
+				foreach my $f($spouse->fams()) {
+					if($f->number_of_children()) {
+						$family = $f;
+						last;
+					}
+				}
+				if((!$family) && (scalar(@siblings) == 0) && (!$spouse->mother()) && (!$spouse->father()) && !$spouse->siblings()) {
+					complain({ person => $person, warning => 'Spouses connect to each other but no-one else' });
+				}
+			}
 		}
 
 		# FIXME: needs to only complain about more than two biological parents
