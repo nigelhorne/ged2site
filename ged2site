@@ -1247,13 +1247,15 @@ sub print_person
 				complain({ person => $person, warning => 'Not connected to the tree' });
 			} elsif(scalar(@spouses) == 1) {
 				my $spouse = $spouses[0];
+				my $sf;
 				foreach my $f($spouse->fams()) {
 					if($f->number_of_children()) {
-						$family = $f;
+						$sf = $f;
 						last;
 					}
 				}
-				if((!$family) && (scalar(@siblings) == 0) && (!$spouse->mother()) && (!$spouse->father()) && !$spouse->siblings()) {
+				my @ss = $spouse->spouse();
+				if((!$sf) && (!$spouse->mother()) && (!$spouse->father()) && (!$spouse->siblings()) && (scalar(@ss) == 1)) {
 					complain({ person => $person, warning => 'Spouses connect to each other but no-one else' });
 				}
 			}
