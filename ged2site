@@ -1462,7 +1462,9 @@ sub print_person
 			my $stateofbirth;
 			if($placeofbirth && (($placeofbirth =~ /USA$/) || ($placeofbirth =~ /United States$/)) && ($placeofbirth =~ /^.+,\s*([\w\s]+),[\w\s]+$/)) {
 				$stateofbirth = uc($1);
-				if((!$us->{code2state}{$stateofbirth}) && !$us->{state2code}{$stateofbirth}) {
+				if($us->{code2state}{$stateofbirth}) {
+					$stateofbirth = $us->{code2state}{$stateofbirth};
+				} elsif(!$us->{state2code}{$stateofbirth}) {
 					complain({ person => $params{'person'}, warning => "Unknown state '$stateofbirth' in birth place $placeofbirth" });
 				}
 				$chronicling_params{'state'} = ucfirst(lc($stateofbirth));
@@ -1471,10 +1473,12 @@ sub print_person
 			}
 			if($placeofdeath && (($placeofdeath =~ /USA$/) || ($placeofdeath =~ /United States$/)) && ($placeofdeath =~ /^.+,\s*([\w\s]+),[\w\s]+$/)) {
 				my $stateofdeath = uc($1);
-				if((!$us->{code2state}{$stateofdeath}) && !$us->{state2code}{$stateofdeath}) {
+				if($us->{code2state}{$stateofdeath}) {
+					$stateofdeath = $us->{code2state}{$stateofdeath};
+				} elsif(!$us->{state2code}{$stateofdeath}) {
 					complain({ person => $params{'person'}, warning => "Unknown state '$stateofdeath' in death place $placeofbirth" });
 				}
-				if((!defined($stateofbirth)) || ($stateofdeath ne $stateofbirth)) {
+				if((!defined($stateofbirth)) || (lc($stateofdeath) ne lc($stateofbirth))) {
 					$chronicling_params{'state'} = ucfirst(lc($stateofdeath));
 					# TODO: married and maiden names, could be two searches
 					chronicling_america($person, \%chronicling_params);
@@ -5826,12 +5830,10 @@ sub Gedcom::Individual::as_string
 		$rc .= ' (n&eacute;e ' . normalize_name($self->surname()) . ')';
 	}
 
-	if(!defined($rc)) {
-		if($opts{'w'}) {
-			complain({ warning => "Can't determine name of this person" });
-			$args{'include_years'} = 1;
-			$rc = 'Unknown person ';
-		}
+	if($opts{'w'} && !defined($rc)) {
+		complain({ warning => "Can't determine name of this person" });
+		$args{'include_years'} = 1;
+		$rc = 'Unknown person';
 	}
 
 	if($args{'include_years'}) {
@@ -7821,7 +7823,7 @@ sub chronicling_america
 		while((my @call_details = (caller($i++)))) {
 			print STDERR "\t", $call_details[1], ':', $call_details[2], ' calling function ', $call_details[3], "\n";
 		}
-		die $person->as_string(), ': BUG: state too short';
+		die $person->as_string(), ': BUG: state "', $chronicling_params->{'state'}, '" too short';
 	}
 
 	if(my $loc = Genealogy::ChroniclingAmerica->new($chronicling_params)) {
