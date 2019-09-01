@@ -1260,6 +1260,20 @@ sub print_person
 				}
 			}
 		}
+		if((!$family) && (scalar(@siblings) == 1) && (scalar(@spouses) == 0) && (!$mother) && !$father) {
+			my $sibling = $siblings[0];
+			my $sf;
+			foreach my $f($sibling->fams()) {
+				if($f->number_of_children()) {
+					$sf = $f;
+					last;
+				}
+			}
+			my @ss = $sibling->spouse();
+			if((!$sf) && (!$sibling->mother()) && (!$sibling->father()) && (scalar(@ss) == 0)) {
+				complain({ person => $person, warning => 'Siblings connect to each other but no-one else' });
+			}
+		}
 
 		# FIXME: needs to only complain about more than two biological parents
 		my @parents = $person->parents();
