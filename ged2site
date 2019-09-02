@@ -2698,7 +2698,7 @@ sub print_person
 				} else {
 					my @spouse_occupations = get_all_occupations($spouses[0]);
 					if($spouse_occupations[0]) {
-						$bio .= ' (' . HTML::Entitites::encode(Lingua::EN::Inflect::A(lc($spouse_occupations[0])));
+						$bio .= ' (' . HTML::Entities::encode(Lingua::EN::Inflect::A(lc($spouse_occupations[0])));
 						$parentheses = 1;
 					}
 				}

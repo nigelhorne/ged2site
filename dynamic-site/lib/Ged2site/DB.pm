@@ -13,6 +13,7 @@ package Ged2site::DB;
 # Abstract class giving read-only access to CSV, XML and SQLite databases via Perl without writing any SQL.
 # Look for databases in $directory in this order;
 #	SQLite (file ends with .sql)
+#	PSV (pipe separated file, file ends with .psv)
 #	CSV (file ends with .csv or .db, can be gzipped)
 #	XML (file ends with .xml)
 
@@ -148,7 +149,13 @@ sub _open {
 			$slurp_file = $fin->filename();
 			$self->{'temp'} = $slurp_file;
 		} else {
-			($fin, $slurp_file) = File::pfopen::pfopen($dir, $table, 'csv:db');
+			($fin, $slurp_file) = File::pfopen::pfopen($dir, $table, 'psv');
+			if(defined($fin)) {
+				# Pipe separated file
+				$args{'sep_char'} = '|';
+			} else {
+				($fin, $slurp_file) = File::pfopen::pfopen($dir, $table, 'csv:db');
+			}
 		}
 		if(defined($slurp_file) && (-r $slurp_file)) {
 			close($fin);
