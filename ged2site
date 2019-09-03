@@ -5301,6 +5301,34 @@ sub print_person
 				$annotation .= "<p>$text</p>";
 			}
 		}
+		# TODO: Sort in date order
+		my @all_residences = get_all_residences($person);
+		foreach my $residence(@all_residences) {
+			if(my $rdate = $residence->date()) {
+				if(my $place = place({ person => $person, record => $residence, nopreposition => 1 })) {
+					if($place =~ /,.+,/) {
+						$place =~ s/^\s+//g;
+						if(defined($current_place) && ($place ne $current_place)) {
+							if(!defined($map)) {
+								# my %args = (geocoder => $geocoder, z_index => -1);
+								my %args = (geocoder => $geocoder);
+								if($javascript_key) {
+									$args{'api_key'} = $javascript_key;
+								}
+								$map = HTML::GoogleMaps::V3->new(%args);
+								$map->center($current_place);
+							}
+							add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
+							$current_place = $place;
+							$annotation = undef;
+						} elsif(!defined($current_place)) {
+							$current_place = $place;
+						}
+						$annotation .= "<p>$place " . year({ person => $person, string => $rdate }) . '</p>';
+					}
+				}
+			}
+		}
 		foreach my $location(@note_locations) {
 			my $match;
 			if($location->{'match'}) {
