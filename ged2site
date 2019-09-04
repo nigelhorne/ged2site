@@ -782,7 +782,7 @@ if(scalar(%all_locations)) {
 			$place =~ s/^\s*//;
 			push @{$markers{$place}}, $l;
 			print $csv "$index!$place!",
-				$l->{'person'}->as_string(), '!',
+				$l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
 				"$year!",
 				$l->{'date'}, "\n";
 			$index++;
