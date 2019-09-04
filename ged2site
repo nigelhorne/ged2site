@@ -5275,9 +5275,9 @@ sub print_person
 		# TODO: then sort in date order
 		foreach my $event(sort @place_events) {
 			my $record = $place_records{$event};
-			my $place = place({ record => $record });
+			my $place = place({ record => $record, nopreposition => 1 });
 			if(defined($place) && ($place =~ /,.+,/)) {
-				$place =~ s/^\s(at|in)\s//;
+				$place =~ s/^\s+//;
 				if(defined($current_place) && ($place ne $current_place)) {
 					if(!defined($map)) {
 						# my %args = (geocoder => $geocoder, z_index => -1);
@@ -5323,7 +5323,7 @@ sub print_person
 						} elsif(!defined($current_place)) {
 							$current_place = $place;
 						}
-						$annotation .= "<p>$place " . year({ person => $person, string => $rdate }) . '</p>';
+						$annotation .= "<p>Living " . year({ person => $person, string => $rdate }) . '</p>';
 					}
 				}
 			}
