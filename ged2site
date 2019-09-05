@@ -808,7 +808,7 @@ if(scalar(%all_locations)) {
 					$previous_date = $date;
 				}
 			}
-			$place =~ s/'/&quot;/g;
+			$html =~ s/'/&quot;/g;
 			$map->add_marker(point => $place, html => $html);
 		}
 		($head, $body) = $map->onload_render();
