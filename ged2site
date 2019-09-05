@@ -1196,6 +1196,8 @@ sub print_person
 	if(defined($dob) && length($dob) && ($dob ne '?')) {
 		$dob =~ s/[\.\-]/ /g;
 		$dob =~ s/\s{2,}/ /g;
+		# FIXME: ../../../gedcoms/gl120368.ged puts dates *inside*
+		#	brackets
 		$dob =~ s/\(.+$//;	# some people put information in brackets after the date
 		if($dob =~ /^About[:\s](.+)/i) {
 			$dob = "ABT$1";
@@ -1204,7 +1206,7 @@ sub print_person
 		} elsif($dob =~ /^(.+)\s*\?/i) {
 			$dob = "ABT$1";
 		}
-		if(($dob !~ /^[\d\sA-Z\/]+$/i) && ($dob !~ /^Abt\./)) {
+		if(length($dob) && ($dob !~ /^[\d\sA-Z\/]+$/i) && ($dob !~ /^Abt\./)) {
 			if($dob =~ /(\d{4})\s*(.+)/) {
 				my $d = $1;
 				my $t = $2;
@@ -1547,8 +1549,10 @@ sub print_person
 			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofbirth) {
 					red_warning({ person => $person, warning => "Birth date ($dateofbirth) has no citations" });
+				} elsif($placeofbirth) {
+					complain({ person => $person, warning => "Birth place ($placeofbirth) has no citations" });
 				} else {
-					red_warning({ person => $person, warning => "Birth place ($placeofbirth) has no citations" });
+					complain({ person => $person, warning => 'Birth record has no citations' });
 				}
 			}
 		}
@@ -1785,8 +1789,10 @@ sub print_person
 			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofmarriage) {
 					red_warning({ person => $person, warning => "Marriage date ($dateofmarriage) has no citations" });
-				} else {
+				} elsif($placeofmarriage) {
 					red_warning({ person => $person, warning => "Marriage place ($placeofmarriage) has no citations" });
+				} else {
+					red_warning({ person => $person, warning => 'Marriage record has no citations' });
 				}
 			}
 		}
