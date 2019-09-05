@@ -4702,6 +4702,7 @@ sub print_person
 				#	no false positives
 				if((defined($yob) && ($yob >= 1841)) &&
 				  ((defined($yod)) && ($yod <= 1911)) &&
+				  (($yod - $yob) >= 10) &&
 				  (scalar(keys(%census_years)) == 0)) {
 					complain({ person => $person, warning => 'Appears in no censuses' });
 				}
