@@ -780,7 +780,6 @@ if(scalar(%all_locations)) {
 		foreach my $l(@{$all_locations{$year}}) {
 			my $place = place(record => $l->{'residence'}, nopreposition => 1);
 			$place =~ s/^\s*//;
-			$place =~ s/'/&quot;/g;
 			push @{$markers{$place}}, $l;
 			print $csv "$index!$place!",
 				$l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
@@ -809,6 +808,7 @@ if(scalar(%all_locations)) {
 					$previous_date = $date;
 				}
 			}
+			$place =~ s/'/&quot;/g;
 			$map->add_marker(point => $place, html => $html);
 		}
 		($head, $body) = $map->onload_render();
