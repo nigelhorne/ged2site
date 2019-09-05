@@ -796,20 +796,25 @@ if(scalar(%all_locations)) {
 		my $map = HTML::GoogleMaps::V3->new(%args);
 		foreach my $place(keys %markers) {
 			my @annotations = @{$markers{$place}};
-			my $html = $place;
+			my $html;
 			my $previous_date;
 			foreach my $annotation(@annotations) {
 				my $date = $annotation->{'date'};
 				my $person = $annotation->{'person'};
 				if($previous_date && ($date eq $previous_date)) {
-					$html .= ', <a href="?page=people&amp;entry=' . $person->{'xref'} . '">' . $person->as_string() . '</a>';
+					if($html) {
+						$html .= ', ';
+					}
 				} else {
-					$html .= "<br>$date: <a href=\"?page=people&amp;entry=" . $person->{'xref'} . '">' . $person->as_string() . '</a>';
+					if($html) {
+						$html .= '<br>';
+					}
+					$html .= "$date: ";
 					$previous_date = $date;
 				}
+				$html .= '<a href="?page=people&amp;entry=' . $person->{'xref'} . '">' . $person->as_string() . '</a>';
 			}
-			$html =~ s/'/&quot;/g;
-			$map->add_marker(point => $place, html => $html);
+			add_marker(map => $map, place => HTML::Entities::decode($place), annotation => $html);
 		}
 		($head, $body) = $map->onload_render();
 		$head =~ s/\n\n*/\n/g;

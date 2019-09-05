@@ -31,7 +31,6 @@ sub html {
 		return $self->SUPER::html({ locations => \@locations, updated => $db->updated() });
 	}
 
-
 	return $self->SUPER::html({
 		head => $db->head(year => $params{'year'}),
 		locations => \@locations,
