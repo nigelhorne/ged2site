@@ -780,6 +780,7 @@ if(scalar(%all_locations)) {
 		foreach my $l(@{$all_locations{$year}}) {
 			my $place = place(record => $l->{'residence'}, nopreposition => 1);
 			$place =~ s/^\s*//;
+			$place =~ s/'/&quot;/g;
 			push @{$markers{$place}}, $l;
 			print $csv "$index!$place!",
 				$l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
@@ -5302,10 +5303,14 @@ sub print_person
 				$annotation .= "<p>$text</p>";
 			}
 		}
+		my $prev_date = '';
 		foreach my $residence(@residencelist) {
 			if(my $rdate = $residence->date()) {
 				if(my $place = place({ person => $person, record => $residence, nopreposition => 1 })) {
 					if($place =~ /,.+,/) {
+						next if($rdate eq $prev_date);	# Ignore duplicates
+						$prev_date = $rdate;
+
 						$place =~ s/^\s+//g;
 						if(defined($current_place) && ($place ne $current_place)) {
 							if(!defined($map)) {
