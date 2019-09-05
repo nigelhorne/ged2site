@@ -1433,9 +1433,9 @@ sub print_person
 		$placeofbirth = $birth->place();
 	}
 
-	if($placeofbirth && ($placeofbirth =~ /,\s*$/)) {
-		complain({ person => $person, warning => 'Trailing comma in birth location' });
-		$placeofbirth =~ s/\s*,\s*$//;
+	if($placeofbirth && ($placeofbirth =~ /[,\.]\s*$/)) {
+		complain({ person => $person, warning => 'Trailing punctuation in birth location' });
+		$placeofbirth =~ s/\s*[,\.]\s*$//;
 	}
 
 	my $placeofdeath = get_value({ person => $person, value => 'death place' });
