@@ -35,7 +35,7 @@ BEGIN {
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime::Format::Natural');
-		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Data::Fetch HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper');
+		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Data::Fetch HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig');
 	}
 }
 
@@ -113,6 +113,7 @@ use String::Compare;
 use JSON;
 use File::Print::Many;
 use XML::Dumper;
+use XML::Twig;
 
 my %opts;
 getopts('cdfFG:g:h:J:lL:mwvx:', \%opts);
@@ -550,11 +551,43 @@ memoize('stepsabove');
 memoize('normalize_name');
 memoize('date_to_datetime');
 
+my $key = delete $opts{'g'};	# Ensure it's not stored in the XML file
+
+my $current_people = $opts{'x'};
+if($current_people) {
+	# Creating a changelog only works if the many of the options are the same
+	my $xml = XML::Twig->new();
+	$xml->parsefile($current_people);
+	my %prev_opts;
+	foreach my $key($xml->root()->first_child('opts')->first_child('hashref')->children()) {
+		if($key->name() eq 'item') {
+			$prev_opts{$key->{'att'}->{'key'}} = $key->first_child()->pcdata();
+		}
+	}
+	my $ok = 1;
+	for my $opt('c', 'd', 'h') {
+		if(defined($opts{$opt}) ne defined($prev_opts{$opt})) {
+			$ok = 0;
+			last;
+		}
+		if(defined($opts{$opt}) && ($opts{$opt} ne $prev_opts{$opt})) {
+			$ok = 0;
+			last;
+		}
+	}
+	if(!$ok) {
+		die "Runtime options aren't the same as given in $current_people\n";
+	}
+}
+
 open(my $xml, '>', 'dynamic-site/databases/people.xml');
 print $xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>";
 my $string = XML::Dumper->new()->pl2xml(\%opts);
 $string =~ s/perldata/opts/g;
 print $xml "\t$string";
+########
+# print $xml "\n</table>\n"; exit;
+########
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country!warnings\n";
 
@@ -931,7 +964,6 @@ close $csv;
 print $html '</ul></body></html>';
 close $html;
 
-my $key = $opts{'g'};
 if((!defined($key)) && defined($config)) {
 	$key = $config->{'google_verification'};
 }
@@ -5788,7 +5820,7 @@ sub print_person
 			$issue =~ s/<\/p>$//;
 			print $xml "\n\t\t\t<issue>",
 				HTML::Entities::encode($issue),
-				'<issue>';
+				'</issue>';
 		}
 		print $xml "\n\t\t</issues>";
 	}
