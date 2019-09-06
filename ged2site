@@ -16,6 +16,8 @@
 # TODO: Can I use a kdTree to determine events or residences close by each other?
 # TODO: note if a child was orphaned by both parents dying before they were 16
 # TODO: add male and female average lifespan to the facts
+# TODO: finish -x option to create a blog of differences over time of
+#	changes to the tree
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -33,7 +35,7 @@ BEGIN {
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime::Format::Natural');
-		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Data::Fetch HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached');
+		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Data::Fetch HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper');
 	}
 }
 
@@ -110,11 +112,12 @@ use POSIX;
 use String::Compare;
 use JSON;
 use File::Print::Many;
+use XML::Dumper;
 
 my %opts;
-getopts('cdfFG:g:h:J:lL:mwv', \%opts);
+getopts('cdfFG:g:h:J:lL:mwvx:', \%opts);
 
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w ] filename [ filename2 ]\n" unless($ARGV[0]);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w ] [ -x current_people.xml ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 use	constant	MAX_INDEX => 0;	# Debugging, set this to the number of records to print.
 						# Set to 0 to run on the entire database
@@ -549,6 +552,9 @@ memoize('date_to_datetime');
 
 open(my $xml, '>', 'dynamic-site/databases/people.xml');
 print $xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>";
+my $string = XML::Dumper->new()->pl2xml(\%opts);
+$string =~ s/perldata/opts/g;
+print $xml "\t$string";
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country!warnings\n";
 
