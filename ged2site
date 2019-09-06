@@ -578,6 +578,7 @@ if($current_people) {
 	if(!$ok) {
 		die "Runtime options aren't the same as given in $current_people\n";
 	}
+	$current_people = $xml;
 }
 
 open(my $xml, '>', 'dynamic-site/databases/people.xml');
@@ -1231,6 +1232,17 @@ sub print_person
 	# Gather the information on this person
 	my $person = $params{'person'};
 
+	# Find this person's previous record to put changes into the blog
+	my $previous_entry;
+	if($current_people) {
+		foreach my $p($current_people->root()->children('person')) {
+			my $entry = $p->first_child('entry');
+			if($entry->first_child()->pcdata() eq $person->{'xref'}) {
+				$previous_entry = $p;
+				last;
+			}
+		}
+	}
 	$fetcher = Data::Fetch->new();	# Throw away old values from the cache
 
 	my $dob = get_value({ person => $person, value => 'birth date' });
@@ -1424,7 +1436,7 @@ sub print_person
 		print $html '</head>',
 			"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
 		close $html;
-		print $xml "\n\t<home>1</home>";
+		print $xml "\n\t\t<home>1</home>";
 		print $csv '1!';
 	} else {
 		print $csv '0!';
