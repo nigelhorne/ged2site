@@ -34,7 +34,7 @@ BEGIN {
 		system('cpan -i Gedcom Genealogy::Gedcom::Date Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare');
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
-		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime::Format::Natural');
+		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
 		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Data::Fetch HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig');
 	}
 }
@@ -60,6 +60,7 @@ use Lingua::EN::Inflect;
 # use Lingua::EN::AddressParse;
 use Geo::StreetAddress::US;
 use Locale::US;
+use DateTime;
 use DateTime::Format::Natural;
 use DateTime::Format::Genealogy;
 use Genealogy::Gedcom::Date;
@@ -138,6 +139,7 @@ my %all_locations;
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
+my %changes;	# If the -x option is given, tracks changes between the previous run and this run
 my $facts;
 my $pi = atan2(1,1) * 4;
 
@@ -553,7 +555,7 @@ memoize('date_to_datetime');
 
 my $key = delete $opts{'g'};	# Ensure it's not stored in the XML file
 
-my $current_people = $opts{'x'};
+my $current_people = delete $opts{'x'};
 if($current_people) {
 	# Creating a changelog only works if the many of the options are the same
 	my $xml = XML::Twig->new();
@@ -582,7 +584,7 @@ if($current_people) {
 }
 
 open(my $xml, '>', 'dynamic-site/databases/people.xml');
-print $xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>";
+print $xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>\n";
 my $string = XML::Dumper->new()->pl2xml(\%opts);
 $string =~ s/perldata/opts/g;
 print $xml "\t$string";
@@ -870,6 +872,7 @@ if(scalar(%all_locations)) {
 	print $locations_xml "\t</maps>\n\t<body>$body</body>\n</locations>\n";
 	close $locations_xml;
 }
+
 if(scalar(%military)) {
 	print "Creating military records\n";
 	open($csv, '>', 'dynamic-site/databases/military.csv');
@@ -883,6 +886,28 @@ if(scalar(%military)) {
 		}
 	}
 	close $csv;
+}
+
+if(scalar(%changes)) {
+	print "Adding to change blog\n";
+	open(my $log, '>>', 'change.log');
+
+	my $added_date;
+	foreach my $person(@{$changes{'added_people'}}) {
+		if(!$added_date) {
+			print $log DateTime->now(time_zone => 'local')->ymd(''), "\n", '=' x 8, "\n";
+			$added_date = 1;
+		}
+		print $log, 'Added ',
+			$person->as_string({
+				include_years => 1,
+				nee => 1,
+				middle_names => 1,
+				title => 1,
+			}), "\n";
+	}
+
+	close $log;
 }
 
 if(scalar(%twins)) {
@@ -1233,16 +1258,23 @@ sub print_person
 	my $person = $params{'person'};
 
 	# Find this person's previous record to put changes into the blog
-	my $previous_entry;
+	my $person_in_last_run;
 	if($current_people) {
 		foreach my $p($current_people->root()->children('person')) {
 			my $entry = $p->first_child('entry');
 			if($entry->first_child()->pcdata() eq $person->{'xref'}) {
-				$previous_entry = $p;
+				$person_in_last_run = $p;
 				last;
 			}
 		}
 	}
+
+	if(defined($person_in_last_run)) {
+		push @{$changes{'existing_people'}}, $person;
+	} else {
+		push @{$changes{'added_people'}}, $person;
+	}
+
 	$fetcher = Data::Fetch->new();	# Throw away old values from the cache
 
 	my $dob = get_value({ person => $person, value => 'birth date' });
@@ -4569,6 +4601,7 @@ sub print_person
 		$bio =~ s/&amp;#/&#/g;
 		$bio =~ s/</&lt;/g;
 		$bio =~ s/>/&gt;/g;
+		$bio =~ s/\xf1/&241;/g;	# ntilde
 		print $xml $bio;
 	}
 	print $csv '!';
@@ -5830,13 +5863,13 @@ sub print_person
 			print $html HTML::Entities::encode($issue);
 			$issue =~ s/^<p>//;
 			$issue =~ s/<\/p>$//;
+			$issue =~ s/&eacute;/&#233;/g;
 			print $xml "\n\t\t\t<issue>",
 				HTML::Entities::encode($issue),
 				'</issue>';
 		}
 		print $xml "\n\t\t</issues>";
 	}
-
 	print $html '</body></html>';
 	close $html;
 
