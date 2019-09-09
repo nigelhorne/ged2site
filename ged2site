@@ -3927,6 +3927,7 @@ sub print_person
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
 				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
 					Lingua::EN::Inflect::WORDLIST(@residencestringarray) . '. ';
+				$bio =~ s/,\. $/. /;
 
 				$end_of_sentence = 1;
 			}
@@ -4600,7 +4601,7 @@ sub print_person
 		$bio =~ s/</&lt;/g;
 		$bio =~ s/>/&gt;/g;
 		$bio =~ s/&eacute;/&#233;/g;
-		$bio =~ s/\xb1\xc3/&#241;/g;	# ntilde
+		$bio =~ s/\xc3\xb1/&#241;/g;	# ntilde
 		print $xml $bio;
 	}
 	print $csv '!';
