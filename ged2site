@@ -893,7 +893,7 @@ if(scalar(%changes)) {
 	open(my $log, '>>', 'change.log');
 
 	my $added_date;
-	foreach my $person(@{$changes{'added_people'}}) {
+	while(my $person = shift(@{$changes{'added_people'}})) {
 		if(!$added_date) {
 			print $log DateTime->now(time_zone => 'local')->ymd(''), "\n", '=' x 8, "\n";
 			$added_date = 1;
@@ -903,8 +903,24 @@ if(scalar(%changes)) {
 				include_years => 1,
 				nee => 1,
 				middle_names => 1,
-				title => 1,
-			}), "\n";
+				title => 1
+			}),
+			"\n";
+	}
+	while(my $change = shift(@{$changes{'changes'}})) {
+		if(!$added_date) {
+			print $log DateTime->now(time_zone => 'local')->ymd(''), "\n", '=' x 8, "\n";
+			$added_date = 1;
+		}
+		print $log $change->person()->as_string({
+				include_years => 1,
+				nee => 1,
+				middle_names => 1,
+				title => 1
+			}),
+			': ',
+			$change->change(),
+			"\n";
 	}
 
 	close $log;
@@ -1256,24 +1272,6 @@ sub print_person
 
 	# Gather the information on this person
 	my $person = $params{'person'};
-
-	# Find this person's previous record to put changes into the blog
-	my $person_in_last_run;
-	if($current_people) {
-		foreach my $p($current_people->root()->children('person')) {
-			my $entry = $p->first_child('entry');
-			if($entry->first_child()->pcdata() eq $person->{'xref'}) {
-				$person_in_last_run = $p;
-				last;
-			}
-		}
-	}
-
-	if(defined($person_in_last_run)) {
-		push @{$changes{'existing_people'}}, $person;
-	} else {
-		push @{$changes{'added_people'}}, $person;
-	}
 
 	$fetcher = Data::Fetch->new();	# Throw away old values from the cache
 
@@ -5874,6 +5872,56 @@ sub print_person
 	close $html;
 
 	$printed{$person->{'xref'}} = 1;
+
+	# Find this person's previous record to put changes into the blog
+	my $person_in_last_run;
+	my $birth_in_last_run;
+	my $death_in_last_run;
+	if($current_people) {
+		foreach my $p($current_people->root()->children('person')) {
+			my $entry = $p->first_child('entry');
+			if($entry->first_child()->pcdata() eq $person->{'xref'}) {
+				$person_in_last_run = $p;
+				if($birth_in_last_run = $p->first_child('birth')) {
+					$birth_in_last_run = $birth_in_last_run->first_child()->pcdata();
+				}
+				if($death_in_last_run = $p->first_child('death')) {
+					$death_in_last_run = $death_in_last_run->first_child()->pcdata();
+				}
+				last;
+			}
+		}
+	}
+
+	if(defined($person_in_last_run)) {
+		my $changes;
+		if($birth_dt) {
+			my $b = $birth_dt->strftime('%Y/%m/%d');
+			if($birth_in_last_run) {
+				if($b ne $birth_in_last_run) {
+					$changes = "Changed date of birth from $birth_in_last_run to $b";
+				}
+			} else {
+				$changes = "Added date of birth as $b";
+			}
+		}
+		if($death_dt) {
+			my $d = $death_dt->strftime('%Y/%m/%d');
+			if($death_in_last_run) {
+				if($d ne $death_in_last_run) {
+					$changes = "Changed date of death from $death_in_last_run to $d";
+				}
+			} else {
+				$changes = "Added date of death as $d";
+			}
+		}
+		my $p = Class::Simple->new();
+		$p->person($person);
+		$p->changes($changes);
+		push @{$changes{'changes'}}, $p;
+	} else {
+		push @{$changes{'added_people'}}, $person;
+	}
 
 	print "Done\n" if($opts{'v'});
 }
