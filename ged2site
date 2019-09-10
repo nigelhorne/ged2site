@@ -5783,9 +5783,8 @@ sub print_person
 				if(my $rdate = $residence->date()) {
 					print $xml "\n\t\t\t\t<date>$rdate</date>";
 				}
-				if(my $rplace = place({ person => $person, record => $residence })) {
-					$rplace =~ s/^\sat\s//;
-					$rplace =~ s/^\sin\s//;
+				if(my $rplace = place({ person => $person, record => $residence, nopreposition => 1, encode => 0 })) {
+					$rplace =~ s/^\s+//;
 					print $xml "\n\t\t\t\t<location>$rplace</location>";
 				}
 				print $xml "\n\t\t\t</residence>";
@@ -6799,7 +6798,13 @@ sub place {
 		}
 		$places_printed->{$place} = 1;
 	}
-	return HTML::Entities::encode($place);
+	if(!defined($params{'encode'})) {
+		$params{'encode'} = 1;
+	}
+	if($params{'encode'}) {
+		return HTML::Entities::encode($place);
+	}
+	return $place;
 }
 
 sub getaddress {
