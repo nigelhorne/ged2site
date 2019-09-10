@@ -5785,6 +5785,8 @@ sub print_person
 				}
 				if(my $rplace = place({ person => $person, record => $residence, nopreposition => 1, encode => 0 })) {
 					$rplace =~ s/^\s+//;
+					$rplace =~ s/\xc3\xb1/&#241;/g;	# ntilde
+					$rplace =~ s/\s&\s/ &amp; /g;
 					print $xml "\n\t\t\t\t<location>$rplace</location>";
 				}
 				print $xml "\n\t\t\t</residence>";
