@@ -896,22 +896,12 @@ if(scalar(%changes)) {
 	my $date = DateTime->now(time_zone => 'local')->ymd('');
 	while(my $person = shift(@{$changes{'added_people'}})) {
 		print $log "$date|",
-			$person->as_string({
-				include_years => 1,
-				nee => 1,
-				middle_names => 1,
-				title => 1
-			}),
+			$person->{'xref'},
 			"|Added new person\n";
 	}
 	while(my $change = shift(@{$changes{'changes'}})) {
 		print $log "$date|",
-			$change->person()->as_string({
-				include_years => 1,
-				nee => 1,
-				middle_names => 1,
-				title => 1
-			}),
+			$change->person()->{'xref'},
 			'|',
 			$change->change(),
 			"\n";
