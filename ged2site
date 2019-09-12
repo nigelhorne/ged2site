@@ -1607,9 +1607,7 @@ sub print_person
 					# $src = $ged->get_source($src) unless ref($src);
 					$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
 					if(defined($src) && (my $title = $src->title())) {
-						if($previous && ($title eq $previous)) {
-							next;
-						}
+						next if($previous && ($title eq $previous))
 						$previous = $title;
 						push @birthcitations, ++$citationcount;
 						$citations{$citationcount} = $src;
@@ -5880,31 +5878,33 @@ sub print_person
 	}
 
 	if(defined($person_in_last_run)) {
-		my $changes;
+		my $change;
 		if($birth_dt) {
 			my $b = $birth_dt->strftime('%Y/%m/%d');
 			if($birth_in_last_run) {
 				if($b ne $birth_in_last_run) {
-					$changes = "Changed date of birth from $birth_in_last_run to $b";
+					$change = "Changed date of birth from $birth_in_last_run to $b";
 				}
 			} else {
-				$changes = "Added date of birth as $b";
+				$change = "Added date of birth as $b";
 			}
 		}
 		if($death_dt) {
 			my $d = $death_dt->strftime('%Y/%m/%d');
 			if($death_in_last_run) {
 				if($d ne $death_in_last_run) {
-					$changes = "Changed date of death from $death_in_last_run to $d";
+					$change = "Changed date of death from $death_in_last_run to $d";
 				}
 			} else {
-				$changes = "Added date of death as $d";
+				$change = "Added date of death as $d";
 			}
 		}
-		my $p = Class::Simple->new();
-		$p->person($person);
-		$p->changes($changes);
-		push @{$changes{'changes'}}, $p;
+		if($change) {
+			my $p = Class::Simple->new();
+			$p->person($person);
+			$p->change($change);
+			push @{$changes{'changes'}}, $p;
+		}
 	} else {
 		push @{$changes{'added_people'}}, $person;
 	}
