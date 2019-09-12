@@ -1607,7 +1607,7 @@ sub print_person
 					# $src = $ged->get_source($src) unless ref($src);
 					$src = get_source({ gedcom => $ged, person => $person, source => $src}) unless ref($src);
 					if(defined($src) && (my $title = $src->title())) {
-						next if($previous && ($title eq $previous))
+						next if($previous && ($title eq $previous));
 						$previous = $title;
 						push @birthcitations, ++$citationcount;
 						$citations{$citationcount} = $src;
@@ -5877,36 +5877,39 @@ sub print_person
 		}
 	}
 
-	if(defined($person_in_last_run)) {
-		my $change;
-		if($birth_dt) {
-			my $b = $birth_dt->strftime('%Y/%m/%d');
-			if($birth_in_last_run) {
-				if($b ne $birth_in_last_run) {
-					$change = "Changed date of birth from $birth_in_last_run to $b";
+	# Add entries to the changes.psv file
+	if($opts{'l'} || !$is_alive) {
+		if(defined($person_in_last_run)) {
+			my $change;
+			if($birth_dt) {
+				my $b = $birth_dt->strftime('%Y/%m/%d');
+				if($birth_in_last_run) {
+					if($b ne $birth_in_last_run) {
+						$change = "Changed date of birth from $birth_in_last_run to $b";
+					}
+				} else {
+					$change = "Added date of birth as $b";
 				}
-			} else {
-				$change = "Added date of birth as $b";
 			}
-		}
-		if($death_dt) {
-			my $d = $death_dt->strftime('%Y/%m/%d');
-			if($death_in_last_run) {
-				if($d ne $death_in_last_run) {
-					$change = "Changed date of death from $death_in_last_run to $d";
+			if($death_dt) {
+				my $d = $death_dt->strftime('%Y/%m/%d');
+				if($death_in_last_run) {
+					if($d ne $death_in_last_run) {
+						$change = "Changed date of death from $death_in_last_run to $d";
+					}
+				} else {
+					$change = "Added date of death as $d";
 				}
-			} else {
-				$change = "Added date of death as $d";
 			}
+			if($change) {
+				my $p = Class::Simple->new();
+				$p->person($person);
+				$p->change($change);
+				push @{$changes{'changes'}}, $p;
+			}
+		} else {
+			push @{$changes{'added_people'}}, $person;
 		}
-		if($change) {
-			my $p = Class::Simple->new();
-			$p->person($person);
-			$p->change($change);
-			push @{$changes{'changes'}}, $p;
-		}
-	} else {
-		push @{$changes{'added_people'}}, $person;
 	}
 
 	print "Done\n" if($opts{'v'});
