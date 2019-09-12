@@ -2,6 +2,8 @@ package Ged2site::Display::facts;
 
 # Display the facts page
 
+use warnings;
+use strict;
 use Ged2site::Display;
 use File::Spec;
 use JSON;

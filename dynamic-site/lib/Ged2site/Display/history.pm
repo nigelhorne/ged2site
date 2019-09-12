@@ -2,6 +2,8 @@ package Ged2site::Display::history;
 
 # Display the history page
 
+use warnings;
+use strict;
 use Ged2site::Display;
 
 our @ISA = ('Ged2site::Display');

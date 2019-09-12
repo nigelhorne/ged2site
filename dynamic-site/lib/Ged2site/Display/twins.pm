@@ -1,5 +1,4 @@
 package Ged2site::Display::twins;
-;
 
 # Display the list of twins
 

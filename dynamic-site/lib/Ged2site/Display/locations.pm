@@ -2,6 +2,8 @@ package Ged2site::Display::locations;
 
 # Display the locations page
 
+use warnings;
+use strict;
 use Ged2site::Display;
 
 our @ISA = ('Ged2site::Display');
