@@ -3908,7 +3908,7 @@ sub print_person
 
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
 				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
-					Lingua::EN::Inflect::WORDLIST(@residencestringarray) . '. ';
+					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; '}) . '. ';
 				$bio =~ s/,\. $/. /;
 
 				$end_of_sentence = 1;
