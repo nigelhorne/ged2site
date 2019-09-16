@@ -891,20 +891,20 @@ if(scalar(%military)) {
 
 if(scalar(%changes)) {
 	print "Adding to change blog\n";
-	open(my $log, '>>', 'change.psv');
+	open(my $log, '>>', 'changes.psv');
 
 	my $date = DateTime->now(time_zone => 'local')->ymd('');
 	while(my $person = shift(@{$changes{'added_people'}})) {
-		print $log "$date|",
+		print $log "$date|\"",
 			$person->{'xref'},
-			"|Added new person\n";
+			"\"|\"Added new person\"\n";
 	}
 	while(my $change = shift(@{$changes{'changes'}})) {
-		print $log "$date|",
+		print $log "$date|\"",
 			$change->person()->{'xref'},
-			'|',
+			'"|"',
 			$change->change(),
-			"\n";
+			"\"\n";
 	}
 
 	close $log;
