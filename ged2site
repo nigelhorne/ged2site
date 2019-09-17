@@ -448,6 +448,12 @@ if($opts{'F'}) {
 	}
 }
 
+for my $dir('dynamic-site/databases', 'dynamic-site/img', 'static-site') {
+	if(-d $dir) {
+		File::Path::rmtree($dir);
+	}
+}
+
 my @dirlist = ('static-site', 'dynamic-site/databases');
 if($dot || $opts{'d'}) {
 	push @dirlist, 'static-site/img';
@@ -891,6 +897,10 @@ if(scalar(%military)) {
 
 if(scalar(%changes)) {
 	print "Adding to change blog\n";
+
+	# Keep a copy in the current directory so that it's not trashed
+	# when the databases directory is cleared
+
 	open(my $log, '>>', 'changes.psv');
 
 	my $date = DateTime->now(time_zone => 'local')->ymd('');
@@ -908,7 +918,7 @@ if(scalar(%changes)) {
 	}
 
 	close $log;
-	# TODO: copy changes.psv to dynamic-site/databases/changes.psv
+	copy('changes.psv', 'dynamic-site/databases/changes.psv');
 }
 
 if(scalar(%twins)) {
