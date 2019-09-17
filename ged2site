@@ -908,6 +908,7 @@ if(scalar(%changes)) {
 	}
 
 	close $log;
+	# TODO: copy changes.psv to dynamic-site/databases/changes.psv
 }
 
 if(scalar(%twins)) {
