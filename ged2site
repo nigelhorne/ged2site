@@ -763,8 +763,8 @@ if(scalar(%censuses)) {
 	print $html "<html><head><title>Censuses in the Family Tree $name</title>",
 		"</head><body><center><h1>Censuses in the Family Tree $name</h1></center><br><ul>";
 
-	open($csv, '>', 'dynamic-site/databases/censuses.csv');
-	print $csv "entry!census!person\n";
+	open($csv, '>', 'dynamic-site/databases/censuses.psv');
+	print $csv "entry|census|person\n";
 
 	$index = 1;
 	foreach my $census(sort keys(%censuses)) {
@@ -795,7 +795,7 @@ if(scalar(%censuses)) {
 				'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
 				$name,
 				'</a></li>';
-			print $csv "$index!$census!", $censuses{$census}->{$name}->{'xref'}, "\n";
+			print $csv "$index|\"$census\"|", $censuses{$census}->{$name}->{'xref'}, "\n";
 			$index++;
 		}
 
@@ -3466,7 +3466,7 @@ sub print_person
 									}
 								}
 							}
-							if($father && !$found_parent) {
+							if($father && ($opts{'w'} || !$found_parent)) {
 								foreach my $f_residence(get_all_residences($father)) {
 									my $date = $f_residence->date();
 									if(defined($date) && ($date =~ /(\d{3,4})$/)) {
