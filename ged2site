@@ -35,7 +35,7 @@ BEGIN {
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
-		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Data::Fetch HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple');
+		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Class::Simpled::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple');
 	}
 }
 
@@ -104,9 +104,9 @@ use Text::Names;
 use Text::Names::GB;
 use MIME::Base64;
 use Text::Names;
-use Memoize;
+# use Memoize;
 use File::Copy;
-use Data::Fetch;
+use Class::Simple::Cached;
 use Config::Auto;
 use Locale::Object::Country;
 use List::Util;
@@ -165,10 +165,7 @@ my %location_mappings = (
 
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
-my $ged2;
-if($ARGV[1]) {
-	$ged2 = Gedcom->new(gedcom_file => $ARGV[1], read_only => 1);
-}
+$ged = Class::Simple::Cached->new(object => $ged, cache => CHI->new(driver => 'RawMemory', datastore => {}));
 my $dfn = DateTime::Format::Natural->new();
 my $dfg = DateTime::Format::Genealogy->new();
 my $date_parser = Genealogy::Gedcom::Date->new();
@@ -555,10 +552,10 @@ if($opts{'w'}) {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
 
-memoize('Gedcom::Individual::as_string');
-memoize('stepsabove');
-memoize('normalize_name');
-memoize('date_to_datetime');
+# memoize('Gedcom::Individual::as_string');
+# memoize('stepsabove');
+# memoize('normalize_name');
+# memoize('date_to_datetime');
 
 my $key = delete $opts{'g'};	# Ensure it's not stored in the XML file
 
@@ -1165,6 +1162,8 @@ if($opts{'w'}) {
 	close $html;
 }
 
+$ged = undef;
+
 if($gedcal) {
 	print "Creating calendar\n";
 	if(open(my $fout, '>', 'static-site/calendar/index.html')) {
@@ -1268,7 +1267,7 @@ sub print_person
 	# Gather the information on this person
 	my $person = $params{'person'};
 
-	$fetcher = Data::Fetch->new();	# Throw away old values from the cache
+	# $fetcher = Data::Fetch->new();	# Throw away old values from the cache
 
 	my $dob = get_value({ person => $person, value => 'birth date' });
 
@@ -1389,14 +1388,6 @@ sub print_person
 	my $yod;	# Year of death
 	if($dateofdeath && ($dateofdeath =~ /.*?(\d{3,4})/)) {
 		$yod = $1;
-	}
-
-	my $person2;
-	if($ged2) {
-		$person2 = $ged2->get_individual($person->as_string());
-		if($opts{'w'} && !defined($person2)) {
-			complain({ person => $person, warning => "not found in $ARGV[1]" });
-		}
 	}
 
 	my $name = $person->name();
@@ -1912,8 +1903,8 @@ sub print_person
 		}
 	}
 
-	my $pronoun = $fetcher->get(object => $person, message => 'pronoun');
-	my $sex = $fetcher->get(object => $person, message => 'sex');
+	my $pronoun = $person->pronoun();
+	my $sex = $person->sex();
 
 	$facts->{'count'}++;
 	$facts->{'sex'}->{$sex}++;
@@ -3305,8 +3296,8 @@ sub print_person
 			my $count = 0;
 			my $prev_residence;
 			my $spdeath_dt;
-			if($spouses[0]) {
-				$spdeath_dt = date_to_datetime(date => get_value({ person => $spouses[0], value => 'death date' }));
+			if($spouses[0] && ($spdeath_dt = get_value({ person => $spouses[0], value => 'death date' }))) {
+				$spdeath_dt = date_to_datetime(date => $spdeath_dt);
 			}
 			my $print_year_only;	# used when printing a range, e.g. 1871-1891
 			my $printed_following_message;
@@ -3428,28 +3419,30 @@ sub print_person
 							}
 						}
 						# Check if spouse listed at all residences when we only know the year
-						my $spyod = get_value({ person => $spouses[0], value => 'death date' }) || ($yoe + 1);
-						if($spyod =~ /(\d{3,4})$/) {
-							$spyod = $1;
-						}
-						if(defined($dateofmarriage) &&
-						   ($dateofmarriage =~ /(\d{3,4})$/) &&
-						   (my $spouse = $spouses[0]) &&
-						   ($yoe < $spyod)) {
-							my $yom = $1;
-							if($yom < $yoe) {
-								my $found_spouse;
-								foreach my $residence(get_all_residences($spouse)) {
-									my $date = $residence->date();
-									if(defined($date) && ($date =~ /(\d{3,4})$/)) {
-										if($1 == $yoe) {
-											$found_spouse = $residence;
-											last;
+						if($spouses[0]) {
+							my $spyod = get_value({ person => $spouses[0], value => 'death date' }) || ($yoe + 1);
+							if($spyod =~ /(\d{3,4})$/) {
+								$spyod = $1;
+							}
+							if(defined($dateofmarriage) &&
+							   ($dateofmarriage =~ /(\d{3,4})$/) &&
+							   (my $spouse = $spouses[0]) &&
+							   ($yoe < $spyod)) {
+								my $yom = $1;
+								if($yom < $yoe) {
+									my $found_spouse;
+									foreach my $residence(get_all_residences($spouse)) {
+										my $date = $residence->date();
+										if(defined($date) && ($date =~ /(\d{3,4})$/)) {
+											if($1 == $yoe) {
+												$found_spouse = $residence;
+												last;
+											}
 										}
 									}
-								}
-								if(!$found_spouse) {
-									complain({ person => $person, warning => ["Listed in the residence for $rdate, but spouse ", $spouse->as_string(), ' is not'] });
+									if(!$found_spouse) {
+										complain({ person => $person, warning => ["Listed in the residence for $rdate, but spouse ", $spouse->as_string(), ' is not'] });
+									}
 								}
 							}
 						}
@@ -7329,7 +7322,7 @@ sub red_warning
 		die "What do you want to say?" unless($params{'warning'});
 
 		my $warning = HTML::Entities::decode($params{'warning'});
-		my @call_details = caller(0);
+		my @call_details = caller($params{'caller'} || 0);
 		if($params{'person'}) {
 			warn colored(['red'], $params{'person'}->as_string(middle_names => 1), ": $warning at line ", $call_details[2]);
 			push @{$params{'person'}->{'warnings'}}, $warning;
@@ -7350,16 +7343,24 @@ sub get_value
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	if($fetcher) {
-		my $args = {
-			object => $params{'person'},
-			message => 'get_value',
-			arg => $params{'value'}
-		};
+	# if($fetcher) {
+		# my $args = {
+			# object => $params{'person'},
+			# message => 'get_value',
+			# arg => $params{'value'}
+		# };
 
-		# Doesn't use the prefetching feature, but will automatically cache which is nice
-		# $fetcher->prime($args);
-		return $fetcher->get($args);
+		# # Doesn't use the prefetching feature, but will automatically cache which is nice
+		# # $fetcher->prime($args);
+		# return $fetcher->get($args);
+	# }
+	my $person = $params{'person'};
+	if(!defined($person)) {
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'BUG: person argument is mandatory';
 	}
 	return $params{'person'}->get_value($params{'value'});
 }
@@ -7368,15 +7369,16 @@ sub get_source
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $args = {
-		object => $params{'gedcom'},
-		message => 'get_source',
-		arg => $params{'source'}
-	};
+	# my $args = {
+		# object => $params{'gedcom'},
+		# message => 'get_source',
+		# arg => $params{'source'}
+	# };
 
-	# Doesn't use the prefetching feature, but will automatically cache which is nice
-	# $fetcher->prime($args);
-	return $fetcher->get($args);
+	# # Doesn't use the prefetching feature, but will automatically cache which is nice
+	# # $fetcher->prime($args);
+	# return $fetcher->get($args);
+	return $params{'gedcom'}->get_source($params{'source'});
 }
 
 # Inspired by Tree::Family.  That module doesn't quite do what I want, so
