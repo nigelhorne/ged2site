@@ -2623,6 +2623,10 @@ sub print_person
 			$bio .= '<p>' . ucfirst($pronoun) if($end_of_sentence);
 
 			if(scalar(@spouses) == 1) {
+				my @residences = get_all_residences($person);
+				if((!$end_of_sentence) && (scalar(@residences) > 0)) {
+					$bio .= ' and';
+				}
 				if($placeofmarriage || $dateofmarriage) {
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism)) {
 						$bio .= ' also';
