@@ -4113,12 +4113,12 @@ sub print_person
 
 		# Print notes about the death, if any
 		$end_of_sentence = 0;
-		if(defined($death) && (my $d = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
-			$d =~ tr/\r//;
-			$d =~ s/\.$//;
-			$d = lcfirst($d) unless($d =~ /^[A-Z]{2}/);
-			$bio .= " ($d)";
-			if(length($d) > 160) {
+		if(defined($death) && (my $dn = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
+			$dn =~ tr/\r//;
+			$dn =~ s/\.$//;
+			$dn = lcfirst($dn) unless($dn =~ /^[A-Z]{2}/);
+			$bio .= " ($dn)";
+			if(length($dn) > 160) {
 				$bio .= ".</p><p>";
 			}
 		}
@@ -6827,6 +6827,7 @@ sub getaddress {
 	return $rc;
 }
 
+# paragraph => 1: ignore spacing and put it all into one paragraph
 sub notes
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
