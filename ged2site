@@ -914,7 +914,7 @@ if(scalar(%changes)) {
 			"\"\n";
 	}
 
-	close $log;
+	close($log);
 	copy('changes.psv', 'dynamic-site/databases/changes.psv');
 }
 
@@ -5868,6 +5868,7 @@ sub print_person
 	# Find this person's previous record to put changes into the blog
 	my $person_in_last_run;
 	my $birth_in_last_run;
+	my $marriage_in_last_run;
 	my $death_in_last_run;
 	if($current_people) {
 		foreach my $p($current_people->root()->children('person')) {
@@ -5875,6 +5876,9 @@ sub print_person
 			if($entry->first_child()->pcdata() eq $person->{'xref'}) {
 				$person_in_last_run = $p;
 				if($birth_in_last_run = $p->first_child('birth')) {
+					$birth_in_last_run = $birth_in_last_run->first_child()->pcdata();
+				}
+				if($birth_in_last_run = $p->first_child('marriage')) {
 					$birth_in_last_run = $birth_in_last_run->first_child()->pcdata();
 				}
 				if($death_in_last_run = $p->first_child('death')) {
@@ -5897,6 +5901,16 @@ sub print_person
 					}
 				} else {
 					$change = "Added date of birth as $b";
+				}
+			}
+			if($marriage_dt) {
+				my $m = $marriage_dt->strftime('%Y/%m/%d');
+				if($marriage_in_last_run) {
+					if($m ne $marriage_in_last_run) {
+						$change = "Changed date of marriage from $marriage_in_last_run to $m";
+					}
+				} else {
+					$change = "Added date of marriage as $m";
 				}
 			}
 			if($death_dt) {
