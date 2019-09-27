@@ -106,8 +106,8 @@ use MIME::Base64;
 use Text::Names;
 # use Memoize;
 use File::Copy;
-use Class::Simple::Cached;
-use Class::Simple::Readonly::Cached;
+use Class::Simple::Cached 0.03;
+use Class::Simple::Readonly::Cached 0.02;
 use Config::Auto;
 use Locale::Object::Country;
 use List::Util;
@@ -517,7 +517,7 @@ if($opts{'d'} || $opts{'m'}) {
 }
 
 # my @everyone = $ged->individuals();
-my @everyone = map { Class::Simple::Readonly::Cached->new(object => $_, cache => CHI->new(driver => 'RawMemory', datastore => {})) } $ged->individuals();
+my @everyone = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } $ged->individuals();
 my $total = scalar(@everyone);
 if($total == 0) {
 	die "$0: gedcom file is empty";
