@@ -6212,8 +6212,8 @@ sub Gedcom::Individual::relationship_up
 	}
 
 	foreach my $person1(@ancestors) {
-		die $person1->as_string() if($person1 eq $self);
-		if($person1 eq $other) {
+		die $person1->as_string() if($person1->object() eq $self);
+		if($person1 eq $other->object()) {
 			# Direct ancestor
 			my $steps = stepsabove($self, $other, 0);
 			my $title = ($sex eq 'M') ? 'father' : 'mother';
