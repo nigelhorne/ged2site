@@ -5655,7 +5655,7 @@ sub print_person
 		} elsif(($c eq 'Nova Scotia') || (uc($c) eq 'NFLD') || ($c eq 'Newfoundland') || ($c eq 'NS')) {
 			$birth_country = 'Canada';
 			complain({ person => $person, warning => 'Assuming country of birth is Canada' });
-		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex')) {
+		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland')) {
 			$birth_country = 'United Kingdom';
 			complain({ person => $person, warning => 'Assuming country of birth is UK' });
 		} elsif($c =~ 'England,?\sUK') {
