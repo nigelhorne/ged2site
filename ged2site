@@ -7395,6 +7395,12 @@ sub get_source
 	# # Doesn't use the prefetching feature, but will automatically cache which is nice
 	# # $fetcher->prime($args);
 	# return $fetcher->get($args);
+	if(ref($params{'source'})) {
+		if($params{'source'}->title()) {
+			return $params{'source'};
+		}
+		return;
+	}
 	return $params{'gedcom'}->get_source($params{'source'});
 }
 
