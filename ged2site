@@ -674,7 +674,7 @@ foreach my $person(@everyone) {
 		$pr->write();
 		$| = 0;
 	}
-	if(!$printed{$person->{'xref'}}) {
+	if(!$printed{$person->xref()}) {
 		# FIXME: change &eacute; to e
 		print $xml "\n\t<person person_id=\"$index\">";
 		print_person({ person => $person });
@@ -800,7 +800,7 @@ if(scalar(%censuses)) {
 				'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
 				$name,
 				'</a></li>';
-			print $csv "$index|\"$census\"|", $censuses{$census}->{$name}->{'xref'}, "\n";
+			print $csv "$index|\"$census\"|", $censuses{$census}->{$name}->xref(), "\n";
 			$index++;
 		}
 
@@ -860,7 +860,7 @@ if(scalar(%all_locations)) {
 					$html .= "$date: ";
 					$previous_date = $date;
 				}
-				$html .= '<a href="?page=people&amp;entry=' . $person->{'xref'} . '">' . $person->as_string() . '</a>';
+				$html .= '<a href="?page=people&amp;entry=' . $person->xref() . '">' . $person->as_string() . '</a>';
 			}
 			add_marker(map => $map, place => HTML::Entities::decode($place), annotation => $html);
 		}
@@ -905,12 +905,12 @@ if(scalar(%changes)) {
 	my $date = DateTime->now(time_zone => 'local')->ymd('');
 	while(my $person = shift(@{$changes{'added_people'}})) {
 		print $log "$date|\"",
-			$person->{'xref'},
+			$person->xref(),
 			"\"|\"Added new person\"\n";
 	}
 	while(my $change = shift(@{$changes{'changes'}})) {
 		print $log "$date|\"",
-			$change->person()->{'xref'},
+			$change->person()->xref(),
 			'"|"',
 			$change->change(),
 			"\"\n";
@@ -988,7 +988,7 @@ foreach my $surname(sort keys %{$surnames}) {
 		print $shtml '<li>',
 			'<a href="', make_filename_from_person(person => $surnames->{$surname}->{$person}), "\">$person</a>",
 			'</li>';
-		print $csv "$index!$filename!", $surnames->{$surname}->{$person}->{'xref'}, "\n";
+		print $csv "$index!$filename!", $surnames->{$surname}->{$person}->xref(), "\n";
 		$index++;
 	}
 
@@ -1150,7 +1150,7 @@ if($opts{'w'}) {
 					$summary = $warning;
 				}
 				print $csv "$index!",
-					$person->{'xref'}, '!',
+					$person->xref(), '!',
 					$person->as_string(include_years => 1),
 					"!$summary!",
 					HTML::Entities::encode($warning),
@@ -1239,7 +1239,7 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 		print $csv "$index!$year!",
 			$date->month(), '!',
 			$date->day(), '!',
-			$person->{'xref'}, '!',
+			$person->xref(), '!',
 			"$string!",
 			$e->{'event'}, "\n";
 		$index++;
@@ -1409,7 +1409,7 @@ sub print_person
 
 	# Ensure last name isn't used if the first name isn't known
 	if($yob && $firstname && $person->given_names()) {
-		push @{$name_date{floor($yob / 25)}{$firstname}}, $person->{'xref'};
+		push @{$name_date{floor($yob / 25)}{$firstname}}, $person->xref();
 	}
 
 	my $is_alive = is_alive(person => $person);
@@ -1430,12 +1430,12 @@ sub print_person
 	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
 	my $xtitle = $title;
 	$xtitle =~ s/&eacute;/&#233;/g;
-	print $xml "\n\t\t<entry>", $person->{'xref'}, "</entry>\n\t\t<title>$xtitle</title>";
+	print $xml "\n\t\t<entry>", $person->xref(), "</entry>\n\t\t<title>$xtitle</title>";
 	if($is_alive && !$opts{'l'}) {
-		print $csv $person->{'xref'}, '!',
+		print $csv $person->xref(), '!',
 			$person->as_string({ middle_names => 1, title => 1 }), '!';
 	} else {
-		print $csv $person->{'xref'}, '!',
+		print $csv $person->xref(), '!',
 			$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
 	}
 
@@ -1742,11 +1742,11 @@ sub print_person
 		if(defined($facts->{'first_birth'})) {
 			if($birth_dt < $facts->{'first_birth'}->{'date'}) {
 				$facts->{'first_birth'}->{'date'} = $birth_dt;
-				$facts->{'first_birth'}->{'xref'} = $person->{'xref'};
+				$facts->{'first_birth'}->{'xref'} = $person->xref();
 			}
 		} else {
 			$facts->{'first_birth'}->{'date'} = $birth_dt;
-			$facts->{'first_birth'}->{'xref'} = $person->{'xref'};
+			$facts->{'first_birth'}->{'xref'} = $person->xref();
 		}
 
 		if($birth_dt && (my $spouse = $spouses[0])) {
@@ -1795,24 +1795,24 @@ sub print_person
 			# FIXME: add base_datetime argument
 			if(DateTime::Duration->compare($age_at_death, $facts->{'oldest_age'}->{'age'}) > 0) {
 				$facts->{'oldest_age'}->{'age'} = $age_at_death;
-				$facts->{'oldest_age'}->{'xref'} = $person->{'xref'};
+				$facts->{'oldest_age'}->{'xref'} = $person->xref();
 			}
 		} else {
 			$facts->{'oldest_age'}->{'age'} = $age_at_death;
-			$facts->{'oldest_age'}->{'xref'} = $person->{'xref'};
+			$facts->{'oldest_age'}->{'xref'} = $person->xref();
 		}
 	}
 
 	if($opts{'l'} || !$is_alive) {
 		# RT114091
 		if($birth_dt && ($birth_dt >= $year_1000)) {
-			$all_events{'B' . $person->{'xref'}} = { person => $person, event => 'Birth', date => $birth_dt };
+			$all_events{'B' . $person->xref()} = { person => $person, event => 'Birth', date => $birth_dt };
 		}
 		if($marriage_dt && ($marriage_dt >= $year_1000)) {
-			$all_events{'M' . $person->{'xref'}} = { person => $person, event => 'Marriage', date => $marriage_dt };
+			$all_events{'M' . $person->xref()} = { person => $person, event => 'Marriage', date => $marriage_dt };
 		}
 		if($death_dt && ($death_dt >= $year_1000)) {
-			$all_events{'D' . $person->{'xref'}} = { person => $person, event => 'Death', date => $death_dt };
+			$all_events{'D' . $person->xref()} = { person => $person, event => 'Death', date => $death_dt };
 		}
 	}
 
@@ -2049,7 +2049,7 @@ sub print_person
 							$d = $dfn->parse_datetime($d->{'canonical'});
 							if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
 								push @person_twins, $s;
-								$twins{$person->{'xref'}} = $s->{'xref'};
+								$twins{$person->xref()} = $s->xref();
 							}
 						}
 					}
@@ -2170,10 +2170,10 @@ sub print_person
 				print $html ' <a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
-				print $xml ' &lt;a href="?page=people&amp;entry=', $father->{'xref'}, '"&gt;'.
+				print $xml ' &lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;'.
 					$father->as_string(),
 					'$lt;/a$gt;';
-				print $csv ' <a href="?page=people&entry=', $father->{'xref'}, '">'.
+				print $csv ' <a href="?page=people&entry=', $father->xref(), '">'.
 					$father->as_string(),
 					'</a>';
 
@@ -2193,8 +2193,8 @@ sub print_person
 			if($mother) {
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
 					print $html ' <a href="', make_filename_from_person(person => $mother), "\">$m</a>";
-					print $csv ' <a href="?page=people&entry=', $mother->{'xref'}, "\">$m</a>";
-					print $xml ' &lt;a href="?page=people&amp;entry=', $mother->{'xref'}, "\"&gt;$m&lt;/a&gt;";
+					print $csv ' <a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
+					print $xml ' &lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
 				}
 
 				my @occupations = get_all_occupations($mother);
@@ -2219,10 +2219,10 @@ sub print_person
 				print $html ' <a href="', make_filename_from_person(person => $father), '">',
 					$father->given_names(),
 					'</a>';
-				print $csv ' <a href="?page=people&entry=', $father->{'xref'}, '">',
+				print $csv ' <a href="?page=people&entry=', $father->xref(), '">',
 					$father->given_names(),
 					'</a>';
-				print $xml ' &lt;a href="?page=people&amp;entry=', $father->{'xref'}, '"&gt;',
+				print $xml ' &lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					$father->given_names(),
 					'&lt;/a&gt;';
 				if($mother) {
@@ -2233,10 +2233,10 @@ sub print_person
 				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
-				print $csv ' <a href="?page=people&entry=', $mother->{'xref'}, '">',
+				print $csv ' <a href="?page=people&entry=', $mother->xref(), '">',
 					$mother->given_names(),
 					'</a>';
-				print $xml ' &lt;a href="?page=people&amp;entry=', $mother->{'xref'}, '"&gt;',
+				print $xml ' &lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
 					$mother->given_names(),
 					'&lt;/a&gt;';
 			}
@@ -2322,12 +2322,12 @@ sub print_person
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>';
-		print $csv ' <a href="?page=people&entry=', $spouse->{'xref'}, '">',
+		print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
 			"$s</a> the $spouserelationship of ",
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>';
-		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->{'xref'}, '"&gt;',
+		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 			"$s&lt;/a&gt; the $spouserelationship of ",
 			'&lt;a href="?page=people&amp;home=1"&gt;',
 			$me->as_string(nee => 1),
@@ -2514,7 +2514,7 @@ sub print_person
 								if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
 									push @person_twins, { sibling => $s, dob => $d };
 									if($opts{'l'} || !$is_alive) {
-										$twins{$person->{'xref'}} = $s->{'xref'};
+										$twins{$person->xref()} = $s->xref();
 									}
 								}
 							}
@@ -2652,20 +2652,20 @@ sub print_person
 						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->as_string(),
 							'</a>';
-						print $csv '<a href="?page=people&entry=', $spouses[0]->{'xref'}, '">',
+						print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
 							$spouses[0]->as_string(),
 							'</a>';
-						print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->{'xref'}, '"&gt;',
+						print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 							$spouses[0]->as_string(),
 							'&lt;/a&gt;';
 					} else {
 						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 							$spouses[0]->given_names(),
 							'</a>';
-						print $csv '<a href="?page=people&entry=', $spouses[0]->{'xref'}, '">',
+						print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
 							$spouses[0]->given_names(),
 							'</a>';
-						print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->{'xref'}, '"&gt;',
+						print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 							$spouses[0]->given_names(),
 							'&lt;/a&gt;';
 					}
@@ -2770,7 +2770,7 @@ sub print_person
 							# FIXME: breaks static HTML page, because of the print $bio
 							#	later on
 							$childnames = join(', ', map {
-								'<a href="?page=people&entry=' . $_->{'xref'} . '">'.
+								'<a href="?page=people&entry=' . $_->xref() . '">'.
 									$_->given_names() . '</a>'
 							} @childrenofthisspouse);
 							substr($childnames, rindex($childnames, ', '), 2, ' and ');
@@ -2873,10 +2873,10 @@ sub print_person
 				foreach my $spouse(@spouses) {
 					print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 						$spouse->as_string(), '</a>';
-					print $csv ' <a href="?page=people&entry=', $spouse->{'xref'}, '">',
+					print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
 						$spouse->as_string(),
 						'</a>';
-					print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->{'xref'}, '"&gt;',
+					print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 						$spouse->as_string(),
 						'&lt;/a&gt;';
 
@@ -5237,26 +5237,26 @@ sub print_person
 				print $fout '} ';
 
 				if($mother) {
-					print $fout $mother->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+					print $fout $mother->xref(), ' -> ', $person->xref(), ";\n";
 				}
 				if($father) {
-					print $fout $father->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+					print $fout $father->xref(), ' -> ', $person->xref(), ";\n";
 				}
 				if(scalar(@spouses) == 2) {
 					# Married twice, put the person in the middle,
 					# it looks better
-					# print $fout $person->{'xref'}, ' -> ', $spouses[0]->{'xref'}, " [dir=none];\n";
-					print $fout $spouses[0]->{'xref'}, ' -> ',
-						$person->{'xref'}, ' -> ',
-						$spouses[1]->{'xref'}, " [dir=none];\n";
+					# print $fout $person->xref(), ' -> ', $spouses[0]->xref(), " [dir=none];\n";
+					print $fout $spouses[0]->xref(), ' -> ',
+						$person->xref(), ' -> ',
+						$spouses[1]->xref(), " [dir=none];\n";
 				} else {
 					foreach my $spouse(@spouses) {
-						print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
-						# print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
+						print $fout $person->xref(), ' -> ', $spouse->xref(), " [dir=none];\n";
+						# print $fout $person->xref(), ' -> ', $spouse->xref(), " [dir=none];\n";
 					}
 				}
 				foreach my $child(@children) {
-					print $fout $person->{'xref'}, ' -> ', $child->{'xref'}, ";\n";
+					print $fout $person->xref(), ' -> ', $child->xref(), ";\n";
 				}
 
 				print $fout '}';
@@ -5305,26 +5305,26 @@ sub print_person
 				print $fout '} ';
 
 				if($mother) {
-					print $fout $mother->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+					print $fout $mother->xref(), ' -> ', $person->xref(), ";\n";
 				}
 				if($father) {
-					print $fout $father->{'xref'}, ' -> ', $person->{'xref'}, ";\n";
+					print $fout $father->xref(), ' -> ', $person->xref(), ";\n";
 				}
 				if(scalar(@spouses) == 2) {
 					# Married twice, put the person in the middle,
 					# it looks better
-					# print $fout $person->{'xref'}, ' -> ', $spouses[0]->{'xref'}, " [dir=none];\n";
-					print $fout $spouses[0]->{'xref'}, ' -> ',
-						$person->{'xref'}, ' -> ',
-						$spouses[1]->{'xref'}, " [dir=none];\n";
+					# print $fout $person->xref(), ' -> ', $spouses[0]->xref(), " [dir=none];\n";
+					print $fout $spouses[0]->xref(), ' -> ',
+						$person->xref(), ' -> ',
+						$spouses[1]->xref(), " [dir=none];\n";
 				} else {
 					foreach my $spouse(@spouses) {
-						print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
-						# print $fout $person->{'xref'}, ' -> ', $spouse->{'xref'}, " [dir=none];\n";
+						print $fout $person->xref(), ' -> ', $spouse->xref(), " [dir=none];\n";
+						# print $fout $person->xref(), ' -> ', $spouse->xref(), " [dir=none];\n";
 					}
 				}
 				foreach my $child(@children) {
-					print $fout $person->{'xref'}, ' -> ', $child->{'xref'}, ";\n";
+					print $fout $person->xref(), ' -> ', $child->xref(), ";\n";
 				}
 
 				print $fout '}';
@@ -5549,12 +5549,12 @@ sub print_person
 		$fullbio =~ s/,,/,/g;
 		$fullbio =~ s/href="\?page=/href="cgi-bin\/page.fcgi?page=/g;
 		print $timeline_xml 'title="', $person->as_string(), '" ',
-			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $person->{'xref'}, '"',
+			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $person->xref(), '"',
 			'>', HTML::Entities::encode($fullbio),
 			"<\/event>\n";
 
 		print $visjs "{\ncontent: '<a href=\"cgi-bin/page.fcgi?page=people&entry=",
-			$person->{'xref'}, '">', $person->as_string(), "</a>',\n",
+			$person->xref(), '">', $person->as_string(), "</a>',\n",
 			'start: \'', $birth_dt->year();
 
 		if($birth_dt->month() && $birth_dt->day()) {
@@ -5787,7 +5787,7 @@ sub print_person
 		print $xml "\n\t\t</locations>";
 
 		my $military_count = 0;
-		my $xref = $person->{'xref'};
+		my $xref = $person->xref();
 		foreach my $event(@events) {
 			if(my $type = $event->type()) {
 				if($type eq 'Military service') {
@@ -5865,7 +5865,7 @@ sub print_person
 	print $html '</body></html>';
 	close $html;
 
-	$printed{$person->{'xref'}} = 1;
+	$printed{$person->xref()} = 1;
 
 	# Find this person's previous record to put changes into the blog
 	my $person_in_last_run;
@@ -5875,7 +5875,7 @@ sub print_person
 	if($current_people) {
 		foreach my $p($current_people->root()->children('person')) {
 			my $entry = $p->first_child('entry');
-			if($entry->first_child()->pcdata() eq $person->{'xref'}) {
+			if($entry->first_child()->pcdata() eq $person->xref()) {
 				$person_in_last_run = $p;
 				if($birth_in_last_run = $p->first_child('birth')) {
 					$birth_in_last_run = $birth_in_last_run->first_child()->pcdata();
@@ -6108,7 +6108,7 @@ sub Gedcom::Individual::as_string
 	}
 
 	if((!defined($rc)) && $opts{'w'}) {
-		complain("Can't determine the name for record " . $self->{'xref'});
+		complain("Can't determine the name for record " . $self->xref());
 		return '';
 	}
 
@@ -7143,19 +7143,19 @@ sub person_line_csv
 	if($opts{'l'} || !is_alive(%params)) {
 		my $dob = get_value({ person => $person, value => 'birth date' });
 		if($dob) {
-			return '<a href="?page=people&entry=' . $person->{'xref'} . '">' .
+			return '<a href="?page=people&entry=' . $person->xref() . '">' .
 				$person->given_names() .
 				'</a> was born ' .
 				year({ person => $person, date => $dob });
 		} elsif(get_value({ person => $person, value => 'baptism date' })) {
-			return '<a href="?page=people&entry=' . $person->{'xref'} . '">' .
+			return '<a href="?page=people&entry=' . $person->xref() . '">' .
 				$person->given_names() .
 				'</a> was born c. ' .
 				get_value({ person => $person, value => 'baptism date' });
 		}
 		return '';
 	}
-	return '<a href="?page=people&entry=' . $person->{'xref'} . '">' .
+	return '<a href="?page=people&entry=' . $person->xref() . '">' .
 		$person->given_names() .
 		'</a>';
 }
@@ -7420,11 +7420,11 @@ sub print_graphviz
 		$colour = ($gender eq 'M' ? '#093AB5' : '#C666B8');
 	}
 
-	print $fout $person->{'xref'}, ' [shape=box,fontsize="10",',
+	print $fout $person->xref(), ' [shape=box,fontsize="10",',
 		"color=\"$colour\",";
 
 	if($params{'format'} eq 'dynamic') {
-		print $fout 'href="?page=people&entry=', $person->{'xref'}, '",';
+		print $fout 'href="?page=people&entry=', $person->xref(), '",';
 	} else {
 		print $fout 'href="', make_filename_from_person(person => $person), '",';
 	}
@@ -7562,7 +7562,7 @@ sub make_filename_from_object
 
 	my $rc = $object->title();
 	if(!$rc) {
-		return $object->{'xref'};
+		return $object->xref();
 	}
 	$rc =~ tr/ /-/s;
 	$rc =~ tr/'/-/s;
