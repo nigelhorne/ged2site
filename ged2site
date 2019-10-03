@@ -1439,7 +1439,7 @@ sub print_person
 			$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
 	}
 
-	if($me && ($person eq $me)) {
+	if($me && ($person->xref() eq $me->xref())) {
 		my $name = $person->as_string(nee => 1);
 
 		open(my $html, '>', 'static-site/index.html');
