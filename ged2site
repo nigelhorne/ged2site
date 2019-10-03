@@ -2341,8 +2341,8 @@ sub print_person
 	}
 
 	if(my $aka = $person->as_string({ use_aka => 1 })) {
-		print $html " (also known as $aka)";
-		print $csv " (also known as $aka)";
+		$html_and_csv->print(" (also known as $aka)");
+		$aka =~ s/&eacute;/&#233;/g;
 		print $xml " (also known as $aka)";
 	}
 
@@ -5858,6 +5858,7 @@ sub print_person
 			$issue =~ s/<\/p>$//;
 			$issue = HTML::Entities::encode($issue);
 			$issue =~ s/&eacute;/&#233;/g;
+			$issue =~ s/&Atilde;&copy;/&#233;/g;	# ACOM bizarre
 			print $xml "\n\t\t\t<issue>$issue</issue>";
 		}
 		print $xml "\n\t\t</issues>";
