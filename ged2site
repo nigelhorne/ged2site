@@ -2374,6 +2374,8 @@ sub print_person
 					my $p = place({ person => $person, place => $placeofbirth });
 					$bio .= $p;
 					$places_printed{$p} = 1;
+				} else {
+					complain({ person => $person, warning => 'Date of birth is known, but not place' });
 				}
 				if($dateofbirth) {
 					my $y = year({
