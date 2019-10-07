@@ -6874,6 +6874,7 @@ sub notes
 			if(!$paragraph) {
 				$note =~ s/\n+/; /g;
 			}
+			$note =~ s/\s\s+/ /g;
 			$note =~ s/\s+$//g;
 			$note =~ s/\.$//;
 			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
