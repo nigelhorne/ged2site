@@ -1229,7 +1229,7 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	open(my $csv, '>', 'dynamic-site/databases/history.csv');
 	print $csv "entry!year!month!day!person!title!event\n";
 	my $index = 1;
-	while(my $e = unshift(@sorted_events)) {
+	while(my $e = shift @sorted_events) {
 		$e = $all_events{$e};
 		my $date = $e->{'date'};
 		if(!(defined($year)) || ($date->year() != $year)) {
@@ -4923,7 +4923,8 @@ sub print_person
 
 		# print 'f:', $person->form() if($person->form());
 
-		if($person->obje()) {
+		my @objlist = $person->obje();
+		if(scalar(@objlist)) {
 			# TODO - find primary and do something different with that
 			#	The obje should be in order with primary first, but FMP
 			#	doesn't do that
@@ -4956,7 +4957,7 @@ sub print_person
 			# Two passes, the first one where the links are pictures, the second where they are not
 			for(my $pass = 1; $pass <= 2; $pass++) {
 				print "Media pass $pass\n" if($opts{'v'});
-				OBJE: foreach my $o($person->obje()) {
+				OBJE: foreach my $o(@objlist) {
 					my $obje;
 					if(ref($o) eq 'Gedcom::Record') {
 						$obje = $o;	# e.g. Ancestry
