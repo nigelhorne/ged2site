@@ -812,6 +812,8 @@ if(scalar(%censuses)) {
 	print $html '</ul></body></html>';
 	close $html;
 	close $csv;
+
+	undef %censuses;
 }
 
 if(scalar(%all_locations)) {
@@ -879,6 +881,8 @@ if(scalar(%all_locations)) {
 	$body =~ s/>/&gt;/g;
 	print $locations_xml "\t</maps>\n\t<body>$body</body>\n</locations>\n";
 	close $locations_xml;
+
+	undef %all_locations;
 }
 
 if(scalar(%military)) {
@@ -894,6 +898,8 @@ if(scalar(%military)) {
 		}
 	}
 	close $csv;
+
+	undef %military;
 }
 
 if(scalar(%changes)) {
@@ -1001,6 +1007,8 @@ foreach my $surname(sort keys %{$surnames}) {
 close $csv;
 print $html '</ul></body></html>';
 close $html;
+
+undef $surnames;
 
 if((!defined($key)) && defined($config)) {
 	$key = $config->{'google_verification'};
