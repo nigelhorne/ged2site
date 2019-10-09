@@ -337,6 +337,7 @@ my %censusmaps = (
 	'Kent County, New Brunswick Census, 1871: Eight Subdistricts' => '1871 Canadian Census',
 	'1881 Census of Canada' => '1881 Canadian Census',
 	'1881 Canada Census' => '1881 Canadian Census',
+	'Canada Census 1881 - Findmypast' => '1881 Canadian Census',
 	'1891 Census of Canada' => '1891 Canadian Census',
 	'Canada Census 1891 - Findmypast' => '1891 Canadian Census',
 	'1901 Census of Canada' => '1901 Canadian Census',
