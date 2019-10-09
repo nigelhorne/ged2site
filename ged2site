@@ -1229,7 +1229,7 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	open(my $csv, '>', 'dynamic-site/databases/history.csv');
 	print $csv "entry!year!month!day!person!title!event\n";
 	my $index = 1;
-	foreach my $e(@sorted_events) {
+	while(my $e = unshift(@sorted_events)) {
 		$e = $all_events{$e};
 		my $date = $e->{'date'};
 		if(!(defined($year)) || ($date->year() != $year)) {
