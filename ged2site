@@ -29,10 +29,10 @@
 #	http://visjs.org/docs/timeline/
 
 BEGIN {
-	eval 'use Geo::Coder::List';
+	eval 'use Geo::Coder::List 0.26';
 	if($@) {
 		system('cpan -i Gedcom Genealogy::Gedcom::Date Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare');
-		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes');
+		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes Geo::Coder::OpenCage');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
 		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple');
@@ -67,8 +67,8 @@ use DateTime::Format::Genealogy;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::DataScienceToolkit;
-use Geo::Coder::List 0.15;
-use Geo::Coder::Free 0.10;	# 0.11 really
+use Geo::Coder::List 0.26;	# maximum decoder support
+use Geo::Coder::Free 0.11;
 use Geo::Coder::Free::OpenAddresses;
 use Geo::Coder::Free::Local;
 use Geo::Coder::Postcodes 0.02;
@@ -81,6 +81,7 @@ use Geo::GeoNames;
 use Geo::Coder::Google;
 use Geo::Coder::Bing;
 use Geo::Coder::CA;
+use Geo::Coder::OpenCage;
 use Geo::Coder::Ovi;
 use Geo::Coder::RandMcnally;
 use Geo::Coder::US::Census;
@@ -266,6 +267,9 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::Ovi->new());
 			# ->push(Geo::Coder::Google->new())
 			# ->push(Geo::Coder::GooglePlaces->new());
+	}
+	if(my $key = $ENV{'GEO_CODER_OPENCAGE_API_KEY'}) {
+		$geocoder->push({ limit => 200, geocoder => Geo::Coder::OpenCage->new(api_key => $key) });
 	}
 	if(my $key = $ENV{BMAP_KEY}) {
 		$geocoder->push(Geo::Coder::Bing->new(key => $key));
@@ -8043,18 +8047,6 @@ sub datecmp
 	return $left <=> $right;
 }
 
-# FIXME: once RT127603 has been fixed
-sub Geo::Coder::PlaceFinder::ua
-{
-	my $self = shift;
-
-	if(my $ua = shift) {
-		return $self->{_ua} = $ua;
-	}
-
-	return $self->{_ua};
-}
-
 sub chronicling_america
 {
 	my ($person, $chronicling_params) = @_;
@@ -8126,3 +8118,26 @@ sub HTML::GoogleMaps::V3::_text_to_point {
     # Unknown
     return 0;
 }
+
+# FIXME: once RT127603 has been fixed
+sub Geo::Coder::PlaceFinder::ua
+{
+	my $self = shift;
+
+	if(my $ua = shift) {
+		return $self->{_ua} = $ua;
+	}
+
+	return $self->{_ua};
+}
+
+# See https://github.com/OpenCageData/perl-Geo-Coder-OpenCage/issues/8
+sub Geo::Coder::OpenCage::ua {
+	my ($self, $ua) = @_;
+
+	if ($ua) {
+		$self->{ua} = $ua;
+	}
+	return $self->{ua};
+}
+
