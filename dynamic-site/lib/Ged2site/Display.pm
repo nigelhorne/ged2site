@@ -155,7 +155,7 @@ sub set_cookie {
 }
 
 sub http {
-	my ($self, $params) = @_;
+	my $self = shift;
 
 	# TODO: Only session cookies as the moment
 	my $cookies = $self->{_cookies};
@@ -227,11 +227,11 @@ sub html {
 			} else {
 				$vals = $self->{_config};
 			}
-			if(scalar(keys %params)) {
-				$vals = { %{$vals}, %params };
+			if(defined($params)) {
+				$vals = { %{$vals}, %{$params} };
 			}
-		} elsif(scalar(keys %params)) {
-			$vals = { %{$info->params()}, %params };
+		} elsif(defined($params)) {
+			$vals = { %{$info->params()}, %{$params} };
 		} else {
 			$vals = $info->params();
 		}
@@ -292,11 +292,16 @@ sub as_string {
 		}
 	}
 
-	my $html = $self->html($args);
-	unless($html) {
-		return;
+	# my $html = $self->html($args);
+	# unless($html) {
+		# return;
+	# }
+	# return $self->http() . $html;
+	my $rc = $self->http();
+	if($rc =~ /^Location:\s/ms) {
+		return $rc;
 	}
-	return $self->http() . $html;
+	return $rc . $self->html($args);
 }
 
 # my $f = pfopen('/tmp:/var/tmp:/home/njh/tmp', 'foo', 'txt:bin' );
@@ -320,19 +325,20 @@ sub _pfopen {
 		return $savedpaths->{$candidate};
 	}
 
+	$self->_debug({ message => "_pfopen: path=$path; prefix = $prefix" });
 	foreach my $dir(split(/:/, $path)) {
 		next unless(-d $dir);
 		if($suffixes) {
 			foreach my $suffix(split(/:/, $suffixes)) {
-				$self->_debug({ message => "check for file $dir/$prefix.$suffix" });
-				my $rc = "$dir/$prefix.$suffix";
+				my $rc = File::Spec->catdir($dir, "$prefix.$suffix");
+				$self->_debug({ message => "check for file $rc" });
 				if(-r $rc) {
 					$savedpaths->{$candidate} = $rc;
 					return $rc;
 				}
 			}
 		} elsif(-r "$dir/$prefix") {
-			my $rc = "$dir/$prefix";
+			my $rc = File::Spec->catdir($dir, $prefix);
 			$savedpaths->{$candidate} = $rc;
 			$self->_debug({ message => "using $rc" });
 			return $rc;
@@ -375,10 +381,10 @@ sub _append_browser_type {
 	my $rc;
 
 	if(-d $directory) {
-		if($self->{_info}->is_mobile()) {
-			$rc = "$directory/mobile:";
-		} elsif($self->{_info}->is_search_engine()) {
+		if($self->{_info}->is_search_engine()) {
 			$rc = "$directory/search:$directory/web:$directory/robot:";
+		} elsif($self->{_info}->is_mobile()) {
+			$rc = "$directory/mobile:";
 		} elsif($self->{_info}->is_robot()) {
 			$rc = "$directory/robot:";
 		}
