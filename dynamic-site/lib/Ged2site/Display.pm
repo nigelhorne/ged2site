@@ -227,11 +227,11 @@ sub html {
 			} else {
 				$vals = $self->{_config};
 			}
-			if(defined($params)) {
-				$vals = { %{$vals}, %{$params} };
+			if(scalar(keys %params)) {
+				$vals = { %{$vals}, %params };
 			}
-		} elsif(defined($params)) {
-			$vals = { %{$info->params()}, %{$params} };
+		} elsif(scalar(keys %params)) {
+			$vals = { %{$info->params()}, %params };
 		} else {
 			$vals = $info->params();
 		}
