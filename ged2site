@@ -283,6 +283,7 @@ if($opts{'m'} || $opts{'w'}) {
 		'nominatim.openstreetmap.org' => 1,
 		'geocode.xyz' => 2,
 		'geocoder.ca' => 1,
+		'opencagedata.com' => 1,
 		'api.postcodes.io' => 1,
 		'where.desktop.mos.svc.ovi.com' => 1,
 		'geocoding.geo.census.gov' => 1,
@@ -8133,11 +8134,11 @@ sub Geo::Coder::PlaceFinder::ua
 
 # See https://github.com/OpenCageData/perl-Geo-Coder-OpenCage/issues/8
 sub Geo::Coder::OpenCage::ua {
-	my ($self, $ua) = @_;
+	my $self = shift;
 
-	if ($ua) {
-		$self->{ua} = $ua;
-	}
+	# if(my $ua = shift) {
+		# $self->{ua} = $ua;
+	# }
 	return $self->{ua};
 }
 
