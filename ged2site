@@ -1415,6 +1415,14 @@ sub print_person
 	# my $surname = $name_components{'surname_2'} || $name_components{'surname_1'};
 	my $surname = ucfirst(lc($person->surname())); # RT109786
 
+	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
+		complain({ person => $person, warning => "Can't parse the name" });
+		$firstname = $1;
+		if(!defined($surname)) {
+			$surname = $2;
+		}
+	}
+
 	if($firstname && ($firstname =~ /\d/)) {
 		complain({ person => $person, warning => 'First name contains a digit' });
 	}
