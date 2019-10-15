@@ -5389,7 +5389,14 @@ sub print_person
 		# TODO: then sort in date order
 		foreach my $event(sort @place_events) {
 			my $record = $place_records{$event};
-			my $place = place({ record => $record, nopreposition => 1 });
+			my $place;
+			# TODO: fill in more that we already know
+			if(($event eq 'Birth') && $placeofbirth) {
+				$place = $placeofbirth;
+				$place =~ s/^\s*(in|at)\s//;
+			} else {
+				$place = place({ record => $record, nopreposition => 1 });
+			}
 			if(defined($place) && ($place =~ /,.+,/)) {
 				$place =~ s/^\s+//;
 				if(defined($current_place) && ($place ne $current_place)) {
