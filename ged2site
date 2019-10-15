@@ -5390,9 +5390,25 @@ sub print_person
 		foreach my $event(sort @place_events) {
 			my $record = $place_records{$event};
 			my $place;
-			# TODO: fill in more that we already know
+			# If we already know the place, no need to look up
+			#	the record for it
 			if(($event eq 'Birth') && $placeofbirth) {
 				$place = $placeofbirth;
+				$place =~ s/^\s*(in|at)\s//;
+			} elsif(($event eq 'Baptised') && $placeofbaptism) {
+				$place = $placeofbaptism;
+				$place =~ s/^\s*(in|at)\s//;
+			} elsif(($event eq 'Baptized') && $placeofbaptism) {
+				$place = $placeofbaptism;
+				$place =~ s/^\s*(in|at)\s//;
+			} elsif(($event eq 'Marriage') && $placeofmarriage) {
+				$place = $placeofmarriage;
+				$place =~ s/^\s*(in|at)\s//;
+			} elsif(($event eq 'Death') && $placeofdeath) {
+				$place = $placeofdeath;
+				$place =~ s/^\s*(in|at)\s//;
+			} elsif(($event eq 'Burial') && $placeofburial) {
+				$place = $placeofburial;
 				$place =~ s/^\s*(in|at)\s//;
 			} else {
 				$place = place({ record => $record, nopreposition => 1 });
