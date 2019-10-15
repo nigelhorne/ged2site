@@ -970,6 +970,7 @@ foreach my $surname(sort keys %{$surnames}) {
 		$filename = 'UNKNOWN';
 	}
 	print $html "<li><a href=\"$filename.html\">$filename</a> (";
+	# FIXME: "Implicit scalar context for hash in null operation"
 	my $count = scalar(keys %{$surnames->{$surname}});
 	if($count == 1) {
 		print $html '1 person';
@@ -5379,40 +5380,24 @@ sub print_person
 	}
 	print $csv '!';
 
+	foreach my $residence(@residencelist) {
+		if(my $rdate = $residence->date()) {
+			$place_records{'Living ' . year({ person => $person, string => $rdate })} = $residence;
+		}
+	}
+		
 	my @place_events = keys %place_records;
 	if($opts{'m'} && ($opts{'l'} || !$is_alive) && (scalar(@place_events) || scalar(@note_locations))) {
 		print "Create map\n" if($opts{'v'});
 		my $map;
 		my $current_place;
 		my $annotation;
+
 		# Sort put all events at a place on the same pointer
 		# TODO: then sort in date order
-		foreach my $event(sort @place_events) {
+		foreach my $event(sort { place({ record => $place_records{$a}, nopreposition => 1 }) cmp place({ record => $place_records{$b}, nopreposition => 1 }) } @place_events ) {
 			my $record = $place_records{$event};
-			my $place;
-			# If we already know the place, no need to look up
-			#	the record for it
-			if(($event eq 'Birth') && $placeofbirth) {
-				$place = $placeofbirth;
-				$place =~ s/^\s*(in|at)\s//;
-			} elsif(($event eq 'Baptised') && $placeofbaptism) {
-				$place = $placeofbaptism;
-				$place =~ s/^\s*(in|at)\s//;
-			} elsif(($event eq 'Baptized') && $placeofbaptism) {
-				$place = $placeofbaptism;
-				$place =~ s/^\s*(in|at)\s//;
-			} elsif(($event eq 'Marriage') && $placeofmarriage) {
-				$place = $placeofmarriage;
-				$place =~ s/^\s*(in|at)\s//;
-			} elsif(($event eq 'Death') && $placeofdeath) {
-				$place = $placeofdeath;
-				$place =~ s/^\s*(in|at)\s//;
-			} elsif(($event eq 'Burial') && $placeofburial) {
-				$place = $placeofburial;
-				$place =~ s/^\s*(in|at)\s//;
-			} else {
-				$place = place({ record => $record, nopreposition => 1 });
-			}
+			my $place = place({ record => $record, nopreposition => 1 });
 			if(defined($place) && ($place =~ /,.+,/)) {
 				$place =~ s/^\s+//;
 				if(defined($current_place) && ($place ne $current_place)) {
@@ -5433,42 +5418,16 @@ sub print_person
 				}
 				my $text = $event;
 				$text =~ s/\/.+//;	# Remove count e.g. when more than one residence
-				if($record->date()) {
-					$text .= ' ' . year({ person => $person, record => $record });
+				if($event !~ /^Living /) {	# Already put in above
+					if($record->date()) {
+						$text .= ' ' . year({ person => $person, record => $record });
+					}
 				}
 				$annotation .= "<p>$text</p>";
 			}
 		}
-		my $prev_date = '';
-		foreach my $residence(@residencelist) {
-			if(my $rdate = $residence->date()) {
-				if(my $place = place({ person => $person, record => $residence, nopreposition => 1 })) {
-					if($place =~ /,.+,/) {
-						next if($rdate eq $prev_date);	# Ignore duplicates
-						$prev_date = $rdate;
 
-						$place =~ s/^\s+//g;
-						if(defined($current_place) && ($place ne $current_place)) {
-							if(!defined($map)) {
-								# my %args = (geocoder => $geocoder, z_index => -1);
-								my %args = (geocoder => $geocoder);
-								if($javascript_key) {
-									$args{'api_key'} = $javascript_key;
-								}
-								$map = HTML::GoogleMaps::V3->new(%args);
-								$map->center($current_place);
-							}
-							add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
-							$current_place = $place;
-							$annotation = undef;
-						} elsif(!defined($current_place)) {
-							$current_place = $place;
-						}
-						$annotation .= "<p>Living " . year({ person => $person, string => $rdate }) . '</p>';
-					}
-				}
-			}
-		}
+		# FIXME: Merge into place_records, rather as was done with residencelist
 		foreach my $location(@note_locations) {
 			my $match;
 			if($location->{'match'}) {
