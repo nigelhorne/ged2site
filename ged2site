@@ -4140,12 +4140,12 @@ sub print_person
 
 		# Print notes about the death, if any
 		$end_of_sentence = 0;
-		if(defined($death) && (my $dn = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
-			$dn =~ tr/\r//;
-			$dn =~ s/\.$//;
-			$dn = lcfirst($dn) unless($dn =~ /^[A-Z]{2}/);
-			$bio .= " ($dn)";
-			if(length($dn) > 160) {
+		if(defined($death) && (my $notes = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
+			$notes =~ tr/\r//;
+			$notes =~ s/\.$//;
+			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+			$bio .= " ($notes)";
+			if(length($notes) > 160) {
 				$bio .= ".</p><p>";
 			}
 		}
