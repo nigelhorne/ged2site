@@ -6056,7 +6056,7 @@ sub Gedcom::Individual::as_string
 	}
 
 	if($opts{'w'} && !defined($rc)) {
-		complain({ warning => "Can't determine name of this person" });
+		complain({ warning => "Can't parse the name of '$name'" });
 		$args{'include_years'} = 1;
 		$rc = 'Unknown person';
 	}
