@@ -6766,6 +6766,9 @@ sub place {
 	}
 
 	if($place eq 'USA') {
+		if($params{'nopreposition'}) {
+			return ' USA';
+		}
 		return ' in the USA';
 	}
 
