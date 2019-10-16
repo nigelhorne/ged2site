@@ -1417,11 +1417,11 @@ sub print_person
 	my $surname = ucfirst(lc($person->surname())); # RT109786
 
 	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
-		complain({ person => $person, warning => "Can't parse the name" });
 		$firstname = $1;
 		if(!defined($surname)) {
 			$surname = $2;
 		}
+		complain({ person => $person, warning => "Can't parse the name - assuming firstname $firstname lastname $surname" });
 	}
 
 	if($firstname && ($firstname =~ /\d/)) {
