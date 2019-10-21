@@ -561,11 +561,6 @@ if($opts{'w'}) {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
 
-# memoize('Gedcom::Individual::as_string');
-# memoize('stepsabove');
-# memoize('normalize_name');
-# memoize('date_to_datetime');
-
 my $key = delete $opts{'g'};	# Ensure it's not stored in the XML file
 
 my $current_people = delete $opts{'x'};
@@ -1522,10 +1517,7 @@ sub print_person
 
 	my ($birth_dt, $marriage_dt, $death_dt);
 	my $birth = $person->get_record('birth');
-	my $dateofbirth = get_value({ person => $person, value => 'birth date' });
-	if((!$dateofbirth) && $birth) {
-		$dateofbirth = $birth->date();
-	}
+	my $dateofbirth = dateofbirth($person);
 
 	my $placeofbirth = get_value({ person => $person, value => 'birth place' });
 	if((!$placeofbirth) && $birth) {
@@ -5385,7 +5377,7 @@ sub print_person
 			$place_records{'Living ' . year({ person => $person, string => $rdate })} = $residence;
 		}
 	}
-		
+
 	my @place_events = keys %place_records;
 	if($opts{'m'} && ($opts{'l'} || !$is_alive) && (scalar(@place_events) || scalar(@note_locations))) {
 		print "Create map\n" if($opts{'v'});
@@ -8080,7 +8072,7 @@ sub HTML::GoogleMaps::V3::_text_to_point {
     my ( $self,$point_text ) = @_;
 
     # IE, already a long/lat pair
-    return [ reverse @$point_text ] if ref( $point_text ) eq "ARRAY";
+	return [ reverse @$point_text ] if ref( $point_text ) eq 'ARRAY';
 
     if ( my @loc = $self->{geocoder}->geocode( location => $point_text ) ) {
         if ( my $location = $loc[0] ) {
@@ -8096,7 +8088,7 @@ sub HTML::GoogleMaps::V3::_text_to_point {
 		##################################################
 
             if ( ref( $location ) ne 'HASH' ) {
-                warn "$point_text didn't return a HASH ref as first element from ->geocode";
+		warn "$point_text didn't return a HASH ref as first element from ->geocode";
                 return 0;
             }
 
@@ -8135,3 +8127,23 @@ sub Geo::Coder::OpenCage::ua {
 	return $self->{ua};
 }
 
+sub dateofbirth {
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'person'} = shift;
+	}
+
+	my $person = $params{'person'};
+
+
+	my $dateofbirth = get_value({ person => $person, value => 'birth date' });
+	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birth'))) {
+		return $birth->date();
+	}
+	return $dateofbirth;
+}
