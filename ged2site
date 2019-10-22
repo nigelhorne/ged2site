@@ -8081,7 +8081,7 @@ sub HTML::GoogleMaps::V3::_text_to_point {
 	return [ reverse @$point_text ] if ref( $point_text ) eq 'ARRAY';
 
     if ( my @loc = $self->{geocoder}->geocode( location => $point_text ) ) {
-        if ( my $location = $loc[0] ) {
+	if ( my $location = $loc[0] ) {
 		##################################################
 		# ADDITION:
 		if(ref($location) eq 'Geo::Location::Point') {
@@ -8093,18 +8093,18 @@ sub HTML::GoogleMaps::V3::_text_to_point {
 		# END OF ADDITION
 		##################################################
 
-            if ( ref( $location ) ne 'HASH' ) {
+	    if ( ref( $location ) ne 'HASH' ) {
 		warn "$point_text didn't return a HASH ref as first element from ->geocode";
-                return 0;
-            }
+		return 0;
+	    }
 
-            if(defined($location->{geometry}{location}{lat}) && defined($location->{geometry}{location}{lng})) {
-                return [
-                    $location->{geometry}{location}{lat},
-                    $location->{geometry}{location}{lng},
-                ];
-            }
-        }
+	    if(defined($location->{geometry}{location}{lat}) && defined($location->{geometry}{location}{lng})) {
+		return [
+		    $location->{geometry}{location}{lat},
+		    $location->{geometry}{location}{lng},
+		];
+	    }
+	}
     }
 
     # Unknown
