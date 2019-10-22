@@ -35,13 +35,14 @@ BEGIN {
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes Geo::Coder::OpenCage');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
-		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple');
+		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 }
 
 use strict;
 use warnings;
 use autodie qw(:all);
+use utf8;
 # use warnings::unused;
 
 # BEGIN {
@@ -116,6 +117,7 @@ use POSIX;
 use String::Compare;
 use JSON;
 use File::Print::Many;
+use Unicode::Diacritic::Strip;
 use XML::Dumper;
 use XML::Twig;
 
@@ -1282,7 +1284,7 @@ sub print_person
 
 	# $fetcher = Data::Fetch->new();	# Throw away old values from the cache
 
-	my $dob = get_value({ person => $person, value => 'birth date' });
+	my $dob = dateofbirth($person);
 
 	# ACOM starts approximate dates with "Abt." instead of "ABT".
 	if(defined($dob) && length($dob) && ($dob ne '?')) {
@@ -5959,6 +5961,15 @@ sub Gedcom::Individual::as_string
 	}
 
 	$name =~ s/\///g;
+
+	# FIXME: Correctly handle other names, relies on Lingua::EN::NameParse
+	#	too much
+
+	$name = Unicode::Diacritic::Strip::strip_diacritics($name);
+	# $name =~ tr/čáň/can/;
+	# $name =~ s/č/c/g;
+	# $name =~ s/á/a/g;
+	# $name =~ s/ň/n/g;
 	$nameparser->parse($name);
 
 	my %name_components = $nameparser->components();
