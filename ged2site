@@ -1974,10 +1974,13 @@ sub print_person
 	if($dateofbirth && $opts{'w'} && scalar(@siblings)) {
 		print 'Found ', scalar(@siblings), " siblings(s)\n" if($opts{'v'});
 		foreach my $sibling(@siblings) {
-			my $siblingbirth = dateofbirth($sibling);
-			if($siblingbirth && ($siblingbirth eq $dateofbirth) &&
-			  (($sibling->name() eq $person->name()) || Text::Names::samePerson($sibling->name(), $person->name()))) {
-				complain({ person => $sibling, warning => 'possible duplicate person' });
+			if(($sibling->name() eq $person->name()) || Text::Names::samePerson($sibling->name(), $person->name())) {
+				my $siblingbirth = dateofbirth($sibling);
+				if($siblingbirth && ($siblingbirth eq $dateofbirth)) {
+					complain({ person => $sibling, warning => 'possible duplicate person' });
+				} elsif((!$dateofdeath) && !dateofdeath($sibling)) {
+					complain({ person => $sibling, warning => 'two siblings of the same name alive at the same time'});
+				}
 			}
 		}
 	}
@@ -8152,4 +8155,24 @@ sub dateofbirth {
 		return $birth->date();
 	}
 	return $dateofbirth;
+}
+
+sub dateofdeath {
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'person'} = shift;
+	}
+
+	my $person = $params{'person'};
+
+	my $dateofdeath = get_value({ person => $person, value => 'death date' });
+	if((!defined($dateofdeath)) && (my $death = $person->get_record('death'))) {
+		return $death->date();
+	}
+	return $dateofdeath;
 }
