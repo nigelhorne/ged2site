@@ -3864,15 +3864,9 @@ sub print_person
 					$notes = lcfirst($notes);
 					$residencestring .= " ($notes)";
 				} elsif($opts{'c'}) {
+					my @citationlist;
 					if($residencecitations{$residence}) {
-						my $remove_comma = 0;
-						if($residencestring =~ s/,$//) {
-							$remove_comma = 1;
-						}
-						$residencestring .= '[' . $residencecitations{$residence} . ']';
-						if($remove_comma) {
-							$residencestring .= ',';
-						}
+						push @citationlist,$residencecitations{$residence};
 					}
 					if($residence->place() &&
 					  (!$rdate) &&
@@ -3880,10 +3874,11 @@ sub print_person
 					  ($residencecitations{$residence})) {
 						my $peek = $residencelist[$count + 1];
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-							if($residencecitations{$peek}) {
-								$residencestring .= '[' . $residencecitations{$peek} . ']';
-							}
+							push @citationlist,$residencecitations{$peek};
 						}
+					}
+					if(scalar(@citationlist)) {
+						$residencestring .= cite(@citationlist);
 					}
 				}
 				$count++;
@@ -4732,7 +4727,7 @@ sub print_person
 							person => $person,
 							warning => "[$citation]: no citation title"
 						});
-						next;
+						$title = 'No citation title';
 					}
 				}
 				my $c;
