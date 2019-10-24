@@ -1394,11 +1394,7 @@ sub print_person
 		}
 	}
 
-	my $death = $person->get_record('death');
-	my $dateofdeath = get_value({ person => $person, value => 'death date' });
-	if((!$dateofdeath) && $death) {
-		$dateofdeath = $death->date();
-	}
+	my $dateofdeath = dateofdeath($person);
 
 	my $yod;	# Year of death
 	if($dateofdeath && ($dateofdeath =~ /.*?(\d{3,4})/)) {
@@ -1532,6 +1528,7 @@ sub print_person
 	}
 
 	my $placeofdeath = get_value({ person => $person, value => 'death place' });
+	my $death = $person->get_record('death');
 	if((!$placeofdeath) && $death) {
 		$placeofdeath = $death->place();
 	}
@@ -2221,13 +2218,10 @@ sub print_person
 					$all->print(' ', Lingua::EN::Inflect::A(lc($occupations[0])), ')');
 				}
 				$fullbio .= ' ' . $mother->as_string();
-				if($opts{'w'}) {
-					my $mdod = get_value({ person => $mother, value => 'death date' });
-					if($mdod && $birth_dt) {
-						if(my $dt = date_to_datetime(date => $mdod)) {
-							if($birth_dt > $dt) {
-								complain({ person => $person, warning => 'Born after mother died' });
-							}
+				if($opts{'w'} && $birth_dt && (my $mdod = dateofdeath($mother))) {
+					if(my $dt = date_to_datetime(date => $mdod)) {
+						if($birth_dt > $dt) {
+							complain({ person => $person, warning => 'Born after mother died' });
 						}
 					}
 				}
@@ -2938,7 +2932,7 @@ sub print_person
 					}
 					$spouse_number++;
 					if((scalar(@spouses) == 2) && $all_marriages_have_date && ($spouse_number == 2) &&
-					   (my $death_of_first_spouse = get_value({ person => $spouses[0], value => 'death date' }))) {
+					   (my $death_of_first_spouse = dateofdeath($spouses[0]))) {
 						if(datecmp($dateofmarriage, $death_of_first_spouse) > 0) {
 							if($printed_bracket) {
 								$bio .= ', ';
@@ -3318,13 +3312,13 @@ sub print_person
 			my $count = 0;
 			my $prev_residence;
 			my $spdeath_dt;
-			if($spouses[0] && ($spdeath_dt = get_value({ person => $spouses[0], value => 'death date' }))) {
+			if($spouses[0] && ($spdeath_dt = dateofdeath($spouses[0]))) {
 				$spdeath_dt = date_to_datetime(date => $spdeath_dt);
 			}
 			my $print_year_only;	# used when printing a range, e.g. 1871-1891
 			my $printed_following_message;
 			# my $yod;
-			# my $dod = get_value({ person => $person, value => 'death date' });
+			# my $dod = dateofdeath($person);
 			# if($dod && ($dod =~ /.*?(\d{3,4})/)) {
 				# $yod = $1;
 			# }
@@ -3442,7 +3436,7 @@ sub print_person
 						}
 						# Check if spouse listed at all residences when we only know the year
 						if($spouses[0]) {
-							my $spyod = get_value({ person => $spouses[0], value => 'death date' }) || ($yoe + 1);
+							my $spyod = dateofdeath($spouses[0]) || ($yoe + 1);
 							if($spyod =~ /(\d{3,4})$/) {
 								$spyod = $1;
 							}
@@ -3541,7 +3535,7 @@ sub print_person
 									$cyob = $1;
 								}
 								next if(($yoe - $cyob) > 10);	# Over 10 years old
-								if(my $cyod = get_value({ person => $child, value => 'death date' })) {
+								if(my $cyod = dateofdeath($child)) {
 									next if(datecmp($cyod, $rdate) <= 0);	# Child was dead by this event
 								}
 
@@ -3711,7 +3705,7 @@ sub print_person
 											$child->given_names() .
 											' following the death of ' .
 											(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-											year(date => get_value({ person => $spouses[0], value => 'death date' }));
+											year(date => dateofdeath($spouses[0]));
 										$spdeath_dt = undef;
 										last CHILD;
 									}
@@ -3722,7 +3716,7 @@ sub print_person
 								$residencestring .= ' following the death of ' .
 									($person->pronoun() eq 'She' ? 'her' : 'his') .
 									(($sex eq 'M') ? ' wife ' : ' husband ') .
-									year(date => get_value({ person => $spouses[0], value => 'death date' }));
+									year(date => dateofdeath($spouses[0]));
 							}
 							$printed_following_message = 1;
 						}
@@ -6080,7 +6074,7 @@ sub Gedcom::Individual::as_string
 			}
 		}
 
-		my $dod = get_value({ person => $self, value => 'death date' });
+		my $dod = dateofdeath($self);
 
 		my $yod;	# Year of death
 		if($dod && ($dod =~ /.*?(\d{3,4})/)) {
@@ -7446,7 +7440,7 @@ sub print_graphviz
 
 	my $label = $person->as_string();
 	my $dob = dateofbirth($person);
-	my $dod = get_value({ person => $person, value => 'death date' });
+	my $dod = dateofdeath($person);
 
 	my $thumbnail;
 
@@ -7516,7 +7510,7 @@ sub is_alive
 
 	my $person = $params{'person'};
 
-	if($person->get_record('death') || get_value({ person => $person, value => 'death date' })) {
+	if($person->get_record('death') || dateofdeath($person)) {
 		return 0;
 	}
 	if($person->get_record('burial')) {
