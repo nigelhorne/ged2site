@@ -6109,8 +6109,8 @@ sub Gedcom::Individual::as_string
 		}
 	}
 
-	if((!defined($rc)) && $opts{'w'}) {
-		complain("Can't determine the name for record " . $self->xref());
+	if(!defined($rc)) {
+		complain({ warning => [ "Can't determine the name for record ", $self->xref() ] });
 		return '';
 	}
 
