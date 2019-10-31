@@ -7874,7 +7874,7 @@ sub get_all_occupations
 
 	if(scalar(@occupations)) {
 		if($occupations[0]) {
-			if($occupations[0] =~ /works? on (.+)/i) {
+			if($occupations[0] =~ /works? (on|for) (.+)/i) {
 				$occupations[0] = "$1 worker";
 			}
 		} else {
