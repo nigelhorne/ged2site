@@ -2578,9 +2578,8 @@ sub print_person
 						place => $placeofbaptism,
 						places_printed => \%places_printed
 					};
-					my $address = $baptism->address();
-					if($address) {
-						$opts{'address'} = $address;
+					if(my $address = $baptism->address()) {
+						$opts->{'address'} = $address;
 					}
 					my $p = place($opts);
 					$bio .= $p;
