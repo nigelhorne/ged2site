@@ -1739,14 +1739,30 @@ sub print_person
 		$placeofmarriage = $marriage->place();
 	}
 
-	my $burial = $person->get_record('burial');
-	my $dateofburial = get_value({ person => $person, value => 'burial date' });
-	if((!$dateofburial) && $burial) {
-		$dateofburial = $burial->date();
-	}
-	my $placeofburial = get_value({ person => $person, value => 'burial place' });
-	if((!$placeofburial) && $burial) {
-		$placeofburial = $burial->place();
+	my $burial;
+	my $dateofburial;
+	my $placeofburial;
+	my $cremation;
+	my $dateofcremation;
+	my $placeofcremation;
+	if($burial = $person->get_record('burial')) {
+		$dateofburial = get_value({ person => $person, value => 'burial date' });
+		if(!$dateofburial) {
+			$dateofburial = $burial->date();
+		}
+		my $placeofburial = get_value({ person => $person, value => 'burial place' });
+		if(!$placeofburial) {
+			$placeofburial = $burial->place();
+		}
+	} elsif($cremation = $person->get_record('cremation')) {
+		$dateofcremation = get_value({ person => $person, value => 'cremation date' });
+		if(!$dateofcremation) {
+			$dateofcremation = $cremation->date();
+		}
+		$placeofcremation = get_value({ person => $person, value => 'cremation place' });
+		if(!$placeofcremation) {
+			$placeofcremation = $cremation->place();
+		}
 	}
 
 	if($is_alive && ($placeofburial || $dateofburial)) {
@@ -3941,12 +3957,16 @@ sub print_person
 	$bio =~ s/;$//;
 	$bio =~ s/,.$/./;
 
-	if($placeofburial || $dateofburial) {
+	if($placeofburial || $dateofburial || $placeofcremation || $dateofcremation) {
 		if((!$dateofdeath) && !$placeofdeath) {
 			$bio .= '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
+			my $type = 'burial';
+			if($placeofcremation || $dateofcremation) {
+				$type = 'cremation';
+			}
 			if($dateofburial) {
-				$bio .= " $pronoun was buried " .
-					year({ person => $person, date => $dateofburial });
+				$bio .= ($type eq 'burial' ) ? " $pronoun was buried" : " $pronoun was cremated";
+				$bio .= year({ person => $person, date => $dateofburial });
 				if($placeofburial) {
 					if($placeofbirth && ($placeofburial eq $placeofbirth)) {
 						if(my $address = $burial->address()) {
@@ -3955,27 +3975,47 @@ sub print_person
 						$bio .= ' in ' .
 							lcfirst($person->possessive()) .
 							' home town of ';
-						my $city = $placeofburial;
+						my $city = $placeofburial // $placeofcremation;
 						if($city =~ /^(.+?),/) {
 							$bio .= $1;
 						} else {
 							my $opts = {
 								person => $person,
-								place => $placeofburial,
 								there => $placeofdeath,
 								places_printed => \%places_printed,
 								must_postdate => $birth_dt
 							};
-							if(my $address = $burial->address()) {
-								$opts->{'address'} = $address;
+							if($type eq 'burial') {
+								$opts->{'place'} = $placeofburial;
+								if(my $address = $burial->address()) {
+									$opts->{'address'} = $address;
+								}
+							} else {
+								$opts->{'place'} = $placeofcremation;
+								if(my $address = $cremation->address()) {
+									$opts->{'address'} = $address;
+								}
 							}
 							$bio .= place($opts);
 						}
 					} else {
-						$bio .= place({ person => $person, place => $placeofburial, there => $placeofdeath, places_printed => \%places_printed, must_postdate => $birth_dt });
+						$bio .= place({
+							person => $person,
+							place => $placeofburial // $placeofcremation,
+							there => $placeofdeath,
+							places_printed => \%places_printed,
+							must_postdate => $birth_dt
+						});
 					}
 				}
-				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
+				if($type eq 'burial') {
+					$bio .= ' ' . year({ person => $person, date => $dateofburial });
+					$b = notes({ record => $burial, paragraph => 0 });
+				} else {
+					$bio .= ' ' . year({ person => $person, date => $dateofcremation });
+					$b = notes({ record => $cremation, paragraph => 0 });
+				}
+				if($b) {
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
@@ -3997,7 +4037,7 @@ sub print_person
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
 			}
 			$end_of_sentence = 0;
-		} elsif($dateofdeath || $placeofdeath) {
+		} else {	# $dateofdeath || $placeofdeath
 			$bio .= '.' if(!$end_of_sentence);
 			$bio .= "<p>$pronoun died";
 			if($dateofdeath) {
