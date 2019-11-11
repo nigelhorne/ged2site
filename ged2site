@@ -3504,6 +3504,9 @@ sub print_person
 												$p2 =~ s/^\s+//;
 												complain({ person => $person, warning => "Location for $date ($p2) differs from mother's ($p1)" });
 											}
+											if($date ne $rdate) {
+												complain({ person => $person, warning => "Date of residence ($rdate) differs from mother's in same year ($date)" });
+											}
 											last;
 										}
 									}
@@ -3529,6 +3532,9 @@ sub print_person
 												$p1 =~ s/^\s+//;
 												$p2 =~ s/^\s+//;
 												complain({ person => $person, warning => "Location for $date ($p2) differs from father's ($p1)" });
+											}
+											if($date ne $rdate) {
+												complain({ person => $person, warning => "Date of residence ($rdate) differs from father's in same year ($date)" });
 											}
 											last;
 										}
