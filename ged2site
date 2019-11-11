@@ -1750,7 +1750,7 @@ sub print_person
 		if(!$dateofburial) {
 			$dateofburial = $burial->date();
 		}
-		my $placeofburial = get_value({ person => $person, value => 'burial place' });
+		$placeofburial = get_value({ person => $person, value => 'burial place' });
 		if(!$placeofburial) {
 			$placeofburial = $burial->place();
 		}
@@ -1926,8 +1926,12 @@ sub print_person
 			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
 				if($dateofburial) {
 					complain({ person => $person, warning => "Burial date ($dateofburial) has no citations" });
-				} else {
+				} elsif($dateofcremation) {
+					complain({ person => $person, warning => "Cremation date ($dateofcremation) has no citations" });
+				} elsif($placeofburial) {
 					complain({ person => $person, warning => "Burial place ($placeofburial) has no citations" });
+				} else {
+					complain({ person => $person, warning => "Cremation place ($placeofcremation) has no citations" });
 				}
 			}
 		}
