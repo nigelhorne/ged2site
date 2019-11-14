@@ -37,6 +37,12 @@ BEGIN {
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
 		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
+
+	# FIXME
+	$SIG{__WARN__} = sub {
+		my $warning = shift;
+		warn $warning unless $warning =~ /Subroutine Geo::Coder::OpenCage::ua redefined at/;
+	};
 }
 
 use strict;
@@ -4586,6 +4592,21 @@ sub print_person
 						# } else {
 							$bio .= ' ' . ucfirst($notes) . '. ';
 						# }
+						$end_of_sentence = 1;
+					}
+				} elsif($type eq 'Court') {
+					$bio .= '. ' if(!$end_of_sentence);
+					$bio .= " $pronoun was in court";
+					if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
+						$bio .= $place;
+					}
+					if(my $date = year(record => $event)) {
+						$bio .= " $date";
+					}
+					if(my $notes = notes(record => $event)) {
+						$notes = lcfirst($notes);
+						$notes =~ s/\.$//;
+						$bio .= " ($notes).";
 						$end_of_sentence = 1;
 					}
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
