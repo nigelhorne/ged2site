@@ -21,21 +21,49 @@
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
-#
 
 # For the Simile Timeline format see
 #	http://www.simile-widgets.org/wiki/Timeline_EventSources
 # For visjs see
 #	http://visjs.org/docs/timeline/
 
+use strict;
+use warnings;
+
+no lib '.';
+
+my @modules;
+
+# Install Pre-requisites
 BEGIN {
+	@modules = (
+		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
+	);
+
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i Gedcom Genealogy::Gedcom::Date Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare');
+		system('cpan -i Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare');
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes Geo::Coder::OpenCage');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
 		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
+	}
+
+	my @needfull;
+	foreach my $module(@modules) {
+		eval "use $module";
+		if($@) {
+			push @needfull, $module;
+		}
+	}
+	if(scalar(@needfull)) {
+		system('cpan -i ' . join(' ', @needfull));
+	}
+
+	# Fix for this module not being found
+	eval 'use Geo::Coder::PlaceFinder';
+	if($@) {
+		push @needfull, 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
 	}
 
 	# FIXME
@@ -48,8 +76,26 @@ BEGIN {
 	};
 }
 
-use strict;
-use warnings;
+foreach my $module(@modules) {
+	my $version;
+	if($module =~ /(.+)\s(.+)$/) {
+		$module = $1;
+		$version = $2;
+	}
+	if($module =~ /.+\/(.+)/) {
+		$module = $1;
+	}
+	eval "require $module";
+	if($@) {
+		die $@;
+	}
+	$module->import();
+	# if($version && ($module::VERSION < $version)) {
+		# die "$module: need $version got ", $module::VERSIOn;
+	# }
+}
+
+
 use autodie qw(:all);
 use utf8;
 # use warnings::unused;
@@ -58,7 +104,6 @@ use utf8;
 	# *CORE::GLOBAL::die = \&main::die;
 # }
 
-no lib '.';
 use CHI;
 use Class::Simple;
 use Gedcom;
@@ -813,7 +858,7 @@ if(scalar(%censuses)) {
 				'<a href="', make_filename_from_person(person => $censuses{$census}->{$name}), '">',
 				$name,
 				'</a></li>';
-			print $csv "$index|\"$census\"|", $censuses{$census}->{$name}->xref(), "\n";
+			print $csv "$index|\"$census\"|\"", $censuses{$census}->{$name}->xref(), "\"\n";
 			$index++;
 		}
 
