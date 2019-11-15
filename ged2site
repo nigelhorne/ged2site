@@ -41,7 +41,10 @@ BEGIN {
 	# FIXME
 	$SIG{__WARN__} = sub {
 		my $warning = shift;
-		warn $warning unless $warning =~ /Subroutine Geo::Coder::OpenCage::ua redefined at/;
+		if(($warning !~ /Subroutine Geo::Coder::OpenCage::ua redefined at/) &&
+		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
+			warn $warning;
+		}
 	};
 }
 
@@ -5943,8 +5946,8 @@ sub print_person
 				if($birth_in_last_run = $p->first_child('birth')) {
 					$birth_in_last_run = $birth_in_last_run->first_child()->pcdata();
 				}
-				if($birth_in_last_run = $p->first_child('marriage')) {
-					$birth_in_last_run = $birth_in_last_run->first_child()->pcdata();
+				if($marriage_in_last_run = $p->first_child('marriage')) {
+					$marriage_in_last_run = $marriage_in_last_run->first_child()->pcdata();
 				}
 				if($death_in_last_run = $p->first_child('death')) {
 					$death_in_last_run = $death_in_last_run->first_child()->pcdata();
