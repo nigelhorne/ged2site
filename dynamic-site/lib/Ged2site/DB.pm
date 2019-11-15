@@ -299,14 +299,19 @@ sub selectall_hash {
 	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	my @query_args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
-		if(ref($params{$c1})) {
+		my $arg = $params{$c1};
+		if(ref($arg)) {
 			if($self->{'logger'}) {
 				$self->{'logger'}->fatal("selectall_hash $query: argument is not a string");
 			}
 			throw Error::Simple("$query: argument is not a string");
 		}
-		$query .= " AND $c1 LIKE ?";
-		push @query_args, $params{$c1};
+		if($arg =~ /\@/) {
+			$query .= " AND $c1 LIKE ?";
+		} else {
+			$query .= " AND $c1 = ?";
+		}
+		push @query_args, $arg;
 	}
 	$query .= ' ORDER BY entry';
 	if($self->{'logger'}) {
