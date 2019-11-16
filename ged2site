@@ -7010,7 +7010,7 @@ sub notes
 				if($rc) {
 					$rc .= ' ';
 				}
-				$rc .= HTML::Entities::encode($note).
+				$rc .= HTML::Entities::encode($note);
 				$rc .= '.' if($note !~ /\.$/);
 			}
 		} else {
