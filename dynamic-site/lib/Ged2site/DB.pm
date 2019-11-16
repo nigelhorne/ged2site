@@ -191,7 +191,11 @@ sub _open {
 				f_file => $slurp_file,
 				escape_char => '\\',
 				sep_char => $sep_char,
-				auto_diag => 1,
+				# Don't do this, causes "Bizarre copy of HASH
+				#	in scalar assignment in error_diag
+				#	RT121127
+				# auto_diag => 1,
+				auto_diag => 0,
 				# Don't do this, it causes "Attempt to free unreferenced scalar"
 				# callbacks => {
 					# after_parse => sub {
@@ -346,7 +350,9 @@ sub selectall_hash {
 
 		return @rc;
 	}
-	$self->{'logger'}->warn("selectall_hash failure on $query: @query_args");
+	if($self->{'logger'}) {
+		$self->{'logger'}->warn("selectall_hash failure on $query: @query_args");
+	}
 	throw Error::Simple("$query: @query_args");
 }
 
@@ -371,9 +377,13 @@ sub fetchrow_hashref {
 	$query .= " WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	my @args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
-		if($params{$c1}) {
-			$query .= " AND $c1 LIKE ?";
-			push @args, $params{$c1};
+		if(my $arg = $params{$c1}) {
+			if($arg =~ /\@/) {
+				$query .= " AND $c1 LIKE ?";
+			} else {
+				$query .= " AND $c1 = ?";
+			}
+			push @args, $arg;
 		}
 	}
 	# $query .= ' ORDER BY entry LIMIT 1';
