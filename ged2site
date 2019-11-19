@@ -38,12 +38,12 @@ my @modules;
 BEGIN {
 	@modules = (
 		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
-		'Date::Parse',
+		'Date::Parse', 'Geo::Coder::List',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare');
+		system('cpan -i Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare');
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes Geo::Coder::OpenCage');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
@@ -1487,8 +1487,12 @@ sub print_person
 	my $is_alive = is_alive(person => $person);
 	my $title;
 	if($is_alive && !$opts{'l'}) {
+		print $csv $person->xref(), '!',
+			$person->as_string({ middle_names => 1, title => 1 }), '!';
 		$title = $firstname;
 	} else {
+		print $csv $person->xref(), '!',
+			$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
 		$title = $person->as_string({
 			include_years => 1,
 			nee => 1,
@@ -1502,13 +1506,13 @@ sub print_person
 	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
 	my $xtitle = $title;
 	$xtitle =~ s/&eacute;/&#233;/g;
-	print $xml "\n\t\t<entry>", $person->xref(), "</entry>\n\t\t<title>$xtitle</title>";
-	if($is_alive && !$opts{'l'}) {
-		print $csv $person->xref(), '!',
-			$person->as_string({ middle_names => 1, title => 1 }), '!';
-	} else {
-		print $csv $person->xref(), '!',
-			$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
+	print $xml "\n\t\t<entry>", $person->xref(),
+		"</entry>\n\t\t<title>$xtitle</title>";
+	if($firstname) {
+		print $xml "\n\t\t<firstname>$firstname</firstname>";
+	}
+	if($surname) {
+		print $xml "\n\t\t<surname>$surname</surname>";
 	}
 
 	if($me && ($person->xref() eq $me->xref())) {
@@ -5987,6 +5991,7 @@ sub print_person
 	if($current_people) {
 		foreach my $p($current_people->root()->children('person')) {
 			my $entry = $p->first_child('entry');
+			# TODO: Also check first and last names are the same
 			if($entry->first_child()->pcdata() eq $person->xref()) {
 				$person_in_last_run = $p;
 				if($birth_in_last_run = $p->first_child('birth')) {
