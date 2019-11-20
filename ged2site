@@ -39,11 +39,12 @@ BEGIN {
 	@modules = (
 		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
+		'IPC::System::Simple',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i IPC::System::Simple Geo::Coder::Ovi String::Compare');
+		system('cpan -i Geo::Coder::Ovi String::Compare');
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes Geo::Coder::OpenCage');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
@@ -1343,8 +1344,8 @@ sub print_person
 
 	# ACOM starts approximate dates with "Abt." instead of "ABT".
 	if(defined($dob) && length($dob) && ($dob ne '?')) {
-		$dob =~ s/[\.\-]/ /g;
-		$dob =~ s/\s{2,}/ /g;
+		$dob =~ tr/\.\-/  /;
+		$dob =~ s/\s{2,}/ /gs;
 		# FIXME: ../../../gedcoms/gl120368.ged puts dates *inside*
 		#	brackets
 		$dob =~ s/\(.+$//;	# some people put information in brackets after the date
@@ -6783,6 +6784,9 @@ sub year
 	}
 
 	$string = ucfirst(lc($string));
+	if($params{'nopreposition'}) {
+		return $string;
+	}
 	return "in $string";
 }
 
@@ -8055,11 +8059,10 @@ sub journey
 		}
 	}
 	if($dod) {
+		$rc = $person->pronoun();
 		if($yod && $yoa && ($yod == $yoa)) {
-			$rc = " In $yod, " . lc($person->pronoun());
-		} else {
-			$rc = $person->pronoun();
-
+			$rc = " In $yod, " . lc($rc);
+		# } else {
 			# $yod = year({ person => $person, record => $departure });
 			# $yoa = year({ person => $person, record => $arrival });
 		}
