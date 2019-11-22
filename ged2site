@@ -39,12 +39,12 @@ BEGIN {
 	@modules = (
 		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
-		'IPC::System::Simple',
+		'IPC::System::Simple', 'Geo::Coder::Ovi',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i Geo::Coder::Ovi String::Compare');
+		system('cpan -i String::Compare');
 		system('cpan -i Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Geo::Coder::Postcodes Geo::Coder::OpenCage');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
@@ -139,7 +139,6 @@ use Geo::Coder::Google;
 use Geo::Coder::Bing;
 use Geo::Coder::CA;
 use Geo::Coder::OpenCage;
-use Geo::Coder::Ovi;
 use Geo::Coder::RandMcnally;
 use Geo::Coder::US::Census;
 use Geo::Parser::Text;
@@ -4819,13 +4818,14 @@ sub print_person
 
 				my $u = URI->new($orig_uri);
 				if($u && (ref($u) ne 'URI::_generic')) {
-					if((!head($orig_uri)) && !get($orig_uri)) {
+					if((!$browser->head($orig_uri)) && !$browser->get($orig_uri)) {
 						complain({ person => $person, warning => "$orig_uri: not found" });
+					} else {
+						$uri =~ s/:$//;
+						return "<a href=\"$uri\">" .
+							$u->host() .
+							'</a>';
 					}
-					$uri =~ s/:$//;
-					return "<a href=\"$uri\">" .
-						$u->host() .
-						'</a>';
 				}
 				return $orig_uri;
 			});
