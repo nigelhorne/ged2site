@@ -1,0 +1,35 @@
+name: macos
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  perl:
+
+    runs-on: macOS-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Perl
+        run: brew install perl
+      - name: perl -V
+        run: perl -V
+      - name: Install Dependencies
+        run: |
+          export PATH=$PATH:/usr/local/Cellar/perl/5.30.0/bin
+          cpan -iq File::Spec ExtUtils::MakeMaker App::cpanminus
+          # Force path to Gedcom or else it doesn't find it
+          cpanm --skip-satisfied -q -in P/PJ/PJCJ/Gedcom-1.22.tar.gz Moo~2.002004 Genealogy::Gedcom::Date Date::Parse Getopt::Std Geo::Coder::OSM Term::ANSIColor Lingua::EN::NameParse Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Tie::Static DateTime::Format::Natural HTML::Entities B::Lint HTTP::Cache::Transparent Image::Info URI::Find::Schemeless LWP::Simple LWP::UserAgent::Throttled HTML::GoogleMaps::V3 Sort::Key::DateTime String::ProgressBar Text::Names::GB IPC::System::Simple autodie Memoize Lingua::EN::ABC warnings::unused File::Copy Geo::Coder::GooglePlaces Geo::Coder::List Config::Auto Lingua::EN::Inflect Geo::Coder::CA DBD::SQLite Locale::Object::Country FCGI Log::Log4perl CGI::Carp CGI::Info CGI::Lingua FCGI::Buffer File::HomeDir Log::WarnDie Template::Plugin::EnvHash CHI HTML::SocialMedia Statistics::LineFit File::pfopen Statistics::Lite Geo::Coder::XYZ URI~1.73 Geo::StreetAddress::US Locale::US Log::Any::Adapter::Log4perl Text::CSV::Slurp Gzip::Faster Geo::Coder::Postcodes List::Util File::Fetch~0.56 Geo::Coder::Free Geo::Coder::US::Census Geo::Coder::Ovi Geo::Coder::RandMcnally Geo::Parser::Text Log::Dispatch::File YAML::Any Mo Geo::Coder::Bing Geo::GeoNames POSIX HTML::TagCloud YAML::XS Text::xSV::Slurp DateTime::Format::Genealogy File::Print::Many GIS::Distance Geo::Coder::DataScienceToolkit Taint::Runtime Net::OAuth String::Compare IO::AIO XML::Dumper XML::Twig Class::Simple Geo::Coder::OpenCage Class::Simple::Cached Class::Simple::Readonly::Cached Unicode::Diacritic::Strip
+          cpanm -q -n F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz
+      - name: Run Tests
+        run: |
+          perl -c -MO=Lint ./ged2site
+          perl -c -Mwarnings::unused ./ged2site
+          cd dynamic-site/cgi-bin && perl -c -MO=Lint ./page.fcgi '' && perl -c -Mwarnings::unused ./page.fcgi ''
+          rootdir=$(pwd)/../.. perl page.fcgi page=reports
+          rootdir=$(pwd)/../.. perl page.fcgi page=surnames surname='Stock%20or%20(1,2\)=(select*from(select%20name_const(CHAR(111,108,111,108,111,115,104,101,114\),1\),name_const(CHAR( <-- HERE 111,108,111,108,111,115,104,101,114\),1\)\)a\)%20--%20and%201%3D1'
