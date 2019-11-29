@@ -42,13 +42,12 @@ BEGIN {
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
+		'Geo::Coder::Postcodes', 'Geo::Coder::OpenCage'
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i Geo::Coder::Postcodes Geo::Coder::OpenCage');
 		system('cpan -i Geo::Coder::GooglePlaces Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
-		system('cpan -i Lingua::EN::NameCase Lingua::EN::Numbers::Ordinate Lingua::EN::ABC Lingua::EN::Inflect DateTime DateTime::Format::Natural');
 		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
@@ -116,7 +115,6 @@ use Getopt::Std;
 use Lingua::EN::NameCase;
 use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;
-use Lingua::EN::ABC;
 use Lingua::EN::Inflect;
 # use Lingua::EN::AddressParse;
 use Geo::StreetAddress::US;
@@ -4705,6 +4703,8 @@ sub print_person
 	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en/)) {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			$bio = Lingua::EN::ABC::b2a($bio);
+		} elsif($ENV{'LANG'} =~ /^en_CA/) {
+			$bio = Lingua::EN::ABC::b2c($bio);
 		} elsif($ENV{'LANG'} =~ /^en_GB/) {
 			$bio = Lingua::EN::ABC::a2b($bio);
 		}
@@ -7147,6 +7147,8 @@ sub notes
 	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en/)) {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			return Lingua::EN::ABC::b2a($rc);
+		} elsif($ENV{'LANG'} =~ /^en_CA/) {
+			return Lingua::EN::ABC::b2c($rc);
 		} elsif($ENV{'LANG'} =~ /^en_GB/) {
 			return Lingua::EN::ABC::a2b($rc);
 		}
