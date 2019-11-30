@@ -43,11 +43,12 @@ BEGIN {
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Geo::Coder::Postcodes', 'Geo::Coder::OpenCage', 'Geo::Coder::GooglePlaces',
+		'Geo::Coder::Bing',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i Geo::Coder::Bing Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
+		system('cpan -i Geo::GeoNames F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i DateTime::Format::Genealogy URI::Find::Schemeless Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
@@ -131,7 +132,6 @@ use Geo::Coder::Postcodes 0.02;
 use Geo::Coder::OSM;
 use Geo::Coder::XYZ;
 use Geo::Coder::GooglePlaces;
-use Geo::Coder::Bing;
 use Geo::Coder::PlaceFinder;
 use Geo::GeoNames;
 use Geo::Coder::Google;
@@ -1201,6 +1201,8 @@ if($opts{'w'}) {
 					$summary = 'Change &quot;United States&quot; to &quot;USA&quot;';
 				} elsif($warning =~ /Location for .+ differs from /) {
 					$summary = 'Inconsistent location';
+				} elsif($warning =~ /Date of residence \(.+\sdiffers from\s/i) {
+					$summary = 'Date of Residence Differs From Parent\'s';
 				} elsif($warning =~ /^Check out https?:\/\/chroniclingamerica.loc.gov/) {
 					# FIXME: Lots of false positives
 					next;
