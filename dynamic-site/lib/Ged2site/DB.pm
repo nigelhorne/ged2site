@@ -397,10 +397,18 @@ sub fetchrow_hashref {
 	my @args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
 		if(my $arg = $params{$c1}) {
-			if($arg =~ /\@/) {
-				$query .= " AND $c1 LIKE ?";
+			if(scalar(@query_args)) {
+				if($arg =~ /\@/) {
+					$query .= " AND $c1 LIKE ?";
+				} else {
+					$query .= " AND $c1 = ?";
+				}
 			} else {
-				$query .= " AND $c1 = ?";
+				if($arg =~ /\@/) {
+					$query .= " WHERE $c1 LIKE ?";
+				} else {
+					$query .= " WHERE $c1 = ?";
+				}
 			}
 			push @args, $arg;
 		}
