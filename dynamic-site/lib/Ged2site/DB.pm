@@ -32,6 +32,7 @@ package Ged2site::DB;
 # my $row = $foo->fetchrow_hashref(customer_id => '12345);
 # print Data::Dumper->new([$row])->Dump();
 
+# FIXME:  there needs to be a column called 'entry' which is used for sort
 # TODO: support a directory hierachy of databases
 # TODO: consider returning an object or array of objects, rather than hashes
 # TODO:	Add redis database - could be of use for Geo::Coder::Free
@@ -140,6 +141,7 @@ sub _open {
 		if($self->{'logger'}) {
 			$self->{'logger'}->debug("read in $table from SQLite $slurp_file");
 		}
+		$self->{'type'} = 'DBI';
 	} else {
 		my $fin;
 		($fin, $slurp_file) = File::pfopen::pfopen($dir, $table, 'csv.gz:db.gz');
@@ -253,6 +255,7 @@ sub _open {
 			foreach my $d(@data) {
 				$self->{'data'}[$i++] = $d;
 			}
+			$self->{'type'} = 'CSV';
 		} else {
 			$slurp_file = File::Spec->catfile($dir, "$table.xml");
 			if(-r $slurp_file) {
@@ -265,6 +268,7 @@ sub _open {
 			} else {
 				throw Error::Simple("Can't open $dir/$table");
 			}
+			$self->{'type'} = 'XML';
 		}
 	}
 
@@ -300,7 +304,12 @@ sub selectall_hash {
 	# if((scalar(keys %params) == 1) && $self->{'data'} && defined($params{'entry'})) {
 	# }
 
-	my $query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	my $query;
+	if($self->{'type'} eq 'CSV') {
+		$query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	} else {
+		$query = "SELECT * FROM $table";
+	}
 	my @query_args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
 		my $arg = $params{$c1};
@@ -310,10 +319,18 @@ sub selectall_hash {
 			}
 			throw Error::Simple("$query: argument is not a string");
 		}
-		if($arg =~ /\@/) {
-			$query .= " AND $c1 LIKE ?";
+		if(scalar(@query_args)) {
+			if($arg =~ /\@/) {
+				$query .= " AND $c1 LIKE ?";
+			} else {
+				$query .= " AND $c1 = ?";
+			}
 		} else {
-			$query .= " AND $c1 = ?";
+			if($arg =~ /\@/) {
+				$query .= " WHERE $c1 LIKE ?";
+			} else {
+				$query .= " WHERE $c1 = ?";
+			}
 		}
 		push @query_args, $arg;
 	}
@@ -374,7 +391,9 @@ sub fetchrow_hashref {
 	} else {
 		$query .= $table;
 	}
-	$query .= " WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	if($self->{'type'} eq 'CSV') {
+		$query .= " WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+	}
 	my @args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
 		if(my $arg = $params{$c1}) {
