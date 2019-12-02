@@ -394,7 +394,7 @@ sub fetchrow_hashref {
 	if($self->{'type'} eq 'CSV') {
 		$query .= " WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 	}
-	my @args;
+	my @query_args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
 		if(my $arg = $params{$c1}) {
 			if(scalar(@query_args)) {
@@ -410,21 +410,21 @@ sub fetchrow_hashref {
 					$query .= " WHERE $c1 = ?";
 				}
 			}
-			push @args, $arg;
+			push @query_args, $arg;
 		}
 	}
 	# $query .= ' ORDER BY entry LIMIT 1';
 	$query .= ' LIMIT 1';
 	if($self->{'logger'}) {
-		if(defined($args[0])) {
-			$self->{'logger'}->debug("fetchrow_hashref $query: ", join(', ', @args));
+		if(defined($query_args[0])) {
+			$self->{'logger'}->debug("fetchrow_hashref $query: ", join(', ', @query_args));
 		} else {
 			$self->{'logger'}->debug("fetchrow_hashref $query");
 		}
 	}
 	my $key;
-	if(defined($args[0])) {
-		$key = "fetchrow $query " . join(', ', @args);
+	if(defined($query_args[0])) {
+		$key = "fetchrow $query " . join(', ', @query_args);
 	} else {
 		$key = "fetchrow $query";
 	}
@@ -435,7 +435,7 @@ sub fetchrow_hashref {
 		}
 	}
 	my $sth = $self->{$table}->prepare($query) or die $self->{$table}->errstr();
-	$sth->execute(@args) || throw Error::Simple("$query: @args");
+	$sth->execute(@query_args) || throw Error::Simple("$query: @query_args");
 	if($c) {
 		my $rc = $sth->fetchrow_hashref();
 		$c->set($key, $rc, '1 hour');
