@@ -45,11 +45,11 @@ BEGIN {
 		'Geo::Coder::Postcodes', 'Geo::Coder::OpenCage', 'Geo::Coder::GooglePlaces',
 		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
 		'DateTime::Format::Genealogy', 'URI::Find::Schemeless',
+		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz');
 		system('cpan -i Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
@@ -78,7 +78,7 @@ BEGIN {
 		if(($warning !~ /Subroutine Geo::Coder::OpenCage::ua redefined at/) &&
 		   ($warning !~ /Subroutine HTML::GoogleMaps::V3::_text_to_point redefined at/) &&
 		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
-			die $warning;
+			warn $warning;
 		}
 	};
 }
