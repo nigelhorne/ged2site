@@ -48,11 +48,12 @@ BEGIN {
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
+		'HTTP::Cache::Transparent',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
+		system('cpan -i HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
 	my @needfull;
@@ -4171,8 +4172,8 @@ sub print_person
 			} elsif($placeofdeath && $placeofburial && ($placeofburial eq $placeofdeath) &&
 			   $burial->address() && !$death->address()) {
 				$bio .= ' and is buried there at ' . $burial->address();
-			} else {
-				$bio .= ' and is buried' . place($opts);
+			} elsif(my $b = place($opts)) {
+				$bio .= " and is buried at $b";
 			}
 			if($notes && (length($notes) > 160)) {
 				$bio .= ".</p><p>";
