@@ -48,12 +48,12 @@ BEGIN {
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
-		'HTTP::Cache::Transparent',
+		'HTTP::Cache::Transparent', 'HTML::Table',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
+		system('cpan -i Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
 	my @needfull;
@@ -5712,7 +5712,7 @@ sub print_person
 			} elsif($rec = $spouse->get_record('marriage')) {
 				$date = $rec->date();
 			}
-			if($date) {
+			if($date && ($date =~ /\d$/)) {
 				if(my $marriage_dt = date_to_datetime(date => $date)) {
 					if($marriage_dt->month() && $marriage_dt->day()) {
 						$m .= '---' if($m);
