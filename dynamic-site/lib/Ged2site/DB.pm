@@ -319,7 +319,7 @@ sub selectall_hash {
 			}
 			throw Error::Simple("$query: argument is not a string");
 		}
-		if(scalar(@query_args)) {
+		if(scalar(@query_args) || ($self->{'type'} eq 'CSV')) {
 			if($arg =~ /\@/) {
 				$query .= " AND $c1 LIKE ?";
 			} else {
@@ -354,7 +354,8 @@ sub selectall_hash {
 	}
 
 	if(my $sth = $self->{$table}->prepare($query)) {
-		$sth->execute(@query_args) || throw Error::Simple("$query: @query_args");
+		$sth->execute(@query_args) ||
+			throw Error::Simple("$query: @query_args");
 
 		my @rc;
 		while(my $href = $sth->fetchrow_hashref()) {
@@ -397,7 +398,7 @@ sub fetchrow_hashref {
 	my @query_args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
 		if(my $arg = $params{$c1}) {
-			if(scalar(@query_args)) {
+			if(scalar(@query_args) || ($self->{'type'} eq 'CSV')) {
 				if($arg =~ /\@/) {
 					$query .= " AND $c1 LIKE ?";
 				} else {
