@@ -46,11 +46,12 @@ BEGIN {
 		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
 		'DateTime::Format::Genealogy', 'URI::Find::Schemeless',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
+		'Sort::Key::DateTime',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i Sort::Key::DateTime Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
+		system('cpan -i Text::Names::GB Class::Simple::Cached Class::Simple::Readonly::Cached HTTP::Cache::Transparent HTML::Table Geo::Coder::DataScienceToolkit LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
 	my @needfull;
@@ -1854,7 +1855,7 @@ sub print_person
 	if((!$dateofmarriage) && $marriage) {
 		$dateofmarriage = $marriage->date();
 	}
-	if($dateofmarriage) {
+	if($dateofmarriage && ($dateofmarriage =~ /\d$/)) {
 		$marriage_dt = $dfg->parse_datetime(date => $dateofmarriage);
 	}
 
@@ -7735,6 +7736,13 @@ sub date_parser_cached
 	if($all_dates{$date}) {
 		print "$date is already known\n" if($opts{'v'});
 		return $all_dates{$date};
+	}
+	if($date !~ /\d$/) {
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'BUG: illegal date should have been trapped by now';
 	}
 	print "Parse date $date\n" if($opts{'v'});
 	my $d;
