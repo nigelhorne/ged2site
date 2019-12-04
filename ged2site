@@ -49,11 +49,12 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
+		'LWP::UserAgent::Cached',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i LWP::UserAgent::Cached XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
+		system('cpan -i XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
 	my @needfull;
@@ -5993,24 +5994,28 @@ sub print_person
 	if($current_people) {
 		foreach my $p($current_people->root()->children('person')) {
 			my $entry = $p->first_child('entry');
-			# TODO: Also check first and last names are the same
-			if($entry->first_child()->pcdata() eq $person->xref()) {
-				$person_in_last_run = $p;
-				if($birth_in_last_run = $p->first_child('birth')) {
-					$birth_in_last_run = $birth_in_last_run->first_child()->pcdata();
-				}
-				if($marriage_in_last_run = $p->first_child('marriage')) {
-					$marriage_in_last_run = $marriage_in_last_run->first_child()->pcdata();
-					if($marriage_in_last_run =~ /\-\-\-/) {
-						# Married more than once
-						$marriage_in_last_run = undef;
-					}
-				}
-				if($death_in_last_run = $p->first_child('death')) {
-					$death_in_last_run = $death_in_last_run->first_child()->pcdata();
-				}
-				last;
+			next if($entry->first_child()->pcdata() ne $person->xref());
+			if($firstname && (my $f = $p->first_child('firstname'))) {
+				next if($f->first_child()->pcdata() ne $firstname);
 			}
+			if($surname && (my $s = $p->first_child('surname'))) {
+				next if($s->first_child()->pcdata() ne $surname);
+			}
+			if($birth_in_last_run = $p->first_child('birth')) {
+				$birth_in_last_run = $birth_in_last_run->first_child()->pcdata();
+			}
+			if($marriage_in_last_run = $p->first_child('marriage')) {
+				$marriage_in_last_run = $marriage_in_last_run->first_child()->pcdata();
+				if($marriage_in_last_run =~ /\-\-\-/) {
+					# Married more than once
+					$marriage_in_last_run = undef;
+				}
+			}
+			if($death_in_last_run = $p->first_child('death')) {
+				$death_in_last_run = $death_in_last_run->first_child()->pcdata();
+			}
+			$person_in_last_run = $p;
+			last;
 		}
 	}
 
