@@ -8004,6 +8004,11 @@ sub get_all_occupations
 			$occupations[0] = 'Domestic Servant';
 		} elsif($occupations[0] eq 'Lorry Driver Heavy Worker') {
 			$occupations[0] = 'Lorry Driver';
+		} elsif($occupations[0] =~ /Shop Assistant (.*)/) {
+			$occupations[0] = "$1's Shop Assistant";
+		} elsif($occupations[0] =~ /Clerk (.*)/) {
+			$occupations[0] = "$1 Clerk";
+		} elsif($occupations[0] eq 'Plate Glass Curtter') {
 		} elsif($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i) {
 			$occupations[0] = "$1$2's $3";
 		}
