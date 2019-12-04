@@ -49,12 +49,12 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
-		'LWP::UserAgent::Cached',
+		'LWP::UserAgent::Cached', 'XML::Dumper',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i XML::Dumper XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
+		system('cpan -i XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
 	my @needfull;
@@ -178,7 +178,6 @@ use POSIX;
 use JSON;
 use File::Print::Many;
 use Unicode::Diacritic::Strip;
-use XML::Dumper;
 use XML::Twig;
 
 my %opts;
@@ -6022,9 +6021,9 @@ sub print_person
 	# Add entries to the changes.psv file
 	if($opts{'l'} || !$is_alive) {
 		if(defined($person_in_last_run)) {
-			my $change;
 			if($birth_dt) {
 				my $b = $birth_dt->strftime('%Y/%m/%d');
+				my $change;
 				if($birth_in_last_run) {
 					if($b ne $birth_in_last_run) {
 						$change = "Changed date of birth from $birth_in_last_run to $b";
@@ -6032,9 +6031,16 @@ sub print_person
 				} else {
 					$change = "Added date of birth as $b";
 				}
+				if($change) {
+					my $p = Class::Simple->new();
+					$p->readonly_person($person);
+					$p->readonly_change($change);
+					push @{$changes{'changes'}}, $p;
+				}
 			}
 			if($marriage_dt) {
 				my $m = $marriage_dt->strftime('%Y/%m/%d');
+				my $change;
 				if($marriage_in_last_run) {
 					if($m ne $marriage_in_last_run) {
 						$change = "Changed date of marriage from $marriage_in_last_run to $m";
@@ -6042,9 +6048,16 @@ sub print_person
 				} else {
 					$change = "Added date of marriage as $m";
 				}
+				if($change) {
+					my $p = Class::Simple->new();
+					$p->readonly_person($person);
+					$p->readonly_change($change);
+					push @{$changes{'changes'}}, $p;
+				}
 			}
 			if($death_dt) {
 				my $d = $death_dt->strftime('%Y/%m/%d');
+				my $change;
 				if($death_in_last_run) {
 					if($d ne $death_in_last_run) {
 						$change = "Changed date of death from $death_in_last_run to $d";
@@ -6052,12 +6065,12 @@ sub print_person
 				} else {
 					$change = "Added date of death as $d";
 				}
-			}
-			if($change) {
-				my $p = Class::Simple->new();
-				$p->person($person);
-				$p->change($change);
-				push @{$changes{'changes'}}, $p;
+				if($change) {
+					my $p = Class::Simple->new();
+					$p->readonly_person($person);
+					$p->readonly_change($change);
+					push @{$changes{'changes'}}, $p;
+				}
 			}
 		} else {
 			push @{$changes{'added_people'}}, $person;
