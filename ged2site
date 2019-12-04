@@ -49,12 +49,12 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
-		'LWP::UserAgent::Cached', 'XML::Dumper',
+		'LWP::UserAgent::Cached', 'XML::Dumper', 'XML::Twig',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i XML::Twig CHI Class::Simple Unicode::Diacritic::Strip');
+		system('cpan -i CHI Class::Simple Unicode::Diacritic::Strip');
 	}
 
 	my @needfull;
@@ -108,7 +108,6 @@ foreach my $module(@modules) {
 		# die "$module: need $version got ", $module::VERSIOn;
 	# }
 }
-
 
 use autodie qw(:all);
 use utf8;
@@ -178,7 +177,6 @@ use POSIX;
 use JSON;
 use File::Print::Many;
 use Unicode::Diacritic::Strip;
-use XML::Twig;
 
 my %opts;
 getopts('cdfFG:g:h:J:lL:mwvx:', \%opts);
@@ -6005,7 +6003,7 @@ sub print_person
 			}
 			if($marriage_in_last_run = $p->first_child('marriage')) {
 				$marriage_in_last_run = $marriage_in_last_run->first_child()->pcdata();
-				if($marriage_in_last_run =~ /\-\-\-/) {
+				if(($marriage_in_last_run =~ /\-\-\-/) || (scalar(@spouses) >= 2)) {
 					# Married more than once
 					$marriage_in_last_run = undef;
 				}
