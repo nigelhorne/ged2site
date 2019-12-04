@@ -7219,19 +7219,15 @@ sub validate_place
 			}
 		}
 
-		my $town = $place;
-		if($place =~ /,\s*(.+,.+,.+,.+)$/) {
-			# Use only the town part
-			$town = $1;
-		}
+		print "Look up location $place\n", if($opts{'v'});
 		if($opts{'w'}) {
 			# Strange locations in censuses
-			if($town =~ /Royal Navy/) {
+			if($place =~ /Royal Navy/) {
 				return 0;
 			}
 			# Force wantarray for improved caching in
 			# G:C:L
-			my @locations = $geocoder->geocode($town);
+			my @locations = $geocoder->geocode($place);
 			if(scalar(@locations) == 0) {
 				# Don't die because there are many
 				# false positives as locations
@@ -7242,11 +7238,9 @@ sub validate_place
 					warn colored("Unknown location $place", 'red');
 				}
 				$places{$place} = 0;
-				$places{$town} = 0;
 				return 0;
 			}
 		}
-		$places{$town} = 1;
 	}
 	$places{$place} = 1;
 	return 1;
