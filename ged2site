@@ -49,12 +49,13 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
-		'LWP::UserAgent::Cached', 'XML::Dumper', 'XML::Twig',
+		'LWP::UserAgent::Cached', 'XML::Dumper', 'XML::Twig', 'Locale::US',
+		'CHI',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i CHI Class::Simple Unicode::Diacritic::Strip');
+		system('cpan -i Class::Simple Unicode::Diacritic::Strip');
 	}
 
 	my @needfull;
@@ -127,7 +128,6 @@ use Lingua::EN::Numbers::Ordinate;
 use Lingua::EN::Inflect;
 # use Lingua::EN::AddressParse;
 use Geo::StreetAddress::US;
-use Locale::US;
 use DateTime;
 use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
@@ -585,16 +585,43 @@ my $index = 0;
 my $dtl = DateTime::Locale->load($ENV{'LANG'});
 
 my $pr;
-my $us;
+my $us = Locale::US->new();
+
+@modules = ();
 if($opts{'w'}) {
-	require Locale::US;
-	Locale::US->import();
+	push @modules, 'HTTP::Cache::Transparent', 'Genealogy::ChroniclingAmerica';
+}
 
-	$us = Locale::US->new();
+my @needfull;
+foreach my $module(@modules) {
+	eval "require $module";
+	if($@) {
+		push @needfull, $module;
+	} else {
+		$module->import();
+	}
+}
+if(scalar(@needfull)) {
+	system('cpan -i ' . join(' ', @needfull));
+}
 
-	require LWP::UserAgent::Cached;
-	LWP::UserAgent::Cached->import();
+foreach my $module(@modules) {
+	my $version;
+	if($module =~ /(.+)\s(.+)$/) {
+		$module = $1;
+		$version = $2;
+	}
+	eval "require $module";
+	if($@) {
+		die $@;
+	}
+	$module->import();
+	# if($version && ($module::VERSION < $version)) {
+		# die "$module: need $version got ", $module::VERSIOn;
+	# }
+}
 
+if($opts{'w'}) {
 	my $cachedir;
 	if(my $e = $ENV{'CACHEDIR'}) {
 		$cachedir = File::Spec->catfile($e, 'lwp');
@@ -8205,9 +8232,6 @@ sub chronicling_america
 	my ($person, $chronicling_params) = @_;
 
 	return unless($opts{'w'});
-
-	require Genealogy::ChroniclingAmerica;
-	Genealogy::ChroniclingAmerica->import();
 
 	if(!defined($chronicling_params->{'firstname'})) {
 		my $i = 0;
