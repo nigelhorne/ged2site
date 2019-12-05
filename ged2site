@@ -49,13 +49,13 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
-		'LWP::UserAgent::Cached', 'XML::Dumper', 'XML::Twig', 'Locale::US',
-		'CHI',
+		'XML::Dumper', 'XML::Twig', 'Locale::US',
+		'CHI', 'Class::Simple',
 	);
 
 	eval 'use Geo::Coder::List 0.26';
 	if($@) {
-		system('cpan -i Class::Simple Unicode::Diacritic::Strip');
+		system('cpan -i Unicode::Diacritic::Strip');
 	}
 
 	my @needfull;
@@ -119,7 +119,6 @@ use utf8;
 # }
 
 use CHI;
-use Class::Simple;
 use Gedcom;
 use Getopt::Std;
 use Lingua::EN::NameCase;
@@ -589,7 +588,8 @@ my $us = Locale::US->new();
 
 @modules = ();
 if($opts{'w'}) {
-	push @modules, 'HTTP::Cache::Transparent', 'Genealogy::ChroniclingAmerica';
+	push @modules,
+		'LWP::UserAgent::Cached', 'HTTP::Cache::Transparent', 'Genealogy::ChroniclingAmerica';
 }
 
 my @needfull;
