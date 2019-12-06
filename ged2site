@@ -29,6 +29,7 @@
 
 use strict;
 use warnings;
+use utf8;
 
 no lib '.';
 
@@ -49,9 +50,10 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
-		'XML::Dumper', 'XML::Twig', 'Locale::US',
-		'CHI', 'Class::Simple', 'Unicode::Diacritic::Strip',
+		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI',
+		'Class::Simple', 'Unicode::Diacritic::Strip',
 		'Getopt::Std', 'Lingua::EN::NameCase',
+		'Lingua::EN::NameParse',
 	);
 
 	my @needfull;
@@ -107,14 +109,12 @@ foreach my $module(@modules) {
 }
 
 use autodie qw(:all);
-use utf8;
 # use warnings::unused;
 
 # BEGIN {
 	# *CORE::GLOBAL::die = \&main::die;
 # }
 
-use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;
 use Lingua::EN::Inflect;
 # use Lingua::EN::AddressParse;
@@ -8147,7 +8147,7 @@ sub journey
 			$rc .= ", departing $dod and";
 		}
 
-		$rc .= " arriving $doa";
+		return "$rc arriving $doa";
 	}
 
 	return $rc;
