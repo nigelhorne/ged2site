@@ -50,13 +50,9 @@ BEGIN {
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
 		'XML::Dumper', 'XML::Twig', 'Locale::US',
-		'CHI', 'Class::Simple',
+		'CHI', 'Class::Simple', 'Unicode::Diacritic::Strip',
+		'Getopt::Std',
 	);
-
-	eval 'use Geo::Coder::List 0.26';
-	if($@) {
-		system('cpan -i Unicode::Diacritic::Strip');
-	}
 
 	my @needfull;
 	foreach my $module(@modules) {
@@ -118,9 +114,6 @@ use utf8;
 	# *CORE::GLOBAL::die = \&main::die;
 # }
 
-use CHI;
-use Gedcom;
-use Getopt::Std;
 use Lingua::EN::NameCase;
 use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;

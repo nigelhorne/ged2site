@@ -39,13 +39,16 @@ our %blacklist_agents = (
 	'MJ12' => 'Majestic',
 	'Mozilla/4.0 (compatible; Vagabondo/4.0; webcrawler at wise-guys dot nl; http://webagent.wise-guys.nl/; http://www.wise-guys.nl/)' => 'wise-guys',
 	'zgrab' => 'Mozilla/5.0 zgrab/0.x',
+	'Mozilla/5.0 (compatible; SemrushBot/6~bl; +http://www.semrush.com/bot.html)' => 'SemrushBot',
 	'iodc' => 'Mozilla/5.0 (compatible; IODC-Odysseus Survey 21796-100-051215155936-107; +https://iodc.co.uk)',
 );
 
 our %status;
 
 sub allow {
-	if(!defined($ENV{'REMOTE_ADDR'})) {
+	my $addr = $ENV{'REMOTE_ADDR'};
+
+	if(!defined($addr)) {
 		# Not running as a CGI
 		return 1;
 	}
@@ -53,7 +56,6 @@ sub allow {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $logger = $args{'logger'};
-	my $addr = $ENV{'REMOTE_ADDR'};
 
 	if(defined($status{$addr})) {
 		# Cache the value
