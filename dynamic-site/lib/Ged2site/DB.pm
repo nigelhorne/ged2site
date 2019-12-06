@@ -32,7 +32,13 @@ package Ged2site::DB;
 # my $row = $foo->fetchrow_hashref(customer_id => '12345);
 # print Data::Dumper->new([$row])->Dump();
 
-# FIXME:  there needs to be a column called 'entry' which is used for sort
+# CSV files can have empty lines of comment lines starting with '#', to make them more readable
+
+# If the table has a column called "entry", sorts are based on that
+# To turn that off, pass 'no_entry' to the constructor, for legacy
+# reasons it's enabled by default
+# TODO: Switch that to off by default, and enable by passing 'entry'
+
 # TODO: support a directory hierachy of databases
 # TODO: consider returning an object or array of objects, rather than hashes
 # TODO:	Add redis database - could be of use for Geo::Coder::Free
@@ -71,7 +77,8 @@ sub new {
 		logger => $args{'logger'} || $logger,
 		directory => $args{'directory'} || $directory,	# The directory conainting the tables in XML, SQLite or CSV format
 		cache => $args{'cache'} || $cache,
-		table => $args{'table'}	# The name of the file containing the table, defaults to the class name
+		table => $args{'table'},	# The name of the file containing the table, defaults to the class name
+		no_entry => $args{'no_entry'} || 0,
 	}, $class;
 }
 
@@ -248,7 +255,9 @@ sub _open {
 			)};
 
 			# Ignore blank lines or lines starting with # in the CSV file
-			@data = grep { $_->{'entry'} !~ /^\s*#/ } grep { defined($_->{'entry'}) } @data;
+			unless($self->{no_entry}) {
+				@data = grep { $_->{'entry'} !~ /^\s*#/ } grep { defined($_->{'entry'}) } @data;
+			}
 			# $self->{'data'} = @data;
 			my $i = 0;
 			$self->{'data'} = ();
@@ -299,14 +308,20 @@ sub selectall_hash {
 		if($self->{'logger'}) {
 			$self->{'logger'}->trace("$table: selectall_hash fast track return");
 		}
-		return @{$self->{'data'}};
+		# This use of a temporary variable is to avoid
+		#	"Implicit scalar context for array in return"
+		# return @{$self->{'data'}};
+		my @rc = @{$self->{'data'}};
+		return @rc;
 	}
 	# if((scalar(keys %params) == 1) && $self->{'data'} && defined($params{'entry'})) {
 	# }
 
 	my $query;
-	if($self->{'type'} eq 'CSV') {
+	my $done_where = 0;
+	if(($self->{'type'} eq 'CSV') && !$self->{no_entry}) {
 		$query = "SELECT * FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+		$done_where = 1;
 	} else {
 		$query = "SELECT * FROM $table";
 	}
@@ -319,7 +334,10 @@ sub selectall_hash {
 			}
 			throw Error::Simple("$query: argument is not a string");
 		}
-		if(scalar(@query_args) || ($self->{'type'} eq 'CSV')) {
+		if(!defined($arg)) {
+			throw Error::Simple("$query: value for $c1 is not defined");
+		}
+		if($done_where) {
 			if($arg =~ /\@/) {
 				$query .= " AND $c1 LIKE ?";
 			} else {
@@ -331,10 +349,13 @@ sub selectall_hash {
 			} else {
 				$query .= " WHERE $c1 = ?";
 			}
+			$done_where = 1;
 		}
 		push @query_args, $arg;
 	}
-	$query .= ' ORDER BY entry';
+	if(!$self->{no_entry}) {
+		$query .= ' ORDER BY entry';
+	}
 	if($self->{'logger'}) {
 		if(defined($query_args[0])) {
 			$self->{'logger'}->debug("selectall_hash $query: ", join(', ', @query_args));
@@ -349,7 +370,11 @@ sub selectall_hash {
 	my $c;
 	if($c = $self->{cache}) {
 		if(my $rc = $c->get($key)) {
-			return @{$rc};
+			# This use of a temporary variable is to avoid
+			#	"Implicit scalar context for array in return"
+			# return @{$rc};
+			my @rc = @{$rc};
+			return @rc;
 		}
 	}
 
@@ -392,13 +417,15 @@ sub fetchrow_hashref {
 	} else {
 		$query .= $table;
 	}
-	if($self->{'type'} eq 'CSV') {
+	my $done_where = 0;
+	if(($self->{'type'} eq 'CSV') && !$self->{no_entry}) {
 		$query .= " WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+		$done_where = 1;
 	}
 	my @query_args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
 		if(my $arg = $params{$c1}) {
-			if(scalar(@query_args) || ($self->{'type'} eq 'CSV')) {
+			if($done_where) {
 				if($arg =~ /\@/) {
 					$query .= " AND $c1 LIKE ?";
 				} else {
@@ -410,6 +437,7 @@ sub fetchrow_hashref {
 				} else {
 					$query .= " WHERE $c1 = ?";
 				}
+				$done_where = 1;
 			}
 			push @query_args, $arg;
 		}
@@ -513,16 +541,31 @@ sub AUTOLOAD {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $query;
+	my $done_where = 0;
 	if(wantarray && !delete($params{'distinct'})) {
-		$query = "SELECT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+		if(($self->{'type'} eq 'CSV') && !$self->{no_entry}) {
+			$query = "SELECT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+			$done_where = 1;
+		} else {
+			$query = "SELECT $column FROM $table";
+		}
 	} else {
-		$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+		if(($self->{'type'} eq 'CSV') && !$self->{no_entry}) {
+			$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
+			$done_where = 1;
+		} else {
+			$query = "SELECT DISTINCT $column FROM $table";
+		}
 	}
 	my @args;
 	while(my ($key, $value) = each %params) {
 		if(defined($value)) {
-			# $query .= " AND $key LIKE ?";
-			$query .= " AND $key = ?";
+			if($done_where) {
+				$query .= " AND $key = ?";
+			} else {
+				$query .= " WHERE $key = ?";
+				$done_where = 1;
+			}
 			push @args, $value;
 		} else {
 			if($self->{'logger'}) {
