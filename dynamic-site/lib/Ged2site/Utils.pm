@@ -29,7 +29,7 @@ sub create_disc_cache {
 		throw Error::Simple('root_dir is not optional') unless($root_dir);
 
 		if($logger) {
-			$logger->warn('disc_cache not defined in ' . $config->{'config_path'} . ' falling back to BerkeleyDB');
+			$logger->warn('disc_cache not defined in ', $config->{'config_path'}, ' falling back to BerkeleyDB');
 		}
 		return CHI->new(driver => 'BerkeleyDB', root_dir => $root_dir, namespace => $args{'namespace'});
 	}
@@ -97,7 +97,7 @@ sub create_memory_cache {
 	unless(defined($driver)) {
 		# FIXME: not everywhere runs memcache, should fall back to something else
 		if($logger) {
-			$logger->warn('memory_cache not defined in ' . $config->{'config_path'} . ' falling back to memcached');
+			$logger->warn('memory_cache not defined in ', $config->{'config_path'}, ' falling back to memcached');
 		}
 		return CHI->new(driver => 'Memcached', servers => [ '127.0.0.1:11211' ], namespace => $args{'namespace'});
 	}

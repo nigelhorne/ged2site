@@ -51,7 +51,7 @@ BEGIN {
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
 		'XML::Dumper', 'XML::Twig', 'Locale::US',
 		'CHI', 'Class::Simple', 'Unicode::Diacritic::Strip',
-		'Getopt::Std',
+		'Getopt::Std', 'Lingua::EN::NameCase',
 	);
 
 	my @needfull;
@@ -114,7 +114,6 @@ use utf8;
 	# *CORE::GLOBAL::die = \&main::die;
 # }
 
-use Lingua::EN::NameCase;
 use Lingua::EN::NameParse;
 use Lingua::EN::Numbers::Ordinate;
 use Lingua::EN::Inflect;
@@ -3089,7 +3088,7 @@ sub print_person
 						# and has a child by a 3rd unknown (or unfound) person
 						if($opts{'w'}) {
 							if($opts{'f'}) {
-								die $person->as_string() . ': one of the parents of ' . ($numberofchildren - $childrenseen) . ' children is not known';
+								die $person->as_string(), ': one of the parents of ', ($numberofchildren - $childrenseen), ' children is not known';
 							}
 							if(($numberofchildren - $childrenseen) == 1) {
 								if($unknown) {
