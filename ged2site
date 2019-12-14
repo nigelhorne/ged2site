@@ -50,10 +50,10 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
-		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI',
-		'Class::Simple', 'Unicode::Diacritic::Strip',
-		'Getopt::Std', 'Lingua::EN::NameCase',
-		'Lingua::EN::NameParse',
+		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
+		'Unicode::Diacritic::Strip',
+		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
+		'Lingua::EN::Numbers::Ordinate',
 	);
 
 	my @needfull;
@@ -115,7 +115,6 @@ use autodie qw(:all);
 	# *CORE::GLOBAL::die = \&main::die;
 # }
 
-use Lingua::EN::Numbers::Ordinate;
 use Lingua::EN::Inflect;
 # use Lingua::EN::AddressParse;
 use Geo::StreetAddress::US;
@@ -1954,6 +1953,8 @@ sub print_person
 					complain({ person => $person, warning => "marriage citation can't find source $src" });
 				} elsif($birthcitations[0] && ($citations{$birthcitations[0]} eq $src)) {
 					$marriagecitation = $birthcitations[0];
+				} elsif($birthcitations[1] && ($citations{$birthcitations[1]} eq $src)) {
+					$marriagecitation = $birthcitations[1];
 				} elsif($deathcitations[0] && ($citations{$deathcitations[0]} eq $src)) {
 					$marriagecitation = $deathcitations[0];
 				} else {
