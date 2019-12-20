@@ -105,11 +105,13 @@ site before you deploy. Be aware that you will also see debugging messages.
 Pre-Requisites
 ==============
 
-This program uses many CPAN modules. To install them all and run the program via Carton:
-
-    cpan -i Carton
-    carton install
-    carton exec ./gedcom [args]
+This program uses many CPAN modules.
+Running the program for the first time with no
+arguments should install them,
+of course that will fail if you don't have the privilege,
+in which case you'll need to add them by hand.
+To ensure you'll be installing them in a directory you can use either use local::lib
+or perlbrew.
 
 Ancestry on Windows
 ===================
