@@ -47,12 +47,14 @@ BEGIN {
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Geo::Coder::Postcodes', 'Geo::Coder::OpenCage', 'Geo::Coder::GooglePlaces',
 		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
+		'DateTime',
 		'DateTime::Format::Genealogy', 'URI::Find::Schemeless',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
 		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
+		# 'Geo::StreetAddress::US',
 		'Unicode::Diacritic::Strip',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
 		'Lingua::EN::Numbers::Ordinate', 'Lingua::EN::Inflect',
@@ -118,8 +120,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Geo::StreetAddress::US;
-use DateTime;
 use DateTime::Format::Natural;
 use Genealogy::Gedcom::Date;
 use DateTime::Duration;
@@ -2786,26 +2786,12 @@ sub print_person
 					# if((!$placeofmarriage) && !$dateofmarriage) {
 						# $bio .= ', ';
 					# }
-					if(my $soccupation = $spouses[0]->occupation()) {
-						if(($soccupation !~ /^scho(ol|lar)/i) && ($soccupation !~ /wife$/i)) {
-							$bio .= ' (';
-							$parentheses = 1;
-							if(ref($soccupation) eq 'Gedcom::Record') {
-								foreach my $item($soccupation->items()) {
-									my $value = $item->value();
-									if((length($value) > 1) &&
-									   ($value !~ /^[1-9]/)) {
-										$soccupation = $value;
-										last;
-									}
-								}
-							}
-							if(lc($soccupation) eq 'self-employed') {
-								$bio .= 'self-employed ';
-							} else {
-								$bio .= Lingua::EN::Inflect::A(lc($soccupation)) . ' ';
-							}
-						}
+					my @spouse_occupations = get_all_occupations($spouses[0]);
+					if(my $soccupation = $spouse_occupations[0]) {
+						$parentheses = 1;
+						$bio .= ' (' .
+							Lingua::EN::Inflect::A(lc($soccupation)) .
+							' ';
 					}
 					my @childrenofthisspouse;
 					my $numberofchildrenwiththisspouse = $numberofchildren;
@@ -8025,6 +8011,7 @@ sub get_all_occupations
 		if($occupations[0] =~ /works? on (.+)/i) {
 			$occupations[0] = "$1 worker";
 		} elsif(($occupations[0] eq 'Ag Lab') ||
+			($occupations[0] eq 'work on farm') ||
 			($occupations[0] eq 'Labourer (Ag)')) {
 			$occupations[0] = 'Farm Labourer';
 		} elsif($occupations[0] eq 'Poultry Farming') {
