@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2019, Nigel Horne
+# Copyright (C) 2015-2020, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -43,6 +43,7 @@ BEGIN {
 		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
+		'Genealogy::Gedcom::Date',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Geo::Coder::Postcodes', 'Geo::Coder::OpenCage', 'Geo::Coder::GooglePlaces',
@@ -121,7 +122,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Genealogy::Gedcom::Date;
 use DateTime::Duration;
 use Geo::Coder::DataScienceToolkit;
 use Geo::Coder::Free::OpenAddresses;
@@ -2312,7 +2312,7 @@ sub print_person
 				my @occupations = get_all_occupations($mother);
 				# TODO: print all occupations
 				if($occupations[0]) {
-					$all->print(' ', Lingua::EN::Inflect::A(lc($occupations[0])), ')');
+					$all->print(' (', Lingua::EN::Inflect::A(lc($occupations[0])), ')');
 				}
 				$fullbio .= ' ' . $mother->as_string();
 				if($opts{'w'} && $birth_dt && (my $mdod = dateofdeath($mother))) {
