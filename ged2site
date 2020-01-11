@@ -44,6 +44,8 @@ BEGIN {
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
 		'Genealogy::Gedcom::Date',
+		'Geo::Coder::DataScienceToolkit',
+		# 'Geo::Coder::Free::OpenAddresses',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Geo::Coder::Postcodes', 'Geo::Coder::OpenCage', 'Geo::Coder::GooglePlaces',
@@ -53,7 +55,7 @@ BEGIN {
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
-		'HTTP::Cache::Transparent', 'Geo::Coder::DataScienceToolkit',
+		'HTTP::Cache::Transparent',
 		'URI::Find::Schemeless',
 		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
@@ -122,8 +124,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Geo::Coder::DataScienceToolkit;
-use Geo::Coder::Free::OpenAddresses;
 use Geo::Coder::Free::Local;
 use Geo::Coder::Postcodes 0.02;
 use Geo::Coder::OSM;
@@ -381,6 +381,7 @@ my %censusmaps = (
 	'1851 Census of Canada East, Canada West, New Brunswick, and Nova Scotia' => '1851 Canadian Census',
 	'1861 Census of Canada' => '1861 Canadian Census',
 	'1871 Census of Canada' => '1871 Canadian Census',
+	'Canada Census 1871 - Findmypast' => '1871 Canadian Census',
 	'Kent County, New Brunswick Census, 1871: Eight Subdistricts' => '1871 Canadian Census',
 	'1881 Census of Canada' => '1881 Canadian Census',
 	'1881 Canada Census' => '1881 Canadian Census',
