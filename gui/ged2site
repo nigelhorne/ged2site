@@ -34,8 +34,8 @@ MainLoop();
 
 sub file_open
 {
-	# my $args = @_;
-	# $mw->BackTrace("Open: $args");
+	# my @$args = @_;
+	# $mw->BackTrace("Open: @args");
 
 	my @types = ([ 'Gedcom', '.ged', 'TEXT']);
 	my $file = $mw->getOpenFile(
