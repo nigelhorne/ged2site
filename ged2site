@@ -48,7 +48,8 @@ BEGIN {
 		# 'Geo::Coder::Free::OpenAddresses',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
-		'Geo::Coder::OpenCage', 'Geo::Coder::GooglePlaces',
+		'Geo::Coder::OpenCage', 'Geo::Coder::Google',
+		'Geo::Coder::GooglePlaces',
 		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
@@ -124,10 +125,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Geo::Coder::OSM;
-use Geo::Coder::XYZ;
-use Geo::GeoNames;
-use Geo::Coder::Google;
 use Geo::Coder::Bing;
 use Geo::Coder::CA;
 use Geo::Coder::OpenCage;
@@ -4284,7 +4281,7 @@ sub print_person
 	   (ref($events[0]) eq 'Gedcom::Record') &&
 	   (ref($events[1]) eq 'Gedcom::Record') &&
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
-	    (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
+	   (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		# Simple case - one journey made
 		$bio .= '.' if(!$end_of_sentence);
 		$bio .= ' ';
@@ -8039,6 +8036,7 @@ sub get_all_occupations
 			$occupations[0] = "$1 Salesman";
 		} elsif($occupations[0] =~ /Foreman (.*)/i) {
 			$occupations[0] = "$1 Foreman";
+			$occupations[0] =~ s/^of the //i;
 		} elsif($occupations[0] =~ /Labourer Gas Stoker/) {
 			$occupations[0] = 'Gas Stoker';
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
