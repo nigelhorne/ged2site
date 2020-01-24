@@ -125,7 +125,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Geo::Coder::Bing;
 use Geo::Coder::CA;
 use Geo::Coder::OpenCage;
 use Geo::Coder::US::Census;
@@ -8047,7 +8046,7 @@ sub get_all_occupations
 	while(scalar(@occupations) > 1) {
 		if(($occupations[0] =~ /^labou?rer/i) && ($occupations[1] =~ /^labou?rer/i)) {
 			shift @occupations;
-		} elsif($occupations[0] eq $occupations[1]) {
+		} elsif(lc($occupations[0]) eq lc($occupations[1])) {
 			shift @occupations;
 		} else {
 			last;
