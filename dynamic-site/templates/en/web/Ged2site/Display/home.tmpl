@@ -93,7 +93,19 @@
 			</div>
 			<h2>Today's Events</h2>
 			<div class="printable">
-				<p>Foo Foo Foo<p>
+				[% year = 0 %]
+				[% FOREACH event IN events %]
+					[%# group events in the same year together %]
+					[%# FIXME: ensure events is sorted by year %]
+					[% IF event.year != year %]
+						<h3>[% event.year %]</h3>
+						[% year = event.year %]
+					[% END %]
+					<p>
+						<a href="?page=people&amp;entry=[%- event.person %]">[% event.title %]</a>:
+						[% event.event %]
+					</p>
+				[% END %]
 			</div>
 		</div>
 
