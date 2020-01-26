@@ -67,6 +67,7 @@ Log::WarnDie->dispatcher($logger);
 
 # my $pagename = "Ged2site::Display::$script_name";
 # eval "require $pagename";
+use Ged2site::Display::home;
 use Ged2site::Display::people;
 use Ged2site::Display::censuses;
 use Ged2site::Display::surnames;
@@ -338,6 +339,8 @@ sub doit
 			$display = Ged2site::Display::facts->new($args);
 		} elsif($page eq 'mailto') {
 			$display = Ged2site::Display::mailto->new($args);
+		} elsif($page eq 'home') {
+			$display = Ged2site::Display::home->new($args);
 		} else {
 			$logger->info("Unknown page $page");
 			$invalidpage = 1;
@@ -424,6 +427,7 @@ sub choose
 
 	unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 		print "/cgi-bin/page.fcgi?page=people\n",
+			"/cgi-bin/page.fcgi?page=home\n",
 			"/cgi-bin/page.fcgi?page=censuses\n",
 			"/cgi-bin/page.fcgi?page=surnames\n",
 			"/cgi-bin/page.fcgi?page=history\n",
