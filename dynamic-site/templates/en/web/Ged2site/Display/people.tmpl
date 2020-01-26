@@ -17,7 +17,7 @@
 			<script language="JavaScript">
 				<!--HIDE
 				function time() {
-					// setTimeout("window.location.replace('page.fcgi?page=people&home=1')", 100)
+					// setTimeout("window.location.replace('page.fcgi?page=home')", 100)
 					setTimeout("window.location.replace('page.fcgi?page=home')", 100)
 				}
 				//STOP HIDING-->
@@ -104,7 +104,7 @@
 				<div class="non-printable">
 					<center>
 						[% UNLESS home %]
-							[ <a href="?page=people&amp;home=1">Home</a> ] |
+							[ <a href="?page=home">Home</a> ] |
 						[% END %]
 						[% IF person.children && !person.alive %]
 							[ <a href="?page=descendants&amp;entry=[% entry %]">Descendants</a> ] |
