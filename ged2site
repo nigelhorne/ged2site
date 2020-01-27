@@ -57,7 +57,9 @@ BEGIN {
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
+		'HTML::GoogleMaps::V3 0.13',
 		'HTTP::Cache::Transparent',
+		'Term::ANSIColor',
 		'URI::Find::Schemeless',
 		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
@@ -126,8 +128,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use HTML::GoogleMaps::V3 0.13;
-use Term::ANSIColor;
 use HTML::Entities;
 use HTTP::Cache::Transparent;
 use File::Basename;
@@ -2452,6 +2452,7 @@ sub print_person
 	my $end_of_sentence = 0;
 
 	my @childrenunknownparent;
+	my @residences = get_all_residences($person);
 	if($opts{'l'} || !$is_alive) {
 		my $all_children_are_alive = 1;
 
@@ -2691,7 +2692,9 @@ sub print_person
 				});
 			}
 			if(scalar(@spouses)) {
-				$bio .= ' and';
+				if(!scalar(@residences)) {
+					$bio .= ',';
+				}
 				$end_of_sentence = 0;
 			} else {
 				$bio .= '.';
@@ -2720,7 +2723,6 @@ sub print_person
 			$bio .= '<p>' . ucfirst($pronoun) if($end_of_sentence);
 
 			if(scalar(@spouses) == 1) {
-				my @residences = get_all_residences($person);
 				if((!$end_of_sentence) && (scalar(@residences) > 0)) {
 					$bio .= ' and';
 				}
