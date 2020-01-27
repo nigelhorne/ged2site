@@ -103,9 +103,7 @@
 			<div id="container">
 				<div class="non-printable">
 					<center>
-						[% UNLESS home %]
-							[ <a href="?page=home">Home</a> ] |
-						[% END %]
+						[ <a href="?page=home">Home</a> ] |
 						[% IF person.children && !person.alive %]
 							[ <a href="?page=descendants&amp;entry=[% entry %]">Descendants</a> ] |
 						[% END %]
