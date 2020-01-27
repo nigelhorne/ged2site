@@ -5,6 +5,8 @@ use strict;
 
 # Display the home page - list today's events
 # TODO: More than just BMD, for example baptisms and travelling
+# FIXME: The date is the UTC rather than in the correct timezone of the
+#	client browser
 
 use Ged2site::Display;
 
