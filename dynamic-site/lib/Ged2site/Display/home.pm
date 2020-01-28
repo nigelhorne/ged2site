@@ -37,8 +37,10 @@ sub html {
 		month => $today->month()
 	});
 
+	my @e = sort { $a->{'year'} <=> $b->{'year'} } values @{$events};
+
 	return $self->SUPER::html(
-		events => $events,
+		events => \@e,
 		updated => $history->updated()
 	);
 }

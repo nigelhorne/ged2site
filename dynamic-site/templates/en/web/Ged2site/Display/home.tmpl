@@ -94,9 +94,9 @@
 			<h2>Today's Events</h2>
 			<div class="printable">
 				[% year = 0 %]
+				[%# events is sorted by year %]
 				[% FOREACH event IN events %]
 					[%# group events in the same year together %]
-					[%# FIXME: ensure events is sorted by year %]
 					[% IF event.year != year %]
 						<h3>[% event.year %]</h3>
 						[% year = event.year %]
