@@ -59,7 +59,6 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTML::GoogleMaps::V3 0.13',
-		'HTTP::Cache::Transparent',
 		'Term::ANSIColor',
 		'URI::Find::Schemeless',
 		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
@@ -129,7 +128,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use HTTP::Cache::Transparent;
 use File::Basename;
 use File::Spec;
 use File::Temp;
@@ -170,8 +168,11 @@ if($opts{'m'} || $opts{'w'}) {
 	if($opts{'w'}) {
 		push @modules,
 			'Geo::Coder::Postcodes',
-			'LWP::UserAgent::Cached', 'HTTP::Cache::Transparent', 'Genealogy::ChroniclingAmerica', 'Locale::Country';
+			'LWP::UserAgent::Cached', 'Genealogy::ChroniclingAmerica', 'Locale::Country';
 	}
+}
+if($opts{'d'} || $opts{'m'}) {
+	push @modules, 'HTTP::Cache::Transparent';
 }
 
 my @needfull;
@@ -729,7 +730,7 @@ HEADER
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dolly Cowell')) {
-# foreach my $person($ged->get_individual('Sophia Chapple')) {
+# foreach my $person($ged->get_individual('Ruth Marie Bixler')) {
 
 foreach my $person(@everyone) {
 	$index++;
@@ -2645,7 +2646,7 @@ sub print_person
 			}
 
 			if(scalar(@spouses) && ($numberofchildren > 0) && !$all_children_are_alive) {
-				$bio .= ' and';
+				# $bio .= ' and';
 			} else {
 				$bio .= '.';
 				$end_of_sentence = 1;
