@@ -40,6 +40,7 @@ my @modules;
 # Install Pre-requisites
 BEGIN {
 	@modules = (
+		'File::Basename',
 		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
@@ -128,7 +129,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use File::Basename;
 use File::Spec;
 use File::Temp;
 use Image::Info;

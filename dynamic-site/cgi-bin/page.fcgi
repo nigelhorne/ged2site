@@ -271,7 +271,9 @@ sub doit
 		lingua => $lingua
 	};
 
-	if(!$info->is_search_engine() && $config->rootdir() && ((!defined($info->param('action'))) || ($info->param('action') ne 'send'))) {
+	if((!$info->is_search_engine()) && $config->rootdir() &&
+	   ($info->param('page') ne 'home') &&
+	   ((!defined($info->param('action'))) || ($info->param('action') ne 'send'))) {
 		$args->{'save_to'} = {
 			directory => File::Spec->catfile($config->rootdir(), 'save_to'),
 			ttl => 3600 * 24,
