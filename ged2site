@@ -129,7 +129,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use File::Spec;
 use File::Temp;
 use Image::Info;
 use URI;
@@ -163,12 +162,16 @@ use	constant	MAX_INDEX => 0;	# Debugging, set this to the number of records to p
 						# Set to 0 to run on the entire database
 
 @modules = ();
-if($opts{'m'} || $opts{'w'}) {
-	push @modules, 'Geo::Coder::Free::Local';
-	if($opts{'w'}) {
-		push @modules,
-			'Geo::Coder::Postcodes',
-			'LWP::UserAgent::Cached', 'Genealogy::ChroniclingAmerica', 'Locale::Country';
+if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
+	push @modules, 'File::Spec';
+
+	if($opts{'m'} || $opts{'w'}) {
+		push @modules, 'Geo::Coder::Free::Local';
+		if($opts{'w'}) {
+			push @modules,
+				'Geo::Coder::Postcodes',
+				'LWP::UserAgent::Cached', 'Genealogy::ChroniclingAmerica', 'Locale::Country';
+		}
 	}
 }
 if($opts{'d'} || $opts{'m'}) {
