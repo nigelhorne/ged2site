@@ -5,8 +5,6 @@ use strict;
 
 # Display the home page - list today's events
 # TODO: More than just BMD, for example baptisms and travelling
-# FIXME: The date is the UTC rather than in the correct timezone of the
-#	client browser
 
 use Ged2site::Display;
 
@@ -31,7 +29,7 @@ sub html {
 	delete $params{'lang'};
 
 	my $history = $args{'history'};
-	my $today = DateTime->today();
+	my $today = DateTime->today(time_zone => $self->{_lingua}->timezone());
 	my $events = $history->selectall_hashref({
 		day => $today->day(),
 		month => $today->month()

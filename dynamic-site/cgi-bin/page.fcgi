@@ -21,7 +21,7 @@ no lib '.';
 use Log::Log4perl qw(:levels);	# Put first to cleanup last
 use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info;
-use CGI::Lingua;
+use CGI::Lingua 0.61;
 use File::Basename;
 # use CGI::Alert 'you@example.com';
 use FCGI;
