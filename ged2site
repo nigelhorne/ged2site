@@ -40,7 +40,7 @@ my @modules;
 # Install Pre-requisites
 BEGIN {
 	@modules = (
-		'File::Basename',
+		'File::Basename', 'File::Temp',
 		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
@@ -129,7 +129,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use File::Temp;
 use Image::Info;
 use URI;
 use URI::Find::Schemeless;
@@ -6929,6 +6928,8 @@ sub place {
 		}
 	} elsif($params{'nopreposition'}) {
 		$place = " $place";
+	} elsif($place =~ /^Isle of /) {
+		$place = " on the $place";
 	} else {
 		$place = " in $place";
 	}
