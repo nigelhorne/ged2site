@@ -53,7 +53,7 @@ BEGIN {
 		'Geo::Coder::GooglePlaces',
 		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
 		'Geo::Parser::Text', 'GIS::Distance',
-		'HTML::Entities',
+		'HTML::Entities', 'Image::Info',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
@@ -129,7 +129,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Image::Info;
 use URI;
 use URI::Find::Schemeless;
 use LWP::Simple;
@@ -4176,7 +4175,7 @@ sub print_person
 			   $burial->address() && !$death->address()) {
 				$bio .= ' and is buried there at ' . $burial->address();
 			} elsif(my $b = place($opts)) {
-				$bio .= " and is buried at $b";
+				$bio .= " and is buried $b";
 			}
 			if($notes && (length($notes) > 160)) {
 				$bio .= ".</p><p>";
@@ -4283,8 +4282,7 @@ sub print_person
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	   (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		# Simple case - one journey made
-		$bio .= '.' if(!$end_of_sentence);
-		$bio .= ' ';
+		$bio .= '. ' if(!$end_of_sentence);
 		$end_of_sentence = 1;
 
 		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
@@ -4344,7 +4342,7 @@ sub print_person
 				$bio .= ", departing $dod and";
 			}
 
-			$bio .= " arriving $doa. ";
+			$bio .= " arriving $doa.";
 
 			if($ENV{'LANG'} =~ /^en_US/) {
 				$place_records{'Traveled from'} = $departure;
@@ -4394,7 +4392,7 @@ sub print_person
 				if(my $p = place({ person => $person, record => $events[0] })) {
 					$bio .= $p;
 				} else {
-					complain({ person => $person, warning => "Arrival record has no place" });
+					complain({ person => $person, warning => 'Arrival record has no place' });
 				}
 				if(my $y = year({ person => $person, record => $events[0] })) {
 					$bio .= " $y";
