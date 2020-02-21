@@ -61,7 +61,7 @@ BEGIN {
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTML::GoogleMaps::V3 0.13',
 		'Term::ANSIColor',
-		'URI::Find::Schemeless',
+		'URI', 'URI::Find::Schemeless',
 		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
 		'Unicode::Diacritic::Strip',
@@ -129,7 +129,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use URI;
 use URI::Find::Schemeless;
 use LWP::Simple;
 use LWP::UserAgent::Throttled;
@@ -8031,8 +8030,10 @@ sub get_all_occupations
 			$occupations[0] = 'Domestic Servant';
 		} elsif($occupations[0] eq 'Lorry Driver Heavy Worker') {
 			$occupations[0] = 'Lorry Driver';
-		} elsif($occupations[0] =~ /Shop Assistant (.*)/) {
+		} elsif($occupations[0] =~ /^Shop Assistant (.*)/) {
 			$occupations[0] = "$1's Shop Assistant";
+		} elsif($occupations[0] =~ /(.*) Assistant$/i) {
+			$occupations[0] = "$1's Assistant";
 		} elsif($occupations[0] =~ /Clerk (.*)/) {
 			$occupations[0] = "$1 Clerk";
 		} elsif($occupations[0] =~ /Salesman (.*)/i) {
