@@ -38,7 +38,7 @@ sub new {
 	my $info = $args{info} || CGI::Info->new();
 	my $config = $args{config} || Ged2site::Config->new({ logger => $args{logger}, info => $info, lingua => $args{lingua} });
 
-	unless($info->is_search_engine() || !defined($ENV{'REMOTE_ADDR'})) {
+	if((!$info->is_search_engine()) && defined($ENV{'REMOTE_ADDR'})) {
 		my %allowargs = (
 			info => $info,
 			config => $config,

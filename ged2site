@@ -1226,6 +1226,8 @@ if($opts{'w'}) {
 					$summary = 'Date of Residence Differs From Parent\'s';
 				} elsif($warning =~ /^Country not included in country,/) {
 					$summary = 'Country missing or misspelt';
+				} elsif($warning =~ /^Can't parse the name - assuming firstname /) {
+					$summary = "Can't parse the name";
 				} elsif($warning =~ /^Check out https?:\/\/chroniclingamerica.loc.gov/) {
 					# FIXME: Lots of false positives
 					next;
