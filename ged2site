@@ -2369,9 +2369,13 @@ sub print_person
 				if($father || $mother || $occupations[0]) {
 					$bio .= ', ' if(!$printed_comma);
 				}
-				$bio .= "<b>$firstname " .
-					$name_components{'surname_1'} .
-					'</b>';
+				if($name_components{'surname_1'}) {
+					$bio .= "<b>$firstname " .
+						$name_components{'surname_1'} .
+						'</b>';
+				} else {
+					$bio .= "<b>$firstname</b>";
+				}
 				if($relationship) {
 					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || scalar(@spouses)) {
 						$bio .= ',';
@@ -5780,6 +5784,9 @@ sub print_person
 			complain({ person => $person, warning => 'Assuming country of birth is UK' });
 		} elsif($c =~ 'England,?\sUK') {
 			$birth_country = 'United Kingdom';
+		} elsif($c eq 'Scot') {
+			complain({ person => $person, warning => "$c: birth country should be Scotland'" });
+			$birth_country = 'United Kingdom';
 		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
 			$birth_country = $b->code_alpha2();
 		} else {
@@ -5788,8 +5795,6 @@ sub print_person
 	}
 
 	my $death_country = '';
-
-print "$placeofdeath\n";
 
 	if($placeofdeath && ($placeofdeath =~ /(.+[a-z]) USA$/)) {
 		complain({ person => $person, warning => "Comma missing before USA in death location '$placeofdeath'" });
@@ -5812,6 +5817,9 @@ print "$placeofdeath\n";
 			$death_country = 'United States';
 		} elsif($c eq 'Scotland') {
 			$death_country = 'United Kingdom';
+		} elsif($c eq 'Scot') {
+			complain({ person => $person, warning => "$c: death country should be Scotland'" });
+			$death_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
 			$death_country = 'United Kingdom';
 		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex')) {
@@ -5829,7 +5837,7 @@ print "$placeofdeath\n";
 		# } elsif($c eq 'Preußen') {	# Prussia
 			$death_country = 'Germany';
 		} elsif($c =~ /Can\./) {
-			complain({ person => $person, warning => 'Assuming country of death is Canada' });
+			complain({ person => $person, warning => 'Assuming country of death is Canada'});
 			$death_country = 'Canada';
 		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
 			$death_country = $b->code_alpha2();
