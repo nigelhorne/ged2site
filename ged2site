@@ -186,6 +186,9 @@ if($opts{'m'} || $opts{'w'}) {
 if($gedcal || !$opts{'w'}) {
 	push @modules, 'String::ProgressBar';
 }
+if($opts{'F'}) {
+	push @modules, ' Image::Magick::Thumbnail';
+}
 
 my @needfull;
 foreach my $module(@modules) {
@@ -530,8 +533,6 @@ if($opts{'F'}) {
 	if(!defined($dot)) {
 		complain(warning => 'Graphviz not found, no family trees');
 	} else {
-		require Image::Magick::Thumbnail;
-		Image::Magick::Thumbnail->import();
 		print "Using $dot\n" if($opts{'v'});
 	}
 }
