@@ -4120,7 +4120,11 @@ sub print_person
 			$bio .= '.' if(!$end_of_sentence);
 			$bio .= "<p>$pronoun died";
 			if($dateofdeath) {
-				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				if($y =~ /^from (.+) to (.)/i) {
+					$y = "between $1 and $2";
+				}
+				$bio .= " $y";
 			}
 			if($placeofdeath && (my $p = place({ person => $person, record => $death, places_printed => \%places_printed }))) {
 				$bio .= $p;
@@ -4215,12 +4219,20 @@ sub print_person
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
 				$bio .= ' on the same day';
 			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				if($y =~ /^from (.+) to (.)/i) {
+					$y = "between $1 and $2";
+				}
+				$bio .= " $y";
 			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
 				$bio .= " in $1 " .
 					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} else {
-				$bio .= ' ' . year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				if($y =~ /^from (.+) to (.)/i) {
+					$y = "between $1 and $2";
+				}
+				$bio .= " $y";
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
 					my $place = place({ person => $person, record => $death, places_printed => \%places_printed });
 					if(!defined($place)) {
@@ -6760,7 +6772,8 @@ sub year
 		}
 		return "<i>c.</i> $2";
 	}
-	if($string =~ /^bet (.+) and (.+)/i) {
+	if(($string =~ /^bet (.+) and (.+)/i) ||
+	   ($string =~ /^Fro?m (.+) to (.+)/i)) {
 		my $from = year({ %params, string => $1 });
 		my $to = year({ %params, string => $2 });
 		$from =~ s/^(in|on|c.) //;
@@ -6826,6 +6839,9 @@ sub year
 			complain("says 'By' instead of 'Bef'");
 		}
 		return "before $1";
+	}
+	if($string =~ /^aft.? (\d{3,4})/i) {
+		return "after $1";
 	}
 
 	$string = ucfirst(lc($string));
