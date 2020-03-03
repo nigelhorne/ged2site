@@ -5038,12 +5038,17 @@ sub print_person
 			if(my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations })) {
 				print $html $notes;
 				# print $csv '----' if($printed_notes);
-				print $csv notes({ person => $person, record => $person, note_locations => \@note_locations });
+				my $n = notes({ person => $person, record => $person, note_locations => \@note_locations, encode => 0 });
+				$n =~ s/"/<&quot;>/g;
+				print $csv $n;
 				$notes =~ s/&pound;/&#163;/g;
-				$notes =~ s/</&lt;/g;
-				$notes =~ s/>/&gt;/g;
+				# $notes =~ s/</&lt;/g;
+				# $notes =~ s/>/&gt;/g;
 				$notes =~ s/\s*&excl;/!/g;
 				$notes =~ s/&Acirc;//gi;
+				$notes =~ s/&Atilde;&copy;//gi;
+				$notes =~ s/^<p>//;
+				$notes =~ s/<\/p>$//;
 				print $xml "\n\t\t<note>$notes</note>";
 			}
 			# print $html map { "<p>$_</p>" } @notes;
@@ -7032,6 +7037,7 @@ sub notes
 	my $paragraph = $params{'paragraph'};
 	my @notes = $record->get_record('note');
 	my $note_locations = $params{note_locations};
+	my $encode = $params{'encode'} // 1;
 
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
 	my $rc = $record->get_value();
@@ -7060,13 +7066,21 @@ sub notes
 			$note =~ s/[\x91\x92]/'/g;
 			$note =~ s/[\xc2\xe2]//g;
 			if($paragraph) {
-				$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
+				if($encode) {
+					$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
+				} else {
+					$rc .= "<p>$note.</p>";
+				}
 			} else {
 				if($rc) {
 					$rc .= ' ';
 				}
-				$rc .= HTML::Entities::encode($note);
-				$rc .= '.' if($note !~ /\.$/);
+				if($encode) {
+					$rc .= HTML::Entities::encode($note);
+				} else {
+					$rc .= $note;
+				}
+				$rc .= '.' if($note !~ /(\.|<\/p>)$/);
 			}
 		} else {
 			complain('Notes field is empty');
