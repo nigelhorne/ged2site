@@ -1596,8 +1596,8 @@ sub print_person
 		$placeofbirth = $birth->place();
 	}
 
-	if($placeofbirth && ($placeofbirth =~ /[,\.]\s*$/)) {
-		complain({ person => $person, warning => 'Trailing punctuation in birth location' });
+	if($placeofbirth && ($placeofbirth =~ /[,\.]\s*$/) && ($placeofbirth ne 'U.S.A.')) {
+		complain({ person => $person, warning => "Trailing punctuation in birth location, '$placeofbirth'" });
 		$placeofbirth =~ s/\s*[,\.]\s*$//;
 	}
 
@@ -5756,6 +5756,8 @@ sub print_person
 			$birth_country = 'United States';
 		} elsif($c eq 'United States of America') {
 			$birth_country = 'United States';
+		} elsif($c eq 'U.S.A.') {
+			$birth_country = 'United States';
 		} elsif($c eq 'Scotland') {
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
@@ -5816,6 +5818,8 @@ sub print_person
 			$death_country = 'United States';
 		} elsif($c eq 'United States of America') {
 			$death_country = 'United States';
+		} elsif($c eq 'U.S.A.') {
+			$birth_country = 'United States';
 		} elsif($c eq 'Scotland') {
 			$death_country = 'United Kingdom';
 		} elsif($c eq 'Scot') {
@@ -7241,7 +7245,8 @@ sub validate_place
 				# }
 			# }
 		# }
-		if((($place =~ /USA$/) || ($place =~ /United States$/)) && ($place =~ /^.+,\s*([\w\s]+),[\w\s]+$/)) {
+		if((($place =~ /USA$/) || ($place =~ /United States$/) || ($place =~ /U\.S\.A\./)) &&
+		    ($place =~ /^.+,\s*([\w\s]+),[\w\s]+$/)) {
 			my $state = uc($1);
 			if((!$us->{code2state}{$state}) && !$us->{state2code}{$state}) {
 				complain({ person => $params{'person'}, warning => "Unknown state '$state' in $place" });
@@ -7258,6 +7263,8 @@ sub validate_place
 			# G:C:L
 			if(($place eq 'England') || ($place eq 'Scotland')) {
 				$place = 'United Kingdom';
+			} elsif($place eq 'U.S.A.') {
+				$place = 'USA';
 			}
 			my @locations = $geocoder->geocode($place);
 			if(scalar(@locations) == 0) {
