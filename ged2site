@@ -40,7 +40,8 @@ my @modules;
 # Install Pre-requisites
 BEGIN {
 	@modules = (
-		'File::Basename', 'File::Temp',
+		'Config::Auto',
+		'File::Basename', 'File::Temp', 'File::Print::Many',
 		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
@@ -131,9 +132,7 @@ use autodie qw(:all);
 # use Lingua::EN::AddressParse;
 use URI::Find::Schemeless;
 use LWP::Simple;
-use LWP::UserAgent::Throttled;
 use Sort::Key::DateTime;
-use String::ProgressBar;
 use Text::Names;
 use Text::Names::GB;
 use MIME::Base64;
@@ -142,12 +141,10 @@ use Text::Names;
 use File::Copy;
 use Class::Simple::Cached 0.03;
 use Class::Simple::Readonly::Cached 0.02;
-use Config::Auto;
 use Locale::Object::Country;
 use List::Util;
 use POSIX;
 use JSON;
-use File::Print::Many;
 use Unicode::Diacritic::Strip;
 
 my %opts;
@@ -156,7 +153,16 @@ getopts('cdfFG:g:h:J:lL:mwvx:', \%opts);
 die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w ] [ -x current_people.xml ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 use	constant	MAX_INDEX => 0;	# Debugging, set this to the number of records to print.
-						# Set to 0 to run on the entire database
+					# Set to 0 to run on the entire database
+
+my $gedcal;
+if(-x '/usr/bin/gedcom') {
+	$gedcal = '/usr/bin/gedcom';
+} elsif(-x '/usr/local/bin/gedcom') {
+	$gedcal = '/usr/local/bin/gedcom';
+} elsif(-x '../gedcom/gedcom') {
+	$gedcal = '../gedcom/gedcom';
+}
 
 @modules = ();
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
@@ -173,6 +179,12 @@ if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 }
 if($opts{'d'} || $opts{'m'}) {
 	push @modules, 'HTTP::Cache::Transparent';
+}
+if($opts{'m'} || $opts{'w'}) {
+	push @modules, 'LWP::UserAgent::Throttled';
+}
+if($gedcal || !$opts{'w'}) {
+	push @modules, 'String::ProgressBar';
 }
 
 my @needfull;
@@ -552,15 +564,6 @@ if($dot || $opts{'d'}) {
 	} elsif(-x '/sw/bin/jpegoptim') {
 		$jpegoptim = '/sw/bin/jpegoptim';
 	}
-}
-
-my $gedcal;
-if(-x '/usr/bin/gedcom') {
-	$gedcal = '/usr/bin/gedcom';
-} elsif(-x '/usr/local/bin/gedcom') {
-	$gedcal = '/usr/local/bin/gedcom';
-} elsif(-x '../gedcom/gedcom') {
-	$gedcal = '../gedcom/gedcom';
 }
 
 if($gedcal) {
@@ -5785,6 +5788,8 @@ sub print_person
 	}
 
 	my $death_country = '';
+
+print "$placeofdeath\n";
 
 	if($placeofdeath && ($placeofdeath =~ /(.+[a-z]) USA$/)) {
 		complain({ person => $person, warning => "Comma missing before USA in death location '$placeofdeath'" });
