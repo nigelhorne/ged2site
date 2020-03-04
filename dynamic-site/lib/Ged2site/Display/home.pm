@@ -29,7 +29,7 @@ sub html {
 	delete $params{'lang'};
 
 	my $history = $args{'history'};
-	my $today = DateTime->today(time_zone => $self->{_lingua}->timezone());
+	my $today = DateTime->today(time_zone => $self->{_lingua}->time_zone());
 	my $events = $history->selectall_hashref({
 		day => $today->day(),
 		month => $today->month()
