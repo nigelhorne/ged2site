@@ -1852,7 +1852,9 @@ sub print_person
 		die "BUG: $title is marked as alive yet we have burial information";
 	}
 
-	if($dateofbirth && ($birth_dt = $dfg->parse_datetime(date => $dateofbirth, quiet => 1))) {
+	# Don't match date ranges
+	if($dateofbirth && ($dateofbirth !~ /\d{4}.+\d{4}/) &&
+	  ($birth_dt = $dfg->parse_datetime(date => $dateofbirth, quiet => 1))) {
 		if(defined($facts->{'first_birth'})) {
 			if($birth_dt < $facts->{'first_birth'}->{'date'}) {
 				$facts->{'first_birth'}->{'date'} = $birth_dt;
@@ -1895,7 +1897,8 @@ sub print_person
 			warning => 'married when less than 16 years old'
 		});
 	}
-	if($dateofdeath) {
+	# Don't match date ranges
+	if($dateofdeath && ($dateofdeath !~ /\d{4}.+\d{4}/)) {
 		$death_dt = $dfg->parse_datetime(date => $dateofdeath, quiet => 1);
 	}
 
@@ -2504,7 +2507,7 @@ sub print_person
 						date => $dateofbirth,
 						must_predate => $death_dt
 					});
-					if($y =~ /^from (.+) to (.+)/i) {
+					if($y =~ /^fro?m (.+) to (.+)/i) {
 						$y = "between $1 and $2";
 					}
 					$bio .= " $y" if($y);
