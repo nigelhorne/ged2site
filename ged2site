@@ -1814,6 +1814,13 @@ sub print_person
 	if((!$placeofmarriage) && $marriage) {
 		$placeofmarriage = $marriage->place();
 	}
+	if($placeofmarriage && ($placeofmarriage =~ /.+,\s?(.+)$/)) {
+		my $c = $1;
+		if($c eq 'Scot') {
+			complain({ person => $person, warning => "$c: marriage country should be Scotland'" });
+			$placeofmarriage .= 'land';
+		}
+	}
 
 	my $burial;
 	my $dateofburial;
@@ -2497,6 +2504,9 @@ sub print_person
 						date => $dateofbirth,
 						must_predate => $death_dt
 					});
+					if($y =~ /^from (.+) to (.+)/i) {
+						$y = "between $1 and $2";
+					}
 					$bio .= " $y" if($y);
 				}
 				$bio .= cite(@birthcitations);
@@ -4121,7 +4131,7 @@ sub print_person
 			$bio .= "<p>$pronoun died";
 			if($dateofdeath) {
 				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($y =~ /^from (.+) to (.)/i) {
+				if($y =~ /^from (.+) to (.+)/i) {
 					$y = "between $1 and $2";
 				}
 				$bio .= " $y";
@@ -4220,7 +4230,7 @@ sub print_person
 				$bio .= ' on the same day';
 			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
 				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($y =~ /^from (.+) to (.)/i) {
+				if($y =~ /^from (.+) to (.+)/i) {
 					$y = "between $1 and $2";
 				}
 				$bio .= " $y";
@@ -4229,7 +4239,7 @@ sub print_person
 					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} else {
 				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($y =~ /^from (.+) to (.)/i) {
+				if($y =~ /^from (.+) to (.+)/i) {
 					$y = "between $1 and $2";
 				}
 				$bio .= " $y";
