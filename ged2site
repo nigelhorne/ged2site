@@ -4201,7 +4201,7 @@ sub print_person
 			   $burial->address() && !$death->address()) {
 				$bio .= ' and is buried there at ' . $burial->address();
 			} elsif(my $b = place($opts)) {
-				$bio .= " and is buried $b";
+				$bio .= " and is buried$b";
 			}
 			if($notes && (length($notes) > 160)) {
 				$bio .= ".</p><p>";
