@@ -25,19 +25,23 @@ sub html {
 	delete $params{'lint_content'};
 	delete $params{'lang'};
 
-	my $db = $args{'locations'};
-	my @locations = $db->locations();
+	if(my $db = $args{'locations'}) {
+		my @locations = $db->locations();
 
-	if(scalar(keys %params) == 0) {
-		# Display list of locations
-		return $self->SUPER::html({ locations => \@locations, updated => $db->updated() });
+		if(scalar(keys %params) == 0) {
+			# Display list of locations
+			return $self->SUPER::html({ locations => \@locations, updated => $db->updated() });
+		}
+
+		return $self->SUPER::html({
+			head => $db->head(year => $params{'year'}),
+			locations => \@locations,
+			updated => $db->updated()
+		});
 	}
 
-	return $self->SUPER::html({
-		head => $db->head(year => $params{'year'}),
-		locations => \@locations,
-		updated => $db->updated()
-	});
+	# Locations database doesn't exist
+	return $self->SUPER::html();
 }
 
 1;

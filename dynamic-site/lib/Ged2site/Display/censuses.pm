@@ -24,24 +24,27 @@ sub html {
 	delete $params{'lang'};
 
 	# Handles into the databases
-	my $censuses = $args{'censuses'};
-	my $people = $args{'people'};
+	if(my $censuses = $args{'censuses'}) {
+		my $people = $args{'people'};
 
-	if(scalar(keys %params) == 0) {
-		# Display list of censuses
-		my @c = $censuses->census(distinct => 1);
-		@c = sort @c;
-		return $self->SUPER::html({ censuses => \@c, updated => $censuses->updated() });
+		if(scalar(keys %params) == 0) {
+			# Display list of censuses
+			my @c = $censuses->census(distinct => 1);
+			@c = sort @c;
+			return $self->SUPER::html({ censuses => \@c, updated => $censuses->updated() });
+		}
+
+		# Look in the censuses.csv for the name given as the CGI argument and
+		# find their details
+		my $census = $censuses->selectall_hashref(\%params);
+
+		my @people = sort map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$census};
+
+		# TODO: handle situation where look up fails
+		return $self->SUPER::html({ census => $census, people => \@people, updated => $censuses->updated() });
 	}
-
-	# Look in the censuses.csv for the name given as the CGI argument and
-	# find their details
-	my $census = $censuses->selectall_hashref(\%params);
-
-	my @people = sort map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$census};
-
-	# TODO: handle situation where look up fails
-	return $self->SUPER::html({ census => $census, people => \@people, updated => $censuses->updated() });
+	# No census database
+	return $self->SUPER::html();
 }
 
 1;

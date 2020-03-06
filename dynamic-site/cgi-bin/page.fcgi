@@ -164,9 +164,37 @@ while($handling_request = ($request->Accept() >= 0)) {
 		$people->set_logger($logger);
 		$names->set_logger($logger);
 		$info->set_logger($logger);
+
+		# TODO:  Make this neater
+		# Tries again without the database if it can't be opened
 		$Error::Debug = 1;
 		try {
 			doit(debug => 1);
+		} catch Error::DB::Open with {
+			my $msg = shift;
+			my $tryagain = 0;
+			my $file = $msg->{'-file'};
+			if($file =~ /locations/) {
+				# The locations database doesn't exist
+				$locations = undef;
+				$tryagain = 1;
+			} elsif($file =~ /censuses/) {
+				# The census database doesn't exist
+				$censuses = undef;
+				$tryagain = 1;
+			}
+			if($tryagain) {
+				try {
+					doit(debug => 1);
+				} catch Error with {
+					$msg = shift;
+					warn "$msg\n", $msg->stacktrace();
+					$logger->error($msg);
+				};
+			} else {
+				warn "$msg\n", $msg->stacktrace();
+				$logger->error($msg);
+			}
 		} catch Error with {
 			my $msg = shift;
 			warn "$msg\n", $msg->stacktrace();
@@ -182,8 +210,33 @@ while($handling_request = ($request->Accept() >= 0)) {
 	$people->set_logger($logger);
 	$info->set_logger($logger);
 
+	# TODO:  Make this neater
+	# Tries again without the database if it can't be opened
 	try {
 		doit(debug => 0);
+	} catch Error::DB::Open with {
+		my $msg = shift;
+		my $tryagain = 0;
+		my $file = $msg->{'-file'};
+		if($file =~ /locations/) {
+			# The locations database doesn't exist
+			$locations = undef;
+		}
+		if($tryagain) {
+			try {
+				doit(debug => 0);
+			} catch Error with {
+				$msg = shift;
+				warn "$msg\n", $msg->stacktrace();
+				$logger->error($msg);
+			};
+		} else {
+			warn "$msg\n", $msg->stacktrace();
+			$logger->error($msg);
+			if($buffercache) {
+				$buffercache->clear();
+			}
+		}
 	} catch Error with {
 		my $msg = shift;
 		$logger->error("$msg: ", $msg->stacktrace());

@@ -54,6 +54,7 @@ use File::Spec;
 use File::pfopen 0.02;
 use File::Temp;
 use Error::Simple;
+use Error::DB::Open;
 use Carp;
 
 our $directory;
@@ -275,7 +276,7 @@ sub _open {
 				}
 				$dbh->func($table, 'XML', $slurp_file, 'xmlsimple_import');
 			} else {
-				throw Error::Simple("Can't open $dir/$table");
+				throw Error::DB::Open(-file => $slurp_file);
 			}
 			$self->{'type'} = 'XML';
 		}

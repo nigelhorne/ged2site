@@ -56,10 +56,13 @@ sub _open {
 	my $self = shift;
 
 	my $xmlfile = File::Spec->catfile($self->{'directory'}, 'locations.xml');
-	$self->{'locations'} = XML::Simple::XMLin($xmlfile);
+	if(-r $xmlfile) {
+		$self->{'locations'} = XML::Simple::XMLin($xmlfile);
 
-	my @statb = stat($xmlfile);
-	$self->{'_updated'} = $statb[9];
+		my @statb = stat($xmlfile);
+		$self->{'_updated'} = $statb[9];
+	}
+	throw Error::DB::Open('-file' => $xmlfile);
 }
 
 1;
