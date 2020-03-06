@@ -516,7 +516,6 @@ if($home) {
 	if((!defined($me)) || !ref($me)) {
 		die "$0: Can't find '$opts{h}' in $ARGV[0]";
 	}
-die $me;
 }
 
 my $dot;
