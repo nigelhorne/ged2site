@@ -221,6 +221,11 @@ while($handling_request = ($request->Accept() >= 0)) {
 		if($file =~ /locations/) {
 			# The locations database doesn't exist
 			$locations = undef;
+			$tryagain = 1;
+		} elsif($file =~ /censuses/) {
+			# The census database doesn't exist
+			$censuses = undef;
+			$tryagain = 1;
 		}
 		if($tryagain) {
 			try {
