@@ -2747,7 +2747,8 @@ sub print_person
 			$bio .= '<p>' . ucfirst($pronoun) if($end_of_sentence);
 
 			if(scalar(@spouses) == 1) {
-				if((!$end_of_sentence) && (scalar(@residences) > 0)) {
+				if((!$end_of_sentence) &&
+				   ((scalar(@residences) > 0) || ((!($dateofbaptism)) && !$placeofbaptism))) {
 					$bio .= ' and';
 				}
 				if($placeofmarriage || $dateofmarriage) {
