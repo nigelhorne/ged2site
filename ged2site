@@ -4194,6 +4194,7 @@ sub print_person
 				}
 				$bio .= ' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate });
 				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
+					$b =~ s/\.$//;
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
