@@ -2747,7 +2747,8 @@ sub print_person
 			$bio .= '<p>' . ucfirst($pronoun) if($end_of_sentence);
 
 			if(scalar(@spouses) == 1) {
-				if((!$end_of_sentence) && (scalar(@residences) > 0)) {
+				if((!$end_of_sentence) &&
+				   ((scalar(@residences) > 0) || ((!($dateofbaptism)) && !$placeofbaptism))) {
 					$bio .= ' and';
 				}
 				if($placeofmarriage || $dateofmarriage) {
@@ -4194,6 +4195,7 @@ sub print_person
 				}
 				$bio .= ' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate });
 				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
+					$b =~ s/\.$//;
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
 				}
