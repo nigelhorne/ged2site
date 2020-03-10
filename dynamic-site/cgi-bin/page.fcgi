@@ -182,6 +182,10 @@ while($handling_request = ($request->Accept() >= 0)) {
 				# The census database doesn't exist
 				$censuses = undef;
 				$tryagain = 1;
+			} elsif($file =~ /military/) {
+				# The military database doesn't exist
+				$military = undef;
+				$tryagain = 1;
 			}
 			if($tryagain) {
 				try {
@@ -225,6 +229,10 @@ while($handling_request = ($request->Accept() >= 0)) {
 		} elsif($file =~ /censuses/) {
 			# The census database doesn't exist
 			$censuses = undef;
+			$tryagain = 1;
+		} elsif($file =~ /military/) {
+			# The military database doesn't exist
+			$military = undef;
 			$tryagain = 1;
 		}
 		if($tryagain) {
