@@ -260,7 +260,7 @@ my $oneday = DateTime::Duration->new(days => 1);
 my $tenmonths = DateTime::Duration->new(months => 10);
 my $sixteenyears = DateTime::Duration->new(years => 16);
 my $fortyyears = DateTime::Duration->new(years => 40);
-my $fetcher;
+# my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
 my $config;

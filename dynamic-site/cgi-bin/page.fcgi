@@ -267,6 +267,7 @@ if($buffercache) {
 	$buffercache->purge();
 }
 CHI->stats->flush();
+Log::WarnDie->dispatcher(undef);
 exit(0);
 
 sub doit
@@ -450,8 +451,7 @@ sub doit
 				"Pragma: no-cache\n\n";
 
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "Software error - contact the webmaster\n",
-					"$error\n";
+				print "Access Denied\n";
 			}
 		} else {
 			# No permission to show this page
