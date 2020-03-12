@@ -69,6 +69,7 @@ The options to ged2site are:
 | -J   | Google Maps JavaScript API key (used to display the map) |
 | -G   | Google Maps geolocation API key (used to populate the map) |
 | -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcom](//github.com/nigelhorne/gedcom)* |
+| -W   | don't colorize warning output |
 | -x f | Given a location of people.xml from a previous run, add to a blog of changes (TODO)
 
 If gedcom is installed, ged2site will also create a calendar of births and

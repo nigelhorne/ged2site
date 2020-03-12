@@ -148,9 +148,9 @@ use JSON;
 use Unicode::Diacritic::Strip;
 
 my %opts;
-getopts('cdfFG:g:h:J:lL:mwvx:', \%opts);
+getopts('cdfFG:g:h:J:lL:mwWvx:', \%opts);
 
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w ] [ -x current_people.xml ] filename [ filename2 ]\n" unless($ARGV[0]);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w [ -W ] ] [ -x current_people.xml ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 use	constant	MAX_INDEX => 0;	# Debugging, set this to the number of records to print.
 					# Set to 0 to run on the entire database
@@ -625,6 +625,10 @@ if($opts{'w'}) {
 		keep_alive => 1
 	);
 	$cached_browser->env_proxy(1);
+
+	if(!defined($ENV{'CLICOLOR'})) {
+		$opts{'W'} = 1;
+	}
 } else {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
@@ -7575,7 +7579,11 @@ sub red_warning
 			warn colored(['red'], $params{'person'}->as_string(middle_names => 1), ": $warning at line ", $call_details[2]);
 			push @{$params{'person'}->{'warnings'}}, $warning;
 		} else {
-			warn colored(['red'], $params{'warning'}, ' at line ', $call_details[2]);
+			if($opts{'W'}) {
+				print STDERR $params{'warning'}, "\n";
+			} else {
+				warn colored(['red'], $params{'warning'}, ' at line ', $call_details[2]);
+			}
 		}
 		if($params{'stack_trace'}) {
 			my $i = 0;
