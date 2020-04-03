@@ -86,7 +86,10 @@ Some of the options can be stored in *ged2site.conf*:
 
 You can get free API keys from Google at https://console.developers.google.com/apis/credentials.
 
-ged2site also creates an XML file, people.xml, of parsed output which you can use in querying software.
+ged2site also creates an XML file,
+people.xml,
+of parsed output which you can use in querying software,
+so it also works as a Gedcom to XML converter.
 
 Debugging and Developing
 ========================
@@ -232,7 +235,7 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 # LICENSE AND COPYRIGHT
 
-Copyright 2015-2019 Nigel Horne.
+Copyright 2015-2020 Nigel Horne.
 
 This program is released under the following licence: GPL2 for personal use on
 a single computer.
