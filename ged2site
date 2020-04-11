@@ -65,9 +65,9 @@ BEGIN {
 		'URI', 'URI::Find::Schemeless',
 		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
-		'Unicode::Diacritic::Strip',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
 		'Lingua::EN::Numbers::Ordinate', 'Lingua::EN::Inflect',
+		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
 
 	my @needfull;
@@ -130,7 +130,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use URI::Find::Schemeless;
 use LWP::Simple;
 use Sort::Key::DateTime;
 use Text::Names;
@@ -6510,7 +6509,7 @@ sub Gedcom::Individual::relationship_up
 					6 << 24 | 6 => 'fifth cousin',
 					6 << 24 | 7 => 'fifth cousin once-removed',
 					6 << 24 | 8 => 'fifth cousin twice-removed',
-					7 << 24 | 1 => 'fifth times great-uncle',
+					7 << 24 | 1 => 'five times great-uncle',
 					7 << 24 | 2 => 'first cousin five-times-removed',
 					7 << 24 | 3 => 'second cousin four-times-removed',
 					7 << 24 | 4 => 'third cousin three-times-removed',
@@ -6585,7 +6584,7 @@ sub Gedcom::Individual::relationship_up
 					6 << 24 | 6 => 'fifth cousin',
 					6 << 24 | 7 => 'fifth cousin once-removed',
 					6 << 24 | 8 => 'fifth cousin twice-removed',
-					7 << 24 | 1 => 'fifth times great-aunt',
+					7 << 24 | 1 => 'five times great-aunt',
 					7 << 24 | 2 => 'first cousin five-times-removed',
 					7 << 24 | 3 => 'second cousin four-times-removed',
 					7 << 24 | 4 => 'third cousin three-times-removed',
