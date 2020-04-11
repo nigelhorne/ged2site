@@ -5080,7 +5080,8 @@ sub print_person
 				$notes =~ s/&Atilde;&copy;//gi;
 				$notes =~ s/^<p>//;
 				$notes =~ s/<\/p>$//;
-				print $xml "\n\t\t<note>$notes</note>";
+				$notes =~ s/<br>/<br \/>/g;
+				print $xml "\n\t\t<note><p>$notes</p></note>";
 			}
 			# print $html map { "<p>$_</p>" } @notes;
 		}
