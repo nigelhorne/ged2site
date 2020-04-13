@@ -5096,6 +5096,7 @@ sub print_person
 
 		my @objlist = $person->obje();
 		if(scalar(@objlist)) {
+			print "Downloading images\n" if($opts{'v'});
 			# TODO - find primary and do something different with that
 			#	The obje should be in order with primary first, but FMP
 			#	doesn't do that
