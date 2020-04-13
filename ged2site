@@ -4852,7 +4852,7 @@ sub print_person
 
 	if($opts{'l'} || !$is_alive) {
 		if($opts{'c'} && $citationcount) {
-			print "Create citations\n" if($opts{'v'});
+			print "Create $citationcount citations\n" if($opts{'v'});
 			print $html '<h2>Citations</h2><ol>';
 			print $xml "\n\t\t<citations>";
 			my $ufinder = URI::Find::Schemeless->new(sub {
@@ -4951,11 +4951,12 @@ sub print_person
 			print $xml "\n\t\t</citations>";
 
 			if($opts{'w'}) {
-				# People alive during the years when censues have been available must
+				# People alive during the years when censuses have been available must
 				# have appeared in at least one census
 				# FIXME:  should be a better test, e.g. catch people 1861-1930, don't
 				#	catch 1862-1865.  The current test misses some but should have
 				#	no false positives
+				print "Checking for missing census entries\n" if($opts{'v'});
 				if((defined($yob) && ($yob >= 1841)) &&
 				  ((defined($yod)) && ($yod <= 1911)) &&
 				  (($yod - $yob) >= 10) &&
@@ -5063,26 +5064,26 @@ sub print_person
 			# print $csv notes({ person => $person, record => $death });
 		# }
 
-		if($person->get_value('note')) {
+		if(($person->get_value('note')) &&
+		   (my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations }))) {
+			print "Handling notes\n" if($opts{'v'});
 			print $html '<h2>Notes</h2>';
 
-			if(my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations })) {
-				print $html $notes;
-				# print $csv '----' if($printed_notes);
-				my $n = notes({ person => $person, record => $person, note_locations => \@note_locations, encode => 0 });
-				$n =~ s/"/<&quot;>/g;
-				print $csv $n;
-				$notes =~ s/&pound;/&#163;/g;
-				# $notes =~ s/</&lt;/g;
-				# $notes =~ s/>/&gt;/g;
-				$notes =~ s/\s*&excl;/!/g;
-				$notes =~ s/&Acirc;//gi;
-				$notes =~ s/&Atilde;&copy;//gi;
-				$notes =~ s/^<p>//;
-				$notes =~ s/<\/p>$//;
-				$notes =~ s/<br>/<br \/>/g;
-				print $xml "\n\t\t<note><p>$notes</p></note>";
-			}
+			print $html $notes;
+			# print $csv '----' if($printed_notes);
+			my $n = notes({ person => $person, record => $person, note_locations => \@note_locations, encode => 0 });
+			$n =~ s/"/<&quot;>/g;
+			print $csv $n;
+			$notes =~ s/&pound;/&#163;/g;
+			# $notes =~ s/</&lt;/g;
+			# $notes =~ s/>/&gt;/g;
+			$notes =~ s/\s*&excl;/!/g;
+			$notes =~ s/&Acirc;//gi;
+			$notes =~ s/&Atilde;&copy;//gi;
+			$notes =~ s/^<p>//;
+			$notes =~ s/<\/p>$//;
+			$notes =~ s/<br>/<br \/>/g;
+			print $xml "\n\t\t<note><p>$notes</p></note>";
 			# print $html map { "<p>$_</p>" } @notes;
 		}
 
