@@ -2064,7 +2064,7 @@ sub print_person
 
 	if($opts{'w'} && $numberofchildren) {
 		foreach my $child(@children) {
-			if($child eq $person) {
+			if($child->xref() eq $person->xref()) {
 				complain({ person => $person, warning => 'person is own parent' });
 				# Avoid loops in G::I::Relationship
 				return;
@@ -3284,6 +3284,7 @@ sub print_person
 
 		my @all_residences = get_all_residences($person);
 		if(scalar(@all_residences)) {
+			print scalar(@all_residences), " residences found\n" if($opts{'v'});
 			# FIXME: handle duplicate locations better
 			my %residencecitations;
 
@@ -3378,6 +3379,7 @@ sub print_person
 			}
 
 			if(scalar(@residencelist) == 2) {
+				print "Check if the residences are the same\n" if($opts{'v'});
 				my $date1 = $residencelist[0]->date();
 				my $date2 = $residencelist[1]->date();
 
@@ -3414,6 +3416,7 @@ sub print_person
 				}
 			}
 			if($all_residences_have_date) {
+				print "Sort the residences\n" if($opts{'v'});
 				@residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
 			}
 			my $count = 0;
@@ -3433,6 +3436,7 @@ sub print_person
 
 			my @residencestringarray;
 
+			print "Sanity checking the residences\n" if($opts{'v'});
 			# Create a list of residence strings
 			foreach my $residence(@residencelist) {
 				my $rdate = $residence->date();
@@ -5096,7 +5100,7 @@ sub print_person
 
 		my @objlist = $person->obje();
 		if(scalar(@objlist)) {
-			print "Downloading images\n" if($opts{'v'});
+			print "Downloading objects\n" if($opts{'v'});
 			# TODO - find primary and do something different with that
 			#	The obje should be in order with primary first, but FMP
 			#	doesn't do that
