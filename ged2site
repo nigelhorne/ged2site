@@ -55,6 +55,7 @@ BEGIN {
 		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
 		'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info',
+		'LWP::Simple',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
@@ -130,7 +131,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use LWP::Simple;
 use Sort::Key::DateTime;
 use Text::Names;
 use Text::Names::GB;
@@ -422,6 +422,7 @@ my %censusmaps = (
 
 	'1851 Census of Canada East, Canada West, New Brunswick, and Nova Scotia' => '1851 Canadian Census',
 	'1861 Census of Canada' => '1861 Canadian Census',
+	'Canada Census 1861 - Findmypast' => '1861 Canadian Census',
 	'1871 Census of Canada' => '1871 Canadian Census',
 	'Canada Census 1871 - Findmypast' => '1871 Canadian Census',
 	'Kent County, New Brunswick Census, 1871: Eight Subdistricts' => '1871 Canadian Census',
