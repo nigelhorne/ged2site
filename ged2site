@@ -20,6 +20,7 @@
 #	changes to the tree
 # TODO: look at census records to note the different places that a person's children
 #	were born and note if the residences of the person don't include those places
+# TODO: Create occupations database
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -131,7 +132,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Sort::Key::DateTime;
 use Text::Names;
 use Text::Names::GB;
 use MIME::Base64;
@@ -6008,6 +6008,14 @@ sub print_person
 		}
 		if($military_count > 0) {
 			print $xml "\n\t\t</military>";
+		}
+
+		if(scalar(@occupations)) {
+			print $xml "\n\t\t<occupations>";
+
+			print $xml "\n\t\t\t<occupation>$_</occupation>" foreach (@occupations);
+
+			print $xml "\n\t\t</occupations>";
 		}
 	} else {
 		print $csv '!!';

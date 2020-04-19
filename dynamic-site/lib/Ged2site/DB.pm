@@ -336,7 +336,9 @@ sub selectall_hash {
 			throw Error::Simple("$query: argument is not a string");
 		}
 		if(!defined($arg)) {
-			throw Error::Simple("$query: value for $c1 is not defined");
+			my @call_details = caller(0);
+			throw Error::Simple("$query: value for $c1 is not defined in call from " .
+				$call_details[2] . ' of ' . $call_details[1]);
 		}
 		if($done_where) {
 			if($arg =~ /\@/) {
