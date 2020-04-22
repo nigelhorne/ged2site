@@ -56,7 +56,7 @@ BEGIN {
 		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
 		'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info',
-		'LWP::Simple',
+		'LWP::Simple', 'MIME::Base64',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
@@ -132,9 +132,6 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Text::Names;
-use Text::Names::GB;
-use MIME::Base64;
 use Text::Names;
 # use Memoize;
 use File::Copy;
@@ -6013,7 +6010,10 @@ sub print_person
 		if(scalar(@occupations)) {
 			print $xml "\n\t\t<occupations>";
 
-			print $xml "\n\t\t\t<occupation>$_</occupation>" foreach (@occupations);
+			foreach my $occupation(@occupations) {
+				$occupation =~ s/&/&amp;/g;
+				print $xml "\n\t\t\t<occupation>$occupation</occupation>";
+			}
 
 			print $xml "\n\t\t</occupations>";
 		}
