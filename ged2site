@@ -42,7 +42,7 @@ my @modules;
 BEGIN {
 	@modules = (
 		'Config::Auto',
-		'File::Basename', 'File::Temp', 'File::Print::Many',
+		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
 		'Geo::Coder::List 0.26', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
@@ -60,9 +60,9 @@ BEGIN {
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
-		'Sort::Key::DateTime', 'Text::Names::GB',
 		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
 		'HTML::GoogleMaps::V3 0.13',
+		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
 		'URI', 'URI::Find::Schemeless',
 		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
@@ -132,9 +132,7 @@ use autodie qw(:all);
 # }
 
 # use Lingua::EN::AddressParse;
-use Text::Names;
 # use Memoize;
-use File::Copy;
 use Class::Simple::Cached 0.03;
 use Class::Simple::Readonly::Cached 0.02;
 use Locale::Object::Country;
@@ -224,7 +222,8 @@ my %places;
 my $surnames;
 my %censuses;
 my %twins;
-my %military;
+my %all_military;
+my %all_occupations;
 my %images;
 my %all_locations;
 my %all_events;	# Maps events to people
@@ -954,21 +953,36 @@ if(scalar(%all_locations)) {
 	undef %all_locations;
 }
 
-if(scalar(%military)) {
+if(scalar(%all_military)) {
 	print "Creating military records\n";
 	open($csv, '>', 'dynamic-site/databases/military.csv');
 	print $csv "entry!person!date!place!notes\n";
 
 	$index = 1;
-	foreach my $xref(sort keys(%military)) {
-		foreach my $entry(@{$military{$xref}}) {
+	foreach my $xref(sort keys(%all_military)) {
+		foreach my $entry(@{$all_military{$xref}}) {
 			print $csv "$index!$xref!", $entry->{'date'} || '', '!', $entry->{'place'} || '', '!', $entry->{'notes'} || '', "\n";
 			$index++;
 		}
 	}
 	close $csv;
 
-	undef %military;
+	undef %all_military;
+}
+
+if(scalar(%all_occupations)) {
+	print "Creating occupations records\n";
+	open($csv, '>', 'dynamic-site/databases/occupations.csv');
+	print $csv "entry!people\n";
+
+	foreach my $occupation(sort keys(%all_occupations)) {
+		print $csv "$occupation!",
+			join(',', @{$all_occupations{$occupation}}),
+			"\n";
+	}
+	close $csv;
+
+	undef %all_occupations;
 }
 
 if(scalar(%changes)) {
@@ -5716,13 +5730,14 @@ sub print_person
 		$fullbio =~ s/<span class="citation">[\d,]+?<\/span>([\s\.;,])/$1/g;
 		$fullbio =~ s/,,/,/g;
 		$fullbio =~ s/href="\?page=/href="cgi-bin\/page.fcgi?page=/g;
+		my $xref = $person->xref();
 		print $timeline_xml 'title="', $person->as_string(), '" ',
-			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $person->xref(), '"',
+			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $xref, '"',
 			'>', HTML::Entities::encode($fullbio),
 			"<\/event>\n";
 
-		print $visjs "{\ncontent: '<a href=\"cgi-bin/page.fcgi?page=people&entry=",
-			$person->xref(), '">', $person->as_string(), "</a>',\n",
+		print $visjs "{\ncontent: '<a href=\"cgi-bin/page.fcgi?page=people&entry=$xref\">",
+			$person->as_string(), "</a>',\n",
 			'start: \'', $birth_dt->year();
 
 		if($birth_dt->month() && $birth_dt->day()) {
@@ -5964,14 +5979,14 @@ sub print_person
 
 		print $xml "\n\t\t</locations>";
 
-		my $military_count = 0;
 		my $xref = $person->xref();
+		my $military_count = 0;
 		foreach my $event(@events) {
 			if(my $type = $event->type()) {
 				if($type eq 'Military service') {
 					if($military_count == 0) {
 						print $xml "\n\t\t<military>";
-						$military{$xref} = ();
+						$all_military{$xref} = ();
 					}
 					$military_count++;
 					my $entry;
@@ -5999,7 +6014,7 @@ sub print_person
 						$entry->{'notes'} = $notes;
 					}
 					print $xml "\n\t\t\t</entry>";
-					push @{$military{$xref}}, $entry;
+					push @{$all_military{$xref}}, $entry;
 				}
 			}
 		}
@@ -6013,6 +6028,7 @@ sub print_person
 			foreach my $occupation(@occupations) {
 				$occupation =~ s/&/&amp;/g;
 				print $xml "\n\t\t\t<occupation>$occupation</occupation>";
+				push @{$all_occupations{$occupation}}, $xref;
 			}
 
 			print $xml "\n\t\t</occupations>";
