@@ -69,6 +69,7 @@ BEGIN {
 		# 'Geo::StreetAddress::US',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
 		'Lingua::EN::Numbers::Ordinate', 'Lingua::EN::Inflect',
+		'Locale::Object::Country',
 		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
 
@@ -135,7 +136,6 @@ use autodie qw(:all);
 # use Memoize;
 use Class::Simple::Cached 0.03;
 use Class::Simple::Readonly::Cached 0.02;
-use Locale::Object::Country;
 use List::Util;
 use POSIX;
 use JSON;
@@ -8179,7 +8179,9 @@ sub get_all_occupations
 			}
 			$occupations[0] =~ s/[\(\)]//g;
 			if($occupations[0] =~ /works? (on|for) (.+)/i) {
-				$occupations[0] = "$1 worker";
+				$occupations[0] = "$1 Worker";
+			} else {
+				$occupations[0] = ucfirst($occupations[0]);
 			}
 		} else {
 			complain({
