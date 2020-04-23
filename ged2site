@@ -8168,6 +8168,15 @@ sub get_all_occupations
 
 	if(scalar(@occupations)) {
 		if($occupations[0]) {
+			if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en/)) {
+				if($ENV{'LANG'} =~ /^en_US/) {
+					$occupations[0] = Lingua::EN::ABC::b2a($occupations[0]);
+				} elsif($ENV{'LANG'} =~ /^en_CA/) {
+					$occupations[0] = Lingua::EN::ABC::b2c($occupations[0]);
+				} elsif($ENV{'LANG'} =~ /^en_GB/) {
+					$occupations[0] = Lingua::EN::ABC::a2b($occupations[0]);
+				}
+			}
 			$occupations[0] =~ s/[\(\)]//g;
 			if($occupations[0] =~ /works? (on|for) (.+)/i) {
 				$occupations[0] = "$1 worker";
