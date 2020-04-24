@@ -56,6 +56,7 @@ BEGIN {
 		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
 		'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info',
+		'List::Util',
 		'LWP::Simple', 'MIME::Base64',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
@@ -136,7 +137,6 @@ use autodie qw(:all);
 # use Memoize;
 use Class::Simple::Cached 0.03;
 use Class::Simple::Readonly::Cached 0.02;
-use List::Util;
 use POSIX;
 use JSON;
 use Unicode::Diacritic::Strip;
@@ -8127,6 +8127,7 @@ sub get_all_occupations
 		if($occupations[0] =~ /works? on (.+)/i) {
 			$occupations[0] = "$1 worker";
 		} elsif(($occupations[0] eq 'Ag Lab') ||
+			($occupations[0] eq 'Ag Labourer') ||
 			($occupations[0] eq 'work on farm') ||
 			($occupations[0] eq 'Labourer (Ag)')) {
 			$occupations[0] = 'Farm Labourer';
@@ -8151,9 +8152,11 @@ sub get_all_occupations
 			$occupations[0] =~ s/^of the //i;
 		} elsif($occupations[0] =~ /Labourer Gas Stoker/) {
 			$occupations[0] = 'Gas Stoker';
+		} elsif($occupations[0] eq 'Under Gardener Domestic') {
+			$occupations[0] = 'Domestic Gardener';
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
 		} elsif($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i) {
-			$occupations[0] = "$1$2's $3";
+			$occupations[0] = "$1$2's $3" unless($2 eq 'Bus');
 		}
 	}
 	while(scalar(@occupations) > 1) {
