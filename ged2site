@@ -53,7 +53,7 @@ BEGIN {
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Geo::Coder::OpenCage', 'Geo::Coder::Google',
 		'Geo::Coder::GooglePlaces',
-		'Geo::Coder::Bing', 'Lingua::EN::ABC', 'Geo::GeoNames',
+		'Geo::Coder::Bing', 'Lingua::EN::ABC',
 		'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info',
 		'List::Util',
@@ -175,7 +175,7 @@ if($opts{'d'} || $opts{'m'}) {
 	push @modules, 'HTTP::Cache::Transparent';
 }
 if($opts{'m'} || $opts{'w'}) {
-	push @modules, 'LWP::UserAgent::Throttled';
+	push @modules, 'LWP::UserAgent::Throttled', 'Geo::GeoNames';
 }
 if($gedcal || !$opts{'w'}) {
 	push @modules, 'String::ProgressBar';
@@ -8181,8 +8181,11 @@ sub get_all_occupations
 				}
 			}
 			$occupations[0] =~ s/[\(\)]//g;
+			$occupations[0] =~ s/\s+Own Account//i;
 			if($occupations[0] =~ /works? (on|for) (.+)/i) {
 				$occupations[0] = "$1 Worker";
+			} elsif($occupations[0] =~ /^Cleaner\s+(.+)/i) {
+				$occupations[0] = "$1 Cleaner";
 			} else {
 				$occupations[0] = ucfirst($occupations[0]);
 			}
