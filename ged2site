@@ -55,7 +55,7 @@ BEGIN {
 		'Geo::Coder::GooglePlaces',
 		'Geo::Coder::Bing', 'Lingua::EN::ABC',
 		'Geo::Parser::Text', 'GIS::Distance',
-		'HTML::Entities', 'Image::Info',
+		'HTML::Entities', 'Image::Info', 'JSON',
 		'List::Util',
 		'LWP::Simple', 'MIME::Base64',
 		'DateTime', 'DateTime::Duration',
@@ -138,7 +138,6 @@ use autodie qw(:all);
 use Class::Simple::Cached 0.03;
 use Class::Simple::Readonly::Cached 0.02;
 use POSIX;
-use JSON;
 use Unicode::Diacritic::Strip;
 
 my %opts;
@@ -601,10 +600,16 @@ if($total == 0) {
 	die "$0: gedcom file is empty";
 }
 my $index = 0;
-my $dtl = DateTime::Locale->load($ENV{'LANG'});
 
 my $pr;
 my $us = Locale::US->new();
+my $dtl = DateTime::Locale->load($ENV{'LANG'});
+my $language;
+if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
+	$language = 'French';
+} else {
+	$language = 'English';
+}
 
 if($opts{'w'}) {
 	my $cachedir;
@@ -4759,12 +4764,12 @@ sub print_person
 		}
 	}
 
-	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en/)) {
+	if($language eq 'English') {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			$bio = Lingua::EN::ABC::b2a($bio);
 		} elsif($ENV{'LANG'} =~ /^en_CA/) {
 			$bio = Lingua::EN::ABC::b2c($bio);
-		} elsif($ENV{'LANG'} =~ /^en_GB/) {
+		} else {
 			$bio = Lingua::EN::ABC::a2b($bio);
 		}
 	}
@@ -7267,12 +7272,12 @@ sub notes
 
 	$ufinder->find(\$rc);
 
-	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en/)) {
+	if($language eq 'English') {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			return Lingua::EN::ABC::b2a($rc);
 		} elsif($ENV{'LANG'} =~ /^en_CA/) {
 			return Lingua::EN::ABC::b2c($rc);
-		} elsif($ENV{'LANG'} =~ /^en_GB/) {
+		} else {
 			return Lingua::EN::ABC::a2b($rc);
 		}
 	}
@@ -8171,12 +8176,12 @@ sub get_all_occupations
 
 	if(scalar(@occupations)) {
 		if($occupations[0]) {
-			if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en/)) {
+			if($language eq 'English') {
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$occupations[0] = Lingua::EN::ABC::b2a($occupations[0]);
 				} elsif($ENV{'LANG'} =~ /^en_CA/) {
 					$occupations[0] = Lingua::EN::ABC::b2c($occupations[0]);
-				} elsif($ENV{'LANG'} =~ /^en_GB/) {
+				} else {
 					$occupations[0] = Lingua::EN::ABC::a2b($occupations[0]);
 				}
 			}
