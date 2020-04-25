@@ -138,7 +138,6 @@ use autodie qw(:all);
 use Class::Simple::Cached 0.03;
 use Class::Simple::Readonly::Cached 0.02;
 use POSIX;
-use Unicode::Diacritic::Strip;
 
 my %opts;
 getopts('cdfFG:g:h:J:lL:mwWvx:', \%opts);
@@ -8161,7 +8160,8 @@ sub get_all_occupations
 			$occupations[0] = 'Domestic Gardener';
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
 		} elsif($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i) {
-			$occupations[0] = "$1$2's $3" unless($2 eq 'Bus');
+			# Don't change Bus Driver to Bu's Driver
+			$occupations[0] = "$1$2's $3" unless("$1$2" eq 'Bu');
 		}
 	}
 	while(scalar(@occupations) > 1) {
