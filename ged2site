@@ -8178,11 +8178,11 @@ sub get_all_occupations
 		if($occupations[0]) {
 			if($language eq 'English') {
 				if($ENV{'LANG'} =~ /^en_US/) {
-					$occupations[0] = Lingua::EN::ABC::b2a($occupations[0]);
+					$occupations[0] = Lingua::EN::ABC::b2a(lc($occupations[0]));
 				} elsif($ENV{'LANG'} =~ /^en_CA/) {
-					$occupations[0] = Lingua::EN::ABC::b2c($occupations[0]);
+					$occupations[0] = Lingua::EN::ABC::b2c(lc($occupations[0]));
 				} else {
-					$occupations[0] = Lingua::EN::ABC::a2b($occupations[0]);
+					$occupations[0] = Lingua::EN::ABC::a2b(lc($occupations[0]));
 				}
 			}
 			$occupations[0] =~ s/[\(\)]//g;
