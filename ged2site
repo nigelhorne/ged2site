@@ -8144,7 +8144,7 @@ sub get_all_occupations
 		} elsif($occupations[0] eq 'Lorry Driver Heavy Worker') {
 			$occupations[0] = 'Lorry Driver';
 		} elsif($occupations[0] =~ /^Shop Assistant (.*)/) {
-			$occupations[0] = "$1's Shop Assistant";
+			$occupations[0] = "$1's Assistant" unless($1 =~ /'s$/);
 		} elsif($occupations[0] =~ /(.*) Assistant$/i) {
 			$occupations[0] = "$1's Assistant";
 		} elsif($occupations[0] =~ /Clerk (.*)/) {
