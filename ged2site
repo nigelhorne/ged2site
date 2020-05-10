@@ -7337,6 +7337,8 @@ sub validate_place
 			my $state = uc($1);
 			if((!$us->{code2state}{$state}) && !$us->{state2code}{$state}) {
 				complain({ person => $params{'person'}, warning => "Unknown state '$state' in $place" });
+			} elsif($place =~ /\sWard \d+,/) {
+				complain({ person => $params{'person'}, warning => "Census ward number left in location '$place'" });
 			}
 		}
 
