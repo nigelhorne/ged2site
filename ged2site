@@ -4833,6 +4833,7 @@ sub print_person
 			}
 			print $html "<li>$line</li>";
 			my $x = HTML::Entities::encode($line);
+			$x =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
 			print $xml "\n\t\t\t<child>$x</child>";
 			if(length($c)) {
 				$c .= '----' . person_line_csv({ person => $child, year => $year });
