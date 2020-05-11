@@ -8163,7 +8163,7 @@ sub get_all_occupations
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
 		} elsif($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i) {
 			# Don't change Bus Driver to Bu's Driver
-			$occupations[0] = "$1$2's $3" unless("$1$2" eq 'Bu');
+			$occupations[0] = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
 		}
 	}
 	while(scalar(@occupations) > 1) {
