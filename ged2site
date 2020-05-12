@@ -1545,7 +1545,8 @@ sub print_person
 	print $xml "\n\t\t<entry>", $person->xref(),
 		"</entry>\n\t\t<title>$xtitle</title>";
 	if($firstname) {
-		print $xml "\n\t\t<firstname>$firstname</firstname>";
+		$firstname =~ s/\xc3\xab/&#235;/g;	# eumlaut
+		print $xml "\n\t\t<first_name>$firstname</first_name>";
 	}
 	if($surname) {
 		print $xml "\n\t\t<surname>$surname</surname>";
@@ -5398,6 +5399,7 @@ sub print_person
 							} else {
 								if($title) {
 									$title = HTML::Entities::encode($title);
+									$title =~ s/\xc3\xab/&#235;/g;	# eumlaut
 									print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>";
 								} else {
 									print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t</image>";
@@ -5552,6 +5554,7 @@ sub print_person
 					$line =~ s/>/&gt;/g;
 					$line =~ s/&/&amp;/g;
 					$line =~ s/&amp;amp;/&amp;/g;
+					$line =~ s/\xc3\xab/&#235;/g;	# eumlaut
 					print $xml $line;
 				}
 				print $xml '</family_tree>';
