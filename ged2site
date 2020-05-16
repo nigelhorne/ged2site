@@ -4345,91 +4345,12 @@ sub print_person
 	   (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		# Simple case - one journey made
 		$bio .= '. ' if(!$end_of_sentence);
-		$end_of_sentence = 1;
 
 		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
 		my $departure = ($events[0]->type() eq 'Departure') ? $events[0] : $events[1];
-		my $yod;
-		my $yoa;
-		my $dod = $departure->date();
-		my $doa = $arrival->date();
-		my $only_have_departure_year;
-		if($doa && $dod && ($doa =~ /(\d{3,4})/)) {
-			$yoa = $1;
-			$doa =~ s/\s?\d{3,4}//;
-			if($dod =~ /(\d{3,4})/) {
-				$yod = $1;
-				$dod =~ s/\s?\d{3,4}//;
-				if($dod =~ /^\d/) {
-					$dod = "on $dod";
-				} else {
-					$dod = "during $yod";
-					$only_have_departure_year = 1;
-				}
-				if($doa =~ /^\d/) {
-					$doa = "on $doa";
-				} else {
-					$doa = "during $doa";
-				}
-			}
-		}
-		if($departure || !$doa) {
-			if($yod && $yoa && ($yod == $yoa)) {
-				$bio .= "During $yod " . lc($person->pronoun());
-			} else {
-				$bio .= $person->pronoun();
 
-				# $yod = year({ person => $person, record => $departure });
-				# $yoa = year({ person => $person, record => $arrival });
-			}
+		$bio .= journey({ person => $person, arrival => $arrival, departure => $departure }) . '.  ';
 
-			if($ENV{'LANG'} =~ /^en_US/) {
-				$bio .= ' traveled';
-			} else {
-				$bio .= ' travelled';
-			}
-
-			if(defined($departure->place())) {
-				$bio .= ' from ' . $departure->place();
-			} else {
-				complain({ person => $person, warning => 'Departure record has no location' });
-			}
-			if(defined($arrival->place())) {
-				$bio .= ' to ' . $arrival->place();
-			} else {
-				complain({ person => $person, warning => 'Arrival record has no location' });
-			}
-
-			if(defined($dod) && !$only_have_departure_year) {
-				$bio .= ", departing $dod and";
-			}
-
-			$bio .= " arriving $doa.";
-
-			if($ENV{'LANG'} =~ /^en_US/) {
-				$place_records{'Traveled from'} = $departure;
-				$place_records{'Traveled to'} = $arrival;
-			} else {
-				$place_records{'Travelled from'} = $departure;
-				$place_records{'Travelled to'} = $arrival;
-			}
-		} else {
-			$bio .= ucfirst(year({ person => $person, record => $arrival })) .
-				', ' . lcfirst($person->pronoun()) .
-				'arrived' .
-				place({ person => $person, record => $arrival });
-
-			if(my $notes = notes({ record => $arrival, person => $person, note_locations => \@note_locations })) {
-				$notes = lcfirst($notes);
-				$bio .= " ($notes)";
-			}
-			$bio .= '.';
-			if($ENV{'LANG'} =~ /^en_US/) {
-				$place_records{'Traveled to'} = $arrival;
-			} else {
-				$place_records{'Travelled to'} = $arrival;
-			}
-		}
 		$end_of_sentence = 1;
 	} elsif(scalar(@events) == 1) {
 		$bio .= '.' if(!$end_of_sentence);
@@ -8215,6 +8136,7 @@ sub get_all_occupations
 	return @occupations;
 }
 
+# Document a complete journey when both a departure and an arrival record exist
 sub journey
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -8229,10 +8151,11 @@ sub journey
 	my $dod = $departure->date();
 	my $doa = $arrival->date();
 	my $only_have_departure_year;
-	if($doa && $dod && ($doa =~ /(\d{3,4})/)) {
+
+	if($doa && ($doa =~ /(\d{3,4})/)) {
 		$yoa = $1;
 		$doa =~ s/\s?\d{3,4}//;
-		if($dod =~ /(\d{3,4})/) {
+		if($dod && ($dod =~ /(\d{3,4})/)) {
 			$yod = $1;
 			$dod =~ s/\s?\d{3,4}//;
 			if($dod =~ /^\d/) {
@@ -8250,50 +8173,56 @@ sub journey
 			}
 		}
 	}
-	if($dod) {
-		$rc = $person->pronoun();
-		if($yod && $yoa && ($yod == $yoa)) {
-			$rc = " In $yod, " . lc($rc);
-		# } else {
-			# $yod = year({ person => $person, record => $departure });
-			# $yoa = year({ person => $person, record => $arrival });
-		}
-
-		if($ENV{'LANG'} =~ /^en_US/) {
-			$rc .= ' traveled';
+	$rc = $person->pronoun();
+	if($language eq 'French') {
+		$rc = ($rc eq 'He') ? 'Il' : 'Elle';
+	}
+	if($yoa || $yod) {
+		my $year = $yoa // $yod;
+		if($language eq 'French') {
+			$rc = " En $year " . lc($rc);
 		} else {
-			$rc .= ' travelled';
+			$rc = " In $year " . lc($rc);
 		}
-
-		if(defined($departure->place())) {
-			$rc .= ' from' . place({ person => $person, record => $departure, nopreposition => 1 });
-			if(my $notes = notes(record => $departure)) {
-				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
-				$notes =~ s/\.$//;
-				$rc .= " ($notes)";
-			}
-		} else {
-			complain({ person => $person, warning => 'Departure record has no location' });
-		}
-		if(defined($arrival->place())) {
-			$rc .= ' to' . place({ person => $person, record => $arrival, nopreposition => 1 });
-			if(my $notes = notes(record => $arrival)) {
-				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
-				$notes =~ s/\.$//;
-				$rc .= " ($notes)";
-			}
-		} else {
-			complain({ person => $person, warning => 'Arrival record has no location' });
-		}
-
-		if(defined($dod) && !$only_have_departure_year) {
-			$rc .= ", departing $dod and";
-		}
-
-		return "$rc arriving $doa";
+	# } else {
+		# $yod = year({ person => $person, record => $departure });
+		# $yoa = year({ person => $person, record => $arrival });
 	}
 
-	return $rc;
+	if($language eq 'French') {
+		$rc .= ' a voyagé';
+	} elsif($ENV{'LANG'} =~ /^en_US/) {
+		$rc .= ' traveled';
+	} else {
+		$rc .= ' travelled';
+	}
+
+	if(defined($departure->place())) {
+		$rc .= (($language eq 'French') ? ' de' : ' from') . place({ person => $person, record => $departure, nopreposition => 1 });
+		if(my $notes = notes(record => $departure)) {
+			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+			$notes =~ s/\.$//;
+			$rc .= " ($notes)";
+		}
+	} else {
+		complain({ person => $person, warning => 'Departure record has no location' });
+	}
+	if(defined($arrival->place())) {
+		$rc .= (($language eq 'French') ? ' à' : ' to') . place({ person => $person, record => $arrival, nopreposition => 1 });
+		if(my $notes = notes(record => $arrival)) {
+			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+			$notes =~ s/\.$//;
+			$rc .= " ($notes)";
+		}
+	} else {
+		complain({ person => $person, warning => 'Arrival record has no location' });
+	}
+
+	if(defined($dod) && !$only_have_departure_year) {
+		return "$rc, departing $dod and";
+	}
+
+	return "$rc arriving $doa";
 }
 
 # Compare two dates. Approximate dates are compared.
