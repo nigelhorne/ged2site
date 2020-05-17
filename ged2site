@@ -8114,6 +8114,8 @@ sub get_all_occupations
 				} else {
 					$occupations[0] = Lingua::EN::ABC::a2b(lc($occupations[0]));
 				}
+			} elsif(($language eq 'French') && ($occupations[0] eq 'Postman')) {
+				$occupations[0] = (($person->sex() eq 'M') ? 'Facteur' : 'Factrisse');
 			}
 			$occupations[0] =~ s/[\(\)]//g;
 			$occupations[0] =~ s/\s+Own Account//i;
