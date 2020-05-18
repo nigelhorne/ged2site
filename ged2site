@@ -5835,6 +5835,12 @@ sub print_person
 		} elsif(($c eq 'Nova Scotia') || (uc($c) eq 'NFLD') || ($c eq 'Newfoundland') || ($c eq 'NS')) {
 			complain({ person => $person, warning => "Country 'Canada' missing from death record" });
 			$death_country = 'Canada';
+		} elsif(($c =~ /[A-Z]{2,3}/) && ($ca->{code2state}{$c})) {
+			complain({ person => $person, warning => "$c: assuming country of death is Australia" });
+			# $death_country = 'Australia';
+		} elsif($ca->{state2code}{uc($c)}) {
+			complain({ person => $person, warning => "$c: assuming country of death is Australia" });
+			# $death_country = 'Australia';
 		} elsif(($c eq 'Holland') || ($c eq 'The Netherlands')) {
 			$death_country = 'Netherlands';
 		# } elsif($c eq 'Isle of Man') {
