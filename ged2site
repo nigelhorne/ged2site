@@ -66,7 +66,7 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
 		'URI', 'URI::Find::Schemeless',
-		'XML::Dumper', 'XML::Twig', 'Locale::US', 'CHI', 'Class::Simple',
+		'XML::Dumper', 'XML::Twig', 'Locale::CA', 'Locale::US', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
 		'Lingua::EN::Numbers::Ordinate', 'Lingua::EN::Inflect',
@@ -602,6 +602,7 @@ my $index = 0;
 
 my $pr;
 my $us = Locale::US->new();
+my $ca = Locale::CA->new();
 my $dtl = DateTime::Locale->load($ENV{'LANG'});
 my $language;
 if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
@@ -5769,7 +5770,13 @@ sub print_person
 		} elsif($us->{state2code}{uc($c)}) {
 			$birth_country = 'United States';
 			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
-		} elsif(($c eq 'Nova Scotia') || (uc($c) eq 'NFLD') || ($c eq 'Newfoundland') || ($c eq 'NS')) {
+		} elsif(($c =~ /[A-Z]{2}/) && ($ca->{province2state}{$c})) {
+			$birth_country = 'Canada';
+			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
+		} elsif($ca->{province2code}{uc($c)}) {
+			$birth_country = 'Canada';
+			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
+		} elsif(uc($c) eq 'NFLD') {
 			$birth_country = 'Canada';
 			complain({ person => $person, warning => 'Assuming country of birth is Canada' });
 		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland')) {
@@ -8404,6 +8411,9 @@ sub dateofbirth {
 	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birth'))) {
 		return $birth->date();
 	}
+	if(defined($dateofbirth) && (lc($dateofbirth) eq 'unknown')) {
+		return;
+	}
 	return $dateofbirth;
 }
 
@@ -8423,6 +8433,9 @@ sub dateofdeath {
 	my $dateofdeath = get_value({ person => $person, value => 'death date' });
 	if((!defined($dateofdeath)) && (my $death = $person->get_record('death'))) {
 		return $death->date();
+	}
+	if(defined($dateofdeath) && (lc($dateofdeath) eq 'unknown')) {
+		return;
 	}
 	return $dateofdeath;
 }
