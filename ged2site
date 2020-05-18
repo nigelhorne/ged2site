@@ -5765,20 +5765,25 @@ sub print_person
 			$birth_country = 'Netherlands';
 			complain({ person => $person, warning => 'Assuming country of birth is Netherlands' });
 		} elsif(($c =~ /[A-Z]{2}/) && ($us->{code2state}{$c})) {
-			$birth_country = 'United States';
 			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
+			$birth_country = 'United States';
+			$placeofbirth .= ', USA';
 		} elsif($us->{state2code}{uc($c)}) {
-			$birth_country = 'United States';
 			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
+			$birth_country = 'United States';
+			$placeofbirth .= ', USA';
 		} elsif(($c =~ /[A-Z]{2}/) && ($ca->{province2state}{$c})) {
-			$birth_country = 'Canada';
 			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
+			$birth_country = 'Canada';
+			$placeofbirth .= ', Canada';
 		} elsif($ca->{province2code}{uc($c)}) {
-			$birth_country = 'Canada';
 			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
-		} elsif(uc($c) eq 'NFLD') {
 			$birth_country = 'Canada';
+			$placeofbirth .= ', Canada';
+		} elsif(uc($c) eq 'NFLD') {
 			complain({ person => $person, warning => 'Assuming country of birth is Canada' });
+			$birth_country = 'Canada';
+			$placeofbirth .= ', Canada';
 		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland')) {
 			$birth_country = 'United Kingdom';
 			complain({ person => $person, warning => 'Assuming country of birth is UK' });
