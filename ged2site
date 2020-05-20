@@ -5757,7 +5757,7 @@ sub print_person
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Northern Ireland') {
 			$birth_country = 'United Kingdom';
-		} elsif($c eq 'Preußen') {	# Prussia
+		} elsif(($c eq 'Preußen') || ($c eq 'Deutschland')) {	# Prussia
 			$birth_country = 'Germany';
 		} elsif(($c eq 'Holland') || ($c eq 'The Netherlands')) {
 			$birth_country = 'Netherlands';
@@ -5843,11 +5843,11 @@ sub print_person
 			# $death_country = 'Australia';
 		} elsif(($c eq 'Holland') || ($c eq 'The Netherlands')) {
 			$death_country = 'Netherlands';
-		# } elsif($c eq 'Isle of Man') {
+		} elsif($c eq 'Isle of Man') {
 			$death_country = 'United Kingdom';
-		# } elsif($c eq 'Northern Ireland') {
+		} elsif($c eq 'Northern Ireland') {
 			$death_country = 'United Kingdom';
-		# } elsif($c eq 'Preußen') {	# Prussia
+		} elsif(($c eq 'Preußen') || ($c eq 'Deutschland')) {	# Prussia
 			$death_country = 'Germany';
 		} elsif($c =~ /Can\./) {
 			complain({ person => $person, warning => 'Assuming country of death is Canada'});
