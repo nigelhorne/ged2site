@@ -28,8 +28,8 @@ by you to create the look and feel of the website that you want.
 
 If you decide to use the static site, just copy files in the static-site directory to your web-server.
 
-If you decide to use the dynamic site first create a $hostname.com file in the
-conf directory (use default as a template),
+If you decide to use the dynamic site first.
+create a $hostname.com file in the conf directory (use default as a template),
 then modify the contents of the template tree so that the site looks as you
 want it.
 The configuration file can be in any number of formats including INI and XML.
@@ -72,8 +72,9 @@ The options to ged2site are:
 | -W   | don't colorize warning output |
 | -x f | Given a location of people.xml from a previous run, add to a blog of changes (TODO)
 
-If gedcom is installed, ged2site will also create a calendar of births and
-deaths, one page for each month in the current year.
+If [gedcom](https://github.com/nigelhorne/gedcom) is installed,
+ged2site will also create a calendar of births and deaths,
+one page for each month in the current year.
 
 Some of the options can be stored in *ged2site.conf*:
 
