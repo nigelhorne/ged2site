@@ -4428,7 +4428,7 @@ sub print_person
 					$bio .= " ($notes)";
 				}
 				$bio .= '. ';
-			} elsif($type eq 'Military service') {
+			} elsif(($type eq 'Military service') || ($type eq 'Military')) {
 				$bio .= '.' if(!$end_of_sentence);
 				my $date = year(record => $event);
 				if($date && ($date !~ /^from /i)) {
