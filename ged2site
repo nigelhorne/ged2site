@@ -3221,8 +3221,11 @@ sub print_person
 				$end_of_sentence = 0;
 			}
 		} elsif($numberofchildren) {
+			# Neither date nor place of marriage is known
 			if($end_of_sentence) {
 				$bio .= " $pronoun";
+			} elsif(scalar(@residences) == 0) {
+				$bio .= ' and';
 			}
 			$bio .= ' had ' .
 				(($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ");
