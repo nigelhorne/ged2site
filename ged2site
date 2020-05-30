@@ -8093,6 +8093,7 @@ sub get_all_occupations
 			($occupations[0] eq 'Ag Labourer Pauper') ||
 			($occupations[0] eq 'Farm Labourer') ||
 			($occupations[0] eq 'Agricultural Farm Labourer') ||
+			($occupations[0] eq 'Ordinary Agricultural Labourer') ||
 			($occupations[0] eq 'work on farm') ||
 			($occupations[0] eq 'Labourer (Ag)')) {
 			$occupations[0] = 'Agricultural Labourer';
