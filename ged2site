@@ -2156,7 +2156,11 @@ sub print_person
 	my $printed_comma = 0;
 
 	if($occupations[0]) {
-		if($father && $father->occupation() && ($occupations[0] eq $father->occupation())) {
+		my @foccupations;
+		if($father) {
+			@foccupations = get_all_occupations(person => $father);
+		}
+		if(scalar(@foccupations) && ($occupations[0] eq $foccupations[0])) {
 			$same_occupation_as_father = $occupations[0];
 			@occupations = ();
 		} else {
@@ -2450,13 +2454,9 @@ sub print_person
 			'&lt;/a&gt;';
 	} elsif($spouserelationship) {
 		if($sex eq 'F') {
-			print $html ', the wife of';
-			print $csv ', the wife of';
-			print $xml ', the wife of';
+			$all->print(', the wife of');
 		} else {
-			print $html ', the husband of';
-			print $csv ', the husband of';
-			print $xml ', the husband of';
+			$all->print(', the husband of');
 		}
 		my $s = $spouse->as_string({ middle_names => 1, title => 1 });
 		if(!defined($s)) {
@@ -2473,6 +2473,7 @@ sub print_person
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>';
+		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
 		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 			"$s&lt;/a&gt; the $spouserelationship of ",
 			'&lt;a href="?page=people&amp;home=1"&gt;',
@@ -3251,6 +3252,7 @@ sub print_person
 	my %citationnotes;
 	my @note_locations;
 	my @residencelist;
+	my $diedathome;
 
 	if($opts{'l'} || !$is_alive) {
 		if(scalar(@childrenunknownparent)) {
@@ -4075,8 +4077,38 @@ sub print_person
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
 				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
 					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; '}) . '. ';
-				$bio =~ s/,\. $/. /;
 
+				if($placeofdeath) {
+					my $lastresidence = $residencelist[scalar(@residencelist) - 1];
+					my $deathplace = place({ person => $person, record => $death });
+					my $lastdate = $lastresidence->date();
+					$lastresidence = place({ person => $person, record => $lastresidence });
+					if($deathplace eq $lastresidence) {
+						my $p = lcfirst($pronoun);
+						$bio .= " which is where $p died";
+						if($dateofdeath) {
+							my $date = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+							$lastdate =~ s/^.*(\d{4})$/$1/;
+							$date =~ /, (\d{3,4})$/;
+							if($lastdate == $yod) {
+								$date =~ s/, (\d{3,4})$//;
+							}
+							$bio .= " $date";
+						}
+						$bio .= cite(@deathcitations);
+						# Print notes about the death, if any
+						my $notes;
+						if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
+							$notes =~ tr/\r//;
+							$notes =~ tr/\n/ /;
+							$notes =~ s/\.$//;
+							$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+							$bio .= " ($notes)";
+						}
+						$diedathome = 1;
+					}
+				}
+				$bio .= '. ';
 				$end_of_sentence = 1;
 			}
 		}
@@ -4169,27 +4201,29 @@ sub print_person
 			$end_of_sentence = 0;
 		} else {	# $dateofdeath || $placeofdeath
 			$bio .= '.' if(!$end_of_sentence);
-			$bio .= "<p>$pronoun died";
-			if($dateofdeath) {
-				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($y =~ /^from (.+) to (.+)/i) {
-					$y = "between $1 and $2";
-				}
-				$bio .= " $y";
-			}
-			if($placeofdeath && (my $p = place({ person => $person, record => $death, places_printed => \%places_printed }))) {
-				$bio .= $p;
-				$places_printed{$p} = 1;
-			}
-			$bio .= cite(@deathcitations);
-			# Print notes about the death, if any
 			my $notes;
-			if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
-				$notes =~ tr/\r//;
-				$notes =~ tr/\n/ /;
-				$notes =~ s/\.$//;
-				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
-				$bio .= " ($notes)";
+			if(!$diedathome) {
+				$bio .= "<p>$pronoun died";
+				if($dateofdeath) {
+					my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+					if($y =~ /^from (.+) to (.+)/i) {
+						$y = "between $1 and $2";
+					}
+					$bio .= " $y";
+				}
+				if($placeofdeath && (my $p = place({ person => $person, record => $death, places_printed => \%places_printed }))) {
+					$bio .= $p;
+					$places_printed{$p} = 1;
+				}
+				$bio .= cite(@deathcitations);
+				# Print notes about the death, if any
+				if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
+					$notes =~ tr/\r//;
+					$notes =~ tr/\n/ /;
+					$notes =~ s/\.$//;
+					$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+					$bio .= " ($notes)";
+				}
 			}
 			my $opts = {
 				person => $person,
@@ -4203,7 +4237,11 @@ sub print_person
 				$opts->{'address'} = $address;
 			}
 			if($dateofburial) {
-				$bio .= ' and was buried';
+				if($diedathome) {
+					$bio .= "$pronoun was buried";
+				} else {
+					$bio .= ' and was buried';
+				}
 				if($placeofburial) {
 					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && !$death->address()) {
 						$bio .= ' there';
@@ -4240,7 +4278,11 @@ sub print_person
 			   $burial->address() && !$death->address()) {
 				$bio .= ' and is buried there at ' . $burial->address();
 			} elsif(my $b = place($opts)) {
-				$bio .= " and is buried$b";
+				if($diedathome) {
+					$bio .= "$pronoun is buried$b";
+				} else {
+					$bio .= " and is buried$b";
+				}
 			}
 			if($notes && (length($notes) > 160)) {
 				$bio .= ".</p><p>";
@@ -4592,8 +4634,8 @@ sub print_person
 						complain({ person => $person, warning => 'Departure record without destination' });
 						next;
 					}
-					if($events[$index] && ($events[$index]->type() eq 'Arrival') && $event->date()) {
-						if($events[$index]->date()) {
+					if(my $e = $events[$index]) {
+						if(ref($e) && ($e->type() eq 'Arrival') && $event->date() && $e->date()) {
 							$previous = $event;
 							$prev_type = 'Departure';
 							# FIXME: not all locations will be noted or notes printed
