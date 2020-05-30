@@ -4083,7 +4083,7 @@ sub print_person
 					my $deathplace = place({ person => $person, record => $death });
 					my $lastdate = $lastresidence->date();
 					$lastresidence = place({ person => $person, record => $lastresidence });
-					if($deathplace eq $lastresidence) {
+					if(defined($lastdate) && ($deathplace eq $lastresidence)) {
 						my $p = lcfirst($pronoun);
 						$bio .= " which is where $p died";
 						if($dateofdeath) {
