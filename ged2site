@@ -2936,7 +2936,13 @@ sub print_person
 						}
 						$bio .= ' ';
 						if(my $address = $marriage->address()) {
-							$bio .= "at $address ";
+							if($address eq 'Parish Church') {
+								$bio .= 'at the Parish Church ';
+							} elsif($address eq 'Registry Office') {
+								$bio .= 'at the Registry Office ';
+							} else {
+								$bio .= "at $address ";
+							}
 						}
 						$bio .= year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
 					} else {
