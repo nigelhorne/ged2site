@@ -1543,6 +1543,7 @@ sub print_person
 	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
 	my $xtitle = $title;
 	$xtitle =~ s/&eacute;/&#233;/g;
+	$xtitle =~ s/\xc3\xab/&#235;/g;	# eumlaut
 	print $xml "\n\t\t<entry>", $person->xref(),
 		"</entry>\n\t\t<title>$xtitle</title>";
 	if($firstname) {
