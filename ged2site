@@ -6066,6 +6066,7 @@ sub print_person
 			$issue = HTML::Entities::encode($issue);
 			$issue =~ s/&eacute;/&#233;/g;
 			$issue =~ s/&Atilde;&copy;/&#233;/g;	# ACOM bizarre
+			$bio =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
 			print $xml "\n\t\t\t<issue>$issue</issue>";
 		}
 		print $xml "\n\t\t</issues>";
