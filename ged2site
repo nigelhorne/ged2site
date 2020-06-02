@@ -81,16 +81,16 @@ BEGIN {
 			push @needfull, $module;
 		}
 	}
-	if(scalar(@needfull)) {
-		my $list = join(' ', @needfull);
-		print "Installing $list\n";
-		system("cpan -i $list");
-	}
-
 	# Fix for this module not being found
 	eval 'use Geo::Coder::PlaceFinder';
 	if($@) {
 		push @needfull, 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
+	}
+
+	if(scalar(@needfull)) {
+		my $list = join(' ', @needfull);
+		print "Installing $list\n";
+		system("cpan -i $list");
 	}
 
 	# FIXME
@@ -4076,7 +4076,7 @@ sub print_person
 
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
 				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
-					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; '}) . '. ';
+					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; '});
 
 				if($placeofdeath) {
 					my $lastresidence = $residencelist[scalar(@residencelist) - 1];
