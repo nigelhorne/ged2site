@@ -4292,11 +4292,11 @@ sub print_person
 			}
 		}
 		$bio .= cite(@burialcitations);
-	} elsif($placeofdeath || $dateofdeath) {
+	} elsif(($placeofdeath || $dateofdeath) && !$diedathome) {
 		# TODO - extract marriage banns information
-		if($person->marriage_bann()) {
+		# if($person->marriage_bann()) {
 			# die 'foo';
-		}
+		# }
 		if($placeofdeath && (scalar(@spouses) <= 1) && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
 			if($end_of_sentence) {
 				$bio .= 'That';
