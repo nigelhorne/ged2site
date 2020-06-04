@@ -99,7 +99,7 @@ BEGIN {
 		if(($warning !~ /Subroutine Geo::Coder::OpenCage::ua redefined at/) &&
 		   ($warning !~ /Subroutine HTML::GoogleMaps::V3::_text_to_point redefined at/) &&
 		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
-		   	if($warning =~ /^Use of uninitialized value/) {
+			if($warning =~ /^Use of uninitialized value/) {
 				die $warning;
 			}
 			warn $warning;
@@ -3747,8 +3747,8 @@ sub print_person
 						foreach my $l(@sorted_locations) {
 							$count++;
 							# print Data::Dumper->new([$l])->Dump();
-							if(($l->{'person'} ne $person) &&
-							   (($spouses[0] && ($l->{'person'} eq $spouses[0])) ||
+							if(($l->{'person'}->xref() ne $person->xref()) &&
+							   (($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) ||
 							   (my $relationship = $person->relationship($l->{'person'})) &&
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							     (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
@@ -3814,6 +3814,76 @@ sub print_person
 									}
 									$residencestring .= place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
+								}
+							} elsif($mother || $father) {
+								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
+								if($bdiff->in_units('years') >= 30) {
+									my $living_with_mother;
+									my $living_with_father;
+									my $raddress = $residence->address();
+									if($raddress =~ /,\s*(.+)/) {
+										$raddress = $1;
+									}
+									if($raddress =~ /^\d*\s(.+)/) {
+										$raddress = $1;
+									}
+									if($mother) {
+										my @mr = get_all_residences(person => $mother);
+										foreach my $mr(@mr) {
+											die if(place(record => $mr) eq place({ record => $residence }));
+											next unless ($mr->place() eq $residence->place());
+											my $address = $mr->address();
+											next unless defined($address);
+											if(my $d = $mr->date()) {
+												next if($d ne $rdate);
+												if($address =~ /,\s*(.+)/) {
+													$address = $1;
+												}
+												if($raddress =~ /^\d*\s(.+)/) {
+													$raddress = $1;
+												}
+												if($raddress eq $address) {
+													$living_with_mother++;
+													last;
+												}
+											}
+										}
+									}
+									if($father) {
+										my @fr = get_all_residences(person => $father);
+										foreach my $fr(@fr) {
+											die if(place(record => $fr) eq place({ record => $residence }));
+											next unless ($fr->place() eq $residence->place());
+											my $address = $fr->address();
+											next unless defined($address);
+											if(my $d = $fr->date()) {
+												next if($d ne $rdate);
+												if($address =~ /,\s*(.+)/) {
+													$address = $1;
+												}
+												if($raddress =~ /^\d*\s(.+)/) {
+													$raddress = $1;
+												}
+												if($raddress eq $address) {
+													$living_with_father++;
+													last;
+												}
+											}
+										}
+									}
+									if($living_with_mother || $living_with_father) {
+										$residencestring .= ', when ' . lcfirst($pronoun) .
+													' was living in the same road as ' .
+													($person->pronoun() eq 'She' ? 'her' : 'his');
+										if($living_with_mother && $living_with_father) {
+											$residencestring .= ' parents';
+										} elsif($living_with_mother) {
+											$residencestring .= ' mother';
+										} else {
+											$residencestring .= ' father';
+										}
+										$printed_person = 1;
+									}
 								}
 							}
 						}
