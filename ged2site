@@ -3815,7 +3815,8 @@ sub print_person
 									$residencestring .= place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
 								}
-							} elsif($mother || $father) {
+							} elsif(($mother || $father) && defined($birth_dt)) {
+								# FIXME - we should be able to calculate rough age from $yob
 								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
 								if($bdiff->in_units('years') >= 30) {
 									my $living_with_mother;
@@ -3873,7 +3874,7 @@ sub print_person
 									}
 									if($living_with_mother || $living_with_father) {
 										$residencestring .= ', when ' . lcfirst($pronoun) .
-													' was living in the same road as ' .
+													' was living on the same road as ' .
 													($person->pronoun() eq 'She' ? 'her' : 'his');
 										if($living_with_mother && $living_with_father) {
 											$residencestring .= ' parents';
