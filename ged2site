@@ -3818,10 +3818,10 @@ sub print_person
 							} elsif(($mother || $father) && defined($birth_dt)) {
 								# FIXME - we should be able to calculate rough age from $yob
 								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
-								if($bdiff->in_units('years') >= 30) {
+								my $raddress = $residence->address();
+								if(defined($raddress) && ($bdiff->in_units('years') >= 30)) {
 									my $living_with_mother;
 									my $living_with_father;
-									my $raddress = $residence->address();
 									if($raddress =~ /,\s*(.+)/) {
 										$raddress = $1;
 									}
