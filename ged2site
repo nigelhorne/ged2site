@@ -3815,7 +3815,7 @@ sub print_person
 									$residencestring .= place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
 								}
-							} elsif(($mother || $father) && defined($birth_dt)) {
+							} elsif(($mother || $father) && defined($birth_dt) && ref($birth_dt)) {
 								# FIXME - we should be able to calculate rough age from $yob
 								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
 								my $raddress = $residence->address();
