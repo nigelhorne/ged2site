@@ -3831,7 +3831,6 @@ sub print_person
 									if($mother) {
 										my @mr = get_all_residences(person => $mother);
 										foreach my $mr(@mr) {
-											die if(place(record => $mr) eq place({ record => $residence }));
 											next unless ($mr->place() eq $residence->place());
 											my $address = $mr->address();
 											next unless defined($address);
@@ -3853,7 +3852,6 @@ sub print_person
 									if($father) {
 										my @fr = get_all_residences(person => $father);
 										foreach my $fr(@fr) {
-											die if(place(record => $fr) eq place({ record => $residence }));
 											next unless ($fr->place() eq $residence->place());
 											my $address = $fr->address();
 											next unless defined($address);
@@ -6137,7 +6135,7 @@ sub print_person
 			$issue = HTML::Entities::encode($issue);
 			$issue =~ s/&eacute;/&#233;/g;
 			$issue =~ s/&Atilde;&copy;/&#233;/g;	# ACOM bizarre
-			$bio =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
+			$issue =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
 			print $xml "\n\t\t\t<issue>$issue</issue>";
 		}
 		print $xml "\n\t\t</issues>";
