@@ -3787,7 +3787,7 @@ sub print_person
 									} else {
 										$residencestring .= ', less than a mile from ';
 									}
-									if($spouses[0] && ($l->{'person'} eq $spouses[0])) {
+									if($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) {
 										# FIXME: Only when before they married, though when
 										#	they are married it should be the same place, right?
 										$residencestring .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
