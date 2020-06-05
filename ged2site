@@ -3795,7 +3795,11 @@ sub print_person
 										$residencestring .= ($sex eq 'M' ? 'his' : 'her') .
 											" $relationship ";
 									}
-									$residencestring .= $l->{'person'}->as_string();
+									if(($relationship eq 'sister') || ($relationship eq 'brother')) {
+										$residencestring .= $l->{'person'}->given_names();
+									} else {
+										$residencestring .= $l->{'person'}->as_string();
+									}
 									if(scalar(@people_at_p3)) {
 										while(my $p = pop(@people_at_p3)) {
 											if(scalar(@people_at_p3)) {
