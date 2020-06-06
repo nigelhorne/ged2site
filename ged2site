@@ -3795,7 +3795,7 @@ sub print_person
 										$residencestring .= ($sex eq 'M' ? 'his' : 'her') .
 											" $relationship ";
 									}
-									if(($relationship eq 'sister') || ($relationship eq 'brother')) {
+									if(defined($relationship) && (($relationship eq 'sister') || ($relationship eq 'brother'))) {
 										$residencestring .= $l->{'person'}->given_names();
 									} else {
 										$residencestring .= $l->{'person'}->as_string();
