@@ -3819,75 +3819,6 @@ sub print_person
 									$residencestring .= place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
 								}
-							} elsif(($mother || $father) && defined($birth_dt) && ref($birth_dt)) {
-								# FIXME - we should be able to calculate rough age from $yob
-								my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
-								my $raddress = $residence->address();
-								if(defined($raddress) && ($bdiff->in_units('years') >= 30)) {
-									my $living_with_mother;
-									my $living_with_father;
-									if($raddress =~ /,\s*(.+)/) {
-										$raddress = $1;
-									}
-									if($raddress =~ /^\d*\s(.+)/) {
-										$raddress = $1;
-									}
-									if($mother) {
-										my @mr = get_all_residences(person => $mother);
-										foreach my $mr(@mr) {
-											next unless ($mr->place() eq $residence->place());
-											my $address = $mr->address();
-											next unless defined($address);
-											if(my $d = $mr->date()) {
-												next if($d ne $rdate);
-												if($address =~ /,\s*(.+)/) {
-													$address = $1;
-												}
-												if($raddress =~ /^\d*\s(.+)/) {
-													$raddress = $1;
-												}
-												if($raddress eq $address) {
-													$living_with_mother++;
-													last;
-												}
-											}
-										}
-									}
-									if($father) {
-										my @fr = get_all_residences(person => $father);
-										foreach my $fr(@fr) {
-											next unless ($fr->place() eq $residence->place());
-											my $address = $fr->address();
-											next unless defined($address);
-											if(my $d = $fr->date()) {
-												next if($d ne $rdate);
-												if($address =~ /,\s*(.+)/) {
-													$address = $1;
-												}
-												if($raddress =~ /^\d*\s(.+)/) {
-													$raddress = $1;
-												}
-												if($raddress eq $address) {
-													$living_with_father++;
-													last;
-												}
-											}
-										}
-									}
-									if($living_with_mother || $living_with_father) {
-										$residencestring .= ', when ' . lcfirst($pronoun) .
-													' was living on the same road as ' .
-													($person->pronoun() eq 'She' ? 'her' : 'his');
-										if($living_with_mother && $living_with_father) {
-											$residencestring .= ' parents';
-										} elsif($living_with_mother) {
-											$residencestring .= ' mother';
-										} else {
-											$residencestring .= ' father';
-										}
-										$printed_person = 1;
-									}
-								}
 							}
 						}
 						$residencestring .= ',' if($printed_person);
@@ -4011,6 +3942,16 @@ sub print_person
 						# FIXME: only checks when there are @siblings
 						if($bdiff->in_units('years') >= 30) {
 							my $with_mother;
+							my $same_road_as_mother;
+							my $road = $residence->address();
+							if($road) {
+								if($road =~ /,\s*(.+)/) {
+									$road = $1;
+								}
+								if($road =~ /^\d*\s(.+)/) {
+									$road = $1;
+								}
+							}
 							if($mother) {
 								my @mr = get_all_residences(person => $mother);
 								foreach my $mr(@mr) {
@@ -4021,9 +3962,24 @@ sub print_person
 										$with_mother++;
 										last;
 									}
+									if($mr->place() eq $residence->place()) {
+										my $mroad = $mr->address();
+										if($mroad) {
+											if($mroad =~ /,\s*(.+)/) {
+												$mroad = $1;
+											}
+											if($mroad =~ /^\d*\s(.+)/) {
+												$mroad = $1;
+											}
+										}
+										if($mroad eq $road) {
+											$same_road_as_mother = 1;
+										}
+									}
 								}
 							}
 							my $with_father;
+							my $same_road_as_father;
 							if($father) {
 								my @fr = get_all_residences(person => $father);
 								foreach my $fr(@fr) {
@@ -4034,6 +3990,20 @@ sub print_person
 										$with_father++;
 										last;
 									}
+									if($fr->place() eq $residence->place()) {
+										my $froad = $fr->address();
+										if($froad) {
+											if($froad =~ /,\s*(.+)/) {
+												$froad = $1;
+											}
+											if($froad =~ /^\d*\s(.+)/) {
+												$froad = $1;
+											}
+										}
+										if($froad eq $road) {
+											$same_road_as_father = 1;
+										}
+									}
 								}
 							}
 							if($with_mother || $with_father) {
@@ -4042,7 +4012,11 @@ sub print_person
 										($person->pronoun() eq 'She' ? 'her' : 'his');
 								} else {
 									$residencestring =~ s/,$//;
-									$residencestring .= ' and';
+									if($language eq 'French') {
+										$residencestring .= ' et';
+									} else {
+										$residencestring .= ' and';
+									}
 								}
 								$printed_sibling = 1;
 								$first = 0;
@@ -4053,6 +4027,19 @@ sub print_person
 									$residencestring .= ' mother ' . $mother->given_names();
 								} elsif($with_father) {
 									$residencestring .= ' father ' . $father->given_names();
+								}
+							} elsif(($same_road_as_mother || $same_road_as_father) && !$printed_sibling) {
+								$residencestring .= ' on the same road as ' .
+											($person->pronoun() eq 'She' ? 'her' : 'his');
+								$printed_sibling = 1;
+								$first = 0;
+
+								if($same_road_as_mother && $same_road_as_father) {
+									$residencestring .= ' parents';
+								} elsif($same_road_as_mother) {
+									$residencestring .= ' mother';
+								} else {
+									$residencestring .= ' father';
 								}
 							}
 						}
@@ -4578,6 +4565,7 @@ sub print_person
 			} elsif(($type !~ /Census/) &&
 				($type ne 'Race') &&
 				($type ne 'Custom Marriage') &&
+				($type ne 'Email') &&
 				($type ne 'Register UK 1939')) {
 
 				red_warning({ person => $person, warning => "Unhandled event type: $type" });
