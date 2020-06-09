@@ -3963,17 +3963,16 @@ sub print_person
 										last;
 									}
 									if($mr->place() eq $residence->place()) {
-										my $mroad = $mr->address();
-										if($mroad) {
+										if(my $mroad = $mr->address()) {
 											if($mroad =~ /,\s*(.+)/) {
 												$mroad = $1;
 											}
 											if($mroad =~ /^\d*\s(.+)/) {
 												$mroad = $1;
 											}
-										}
-										if($mroad eq $road) {
-											$same_road_as_mother = 1;
+											if($mroad eq $road) {
+												$same_road_as_mother = 1;
+											}
 										}
 									}
 								}
@@ -3991,17 +3990,16 @@ sub print_person
 										last;
 									}
 									if($fr->place() eq $residence->place()) {
-										my $froad = $fr->address();
-										if($froad) {
+										if(my $froad = $fr->address()) {
 											if($froad =~ /,\s*(.+)/) {
 												$froad = $1;
 											}
 											if($froad =~ /^\d*\s(.+)/) {
 												$froad = $1;
 											}
-										}
-										if($froad eq $road) {
-											$same_road_as_father = 1;
+											if($froad eq $road) {
+												$same_road_as_father = 1;
+											}
 										}
 									}
 								}
