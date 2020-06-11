@@ -8187,6 +8187,7 @@ sub get_all_occupations
 	while($occupations[0] && ($occupations[0] =~ /Unpaid domestic duties/i)) {
 		shift @occupations;
 	}
+	# TODO: sortout case
 	if(scalar(@occupations)) {
 		if($occupations[0] =~ /works? on (.+)/i) {
 			$occupations[0] = "$1 worker";
@@ -8222,8 +8223,16 @@ sub get_all_occupations
 			$occupations[0] = 'Gas Stoker';
 		} elsif($occupations[0] eq 'Under Gardener Domestic') {
 			$occupations[0] = 'Domestic Gardener';
+		} elsif($occupations[0] eq 'Domestic servant') {
+			$occupations[0] = 'Domestic Servant';
+		} elsif($occupations[0] eq 'Market gardener') {
+			$occupations[0] = 'Market Gardener';
 		} elsif($occupations[0] eq "Brewer's Labourer") {
 			$occupations[0] = 'Brewery Labourer';
+		} elsif($occupations[0] eq 'Gardener domestic') {
+			$occupations[0] = 'Gardener and Domestic';
+		} elsif($occupations[0] =~ /^General serv.+dom/) {
+			$occupations[0] = 'Domestic General Server';
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
 		} elsif($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i) {
 			# Don't change Bus Driver to Bu's Driver
