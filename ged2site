@@ -3512,25 +3512,13 @@ sub print_person
 						});
 						if($place) {
 							$place =~ s/^\s+//;
-							my @locations = $geocoder->geocode($place);
-							if(my $location = shift @locations) {
-								my $lat;
-								my $long;
-								if(ref($location) eq 'Geo::Location::Point') {
-									if(ref($location) eq 'Geo::Location::Point') {
-										$lat = $location->lat();
-										$long = $location->long();
-									} else {
-										$lat = $location->{geometry}{location}{lat};
-										$long = $location->{geometry}{location}{lng};
-									}
-								}
+							if(my $location = get_location($place)) {
 								push @{$all_locations{$year}}, {
 									'residence' => $residence,
 									'person' => $person,
 									'date' => $strftime,
-									'latitude' => $lat,
-									'longitude' => $long,
+									'latitude' => $location->lat(),
+									'longitude' => $location->long()
 								};
 							}
 						}
@@ -5984,7 +5972,7 @@ sub print_person
 	if($geocoder && ($opts{'l'} || !$is_alive) && ($placeofbirth || $placeofdeath)) {
 		print $xml "\n\t\t<locations>";
 		if($placeofbirth) {
-			if(my @locations = $geocoder->geocode($placeofbirth)) {
+			if(my $location = get_location($placeofbirth)) {
 				# if(scalar(@locations) > 1) {
 					# if($opts{'f'}) {
 						# die $person->as_string(), ": Ambiguous birth location $placeofbirth";
@@ -5995,12 +5983,9 @@ sub print_person
 				if($birth_country) {
 					print $xml "\n\t\t\t\t<country>$birth_country</country>";
 				}
-				if(defined($locations[0]->{geometry}{location}{lat}) && !defined($locations[0]->{'error'})) {
-					print $csv $locations[0]->{geometry}{location}{lat}, ',',
-						$locations[0]->{geometry}{location}{lng};
-					print $xml "\n\t\t\t\t<lat>", $locations[0]->{geometry}{location}{lat}, '</lat>',
-						"\n\t\t\t\t<long>", $locations[0]->{geometry}{location}{lng}, '</long>';
-				}
+				print $csv $location->lat(), ',', $location->long();
+				print $xml "\n\t\t\t\t<lat>", $location->lat(), '</lat>',
+					"\n\t\t\t\t<long>", $location->long(), '</long>';
 				print $xml "\n\t\t\t</birth>";
 			} else {
 				complain({ person => $person, warning => "Unknown birth location $placeofbirth" });
@@ -6008,7 +5993,7 @@ sub print_person
 		}
 		print $csv '!';
 		if($placeofdeath) {
-			if(my @locations = $geocoder->geocode($placeofdeath)) {
+			if(my $location = get_location($placeofbirth)) {
 				# if(scalar(@locations) > 1) {
 					# if($opts{'f'}) {
 						# die $person->as_string(), ": Ambiguous death location $placeofdeath";
@@ -6019,12 +6004,9 @@ sub print_person
 				if($death_country) {
 					print $xml "\n\t\t\t\t<country>$death_country</country>";
 				}
-				if(defined($locations[0]->{geometry}{location}{lat}) && !defined($locations[0]->{'error'})) {
-					print $csv $locations[0]->{geometry}{location}{lat}, ',',
-						$locations[0]->{geometry}{location}{lng};
-					print $xml "\n\t\t\t\t<lat>", $locations[0]->{geometry}{location}{lat}, '</lat>',
-						"\n\t\t\t\t<long>", $locations[0]->{geometry}{location}{lng}, '</long>';
-				}
+				print $csv $location->lat(), ',', $location->long();
+				print $xml "\n\t\t\t\t<lat>", $location->lat(), '</lat>',
+					"\n\t\t\t\t<long>", $location->long(), '</long>';
 				print $xml "\n\t\t\t</death>";
 			} else {
 				complain({ person => $person, warning => "Unknown death location $placeofdeath" });
@@ -8585,4 +8567,19 @@ sub dateofdeath {
 		return;
 	}
 	return $dateofdeath;
+}
+
+# Given a place return its latitude and longitude
+sub get_location {
+	my @locations = $geocoder->geocode(shift);	# Use array to improve caching
+
+	if(my $location = shift @locations) {
+		if(ref($location) eq 'Geo::Location::Point') {
+			return $location;
+		}
+		my $rc = Class::Simple->new();
+		$rc->long($location->{geometry}{location}{lng});
+		$rc->lat($location->{geometry}{location}{lat});
+		return $rc;
+	}
 }
