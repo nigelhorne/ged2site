@@ -3513,15 +3513,24 @@ sub print_person
 						if($place) {
 							$place =~ s/^\s+//;
 							my @locations = $geocoder->geocode($place);
-							if(defined($locations[0]->{geometry}{location}{lat}) && !defined($locations[0]->{'error'})) {
-								$latitude = $locations[0]->{geometry}{location}{lat};
-								$longitude = $locations[0]->{geometry}{location}{lng};
+							if(my $location = shift @locations) {
+								my $lat;
+								my $long;
+								if(ref($location) eq 'Geo::Location::Point') {
+									if(ref($location) eq 'Geo::Location::Point') {
+										$lat = $location->lat();
+										$long = $location->long();
+									} else {
+										$lat = $location->{geometry}{location}{lat};
+										$long = $location->{geometry}{location}{lng};
+									}
+								}
 								push @{$all_locations{$year}}, {
 									'residence' => $residence,
 									'person' => $person,
 									'date' => $strftime,
-									'latitude' => $latitude,
-									'longitude' => $longitude,
+									'latitude' => $lat,
+									'longitude' => $long,
 								};
 							}
 						}
