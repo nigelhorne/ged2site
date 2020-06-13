@@ -7969,42 +7969,9 @@ sub date_to_datetime
 		$params{'date'} = shift;
 	}
 
-	return $dfg->parse_datetime(%params);
-
-	if(my $date = $params{'date'}) {
-		if($date =~ /^\s*(\d{3,4})\s*\-\s*(\d{3,4})\s*$/) {
-			complain("Changing date '$date' to 'bet $1 and $2'");
-			$date = "bet $1 and $2";
-		}
-		if($date =~ /^bet (.+) and (.+)/i) {
-			if(wantarray) {
-				my $rc0 = date_to_datetime($1);
-				my $rc1 = date_to_datetime($2);
-				if($rc0 < $rc1) {
-					return ($rc0, $rc1);
-				}
-				complain("Invalid date range $date");
-			}
-			return;
-		}
-		if($date !~ /^\d{3,4}$/) {
-			if($date =~ /[A-Z]{4}/i) {
-				complain(warning => "Unparseable date $date - often because the month name isn't 3 letters");
-				return;
-			}
-			if(($date =~ /^\d/) && (my $d = date_parser_cached($date))) {
-				return $dfn->parse_datetime($d->{'canonical'});
-			}
-			if(($date !~ /^(Abt|ca?)/i) && ($date =~ /^[\w\s]+$/)) {
-				# ACOM exports full month names and non-standard format dates e.g. U.S. format MMM, DD YYYY
-				if(my $rc = $dfn->parse_datetime($date)) {
-					return $rc;
-				}
-				complain(warning => "Can't parse date '$date'");
-			}
-		}
+	if($params{'date'}) {
+		return $dfg->parse_datetime(%params);
 	}
-	undef;
 }
 
 sub add_marker
