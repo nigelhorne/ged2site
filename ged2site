@@ -21,6 +21,7 @@
 # TODO: look at census records to note the different places that a person's children
 #	were born and note if the residences of the person don't include those places
 # TODO: Create occupations database
+# TODO:	remove date_to_datetime
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -7962,6 +7963,8 @@ sub date_to_datetime
 	} else {
 		$params{'date'} = shift;
 	}
+
+	return $dfg->parse_datetime(%params);
 
 	if(my $date = $params{'date'}) {
 		if($date =~ /^\s*(\d{3,4})\s*\-\s*(\d{3,4})\s*$/) {
