@@ -1626,6 +1626,11 @@ sub print_person
 		$placeofbirth =~ s/\s*[,\.]\s*$//;
 	}
 
+	if($placeofbirth && ($placeofbirth =~ /^,/)) {
+		complain({ person => $person, warning => "Leading comma in birth location: $placeofbirth" });
+		$placeofbirth =~ s/^,\s*//g;
+	}
+
 	my $placeofdeath = get_value({ person => $person, value => 'death place' });
 	my $death = $person->get_record('death');
 	if((!$placeofdeath) && $death) {
@@ -8390,10 +8395,6 @@ sub datecmp
 			$left = $2;
 		}
 		if($left !~ /^\d{3,4}$/) {
-			if($left =~ /[A-Z]{4}/i) {
-				complain(warning => "Unparseable date $left - often because the month name isn't 3 letters");
-				return 0;
-			}
 			my @l = $dfg->parse_datetime($left);
 			my $rc = $l[1] || $l[0];
 			if(!defined($rc)) {
@@ -8425,10 +8426,6 @@ sub datecmp
 			# }
 			# die join('<=>', @_);
 		# }
-		if($right =~ /[A-Z]{4}/i) {
-			complain(warning => "Unparseable date $right - often because the month name isn't 3 letters");
-			return 0;
-		}
 		my @r = $dfg->parse_datetime($right);
 		$right = $r[0];
 	}
