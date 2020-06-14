@@ -8546,15 +8546,21 @@ sub dateofdeath {
 
 # Given a place return its latitude and longitude
 sub get_location {
-	my @locations = $geocoder->geocode(shift);	# Use array to improve caching
+	my $place = shift;
+	my @locations = $geocoder->geocode($place);	# Use array to improve caching
 
 	if(my $location = shift @locations) {
 		if(ref($location) eq 'Geo::Location::Point') {
 			return $location;
 		}
-		my $rc = Class::Simple->new();
-		$rc->long($location->{geometry}{location}{lng});
-		$rc->lat($location->{geometry}{location}{lat});
-		return $rc;
+		if(defined($location->{geometry}{location}{lat}) && defined($location->{geometry}{location}{lng})) {
+			my $rc = Class::Simple->new();
+			$rc->long($location->{geometry}{location}{lng});
+			$rc->lat($location->{geometry}{location}{lat});
+			return $rc;
+		}
+		print Data::Dumper->new([\$location])->Dump();
+		print Data::Dumper->new([\@locations])->Dump();
+		die "Probable bug in Geo::Coder::List with '$place'";
 	}
 }
