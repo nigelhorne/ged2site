@@ -6514,7 +6514,12 @@ sub Gedcom::Individual::relationship_up
 		if($person1->xref() eq $other->xref()) {
 			# Direct ancestor
 			my $steps = stepsabove($self, $other, 0);
-			my $title = ($sex eq 'M') ? 'father' : 'mother';
+			my $title;
+			if($language eq 'French') {
+				$title = ($sex eq 'M') ? 'père' : 'mère';
+			} else {
+				$title = ($sex eq 'M') ? 'father' : 'mother';
+			}
 			if($steps >= 5) {
 				$steps -= 2;
 				return "$steps times great-grand$title";
@@ -6523,6 +6528,9 @@ sub Gedcom::Individual::relationship_up
 			} elsif($steps == 2) {
 				return "grand$title";
 			} elsif($steps == 3) {
+				if($language eq 'French') {
+					return "arrière-grand-$title";
+				}
 				return "great-grand$title";
 			} elsif($steps == 4) {
 				return "great-great-grand$title";
