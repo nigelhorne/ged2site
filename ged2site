@@ -4457,13 +4457,44 @@ sub print_person
 	   (ref($events[1]) eq 'Gedcom::Record') &&
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	   (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
-		# Simple case - one journey made
-		$bio .= '. ' if(!$end_of_sentence);
+		$bio .= '.  ' if(!$end_of_sentence);
 
 		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
 		my $departure = ($events[0]->type() eq 'Departure') ? $events[0] : $events[1];
-
-		$bio .= journey({ person => $person, arrival => $arrival, departure => $departure }) . '.  ';
+		if($events[0]->type() ne $events[1]->type()) {
+			# Simple case - one journey made
+			$bio .= journey({ person => $person, arrival => $arrival, departure => $departure }) . '.  ';
+		} else {
+			my $date1 = year(record => $events[0]);
+			my $date2 = year(record => $events[1]);
+			my $year1;
+			my $year2;
+			if($date1 =~ /(.*)\s?(\d{4})$/) {
+				$date1 = $1;
+				$year1 = $2;
+				$date1 =~ s/,\s//;
+			}
+			if($date2 =~ /(.*)\s?(\d{4})$/) {
+				$date2 = $1;
+				$year2 = $2;
+				$date2 =~ s/,\s//;
+			}
+			if($year1 == $year2) {
+				my $motion;
+				if($events[0]->type() eq 'Arrival') {
+					$motion = 'arrived';
+				} else {
+					$motion = 'departed';
+				}
+				$bio .= "During $year1 " . lcfirst($pronoun) . " $motion" .
+					place({ person => $person, record => $events[0] }) .
+					"$date1 and" .
+					place({ person => $person, record => $events[1], nopreposition => 1 }) .
+					" $date2. ";
+			} else {
+				die 'TODO';
+			}
+		}
 
 		$end_of_sentence = 1;
 	} elsif(scalar(@events) == 1) {
@@ -4622,7 +4653,7 @@ sub print_person
 					if($events[$index] && (ref($events[$index]) eq 'Gedcom::Record') && ($events[$index]->type() eq 'Departure') && $event->date()) {
 						if($events[$index]->date()) {
 							$previous = $event;
-							$prev_type = 'Arrival';
+							$prev_type = $event->type();
 							# FIXME: not all locations will be noted or notes printed
 							next;
 						}
@@ -4657,7 +4688,7 @@ sub print_person
 									place({ person => $person, record => $previous }) .
 									" $date1 and" .
 									place({ person => $person, record => $event, nopreposition => 1 }) .
-									" $date2.";
+									" $date2";
 							} else {
 								$bio .= ucfirst(year({ person => $person, record => $previous })) .
 									' ' . lcfirst($person->pronoun()) .
@@ -4667,8 +4698,9 @@ sub print_person
 									year({ person => $person, record => $event }) .
 									' ' . lcfirst($pronoun) .
 									' arrived' .
-									place({ person => $person, record => $event }) . '.';
+									place({ person => $person, record => $event });
 							}
+							$end_of_sentence = 1;
 						}
 						$previous = undef;
 					} elsif(my $place = place({ person => $person, record => $event })) {
@@ -4699,7 +4731,7 @@ sub print_person
 					if(my $e = $events[$index]) {
 						if(ref($e) && ($e->type() eq 'Arrival') && $event->date() && $e->date()) {
 							$previous = $event;
-							$prev_type = 'Departure';
+							$prev_type = $event->type();
 							# FIXME: not all locations will be noted or notes printed
 							next;
 						}
