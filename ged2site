@@ -2685,15 +2685,15 @@ sub print_person
 					my $sibling = $t->{'sibling'};
 					my $dob = $t->{'dob'};
 					if($dob == $birth_dt) {
-						$bio .= ', the same day as ';
+						$bio .= ', along with ';
 					} elsif($dob == ($birth_dt + $oneday)) {
 						$bio .= ', a day before ';
 					} else {
 						$bio .= ', a day after ';
 					}
 					$bio .= ($sex eq 'M' ? 'his' : 'her') . ' twin ' .
-						(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
-						$sibling->given_names();
+						(($sibling->sex() eq 'F') ? 'sister ' : 'brother ') .
+						$sibling->given_names() . ',';
 				}
 			}
 
@@ -4035,12 +4035,27 @@ sub print_person
 								$printed_sibling = 1;
 								$first = 0;
 
+								my @r;
 								if($same_road_as_mother && $same_road_as_father) {
 									$residencestring .= ' parents';
+									@r = get_all_residences(person => $father);
 								} elsif($same_road_as_mother) {
 									$residencestring .= ' mother';
+									@r = get_all_residences(person => $mother);
 								} else {
 									$residencestring .= ' father';
+									@r = get_all_residences(person => $father);
+								}
+								foreach my $r(@r) {
+									if($r->date() eq $rdate) {
+										if($same_road_as_mother && $same_road_as_father) {
+											$residencestring .= ' who were';
+										} else {
+											$residencestring .= ' who was';
+										}
+										$residencestring .= ' living at ' . $r->address();
+										last;
+									}
 								}
 							}
 						}
