@@ -6983,7 +6983,11 @@ sub year
 			if($ENV{'LANG'}) {
 				$d->set_locale($ENV{'LANG'});
 			}
-			return 'on ' . $d->strftime('%x');
+			if($language eq 'French') {
+				return 'le ' . $d->strftime('%x');
+			} else {
+				return 'on ' . $d->strftime('%x');
+			}
 		}
 		if($@) {
 			# RT 107354
