@@ -8614,6 +8614,21 @@ sub get_location {
 			$rc->lat($location->{geometry}{location}{lat});
 			return $rc;
 		}
+		my $log = $geocoder->log();
+		$geocoder->flush();
+		foreach my $l(@{$log}) {
+			print $l->{location}, ': ' if($l->{'location'});
+			if($l->{geocoder}) {
+				if($l->{error}) {
+					print $l->{timetaken}, 's with ',  $l->{geocoder}, '(', $l->{error}, ')';
+				} else {
+					print $l->{timetaken}, 's with ',  $l->{geocoder};
+				}
+			} else {
+				print 'cached';
+			}
+			print ', wantarray ', $l->{wantarray}, "\n";
+		}
 		print Data::Dumper->new([\$location])->Dump();
 		print Data::Dumper->new([\@locations])->Dump();
 		die "Probable bug in Geo::Coder::List with '$place'";
