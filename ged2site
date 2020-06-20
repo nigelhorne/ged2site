@@ -4276,7 +4276,10 @@ sub print_person
 			}
 			$end_of_sentence = 0;
 		} else {	# $dateofdeath || $placeofdeath
-			$bio .= '.' if(!$end_of_sentence);
+			if((!$placeofburial) && !$diedathome) {
+				$bio .= '. ' if(!$end_of_sentence);
+				$end_of_sentence = 0;
+			}
 			my $notes;
 			if(!$diedathome) {
 				$bio .= "<p>$pronoun died";
@@ -4352,7 +4355,14 @@ sub print_person
 				}
 			} elsif($placeofdeath && $placeofburial && ($placeofburial eq $placeofdeath) &&
 			   $burial->address() && !$death->address()) {
-				$bio .= ' and is buried there at ' . $burial->address();
+				if($end_of_sentence) {
+					$bio .= $pronoun;
+				} elsif($language eq 'French') {
+					$bio .= ' et';
+				} else {
+					$bio .= ' and';
+				}
+				$bio .= (($language eq 'French') ? ' est y enterré à' : ' is buried there at ') . $burial->address();
 			} elsif(my $b = place($opts)) {
 				if($diedathome) {
 					$bio .= "$pronoun is buried$b";
