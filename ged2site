@@ -4160,6 +4160,7 @@ sub print_person
 				# ];
 				foreach my $i(0..(scalar(@residencestringarray) - 2)) {
 					if($residencestringarray[$i+1] =~ /^\d/) {
+						$residencestringarray[$i+1] =~ s/^\d{4}, in //g;
 						$residencestringarray[$i] .= $residencestringarray[$i+1];
 						$residencestringarray[$i+1] = undef;
 					}
