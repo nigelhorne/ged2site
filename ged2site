@@ -4151,6 +4151,22 @@ sub print_person
 				}
 
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
+				# Because peek above only looks ahead one element:
+				# [
+					  # 'at Shuart Cottage, Podden Street, St Nicholas-at-Wade on Apr 5, 1891 (was age 0 and the son of the head of the household; was age 0 and the son of the head of the household)',
+					  # 'at Cottage, Nash Court, Garlinge, Kent on Mar 31, 1901 (was age 10, the son of the head of the household) and on Apr 2, 1911 (was age 20 and the son of the head of the household)',
+					  # 'at 1 Hill View Cottages, Twenties, Shottendane Road, Margate, Kent in 1915-',
+					  # '1923, in 1929 and on Sep 29, 1939 (was the head of the household)'
+				# ];
+				foreach my $i(0..(scalar(@residencestringarray) - 2)) {
+					if($residencestringarray[$i+1] =~ /^\d/) {
+						$residencestringarray[$i] .= $residencestringarray[$i+1];
+						$residencestringarray[$i+1] = undef;
+					}
+				}
+				while(!defined($residencestringarray[scalar(@residencestringarray) - 1])) {
+					pop @residencestringarray;
+				}
 				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
 					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; '});
 
