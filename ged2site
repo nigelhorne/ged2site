@@ -31,9 +31,13 @@
 # For visjs see
 #	http://visjs.org/docs/timeline/
 
+use utf8;
 use strict;
 use warnings;
-use utf8;
+use open qw(:std :utf8);
+# no feature qw(indirect);
+use feature qw(signatures);
+no warnings qw(experimental::signatures);
 
 no lib '.';
 
