@@ -4498,6 +4498,17 @@ sub print_person
 	if($all_events_have_date) {
 		@events = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @events;
 	}
+	# Let's remove things that aren't relavent that may
+	# allow optimisations in the English
+	while(scalar(@events) > 2) {
+		my $e = $events[scalar(@events) - 1];
+		# TODO: add more
+		if($e->type() eq 'Register UK 1939') {
+			pop @events;
+		} else {
+			last;
+		}
+	}
 	if((scalar(@events) == 2) &&
 	   (ref($events[0]) eq 'Gedcom::Record') &&
 	   (ref($events[1]) eq 'Gedcom::Record') &&
@@ -8327,6 +8338,7 @@ sub get_all_occupations
 			} else {
 				$occupations[0] = ucfirst($occupations[0]);
 			}
+			$occupations[0] =~ s/\s+heavy worker$//i;
 		} else {
 			complain({
 				person => $person,
