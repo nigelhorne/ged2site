@@ -6625,7 +6625,7 @@ sub Gedcom::Individual::relationship_up
 						return 'fils';
 					}
 				} elsif($language eq 'Latin') {
-					return ($sex eq 'M') ? 'filius' : 'filia';
+					return ($sex eq 'M') ? 'mater' : 'pater';
 				}
 				return $title;
 			} elsif($steps == 2) {
