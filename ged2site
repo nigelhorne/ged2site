@@ -6082,7 +6082,8 @@ sub print_person
 				}
 				print $csv $location->lat(), ',', $location->long();
 				print $xml "\n\t\t\t\t<lat>", $location->lat(), '</lat>',
-					"\n\t\t\t\t<long>", $location->long(), '</long>';
+					"\n\t\t\t\t<long>", $location->long(), '</long>',
+					"\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">", $location->long(), $location->lat(), '</point>';
 				print $xml "\n\t\t\t</birth>";
 			} else {
 				complain({ person => $person, warning => "Unknown birth location $placeofbirth" });
@@ -6103,7 +6104,8 @@ sub print_person
 				}
 				print $csv $location->lat(), ',', $location->long();
 				print $xml "\n\t\t\t\t<lat>", $location->lat(), '</lat>',
-					"\n\t\t\t\t<long>", $location->long(), '</long>';
+					"\n\t\t\t\t<long>", $location->long(), '</long>',
+					"\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">", $location->long(), $location->lat(), '</point>';
 				print $xml "\n\t\t\t</death>";
 			} else {
 				complain({ person => $person, warning => "Unknown death location $placeofdeath" });
