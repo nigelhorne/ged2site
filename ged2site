@@ -31,6 +31,8 @@
 # For visjs see
 #	http://visjs.org/docs/timeline/
 
+# dnf install langpacks-fr glibc-all-langpacks -y
+
 use utf8;
 use strict;
 use warnings;
