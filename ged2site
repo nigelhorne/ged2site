@@ -5431,6 +5431,7 @@ sub print_person
 								print "Download image $file\n" if($opts{'v'});
 								my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
 								my $rc;
+								# LWP::Simple
 								if((-r "static-site/$localfile") ||
 								   is_success($rc = getstore($file, "static-site/$localfile"))) {
 									my $info = Image::Info::image_info("static-site/$localfile");
