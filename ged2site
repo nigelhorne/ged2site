@@ -8361,6 +8361,7 @@ sub get_all_occupations
 				$occupations[0] = ucfirst($occupations[0]);
 			}
 			$occupations[0] =~ s/\s+heavy worker$//i;
+			$occupations[0] =~ s/\s+own business$//i;
 		} else {
 			complain({
 				person => $person,
