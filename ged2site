@@ -31,9 +31,15 @@
 # For visjs see
 #	http://visjs.org/docs/timeline/
 
+# dnf install langpacks-fr glibc-all-langpacks -y
+
+use utf8;
 use strict;
 use warnings;
-use utf8;
+use open qw(:std :utf8);
+# no feature qw(indirect);
+use feature qw(signatures);
+no warnings qw(experimental::signatures);
 
 no lib '.';
 
@@ -608,6 +614,8 @@ my $dtl = DateTime::Locale->load($ENV{'LANG'});
 my $language;
 if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
 	$language = 'French';
+} elsif(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^la/)) {
+	$language = 'Latin';
 } else {
 	$language = 'English';
 }
@@ -4151,6 +4159,23 @@ sub print_person
 				}
 
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
+				# Because peek above only looks ahead one element:
+				# [
+					  # 'at Shuart Cottage, Podden Street, St Nicholas-at-Wade on Apr 5, 1891 (was age 0 and the son of the head of the household; was age 0 and the son of the head of the household)',
+					  # 'at Cottage, Nash Court, Garlinge, Kent on Mar 31, 1901 (was age 10, the son of the head of the household) and on Apr 2, 1911 (was age 20 and the son of the head of the household)',
+					  # 'at 1 Hill View Cottages, Twenties, Shottendane Road, Margate, Kent in 1915-',
+					  # '1923, in 1929 and on Sep 29, 1939 (was the head of the household)'
+				# ];
+				foreach my $i(0..(scalar(@residencestringarray) - 2)) {
+					if($residencestringarray[$i+1] =~ /^\d/) {
+						$residencestringarray[$i+1] =~ s/^\d{4}, in //g;
+						$residencestringarray[$i] .= $residencestringarray[$i+1];
+						$residencestringarray[$i+1] = undef;
+					}
+				}
+				while(!defined($residencestringarray[scalar(@residencestringarray) - 1])) {
+					pop @residencestringarray;
+				}
 				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
 					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; '});
 
@@ -4276,7 +4301,10 @@ sub print_person
 			}
 			$end_of_sentence = 0;
 		} else {	# $dateofdeath || $placeofdeath
-			$bio .= '.' if(!$end_of_sentence);
+			if((!$placeofburial) && !$diedathome) {
+				$bio .= '. ' if(!$end_of_sentence);
+				$end_of_sentence = 0;
+			}
 			my $notes;
 			if(!$diedathome) {
 				$bio .= "<p>$pronoun died";
@@ -4352,7 +4380,14 @@ sub print_person
 				}
 			} elsif($placeofdeath && $placeofburial && ($placeofburial eq $placeofdeath) &&
 			   $burial->address() && !$death->address()) {
-				$bio .= ' and is buried there at ' . $burial->address();
+				if($end_of_sentence) {
+					$bio .= $pronoun;
+				} elsif($language eq 'French') {
+					$bio .= ' et';
+				} else {
+					$bio .= ' and';
+				}
+				$bio .= (($language eq 'French') ? ' est y enterré à' : ' is buried there at ') . $burial->address();
 			} elsif(my $b = place($opts)) {
 				if($diedathome) {
 					$bio .= "$pronoun is buried$b";
@@ -4466,6 +4501,17 @@ sub print_person
 	}
 	if($all_events_have_date) {
 		@events = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @events;
+	}
+	# Let's remove things that aren't relavent that may
+	# allow optimisations in the English
+	while(scalar(@events) > 2) {
+		my $e = $events[scalar(@events) - 1];
+		# TODO: add more
+		if($e->type() eq 'Register UK 1939') {
+			pop @events;
+		} else {
+			last;
+		}
 	}
 	if((scalar(@events) == 2) &&
 	   (ref($events[0]) eq 'Gedcom::Record') &&
@@ -6038,7 +6084,8 @@ sub print_person
 				}
 				print $csv $location->lat(), ',', $location->long();
 				print $xml "\n\t\t\t\t<lat>", $location->lat(), '</lat>',
-					"\n\t\t\t\t<long>", $location->long(), '</long>';
+					"\n\t\t\t\t<long>", $location->long(), '</long>',
+					"\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">", $location->long(), $location->lat(), '</point>';
 				print $xml "\n\t\t\t</birth>";
 			} else {
 				complain({ person => $person, warning => "Unknown birth location $placeofbirth" });
@@ -6059,7 +6106,8 @@ sub print_person
 				}
 				print $csv $location->lat(), ',', $location->long();
 				print $xml "\n\t\t\t\t<lat>", $location->lat(), '</lat>',
-					"\n\t\t\t\t<long>", $location->long(), '</long>';
+					"\n\t\t\t\t<long>", $location->long(), '</long>',
+					"\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">", $location->long(), $location->lat(), '</point>';
 				print $xml "\n\t\t\t</death>";
 			} else {
 				complain({ person => $person, warning => "Unknown death location $placeofdeath" });
@@ -6521,6 +6569,11 @@ sub Gedcom::Individual::relationship {
 	if($self->mother() && $other->mother() && $self->father() && $other->father()) {
 		my $sex = get_value({ person => $other, value => 'sex' });
 		if(($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
+			if($language eq 'French') {
+				return ($sex eq 'M') ? 'frère' : 'sœur';
+			} elsif($language eq 'Latin') {
+				return ($sex eq 'M') ? 'frater' : 'soros';
+			}
 			return ($sex eq 'M') ? 'brother' : 'sister';
 		}
 		if(($self->mother() eq $other->mother()) || ($self->father() eq $other->father())) {
@@ -6571,6 +6624,13 @@ sub Gedcom::Individual::relationship_up
 				$steps -= 2;
 				return "$steps times great-grand$title";
 			} elsif($steps == 1) {
+				if($language eq 'French') {
+					if($sex eq 'M') {
+						return 'fils';
+					}
+				} elsif($language eq 'Latin') {
+					return ($sex eq 'M') ? 'mater' : 'pater';
+				}
 				return $title;
 			} elsif($steps == 2) {
 				return "grand$title";
@@ -6973,7 +7033,11 @@ sub year
 			if($ENV{'LANG'}) {
 				$d->set_locale($ENV{'LANG'});
 			}
-			return 'on ' . $d->strftime('%x');
+			if($language eq 'French') {
+				return 'le ' . $d->strftime('%x');
+			} else {
+				return 'on ' . $d->strftime('%x');
+			}
 		}
 		if($@) {
 			# RT 107354
@@ -8232,7 +8296,11 @@ sub get_all_occupations
 		} elsif($occupations[0] =~ /^Shop Assistant (.*)/) {
 			$occupations[0] = "$1's Shop Assistant";
 		} elsif($occupations[0] =~ /(.*) Assistant$/i) {
-			$occupations[0] = "$1's Assistant" unless($1 =~ /'s$/);
+			if($1 eq 'Bakers') {
+				$occupations[0] = "Baker's Assistant";
+			} else {
+				$occupations[0] = "$1's Assistant" unless($1 =~ /'s$/);
+			}
 		} elsif($occupations[0] =~ /Clerk (.*)/) {
 			$occupations[0] = "$1 Clerk";
 		} elsif($occupations[0] =~ /Salesman (.*)/i) {
@@ -8292,6 +8360,8 @@ sub get_all_occupations
 			} else {
 				$occupations[0] = ucfirst($occupations[0]);
 			}
+			$occupations[0] =~ s/\s+heavy worker$//i;
+			$occupations[0] =~ s/\s+own business$//i;
 		} else {
 			complain({
 				person => $person,
