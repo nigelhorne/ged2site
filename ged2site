@@ -36,7 +36,8 @@
 use utf8;
 use strict;
 use warnings;
-use open qw(:std :utf8);
+# use open qw(:std :utf8);	# Do not use, it breaks printing	
+	# HTTP::Response->decoded_content() to a file
 # no feature qw(indirect);
 use feature qw(signatures);
 no warnings qw(experimental::signatures);
@@ -4507,7 +4508,7 @@ sub print_person
 	while(scalar(@events) > 2) {
 		my $e = $events[scalar(@events) - 1];
 		# TODO: add more
-		if($e->type() eq 'Register UK 1939') {
+		if(ref($e) && ($e->type() eq 'Register UK 1939')) {
 			pop @events;
 		} else {
 			last;
@@ -5352,6 +5353,8 @@ sub print_person
 									} else {
 										open($tmp, '>', $localfile);
 									}
+									# FIXME: breaks with
+									# use open qw(:std :utf8);
 									print $tmp $resp->decoded_content();
 									close $tmp;
 									$form = 'JPG';
