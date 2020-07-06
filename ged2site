@@ -22,6 +22,7 @@
 #	were born and note if the residences of the person don't include those places
 # TODO: Create occupations database
 # TODO:	remove date_to_datetime
+# TODO: use DateTime::Locale in year() to translate the month
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
