@@ -4119,10 +4119,12 @@ sub print_person
 				} else {
 					my $peek = $residencelist[$count];
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+						my $nextnotes = notes(record => $peek);
 						$peek = $residencelist[$count + 1];
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+							# FIXME: work with citations by printing them all
 							if((!$opts{'c'}) && $rdate && ($rdate =~ /^\d{4}$/) && $peek->date() && ($peek->date() =~ /^\d{4}$/)) {
-								if((!$print_year_only) && !notes(record => $peek)) {
+								if((!$print_year_only) && (!defined($nextnotes)) && !notes(record => $peek)) {
 									$residencestring .= '-';
 									$print_year_only = 1;
 								}
@@ -4134,7 +4136,7 @@ sub print_person
 							}
 						}
 					} elsif($print_year_only) {
-						$residencestring .= $rdate;
+						$residencestring .= $rdate if($rdate ne $residencestring);
 						$print_year_only = 0;
 					}
 				}
