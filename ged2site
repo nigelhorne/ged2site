@@ -5031,48 +5031,56 @@ sub print_person
 			});
 
 			my %census_years;
-			foreach my $citation(1..$citationcount) {
-				if(!$citations{$citation}) {
+			foreach my $index(1..$citationcount) {
+				my $citation = $citations{$index};
+				if(!$citation) {
 					complain({
 						person => $person,
-						warning => "[$citation]: empty citation"
+						warning => "[$index]: empty citation"
 					});
 				}
-				my $title = $citations{$citation}->title();
+				my $title = $citation->title();
 				if(!defined($title)) {
-					$title = notes(record => $citations{$citation});
-					if(!defined($title)) {
+					# For example, FMP 'web' source
+					if($citation->items()) {
+						my @items = $citation->items();
+						$title = $items[0]->{'value'};
+					} else {
 						complain({
 							person => $person,
-							warning => "[$citation]: no citation title"
+							warning => "[$index]: no citation title"
 						});
 						$title = 'No citation title';
 					}
 				}
 				my $c;
-				if(my $file = $citations{$citation}->file()) {
+				if(my $file = $citation->file()) {
 					$c = "<a href=\"$file\">" . HTML::Entities::encode($title) . '</a>';
 				} else {
-					$c = HTML::Entities::encode($title);
-					if($title =~ /Census/) {
-						if(my $census = $censusmaps{$title}) {
-							# TODO: Add pointer to image
-							$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
-						} else {
-							complain({ person => $person, warning => "Add $title to censusmaps" });
+					if($title =~ /^https?:\/\//) {
+						$c = "<a href=\"$title\">" . HTML::Entities::encode($title) . '</a>';
+					} else {
+						$c = HTML::Entities::encode($title);
+						if($title =~ /Census/) {
+							if(my $census = $censusmaps{$title}) {
+								# TODO: Add pointer to image
+								$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
+							} else {
+								complain({ person => $person, warning => "Add $title to censusmaps" });
+							}
 						}
 					}
 				}
-				if(defined(my $publication = $citations{$citation}->publication())) {
+				if(defined(my $publication = $citation->publication())) {
 					$c .= ' ' . HTML::Entities::encode($publication);
-					if(defined(my $continuation = $citations{$citation}->cont())) {
+					if(defined(my $continuation = $citation->cont())) {
 						$c .= ' ' . HTML::Entities::encode($continuation);
 					}
 				}
-				if(defined(my $page = $citations{$citation}->page())) {
+				if(defined(my $page = $citation->page())) {
 					$c .= ' ' . HTML::Entities::encode($page);
 				}
-				my @notes = $citations{$citation}->note();
+				my @notes = $citation->note();
 				foreach my $note(@notes) {
 					if(ref($note) eq 'Gedcom::Record') {
 						$note = $note->note();
@@ -5083,9 +5091,9 @@ sub print_person
 						$c .= ' (' . HTML::Entities::encode($note) . ')' unless($note eq $title);
 					}
 				}
-				if($citationnotes{$citation}) {
-					$citationnotes{$citation} =~ s/\.$//;
-					$c .= ' (' . HTML::Entities::encode($citationnotes{$citation}) . ')';
+				if($citationnotes{$index}) {
+					$citationnotes{$index} =~ s/\.$//;
+					$c .= ' (' . HTML::Entities::encode($citationnotes{$index}) . ')';
 				}
 				if(($title =~ /census/i) && ($title =~ /(\d{3,4})/)) {
 					$census_years{$1} = $title;
