@@ -2680,6 +2680,12 @@ sub print_person
 						date => $dateofbaptism,
 						birthdate => $dateofbirth,
 					});
+					if(!$death_dt) {
+						must_predate({
+							person => $person,
+							date => $dateofbaptism,
+							predate => $dateofdeath
+						});
 				}
 			} elsif($birth_dt) {
 				my @person_twins;
@@ -2780,6 +2786,7 @@ sub print_person
 			}
 		}
 
+		my $start_of_paragraph = 0;
 		# Is/was this person an orphan?
 		if($mother && $father && $yob) {
 			if((my $mdod = dateofdeath($mother)) &&
@@ -2811,9 +2818,10 @@ sub print_person
 							($myod > $fyod) ? 'mother. ' : 'father.';
 					}
 					$bio .= "\n\t";
-					print $xml "\n\t\t<orphaned>$orphaned_year</orphaned>";
 					$end_of_sentence = 1;
+					$start_of_paragraph = 1;
 
+					print $xml "\n\t\t<orphaned>$orphaned_year</orphaned>";
 					push @{$orphans{$orphaned_year}}, $person->xref();
 				}
 			}
@@ -4213,7 +4221,10 @@ sub print_person
 				if((scalar(@residencelist) == 1) && (my $rdate = $first->date())) {
 					$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' }));
 				} else {
-					$bio .= '</p><p>During ' . lc($person->possessive()) . ' life';
+					if(!$start_of_paragraph) {
+						$bio .= '</p><p>';
+					}
+					$bio .= 'During ' . lc($person->possessive()) . ' life';
 				}
 
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
@@ -7802,7 +7813,11 @@ sub sibling_baptism_string
 		$rc .= lcfirst($person->possessive()) . ' ';
 		my $dateofsiblingbirth = dateofbirth($sibling);
 		if($dateofsiblingbirth && $birthdate && ($dateofsiblingbirth eq $birthdate)) {
-			$rc .= 'twin ';
+			if($language eq 'French') {
+				$rc .= ($sibling->sex() eq 'F') ? 'jumelle ' : 'jumeau ';
+			} else {
+				$rc .= 'twin ';
+			}
 		}
 		$rc .= ($sibling->sex() eq 'M' ? 'brother ' : 'sister ') .
 			$sibling->given_names();
