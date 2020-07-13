@@ -4136,7 +4136,7 @@ sub print_person
 							}
 						}
 					} elsif($print_year_only) {
-						$residencestring .= $rdate if($rdate ne $residencestring);
+						$residencestring .= $rdate if((!defined($residencestring)) || ($rdate ne $residencestring));
 						$print_year_only = 0;
 					}
 				}
