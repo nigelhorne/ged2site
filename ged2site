@@ -2780,6 +2780,45 @@ sub print_person
 			}
 		}
 
+		# Is/was this person an orphan?
+		if($mother && $father && $yob) {
+			if((my $mdod = dateofdeath($mother)) &&
+			   (my $fdod = dateofdeath($father))) {
+				my $myod;
+				my $fyod;
+				if(($fdod =~ /.*?(\d{3,4})/)) {
+					$fyod = $1;
+				}
+				if(($mdod =~ /.*?(\d{3,4})/)) {
+					$myod = $1;
+				}
+				if((!defined($fyod)) || (!defined($myod))) {
+					die "BUG: !fyod || !myod";
+				}
+				if((($fyod - $yob) < 16) && (($myod - $yob) < 16)) {
+					if($end_of_sentence) {
+						$bio .= " $pronoun";
+					} else {
+						$bio .= ', and';
+					}
+					$bio .= ' was orphaned in ';
+					my $orphaned_year .= (($myod > $fyod) ? $myod : $fyod);
+					if($myod == $fyod) {
+						$bio .= "$myod by the death of both parents in that year.";
+					} else {
+						$bio .= "$orphaned_year following the death of " .
+							($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+							($myod > $fyod) ? 'mother. ' : 'father.';
+					}
+					$bio .= "\n\t";
+					print $xml "\n\t\t<orphaned>$orphaned_year</orphaned>";
+					$end_of_sentence = 1;
+
+					push @{$orphans{$orphaned_year}}, $person->xref();
+				}
+			}
+		}
+
 		print "bio so far: $bio\n" if($opts{'v'});
 
 		my @education = $person->education();
@@ -3311,41 +3350,6 @@ sub print_person
 				(is_alive(person => $person) ? ' is' : ' was');
 			$bio .= ' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father)) . '. ';
 			$end_of_sentence = 1;
-		}
-
-		# Is/was this person an orphan?
-		if($mother && $father && $yob) {
-			if((my $mdod = dateofdeath($mother)) &&
-			   (my $fdod = dateofdeath($father))) {
-				my $myod;
-				my $fyod;
-				if(($fdod =~ /.*?(\d{3,4})/)) {
-					$fyod = $1;
-				}
-				if(($mdod =~ /.*?(\d{3,4})/)) {
-					$myod = $1;
-				}
-				if((!defined($fyod)) || (!defined($myod))) {
-					die "BUG: !fyod || !myod";
-				}
-				if((($fyod - $yob) < 16) && (($myod - $yob) < 16)) {
-					my $orphaned_year = ($myod > $fyod) ? $myod : $fyod;
-					$bio .= " $pronoun was orphaned in ";
-					if($myod == $fyod) {
-						$bio .= "$myod by the death of both parents in that year.";
-					} else {
-						$bio .= (($myod > $fyod) ? $myod : $fyod) .
-							" $orphaned_year following the death of " .
-							($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-							($myod > $fyod) ? 'mother. ' : 'father.';
-					}
-					$bio .= "\n\t";
-					print $xml "\n\t\t<orphaned>$orphaned_year</orphaned>";
-					$end_of_sentence = 1;
-
-					push @{$orphans{$orphaned_year}}, $person->xref();
-				}
-			}
 		}
 
 		print "Handling residences\n" if($opts{'v'});
