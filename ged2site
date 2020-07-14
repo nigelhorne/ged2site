@@ -2810,12 +2810,12 @@ sub print_person
 						$bio .= ', and';
 					}
 					$bio .= ' was orphaned in ';
-					my $orphaned_year .= (($myod > $fyod) ? $myod : $fyod);
+					my $orphaned_year = (($myod > $fyod) ? $myod : $fyod);
 					if($myod == $fyod) {
 						$bio .= "$myod by the death of both parents in that year.";
 					} else {
 						$bio .= "$orphaned_year following the death of " .
-							($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+							(($person->pronoun() eq 'She') ? 'her ' : 'his ') .
 							($myod > $fyod) ? 'mother. ' : 'father.';
 					}
 					$bio .= "</p><p>";
