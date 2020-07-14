@@ -8030,6 +8030,29 @@ sub print_graphviz
 	return $thumbnail;
 }
 
+sub must_predate
+{
+	return unless($opts{'w'});
+
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+	my $date = $params{'date'};
+	my $predate = $params{'predate'};
+
+	return unless($params{'predate'} && $params{'date'});
+
+	my $d1 = $dfn->parse_datetime($date);
+	my $d2 = $dfn->parse_datetime($predate);
+
+	if($d1->year() > $d2->year()) {
+		complain({
+			person => $person,
+			warning => "Something is wrong with the date $date which should be before $predate"
+		});
+	}
+}
+
 sub is_alive
 {
 	my %params;
