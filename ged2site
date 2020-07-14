@@ -2524,6 +2524,7 @@ sub print_person
 		print $xml " (also known as $aka)";
 	}
 
+	my $start_of_paragraph = 0;
 	my $end_of_sentence = 0;
 
 	my @childrenunknownparent;
@@ -2686,6 +2687,7 @@ sub print_person
 							date => $dateofbaptism,
 							predate => $dateofdeath
 						});
+					}
 				}
 			} elsif($birth_dt) {
 				my @person_twins;
@@ -2786,7 +2788,6 @@ sub print_person
 			}
 		}
 
-		my $start_of_paragraph = 0;
 		# Is/was this person an orphan?
 		if($mother && $father && $yob) {
 			if((my $mdod = dateofdeath($mother)) &&
