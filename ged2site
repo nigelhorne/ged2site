@@ -5570,19 +5570,21 @@ sub print_person
 								}
 							} else {
 								# Use the remote copy
+								my $escaped_file = $file;
+								$escaped_file =~ s/&/&amp;/g;
 								if($title) {
 									print $html "<a href=\"$file\" target=\"_blank\">",
 										"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 										'</a>';
 									print $csv "$file---$title---0----";
 									$title =~ s/&/&amp;/g;
-									print $xml "\n\t\t<image><url>$file</url><title>$title></title></image>";
+									print $xml "\n\t\t\t<image>\n\t\t\t\t<url>$escaped_file</url>\n\t\t\t\t<title>$title></title>\n\t\t\t</image>";
 								} else {
 									print $html "<a href=\"$file\" target=\"_blank\">",
 										"<img src=\"$file\" width=\"175\">",
 										'</a>';
 									print $csv "$file--- ---0----";
-									print $xml "\n\t\t<image><url>$file</url></image>";
+									print $xml "\n\t\t\t<image>\n\t\t\t\t<url>$escaped_file</url></image>";
 								}
 								if(defined($profile_object) && ($obje eq $profile_object)) {
 									$s_profile_image = $file;
