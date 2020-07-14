@@ -7241,6 +7241,22 @@ sub place {
 		$place = "$1 USA";
 	} elsif($place =~ /States\s*$/) {
 		complain({ person => $params{'person'}, warning => "Unexpected text at the end of the place '$place'" });
+	} elsif($place =~ /(.*)(^|,\s*)(.+),\s*Canada$/i) {
+		my $town = $1;
+		my $province = $3;
+		my $p = $ca->{province2code}{uc($3)};
+		if(defined($p)) {
+			# TODO - will need two objects, one for English, one for French
+			# if($language eq 'French') {
+				# if(defined($town)) {
+					# $place = "$town, " . $ca->code2province($p) . ", Canada";
+				# } else {
+					# $place = $ca->code2province($p) . ", Canada";
+				# }
+			# }
+		} else {
+			complain({ person => $params{'person'}, warning => "Unknown Canadian province $province" });
+		}
 	}
 
 	if($params{'person'}) {
