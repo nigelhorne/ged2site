@@ -2818,7 +2818,7 @@ sub print_person
 							($person->pronoun() eq 'She' ? 'her ' : 'his ') .
 							($myod > $fyod) ? 'mother. ' : 'father.';
 					}
-					$bio .= "\n\t";
+					$bio .= "</p><p>";
 					$end_of_sentence = 1;
 					$start_of_paragraph = 1;
 
@@ -2846,7 +2846,7 @@ sub print_person
 		# TODO: children != 0 && spouses == 0
 		if(scalar(@spouses) &&
 		   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
-			$bio .= '<p>' . ucfirst($pronoun) if($end_of_sentence);
+			$bio .= " $pronoun" if($end_of_sentence);
 
 			if(scalar(@spouses) == 1) {
 				if((!$end_of_sentence) &&
