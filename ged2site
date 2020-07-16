@@ -6716,6 +6716,9 @@ sub Gedcom::Individual::relationship_up
 				}
 				return $title;
 			} elsif($steps == 2) {
+				if($language eq 'Latin') {
+					return ($sex eq 'M') ? 'avus' : 'avia';
+				}
 				return "grand$title";
 			} elsif($steps == 3) {
 				if($language eq 'French') {
