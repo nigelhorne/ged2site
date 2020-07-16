@@ -6762,6 +6762,24 @@ sub Gedcom::Individual::relationship_up
 				# die $steps2 if($steps2 > 23);
 				return if($steps2 > 23);
 
+				if($language eq 'Latin') {
+					my $myfather = $self->father();
+					my $mymother = $self->mother();
+					if(($steps1 == 2) && ($steps2 == 1)) {
+						if($sex eq 'M') {
+							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
+								return 'patrus';	# paternal uncle
+							}
+							return 'avunculus';	# maternal uncle
+						} else {
+							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
+								return 'amita';	# paternal aunt
+							}
+							return 'matereta';	# maternal aunt
+						}
+					}
+				}
+
 				# TODO: It would be nice to do this as an algorithm
 				my %male_relationships = (
 					1 << 24 | 1 => 'brother',
