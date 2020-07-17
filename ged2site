@@ -6806,6 +6806,18 @@ sub Gedcom::Individual::relationship_up
 							}
 							return 'matertera māior';	# maternal great-great-aunt
 						}
+					} elsif(($steps1 == 5) && ($steps2 == 1)) {
+						if($sex eq 'M') {
+							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
+								return 'patruus māximus';	# paternal great-great-great-uncle
+							}
+							return 'avunculus māximus';	# maternal great-great-great-uncle
+						} else {
+							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
+								return 'amita māxima';	# paternal great-great-great-aunt
+							}
+							return 'matertera māxima';	# maternal great-great-great-aunt
+						}
 					}
 				}
 
