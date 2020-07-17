@@ -4378,6 +4378,8 @@ sub print_person
 			}
 			my $notes;
 			if(!$diedathome) {
+				$bio .= '.' if(!$end_of_sentence);
+				$end_of_sentence = 0;
 				$bio .= "<p>$pronoun died";
 				if($dateofdeath) {
 					my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
