@@ -6786,7 +6786,7 @@ sub Gedcom::Individual::relationship_up
 							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
 								return 'patruus māgnus';	# paternal great-uncle
 							}
-							return 'avunculus magnus';	# maternal great-uncle
+							return 'avunculus māgnus';	# maternal great-uncle
 						} else {
 							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
 								return 'amita māgna';	# paternal great-aunt
