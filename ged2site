@@ -610,8 +610,10 @@ if($total == 0) {
 my $index = 0;
 
 my $pr;
+my $au = Locale::AU->new();
+my $ca_en = Locale::CA->new(lang => 'en');
+my $ca_fr = Locale::CA->new(lang => 'fr');
 my $us = Locale::US->new();
-my $ca = Locale::CA->new();
 my $dtl = DateTime::Locale->load($ENV{'LANG'});
 my $language;
 if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
@@ -6064,14 +6066,22 @@ sub print_person
 			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
 			$birth_country = 'United States';
 			$placeofbirth .= ', USA';
-		} elsif(($c =~ /[A-Z]{2}/) && ($ca->{code2province}{$c})) {
+		} elsif(($c =~ /[A-Z]{2}/) && ($ca_en->{code2province}{$c}) || $ca_fr->{code2province}{$c}) { 
 			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
 			$birth_country = 'Canada';
 			$placeofbirth .= ', Canada';
-		} elsif($ca->{province2code}{uc($c)}) {
+		} elsif($ca_en->{province2code}{uc($c)} || $ca_fr->{province2code}{uc($c)}) {
 			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
 			$birth_country = 'Canada';
 			$placeofbirth .= ', Canada';
+		} elsif(($c =~ /[A-Z]{2,3}/) && ($au->{code2state}{$c})) {
+			complain({ person => $person, warning => "$c: assuming country of birth is Australia" });
+			$birth_country = 'Australia';
+			$placeofbirth .= ', Australia';
+		} elsif($au->{state2code}{uc($c)}) {
+			complain({ person => $person, warning => "$c: assuming country of birth is Australia" });
+			$birth_country = 'Australia';
+			$placeofbirth .= ', Australia';
 		} elsif(uc($c) eq 'NFLD') {
 			complain({ person => $person, warning => 'Assuming country of birth is Canada' });
 			$birth_country = 'Canada';
@@ -6127,10 +6137,10 @@ sub print_person
 		} elsif(($c eq 'Nova Scotia') || (uc($c) eq 'NFLD') || ($c eq 'Newfoundland') || ($c eq 'NS')) {
 			complain({ person => $person, warning => "Country 'Canada' missing from death record" });
 			$death_country = 'Canada';
-		} elsif(($c =~ /[A-Z]{2,3}/) && ($ca->{code2state}{$c})) {
+		} elsif(($c =~ /[A-Z]{2,3}/) && ($au->{code2state}{$c})) {
 			complain({ person => $person, warning => "$c: assuming country of death is Australia" });
 			# $death_country = 'Australia';
-		} elsif($ca->{state2code}{uc($c)}) {
+		} elsif($au->{state2code}{uc($c)}) {
 			complain({ person => $person, warning => "$c: assuming country of death is Australia" });
 			# $death_country = 'Australia';
 		} elsif(($c eq 'Holland') || ($c eq 'The Netherlands')) {
@@ -6702,10 +6712,20 @@ sub Gedcom::Individual::relationship_up
 			my $title;
 			if($language eq 'French') {
 				$title = ($sex eq 'M') ? 'père' : 'mère';
+			} elsif($language eq 'Latin') {
+				return ($sex eq 'M') ? 'frater' : 'soros';
 			} else {
 				$title = ($sex eq 'M') ? 'father' : 'mother';
 			}
 			if($steps >= 5) {
+				if($language eq 'Latin') {
+					if($steps == 5) {
+						return ($sex eq 'M') ? 'atavus' : 'atavia';
+					}
+					if($steps == 6) {
+						return ($sex eq 'M') ? 'tritavus' : 'tritavia';
+					}
+				}
 				$steps -= 2;
 				return "$steps times great-grand$title";
 			} elsif($steps == 1) {
@@ -6725,9 +6745,14 @@ sub Gedcom::Individual::relationship_up
 			} elsif($steps == 3) {
 				if($language eq 'French') {
 					return "arrière-grand-$title";
+				} elsif($language eq 'Latin') {
+					return ($sex eq 'M') ? 'proavus' : 'proavia';
 				}
 				return "great-grand$title";
 			} elsif($steps == 4) {
+				if($language eq 'Latin') {
+					return ($sex eq 'M') ? 'abavus' : 'abavia';
+				}
 				return "great-great-grand$title";
 			} elsif($steps <= 0) {
 				if(my $spouse = $other->spouse()) {
@@ -7306,16 +7331,22 @@ sub place {
 	} elsif($place =~ /(.*)(^|,\s*)(.+),\s*Canada$/i) {
 		my $town = $1;
 		my $province = $3;
-		my $p = $ca->{province2code}{uc($3)};
+		# FIXME: doesn't work because none of this code properly handles UTF-8 which is needed for Québec
+		my $p = $ca_en->{province2code}{uc($province)} || $ca_fr->{province2code}{uc($province)};
 		if(defined($p)) {
-			# TODO - will need two objects, one for English, one for French
-			# if($language eq 'French') {
-				# if(defined($town)) {
-					# $place = "$town, " . $ca->code2province($p) . ", Canada";
-				# } else {
-					# $place = $ca->code2province($p) . ", Canada";
-				# }
-			# }
+			if($language eq 'French') {
+				if(defined($town)) {
+					$place = "$town, " . $ca_fr->code2province($p) . ", Canada";
+				} else {
+					$place = $ca_fr->code2province($p) . ", Canada";
+				}
+			} else {
+				if(defined($town)) {
+					$place = "$town, " . $ca_en->code2province($p) . ", Canada";
+				} else {
+					$place = $ca_en->code2province($p) . ", Canada";
+				}
+			}
 		} else {
 			complain({ person => $params{'person'}, warning => "Unknown Canadian province $province" });
 		}
