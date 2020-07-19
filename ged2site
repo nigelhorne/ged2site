@@ -7334,18 +7334,16 @@ sub place {
 		# FIXME: doesn't work because none of this code properly handles UTF-8 which is needed for Québec
 		my $p = $ca_en->{province2code}{uc($province)} || $ca_fr->{province2code}{uc($province)};
 		if(defined($p)) {
+			my $ca;
 			if($language eq 'French') {
-				if(defined($town)) {
-					$place = "$town, " . $ca_fr->code2province($p) . ", Canada";
-				} else {
-					$place = $ca_fr->code2province($p) . ", Canada";
-				}
+				$ca = $ca_fr;
 			} else {
-				if(defined($town)) {
-					$place = "$town, " . $ca_en->code2province($p) . ", Canada";
-				} else {
-					$place = $ca_en->code2province($p) . ", Canada";
-				}
+				$ca = $ca_en;
+			}
+			if(defined($town)) {
+				$place = "$town, " . $ca->{code2province}{$p} . ", Canada";
+			} else {
+				$place = $ca->{code2province}{$p} . ", Canada";
 			}
 		} else {
 			complain({ person => $params{'person'}, warning => "Unknown Canadian province $province" });
