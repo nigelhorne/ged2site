@@ -6843,6 +6843,18 @@ sub Gedcom::Individual::relationship_up
 							}
 							return 'matertera māxima';	# maternal great-great-great-aunt
 						}
+					} elsif(($steps1 == 2) && ($steps2 == 2)) {
+						if($sex eq 'M') {
+							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
+								return 'patruelis';	# paternal male 1st cousin
+							}
+							return 'consorbrius';	# maternal male 1st cousin
+						} else {
+							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
+								return 'patruelis';	# paternal female 1st cousin
+							}
+							return 'consorbria';	# maternal female 1st cousin
+						}
 					}
 				}
 
