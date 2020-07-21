@@ -2150,7 +2150,13 @@ sub print_person
 		if((!$relationship) && scalar(@spouses)) {
 			print "find spousal relationship\n" if($opts{'v'});
 			if($spouses[0] eq $me) {
-				$relationship = ($sex eq 'F') ? 'wife' : 'husband';
+				if($language eq 'French') {
+					$relationship = ($sex eq 'F') ? 'femme' : 'mari';
+				} elsif($language eq 'Latin') {
+					$relationship = ($sex eq 'F') ? 'uxor' : 'maritus';
+				} else {
+					$relationship = ($sex eq 'F') ? 'wife' : 'husband';
+				}
 			} else {
 				foreach my $s(@spouses) {
 					$spouserelationship = $me->relationship($s);
@@ -7352,10 +7358,11 @@ sub place {
 			} else {
 				$ca = $ca_en;
 			}
+			$p = sortoutcase($ca->{code2province}{$p});
 			if(defined($town)) {
-				$place = "$town, " . $ca->{code2province}{$p} . ", Canada";
+				$place = "$town, $p, Canada";
 			} else {
-				$place = $ca->{code2province}{$p} . ", Canada";
+				$place = "$p, Canada";
 			}
 		} else {
 			complain({ person => $params{'person'}, warning => "Unknown Canadian province $province" });
@@ -8938,4 +8945,20 @@ sub get_location {
 		print Data::Dumper->new([\@locations])->Dump();
 		complain({ warning => "Probable bug in Geo::Coder::List with '$place'" });
 	}
+}
+
+# Capitalise the first character
+sub sortoutcase {
+	my $field = lc(shift);
+
+	my $ret = '';
+
+	foreach (split(/ /, $field)) {
+		if($ret ne '') {
+			$ret .= ' ';
+		}
+		$ret .= ucfirst($_);
+	}
+
+	return $ret;
 }
