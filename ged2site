@@ -6072,7 +6072,7 @@ sub print_person
 			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
 			$birth_country = 'United States';
 			$placeofbirth .= ', USA';
-		} elsif(($c =~ /[A-Z]{2}/) && ($ca_en->{code2province}{$c}) || $ca_fr->{code2province}{$c}) { 
+		} elsif(($c =~ /[A-Z]{2}/) && ($ca_en->{code2province}{$c}) || $ca_fr->{code2province}{$c}) {
 			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
 			$birth_country = 'Canada';
 			$placeofbirth .= ', Canada';
