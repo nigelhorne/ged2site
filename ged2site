@@ -6800,7 +6800,6 @@ sub Gedcom::Individual::relationship_up
 						return ($sex eq 'M') ? 'frater' : 'soros';
 					}
 					my $myfather = $self->father();
-					my $mymother = $self->mother();
 					if(($steps1 == 2) && ($steps2 == 1)) {
 						if($sex eq 'M') {
 							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
@@ -6860,6 +6859,20 @@ sub Gedcom::Individual::relationship_up
 								return 'patruelis';	# paternal female 1st cousin
 							}
 							return 'consorbria';	# maternal female 1st cousin
+						}
+					} elsif(($steps1 == 1) && ($steps2 == 2)) {
+						if($other->father() && isbrother($self, $other->father())) {
+							if($sex eq 'M') {
+								return 'fratris filius';	# nephew - brother's son
+							}
+							return 'fratrais filia';	# niece - brother's daughter
+						} elsif($other->mother() && issister($self, $other->mother())) {
+							if($sex eq 'M') {
+								return 'sororis filius';	# nephew - sister's son
+							}
+							return 'sororis filia';	# niece - sister's daughter
+						} else {
+							die 'BUG: parent neither sister nor brother';
 						}
 					}
 				}
@@ -8961,4 +8974,40 @@ sub sortoutcase {
 	}
 
 	return $ret;
+}
+
+sub isbrother
+{
+	my $person = shift;
+	my $other = shift;
+
+	return unless($other);
+
+	my $other_xref = $other->xref();
+
+	my @siblings = $person->siblings();
+	foreach my $sibling(@siblings) {
+		if(($sibling->sex() eq 'M') && ($sibling->xref() eq $other_xref)) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+sub issister
+{
+	my $person = shift;
+	my $other = shift;
+
+	return unless($other);
+
+	my $other_xref = $other->xref();
+
+	my @siblings = $person->siblings();
+	foreach my $sibling(@siblings) {
+		if(($sibling->sex() eq 'F') && ($sibling->xref() eq $other_xref)) {
+			return 1;
+		}
+	}
+	return 0;
 }
