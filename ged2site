@@ -7372,7 +7372,7 @@ sub place {
 				$ca = $ca_en;
 			}
 			$p = sortoutcase($ca->{code2province}{$p});
-			if(defined($town)) {
+			if(defined($town) && length($town)) {
 				$place = "$town, $p, Canada";
 			} else {
 				$place = "$p, Canada";
