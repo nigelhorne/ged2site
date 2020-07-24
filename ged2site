@@ -74,7 +74,8 @@ BEGIN {
 		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
 		'URI', 'URI::Find::Schemeless',
-		'XML::Dumper', 'XML::Twig', 'Locale::CA', 'Locale::US', 'CHI', 'Class::Simple',
+		'Locale::AU', 'Locale::CA', 'Locale::US',
+		'XML::Dumper', 'XML::Twig', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
 		'Lingua::EN::Numbers::Ordinate', 'Lingua::EN::Inflect',
@@ -5181,7 +5182,7 @@ sub print_person
 					$h =~ s/&lt;\/a&gt;/<\/a>/gi;
 				}
 				print $html "<li>$h</li>";
-				print $csv '----' if($citation > 1);
+				print $csv '----' if($index > 1);
 				print $csv $h;
 				$c =~ s/&/&amp;/g;
 				$c =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
