@@ -7103,6 +7103,13 @@ sub Gedcom::Individual::relationship_down
 				$steps -= 2;
 				return "$steps times great-grand$title";
 			} elsif($steps == 1) {
+				if($language eq 'French') {
+					if($sex eq 'M') {
+						return 'fils';
+					}
+				} elsif($language eq 'Latin') {
+					return ($sex eq 'M') ? 'frater' : 'soros';
+				}
 				return $title;
 			} elsif($steps == 2) {
 				return "grand$title";
