@@ -1737,20 +1737,22 @@ sub print_person
 			}
 		}
 	}
+
 	my %citations;
 	my $citationcount = 0;
 	my @birthcitations;
 	my @deathcitations;
 	if($opts{'c'}) {
 		if($birth) {
+			my @s = $birth->source();
 			if($opts{'w'}) {
-				foreach my $s($birth->source()) {
+				foreach my $s(@s) {
 					if(!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) {
-						complain({ person => $person, warning => 'Citation is missing a source' });
+						complain({ person => $person, warning => 'Birth citation is missing a source' });
 					}
 				}
 			}
-			my @s = sort { (get_source({ gedcom => $ged, person => $person, source => $a }) && get_source({ gedcom => $ged, person => $person, source => $b })) ? get_source({ gedcom => $ged, person => $person, source => $a })->title() cmp get_source({ gedcom => $ged, person => $person, source => $b })->title() : 0 } $birth->source();
+			@s = sort { (get_source({ gedcom => $ged, person => $person, source => $a }) && get_source({ gedcom => $ged, person => $person, source => $b })) ? get_source({ gedcom => $ged, person => $person, source => $a })->title() cmp get_source({ gedcom => $ged, person => $person, source => $b })->title() : 0 } @s;
 			if(scalar(@s)) {
 				my $previous;
 				foreach my $src(@s) {
@@ -1775,6 +1777,14 @@ sub print_person
 		}
 		if($death) {
 			my @s = $death->source();
+			if($opts{'w'}) {
+				foreach my $s(@s) {
+					if(!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) {
+						complain({ person => $person, warning => 'Death citation is missing a source' });
+					}
+				}
+			}
+			@s = sort { (get_source({ gedcom => $ged, person => $person, source => $a }) && get_source({ gedcom => $ged, person => $person, source => $b })) ? get_source({ gedcom => $ged, person => $person, source => $a })->title() cmp get_source({ gedcom => $ged, person => $person, source => $b })->title() : 0 } @s;
 			if(scalar(@s)) {
 				foreach my $src(@s) {
 					$src = $ged->get_source($src) unless ref($src);
@@ -5116,12 +5126,15 @@ sub print_person
 						person => $person,
 						warning => "[$index]: empty citation"
 					});
+					next;
 				}
 				my $title = $citation->title();
 				if(!defined($title)) {
 					# For example, FMP 'web' source
 					if($citation->items()) {
 						my @items = $citation->items();
+						# $Data::Dumper::Maxdepth = 2;
+						# print Data::Dumper->new([\@items])->Dump();
 						$title = $items[0]->{'value'};
 					} else {
 						complain({
