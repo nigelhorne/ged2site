@@ -5923,7 +5923,7 @@ sub print_person
 		# $dt->day(), ' ', $dt->month_name(), ' ', $dt->year(),
 		'</i></p>';
 
-	if($birth_dt && ($opts{'l'} || !$is_alive) && $me && ($relationship || ($person eq $me))) {
+	if($birth_dt && ($opts{'l'} || !$is_alive) && $me && ($relationship || ($person->xref() eq $me->xref()))) {
 		print $timeline_xml '<event start="', $birth_dt->year();
 		if($birth_dt->month() && $birth_dt->day()) {
 			printf $timeline_xml '-%02d', $birth_dt->month();
@@ -6788,7 +6788,7 @@ sub Gedcom::Individual::relationship_up
 				# die 'match found';
 			# }
 
-			if($person1 eq $person2) {
+			if($person1->xref() eq $person2->xref()) {
 				# Common ancestor is $person2
 				my $steps1 = stepsabove($self, $person1, 0);
 				# die $steps1 if($steps1 > 23);
