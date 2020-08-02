@@ -223,7 +223,6 @@ foreach my $module(@modules) {
 my $me;
 my @myancestors;
 my @mydescendents;
-my %warned;
 my %printed;
 my %places;
 my $surnames;
@@ -1503,23 +1502,26 @@ sub print_person
 	my $year = (localtime)[5];
 	$year += 1900 if($year < 1900);
 
-	my $yob;	# Year of birth
-	if($dateofbirth && ($dateofbirth =~ /.*?(\d{3,4})/)) {
-		$yob = $1;
-	} elsif($dateofbirth) {
-		if(($dateofbirth eq 'UNKNOWN') || ($dateofbirth eq '?')) {
-			$dateofbirth = undef;
-		} elsif($opts{'w'} && !$warned{$person}) {
-			complain({ person => $person, warning => "Invalid date of birth $dateofbirth" });
-			$warned{$person} = 1;
-		}
-	}
-
 	my $dateofdeath = dateofdeath($person);
 
 	my $yod;	# Year of death
-	if($dateofdeath && ($dateofdeath =~ /.*?(\d{3,4})/)) {
-		$yod = $1;
+	if($dateofdeath) {
+		$yod = get_year_from_date($dateofdeath);
+		if(!defined($yod)) {
+			complain({ person => $person, warning => "Invalid date of death $dateofdeath" });
+		}
+	}
+
+	my $yob;	# Year of birth
+	if($dateofbirth) {
+		if(($dateofbirth eq 'UNKNOWN') || ($dateofbirth eq '?')) {
+			$dateofbirth = undef;
+		} else {
+			$yob = get_year_from_date($dateofbirth);
+			if(!defined($yob)) {
+				complain({ person => $person, warning => "Invalid date of birth $dateofbirth" });
+			}
+		}
 	}
 
 	my $name = $person->name();
@@ -9042,4 +9044,12 @@ sub issister
 		}
 	}
 	return 0;
+}
+
+sub get_year_from_date
+{
+	my $date = shift;
+	if($date =~ /(\d{3,4})\s*$/) {
+		return $1;
+	}
 }
