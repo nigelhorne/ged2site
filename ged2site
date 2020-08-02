@@ -6688,11 +6688,14 @@ sub Gedcom::Individual::relationship {
 			if($language eq 'French') {
 				return ($sex eq 'M') ? 'frère' : 'sœur';
 			} elsif($language eq 'Latin') {
-				return ($sex eq 'M') ? 'frater' : 'soror';
+				return ($sex eq 'M') ? 'frāter' : 'soror';
 			}
 			return ($sex eq 'M') ? 'brother' : 'sister';
 		}
 		if(($self->mother() eq $other->mother()) || ($self->father() eq $other->father())) {
+			if($language eq 'Latin') {
+				return ($sex eq 'M') ? 'frāter uterīnus' : 'soror uterīna';
+			}
 			return ($sex eq 'M') ? 'half-brother' : 'half-sister';
 		}
 	}
@@ -6750,13 +6753,6 @@ sub Gedcom::Individual::relationship_up
 				$steps -= 2;
 				return "$steps times great-grand$title";
 			} elsif($steps == 1) {
-				if($language eq 'French') {
-					if($sex eq 'M') {
-						return 'fils';
-					}
-				} elsif($language eq 'Latin') {
-					return ($sex eq 'M') ? 'mater' : 'pater';
-				}
 				return $title;
 			} elsif($steps == 2) {
 				if($language eq 'Latin') {
@@ -6812,12 +6808,10 @@ sub Gedcom::Individual::relationship_up
 
 				if($language eq 'Latin') {
 					if(($steps1 == 1) && ($steps2 == 1)) {
-						return ($sex eq 'M') ? 'frater' : 'soror';
+						return ($sex eq 'M') ? 'frāter' : 'soror';
 					}
 					my $myfather = $self->father();
-					if(($steps1 == 1) && ($steps2 == 1)) {
-						return ($sex eq 'M') ? 'frater' : 'soror';
-					} elsif(($steps1 == 2) && ($steps2 == 1)) {
+					if(($steps1 == 2) && ($steps2 == 1)) {
 						if($sex eq 'M') {
 							if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
 								return 'patruus';	# paternal uncle
@@ -7123,7 +7117,7 @@ sub Gedcom::Individual::relationship_down
 						return 'fils';
 					}
 				} elsif($language eq 'Latin') {
-					return ($sex eq 'M') ? 'frater' : 'soror';
+					return ($sex eq 'M') ? 'fīlius' : 'fīlia';
 				}
 				return $title;
 			} elsif($steps == 2) {
