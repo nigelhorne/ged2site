@@ -1543,8 +1543,12 @@ sub print_person
 	if($firstname && ($firstname =~ /\d/)) {
 		complain({ person => $person, warning => 'First name contains a digit' });
 	}
-	if($surname && ($surname =~ /\d/)) {
-		complain({ person => $person, warning => 'Last name contains a digit' });
+	if($surname) {
+		if($surname =~ /\d/) {
+			complain({ person => $person, warning => 'Last name contains a digit' });
+		} elsif($mother && $father && ($mother->surname() ne $surname) && ($father->surname() ne $surname)) {
+			complain({ person => $person, warning => 'Neither parent has the same surname is this person' });
+		}
 	}
 
 	# Ensure last name isn't used if the first name isn't known
