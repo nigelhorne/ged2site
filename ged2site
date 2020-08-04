@@ -1546,7 +1546,7 @@ sub print_person
 	if($surname) {
 		if($surname =~ /\d/) {
 			complain({ person => $person, warning => 'Last name contains a digit' });
-		} elsif($mother && $father && ($mother->surname() ne $surname) && ($father->surname() ne $surname)) {
+		} elsif($mother && $father && (uc($mother->surname()) ne uc($surname)) && (uc($father->surname()) ne uc($surname))) {
 			complain({ person => $person, warning => 'Neither parent has the same surname as this person' });
 		}
 	}
