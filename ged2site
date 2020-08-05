@@ -44,11 +44,11 @@ no warnings qw(experimental::signatures);
 
 no lib '.';
 
-my @modules;
+my @needfull;
 
 # Install Pre-requisites
 BEGIN {
-	@modules = (
+	my @modules = (
 		'Config::Auto',
 		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
 		 'Gedcom', 'Genealogy::Gedcom::Date',
@@ -83,7 +83,6 @@ BEGIN {
 		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
 
-	my @needfull;
 	foreach my $module(@modules) {
 		eval "use $module";
 		if($@) {
@@ -116,7 +115,7 @@ BEGIN {
 	};
 }
 
-foreach my $module(@modules) {
+foreach my $module(@needfull) {
 	my $version;
 	if($module =~ /(.+)\s(.+)$/) {
 		$module = $1;
@@ -165,7 +164,9 @@ if(-x '/usr/bin/gedcom') {
 	$gedcal = '../gedcom/gedcom';
 }
 
-@modules = ();
+my @modules;
+@needfull = ();
+
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 	push @modules, 'File::Spec';
 
@@ -191,7 +192,6 @@ if($opts{'F'}) {
 	push @modules, ' Image::Magick::Thumbnail';
 }
 
-my @needfull;
 foreach my $module(@modules) {
 	eval "require $module";
 	if($@) {
@@ -584,9 +584,11 @@ my $cached_browser;
 if($opts{'d'} || $opts{'m'}) {
 	$browser = LWP::UserAgent->new();
 	$browser->env_proxy(1);
-	my $cachedir;
-	if(my $e = $ENV{'CACHEDIR'}) {
-		$cachedir = File::Spec->catfile($e, 'http-cache-transparent');
+
+	my $cachedir = $ENV{'CACHEDIR'};
+	if($cachedir) {
+		mkdir $cachedir if(!-d $cachedir);
+		$cachedir = File::Spec->catfile($cachedir, 'http-cache-transparent');
 	} else {
 		$cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'http-cache-transparent');
 	}
