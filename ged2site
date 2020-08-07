@@ -5292,6 +5292,7 @@ sub print_person
 				}
 				foreach my $year(sort { $a <=> $b } keys(%census_years)) {
 					if($census_years{$year + 20} && !$census_years{$year + 10}) {
+						# FIXME: the 1890 US Census was lost, don't error on that
 						complain({
 							person => $person,
 							warning => 'Census information missing between ' . $census_years{$year} . ' and ' . $census_years{$year + 20}
@@ -9052,7 +9053,7 @@ sub issister
 	return 0;
 }
 
-sub get_year_from_date
+sub get_year_from_date($)
 {
 	my $date = shift;
 	if($date =~ /(\d{3,4})\s*$/) {
