@@ -2833,17 +2833,25 @@ sub print_person
 				if((($fyod - $yob) < 16) && (($myod - $yob) < 16)) {
 					if($end_of_sentence) {
 						$bio .= " $pronoun";
+					} elsif(scalar(@person_twins)) {
+						$bio .= ' and';
 					} else {
 						$bio .= ', and';
 					}
-					$bio .= ' was orphaned in ';
+					$bio .= ' was orphaned ';
 					my $orphaned_year = (($myod > $fyod) ? $myod : $fyod);
 					if($myod == $fyod) {
-						$bio .= "$myod by the death of both parents in that year.";
+						$bio .= "in $myod by the death of both parents in that year.";
+					} elsif($myod > $fyod) {
+						$bio .= 'at the age of ' . ($myod - $yob) .
+							' following the death of ' .
+							(($person->pronoun() eq 'She') ? 'her' : 'his') .
+							" father in $fyod and mother in $myod. ";
 					} else {
-						$bio .= "$orphaned_year following the death of " .
-							(($person->pronoun() eq 'She') ? 'her ' : 'his ') .
-							($myod > $fyod) ? 'mother. ' : 'father.';
+						$bio .= 'at the age of ' . ($fyod - $yob) .
+							' following the death of ' .
+							(($person->pronoun() eq 'She') ? 'her' : 'his') .
+							" mother in $myod and father in $fyod. ";
 					}
 					$bio .= "</p><p>";
 					$end_of_sentence = 1;
