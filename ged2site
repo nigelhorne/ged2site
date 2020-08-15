@@ -8542,6 +8542,36 @@ sub get_all_residences
 		}
 	}
 
+	if($opts{'w'}) {
+		# Warn if the address was 33 Foo St in 1900, and Foo St in 1910.
+		# Don't warn about earlier years if the year was before 1900
+		#	as less information was kept so it can't be verified
+		my $prev_year;
+		my $prev_place;
+		foreach my $residence(Sort::Key::keysort { get_year_from_date($_->date()) } @rc) {
+			my $date = $residence->date();
+			next unless($date);
+			my $year = get_year_from_date($date);
+
+			my $place = place({ person => $person, record => $residence, nopreposition => 1 });
+			$place =~ s/^\s+//;
+			if($prev_year && $prev_place) {
+				if(($year >= 1900) && ($year >= $prev_year)) {
+					next unless($place);
+					next if($place =~ /^\d/);
+					if($prev_place =~ /^\d/) {
+						$prev_place =~ /^(\d+)\s+(.+)/;
+						if($2 eq $place) {
+							complain({ person => $person, warning => "Missing house number ($1) in $year that was known in $prev_year" });
+						}
+					}
+				}
+			} elsif($place) {
+				$prev_place = $place;
+				$prev_year = $year;
+			}
+		}
+	}
 	return @rc;
 }
 
