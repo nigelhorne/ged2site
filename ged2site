@@ -34,6 +34,7 @@
 
 # dnf install langpacks-fr glibc-all-langpacks -y
 
+use 5.020;
 use utf8;
 use strict;
 use warnings;
