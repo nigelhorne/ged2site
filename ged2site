@@ -7462,6 +7462,11 @@ sub place {
 	if($address) {
 		if($params{'nopreposition'}) {
 			$place = " $address, $place";
+		} elsif($language eq 'French') {
+			$place = " à $address, $place";
+		} elsif($address =~ /^[a-z]+\s+[a-z]+$/i) {
+			# e.g on Appleby Street
+			$place = " on $address, $place";
 		} else {
 			$place = " at $address, $place";
 		}
