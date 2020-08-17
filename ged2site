@@ -1283,6 +1283,8 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Check out https?:\/\/chroniclingamerica.loc.gov/) {
 					# FIXME: Lots of false positives
 					next;
+				} elsif($warning =~ /^Missing house number /) {
+					$summary = 'Missing house number';
 				} else {
 					$summary = $warning;
 				}
