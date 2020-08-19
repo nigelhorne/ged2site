@@ -7381,13 +7381,17 @@ sub place {
 	}
 
 	# Google maps (and possibly others) sometimes works better with full names
+	my $on_road;
 	if($address) {
 		if($address =~ /(.+)\sSt\.?$/) {
 			$address = "$1 Street";
+			$on_road = 1;
 		} elsif($address =~ /(.+)\sAve\.?$/) {
 			$address = "$1 Avenue";
+			$on_road = 1;
 		} elsif($address =~ /(.+)\sRd\.?$/) {
 			$address = "$1 Road";
+			$on_road = 1;
 		}
 	}
 
@@ -7467,7 +7471,7 @@ sub place {
 			$place = " $address, $place";
 		} elsif($language eq 'French') {
 			$place = " à $address, $place";
-		} elsif($address =~ /^[a-z]+\s+[a-z]+$/i) {
+		} elsif($on_road && ($address =~ /^[a-z]+\s+[a-z]+$/i)) {
 			# e.g on Appleby Street
 			$place = " on $address, $place";
 		} else {
