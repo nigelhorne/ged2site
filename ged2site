@@ -1759,8 +1759,11 @@ sub print_person
 			my @s = $birth->source();
 			if($opts{'w'}) {
 				foreach my $s(@s) {
-					if(!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) {
-						complain({ person => $person, warning => 'Birth citation is missing a source' });
+					foreach my $s(@s) {
+						if((!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) &&
+						    !defined($s->items())) {
+							complain({ person => $person, warning => 'Birth citation is missing a source' });
+						}
 					}
 				}
 			}
@@ -1775,6 +1778,12 @@ sub print_person
 						$previous = $title;
 						push @birthcitations, ++$citationcount;
 						$citations{$citationcount} = $src;
+					} elsif($src->items()) {
+						my @items = $src->items();
+						if($items[0]->{'value'}) {
+							push @birthcitations, ++$citationcount;
+							$citations{$citationcount} = $items[0];
+						}
 					}
 				}
 			} elsif($opts{'w'} && ($opts{'l'} || !$is_alive)) {
@@ -2647,13 +2656,14 @@ sub print_person
 					}
 					foreach my $bc(@birthcitations) {
 						my $citation = $citations{$bc};
-						my $title = $citation->title();
-						if($title =~ /^(\d{3,4})\s/) {
-							if($1 > $yod) {
-								complain({
-									person => $person,
-									warning => "Year of citation of $title is after the death year of $yod"
-								});
+						if(my $title = $citation->title()) {
+							if($title =~ /^(\d{3,4})\s/) {
+								if($1 > $yod) {
+									complain({
+										person => $person,
+										warning => "Year of citation of $title is after the death year of $yod"
+									});
+								}
 							}
 						}
 					}
@@ -5156,6 +5166,8 @@ sub print_person
 						# $Data::Dumper::Maxdepth = 2;
 						# print Data::Dumper->new([\@items])->Dump();
 						$title = $items[0]->{'value'};
+					} elsif($citation->value()) {
+						$title = $citation->value();
 					} else {
 						complain({
 							person => $person,
@@ -8123,6 +8135,7 @@ sub get_value
 sub get_source
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $source = $params{'source'};
 
 	# my $args = {
 		# object => $params{'gedcom'},
@@ -8133,13 +8146,13 @@ sub get_source
 	# # Doesn't use the prefetching feature, but will automatically cache which is nice
 	# # $fetcher->prime($args);
 	# return $fetcher->get($args);
-	if(ref($params{'source'})) {
-		if($params{'source'}->title()) {
-			return $params{'source'};
+	if(ref($source)) {
+		if($source->title()) {
+			return $source;
 		}
 		return;
 	}
-	return $params{'gedcom'}->get_source($params{'source'});
+	return $params{'gedcom'}->get_source($source);
 }
 
 # Inspired by Tree::Family.  That module doesn't quite do what I want, so
