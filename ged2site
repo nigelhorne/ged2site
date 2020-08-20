@@ -4888,12 +4888,51 @@ sub print_person
 						$previous = undef;
 					} elsif(my $place = place({ person => $person, record => $event })) {
 						if(my $year = year({ person => $person, record => $event })) {
-							if($end_of_sentence) {
-								$bio .= ucfirst($year);
-							} else {
-								$bio .= $year;
+							if($place =~ /,/) {
+								if($end_of_sentence) {
+									$bio .= ' ' . ucfirst($year);
+								} else {
+									$bio .= $year;
+								}
+								if(my $notes = notes(record => $event)) {
+									$notes = lcfirst($notes);
+									$bio .= " ($notes)";
+								}
+								$bio .= ' ' . lcfirst($pronoun) . ' ';
+								if($language eq 'French') {
+									$bio .= 'est arrivé';
+									if($sex eq 'F') {
+										$bio .= 'e';
+									}
+									$bio .= ' à';
+									$place =~ s/^ in//;
+									$bio .= $place;
+								} else {
+									$bio .= "arrived$place";
+								}
+								$bio .= ' ' . lcfirst($person->pronoun()) . " arrived$place";
+							} else {	# Arriving in a country
+								if($end_of_sentence) {
+									$bio .= ' ';
+								}
+								$bio .= "$pronoun ";
+								if($language eq 'French') {
+									$bio .= 'est arrivé';
+									if($sex eq 'F') {
+										$bio .= 'e';
+									}
+									$bio .= ' à';
+									$place =~ s/^ in//;
+									$bio .= $place;
+								} else {
+									$bio .= "arrived$place";
+								}
+								$bio .= " $year";
+								if(my $notes = notes(record => $event)) {
+									$notes = lcfirst($notes);
+									$bio .= " ($notes)";
+								}
 							}
-							$bio .= ' ' . lcfirst($person->pronoun()) . " arrived$place.";
 						} else {
 							complain({ person => $person, warning => "Can't determine $type date" });
 						}
