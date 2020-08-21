@@ -132,7 +132,7 @@ foreach my $module(@needfull) {
 	}
 	$module->import();
 	# if($version && ($module::VERSION < $version)) {
-		# die "$module: need $version got ", $module::VERSIOn;
+		# die "$module: need $version got ", $module::VERSION;
 	# }
 }
 
@@ -218,7 +218,7 @@ foreach my $module(@modules) {
 	}
 	$module->import();
 	# if($version && ($module::VERSION < $version)) {
-		# die "$module: need $version got ", $module::VERSIOn;
+		# die "$module: need $version got ", $module::VERSION;
 	# }
 }
 
