@@ -3216,7 +3216,9 @@ sub print_person
 					} elsif($spouse_number < (scalar(@spouses) - 1)) {
 						$bio .= ',';
 					}
+					$bio =~ s/&Atilde;&copy;/&eacute;/g;
 					$html_and_csv->print($bio);
+					$bio =~ s/&eacute;/&#233;/g;
 					print $xml $bio;
 
 					$fullbio .= $bio;
