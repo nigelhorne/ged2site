@@ -41,8 +41,8 @@ use warnings;
 # use open qw(:std :utf8);	# Do not use, it breaks printing
 	# HTTP::Response->decoded_content() to a file
 # no feature qw(indirect);
-use feature qw(signatures);
-no warnings qw(experimental::signatures);
+# use feature qw(signatures);
+# no warnings qw(experimental::signatures);
 
 no lib '.';
 
@@ -8883,11 +8883,12 @@ sub journey
 
 # Compare two dates. Approximate dates are compared.
 # TODO: handle when only months are known
-sub datecmp
+sub datecmp($$)
 {
 	my ($left, $right) = @_;
 
 	if((!defined($left)) || !defined($right)) {
+		# Shouldn't happen with the prototype
 		if(!defined($left)) {
 			print STDERR "BUG: left not defined\n";
 		}
@@ -8919,6 +8920,14 @@ sub datecmp
 		}
 	}
 	if(!ref($right)) {
+		if($right =~ /^bef/i) {
+			print STDERR "$right: Before not handled\n";
+			my $i = 0;
+			while((my @call_details = caller($i++))) {
+				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+			}
+			return 0;
+		}
 		if($right =~ /^(Abt|ca?)\s+(.+)/i) {
 			$right = $2;
 		}
