@@ -5229,7 +5229,7 @@ sub print_person
 							if(my $census = $censusmaps{$title}) {
 								# TODO: Add pointer to image
 								$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
-							} else {
+							} elsif($title !~ /^Archive reference: RG/) {	# FMP has these
 								complain({ person => $person, warning => "Add $title to censusmaps" });
 							}
 						}
