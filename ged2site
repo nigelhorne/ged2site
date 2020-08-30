@@ -4891,6 +4891,10 @@ sub print_person
 					} elsif(my $place = place({ person => $person, record => $event })) {
 						if(my $year = year({ person => $person, record => $event })) {
 							if($place =~ /,/) {
+								if($mentioned_military && !$end_of_sentence) {
+									$bio .= '.';
+									$end_of_sentence = 1;
+								}
 								if($end_of_sentence) {
 									$bio .= ' ' . ucfirst($year);
 								} else {
@@ -4912,7 +4916,6 @@ sub print_person
 								} else {
 									$bio .= "arrived$place";
 								}
-								$bio .= ' ' . lcfirst($person->pronoun()) . " arrived$place";
 							} else {	# Arriving in a country
 								if($end_of_sentence) {
 									$bio .= ' ';
