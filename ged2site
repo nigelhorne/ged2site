@@ -7428,12 +7428,12 @@ sub place {
 		$address = undef;
 	}
 
-	if((!defined($address)) &&
-	   ($place !~ /USA$/) && ($place !~ /United States$/) &&
-	   ($place =~ /(.+),\s*(.+,\s*.+,\s*.+)$/)) {
-		$address = $1;
-		$place = $2;
-	}
+	# if((!defined($address)) &&
+	   # ($place !~ /USA$/) && ($place !~ /United States$/) &&
+	   # ($place =~ /(.+),\s*(.+,\s*.+,\s*.+)$/)) {
+		# $address = $1;
+		# $place = $2;
+	# }
 
 	# Google maps (and possibly others) sometimes works better with full names
 	my $on_road;
