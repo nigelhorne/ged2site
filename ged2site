@@ -23,6 +23,7 @@
 # TODO:	remove date_to_datetime
 # TODO: use DateTime::Locale in year() to translate the month
 # TODO: flag if census locations are XYX and Y is more than (say) 50 miles from X
+# TODO: timeline of each person - like or using timetoast.com
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -240,7 +241,7 @@ my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
 my %changes;	# If the -x option is given, tracks changes between the previous run and this run
 my $facts;
-my $pi = atan2(1,1) * 4;
+# my $pi = atan2(1,1) * 4;
 
 binmode(STDOUT, ':utf8');
 
@@ -1759,11 +1760,9 @@ sub print_person
 			my @s = $birth->source();
 			if($opts{'w'}) {
 				foreach my $s(@s) {
-					foreach my $s(@s) {
-						if((!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) &&
-						    !defined($s->items())) {
-							complain({ person => $person, warning => 'Birth citation is missing a source' });
-						}
+					if((!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) &&
+					    !defined($s->items())) {
+						complain({ person => $person, warning => 'Birth citation is missing a source' });
 					}
 				}
 			}
@@ -8265,7 +8264,7 @@ sub print_graphviz
 		$thumb->Write($thumbnail);
 
 		# FIXME: TABLE isn't supported by Graphviz
-		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>",
+		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\" width=\"$x\" height=\"$y\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>",
 			",labelloc=b";
 
 		# print $fout ",image=\"$profile_image\",labelloc=b";
