@@ -8735,6 +8735,8 @@ sub get_all_occupations
 			$occupations[0] = 'Market Gardener';
 		} elsif($occupations[0] eq "Brewer's Labourer") {
 			$occupations[0] = 'Brewery Labourer';
+		} elsif($occupations[0] eq "Labourer Builders") {
+			$occupations[0] = "Builder's labourer";
 		} elsif($occupations[0] eq 'Gardener domestic') {
 			$occupations[0] = 'Gardener and Domestic';
 		} elsif($occupations[0] =~ /^General serv.+dom/) {
