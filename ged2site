@@ -81,7 +81,7 @@ BEGIN {
 		'XML::Dumper', 'XML::Twig', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
-		'Lingua::EN::Numbers::Ordinate', 'Lingua::EN::Inflect',
+		'Lingua::EN::Inflect',
 		'Locale::Object::Country',
 		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
@@ -96,6 +96,19 @@ BEGIN {
 	eval 'use Geo::Coder::PlaceFinder';
 	if($@) {
 		push @needfull, 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
+	}
+	# Apparently it's "unauthorized", but there's no other module with the same name
+
+	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
+		eval 'use Lingua::FR::Numbers::Ordinate';
+		if($@) {
+			push @needfull, 'N/NH/NHORNE/Lingua-FR-Numbers-Ordinate-0.03.tar.gz';
+		}
+	} else {
+		eval 'use Lingua::EN::Numbers::Ordinate';
+		if($@) {
+			push @needfull, 'Lingua::EN::Numbers::Ordinate';
+		}
 	}
 
 	if(scalar(@needfull)) {
@@ -2357,6 +2370,8 @@ sub print_person
 						$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
 						$bio .= ((scalar(@siblings) > 1) ? 'eldest' : 'older');
+					} elsif($language eq 'French') {
+						$bio .= Lingua::FR::Numbers::Ordinate::ordinate($age_index);
 					} else {
 						$bio .= ordinate($age_index);
 					}
