@@ -9082,13 +9082,18 @@ sub dateofbirth {
 
 	my $person = $params{'person'};
 
-
 	my $dateofbirth = get_value({ person => $person, value => 'birth date' });
 	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birth'))) {
-		return $birth->date();
+		$dateofbirth = $birth->date();
 	}
-	if(defined($dateofbirth) && (lc($dateofbirth) eq 'unknown')) {
-		return;
+	if(defined($dateofbirth)) {
+		if(lc($dateofbirth) eq 'unknown') {
+			return;
+		}
+		if($dateofbirth =~ /[A-Z]{4,}/i) {
+			complain({ person => $person, warning => "Birth month '$dateofbirth' should be 3 letters" });
+			return;
+		}
 	}
 	return $dateofbirth;
 }
@@ -9108,10 +9113,16 @@ sub dateofdeath {
 
 	my $dateofdeath = get_value({ person => $person, value => 'death date' });
 	if((!defined($dateofdeath)) && (my $death = $person->get_record('death'))) {
-		return $death->date();
+		$dateofdeath = $death->date();
 	}
-	if(defined($dateofdeath) && (lc($dateofdeath) eq 'unknown')) {
-		return;
+	if(defined($dateofdeath)) {
+		if(lc($dateofdeath) eq 'unknown') {
+			return;
+		}
+		if($dateofdeath =~ /[A-Z]{4,}/i) {
+			complain({ person => $person, warning => "Death month '$dateofdeath' should be 3 letters" });
+			return;
+		}
 	}
 	return $dateofdeath;
 }
