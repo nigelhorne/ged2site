@@ -7358,7 +7358,11 @@ sub year
 				$d->set_locale($ENV{'LANG'});
 			}
 			if($language eq 'French') {
-				return 'le ' . $d->strftime('%x');
+				my $rc = $d->strftime('%x');
+				if($rc =~ /^[AEIOU]/) {
+					return "l'$rc";
+				}
+				return "le $rc";
 			} else {
 				return 'on ' . $d->strftime('%x');
 			}
@@ -7369,17 +7373,22 @@ sub year
 			if($opts{'f'}) {
 				if($person) {
 					die $person->as_string(), ": $@";
-				} else {
-					die $@;
 				}
+				die $@;
 			}
 			if($opts{'w'}) {
 				red_warning({ person => $person, warning => $@ });
 			}
 		}
+		if($language eq 'French') {
+			return "en $string";
+		}
 		return "on $string";
 	}
 	if($string =~ /^bef.? (\d{3,4})/i) {
+		if($language eq 'French') {
+			return "avant $1";
+		}
 		return "before $1";
 	}
 	if($string =~ /^by.? (\d{3,4})/i) {
@@ -7391,9 +7400,15 @@ sub year
 		} else {
 			complain("says 'By' instead of 'Bef'");
 		}
+		if($language eq 'French') {
+			return "avant $1";
+		}
 		return "before $1";
 	}
 	if($string =~ /^aft.? (\d{3,4})/i) {
+		if($language eq 'French') {
+			return "après $1";
+		}
 		return "after $1";
 	}
 
@@ -7401,7 +7416,13 @@ sub year
 	if($params{'nopreposition'}) {
 		return $string;
 	}
-	return "in $string";
+	if($language eq 'French') {
+		if($string =~ /^[AEIOU]/) {
+			return "l'$string";
+		}
+		return ($string =~ /\d$/) ? "en $string" : "le $string";
+	}
+	return ($string =~ /\d$/) ? "in $string" : "on $string";
 }
 
 sub place {
