@@ -55,7 +55,7 @@ requires 'Log::Any::Adapter::Log4perl';
 requires 'Log::Dispatch::File';
 requires 'Log::Log4perl';
 requires 'Log::WarnDie';
-requires 'Memoize';
+# requires 'Memoize';
 requires 'Mo';
 requires 'Moo';
 requires 'POSIX';
