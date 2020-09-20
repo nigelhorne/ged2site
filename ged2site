@@ -8816,6 +8816,8 @@ sub get_all_occupations
 					$occupations[0] = (($person->sex() eq 'M') ? 'Facteur' : 'Factrisse');
 				} elsif($occupations[0] =~ /(.+)\sFarmer/) {
 					$occupations[0] = "Agriculteur $1";
+				} elsif($occupations[0] eq 'Farmer') {
+					$occupations[0] = 'Agriculteur';
 				}
 			}
 			$occupations[0] =~ s/[\(\)]//g;
