@@ -2366,8 +2366,15 @@ sub print_person
 				}
 				}
 				if($all_siblings_have_dob) {
+					if($language eq 'French') {
+						$bio .= 'e ';
+					}
 					if(scalar(@siblings) && ($age_index == (scalar(@siblings) + 1))) {
-						$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
+						if($language eq 'French') {
+							$bio .= ($sex eq 'M') ? 'dernier' : 'dernière';
+						} else {
+							$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
+						}
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
 						$bio .= ((scalar(@siblings) > 1) ? 'eldest' : 'older');
 					} elsif($language eq 'French') {
@@ -2375,9 +2382,17 @@ sub print_person
 					} else {
 						$bio .= ordinate($age_index);
 					}
-					$bio .= ' of ' . (scalar(@siblings) + 1) . ' children';
+					if($language eq 'French') {
+						$bio .= ' de ' . (scalar(@siblings) + 1) . ' enfants';
+					} else {
+						$bio .= ' of ' . (scalar(@siblings) + 1) . ' children';
+					}
 				} else {
-					$bio .= 'child';
+					if($language eq 'French') {
+						$bio .= "'enfant";
+					} else {
+						$bio .= 'child';
+					}
 				}
 			} else {
 				# $bio .= ' only child of';
