@@ -207,6 +207,9 @@ if($gedcal || !$opts{'w'}) {
 if($opts{'F'}) {
 	push @modules, ' Image::Magick::Thumbnail';
 }
+if($ENV{'LANG'}) {
+	push @modules, 'Locale::Country::Multilingual';
+}
 
 foreach my $module(@modules) {
 	eval "require $module";
@@ -280,6 +283,12 @@ my $sixteenyears = DateTime::Duration->new(years => 16);
 my $fortyyears = DateTime::Duration->new(years => 40);
 # my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
+
+my $lcm;
+if($ENV{'LANG'}) {
+	$lcm = Class::Simple::Cached->new(object => Locale::Country::Multilingual->new(),
+		cache => CHI->new(driver => 'RawMemory', datastore => {}));
+}
 
 my $config;
 
@@ -2429,7 +2438,21 @@ sub print_person
 					my @occupations = get_all_occupations(person => $father);
 					# TODO: print all occupations
 					if(my $occupation = $occupations[0]) {
-						$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
+						$occupation = lc($occupation);
+						if($language eq 'English') {
+							if($ENV{'LANG'} =~ /^en_US/) {
+								$occupation = Lingua::EN::ABC::b2a($occupation);
+							} elsif($ENV{'LANG'} =~ /^en_CA/) {
+								$occupation = Lingua::EN::ABC::b2c($occupation);
+							} else {
+								$occupation = Lingua::EN::ABC::a2b($occupation);
+							}
+						}
+						if($language eq 'English') {
+							$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
+						} else {
+							$all->print(" (un $occupation)");
+						}
 					}
 				}
 				$fullbio .= ' ' . $father->as_string();
@@ -7628,6 +7651,24 @@ sub place {
 			$places_printed->{" in$2,$3"} = 1;
 		}
 		$places_printed->{$place} = 1;
+	}
+	if($lcm) {
+		if($place =~ /(.*),\s+([A-Z\s]+)$/i) {
+			if(my $code = $lcm->country2code($2)) {
+				$place = "$1, " . $lcm->code2country($code, $ENV{'LANG'});
+			} elsif(($language eq 'French') && ($2 eq 'England')) {
+				my $town = $1;
+				$town =~ s/London$/Londres/;
+				$place = "$town, Angleterre";
+			} elsif(($language eq 'French') && ($2 eq 'Scotland')) {
+				my $town = $1;
+				$place = "$town, Ecosse";
+			}
+		} elsif($place !~ /,/) {
+			if(my $code = $lcm->country2code($place)) {
+				$place = $lcm->code2country($code, $ENV{'LANG'});
+			}
+		}
 	}
 	if(!defined($params{'encode'})) {
 		$params{'encode'} = 1;
