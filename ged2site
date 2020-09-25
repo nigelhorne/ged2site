@@ -21,7 +21,6 @@
 #	were born and note if the residences of the person don't include those places
 # TODO: Create occupations database
 # TODO:	remove date_to_datetime
-# TODO: use DateTime::Locale in year() to translate the month
 # TODO: flag if census locations are XYX and Y is more than (say) 50 miles from X
 # TODO: timeline of each person - like or using timetoast.com
 
@@ -274,9 +273,28 @@ my %location_mappings = (
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
 $ged = Class::Simple::Cached->new(object => $ged, cache => CHI->new(driver => 'RawMemory', datastore => {}));
-my $dfn = DateTime::Format::Natural->new();
-my $dfg = DateTime::Format::Genealogy->new();
+
+my $language;
+if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
+	$language = 'French';
+} elsif(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^la/)) {
+	$language = 'Latin';
+} else {
+	$language = 'English';
+}
+
 my $date_parser = Genealogy::Gedcom::Date->new();
+my $dfn;
+if($language eq 'French') {
+	# $dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy', lang => 'fr');	 # not supported
+	$dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy');
+} elsif((defined($ENV{'LC_TIME'}) && ($ENV{'LC_TIME'} =~ /^en_US/)) ||
+	((defined($ENV{'LC_ALL'}) && ($ENV{'LC_ALL'} =~ /^en_US/)))) {
+	$dfn = DateTime::Format::Natural->new();
+} else {
+	$dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy');
+}
+my $dfg = DateTime::Format::Genealogy->new();
 my $oneday = DateTime::Duration->new(days => 1);
 my $tenmonths = DateTime::Duration->new(months => 10);
 my $sixteenyears = DateTime::Duration->new(years => 16);
@@ -641,15 +659,7 @@ my $au = Locale::AU->new();
 my $ca_en = Locale::CA->new(lang => 'en');
 my $ca_fr = Locale::CA->new(lang => 'fr');
 my $us = Locale::US->new();
-my $dtl = DateTime::Locale->load($ENV{'LANG'});
-my $language;
-if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
-	$language = 'French';
-} elsif(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^la/)) {
-	$language = 'Latin';
-} else {
-	$language = 'English';
-}
+my $dtl = DateTime::Locale->load($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'});
 
 if($opts{'w'}) {
 	my $cachedir;
@@ -6056,8 +6066,8 @@ sub print_person
 	print $csv '!';
 
 	my $dt;
-	if($ENV{'LANG'}) {
-		$dt = DateTime->now(locale => $ENV{'LANG'});
+	if($ENV{'LC_TIME'}) {
+		$dt = DateTime->now(locale => $ENV{'LC_TIME'});
 	} else {
 		$dt = DateTime->now();
 	}
@@ -7395,16 +7405,24 @@ sub year
 			if(my $must_predate = $params{'must_predate'}) {
 				complain({ person => $person, warning => "Something is wrong with the date $string which should be before " . $must_predate->strftime('%x') }) if($d > $must_predate);
 			}
-			if($ENV{'LANG'}) {
-				$d->set_locale($ENV{'LANG'});
+			if($ENV{'LC_TIME'}) {
+				$d->set_locale($ENV{'LC_TIME'});
+			} elsif($ENV{'LC_ALL'}) {
+				$d->set_locale($ENV{'LC_ALL'});
 			}
 			if($language eq 'French') {
-				my $rc = $d->strftime('%x');
+				# FIXME: French Canadian time etc.
+				my $rc = DateTime->from_object(object => $d, locale => 'FR-fr')->strftime('%x');
 				if($rc =~ /^[AEIOU]/) {
 					return "l'$rc";
 				}
 				return "le $rc";
 			} else {
+				if(my $locale = ($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'})) {
+					$locale =~ s/_/-/;
+					return 'on '.
+						DateTime->from_object(object => $d, locale => $locale)->strftime('%x');
+				}
 				return 'on ' . $d->strftime('%x');
 			}
 		}
