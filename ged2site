@@ -3113,18 +3113,21 @@ sub print_person
 					}
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
-						if((!defined($placeofbaptism)) or ($placeofmarriage ne $placeofbaptism)) {
-							$bio .= ' there';
-						}
-						$bio .= ' ';
-						if(my $address = $marriage->address()) {
-							if($address eq 'Parish Church') {
-								$bio .= 'at the Parish Church ';
-							} elsif($address eq 'Registry Office') {
-								$bio .= 'at the Registry Office ';
-							} else {
-								$bio .= "at $address ";
+						if(($language eq 'English') && (defined($placeofbaptism) and ($placeofmarriage eq $placeofbaptism))) {
+							$bio .= ' there ';
+
+							if(my $address = $marriage->address()) {
+								if($address eq 'Parish Church') {
+									$bio .= 'at the Parish Church ';
+								} elsif($address eq 'Registry Office') {
+									$bio .= 'at the Registry Office ';
+								} else {
+									$bio .= "at $address ";
+								}
 							}
+						} else {
+							$bio .= place({ person => $person, record => $marriage });
+							$bio .= ' ';
 						}
 						$bio .= year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
 					} else {
