@@ -120,6 +120,7 @@ BEGIN {
 	$SIG{__WARN__} = sub {
 		my $warning = shift;
 		if(($warning !~ /Subroutine Geo::Coder::OpenCage::ua redefined at/) &&
+		   ($warning !~ /Subroutine ua redefined at/) &&
 		   ($warning !~ /Subroutine HTML::GoogleMaps::V3::_text_to_point redefined at/) &&
 		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
 			if($warning =~ /^Use of uninitialized value/) {
