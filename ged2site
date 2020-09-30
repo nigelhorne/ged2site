@@ -3470,10 +3470,20 @@ sub print_person
 		}
 
 		if($same_occupation_as_father) {
-			$bio .= '.' if(!$end_of_sentence);
-			$bio .= ' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
-				(is_alive(person => $person) ? ' is' : ' was');
-			$bio .= ' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father)) . '. ';
+			$bio .= '. ' if(!$end_of_sentence);
+			if($language eq 'French') {
+				$bio .= ' Comme son père, ' . lcfirst($pronoun) .
+					(is_alive(person => $person) ? ' est' : ' était') . ' un';
+				if($same_occupation_as_father =~ /^[AEIOU]/) {
+					$bio .= 'e';
+				}
+				$bio .= ' ' . lc($same_occupation_as_father);
+			} else {
+				$bio .= ' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
+					(is_alive(person => $person) ? ' is' : ' was');
+				$bio .= ' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father));
+			}
+			$bio .= '. ';
 			$end_of_sentence = 1;
 		}
 
