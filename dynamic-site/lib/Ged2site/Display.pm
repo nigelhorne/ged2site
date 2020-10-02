@@ -243,14 +243,14 @@ sub html {
 		$vals->{info} = $info;
 		$vals->{as_string} = $info->as_string();
 
-                if(!$template->process($filename, $vals, \$rc)) {
-                        if(my $err = $template->error()) {
-                                throw Error::Simple($err);
-                        }
-                        throw Error::Simple("Unknown error in template: $filename");
-                }
+		if(!$template->process($filename, $vals, \$rc)) {
+			if(my $err = $template->error()) {
+				throw Error::Simple($err);
+			}
+			throw Error::Simple("Unknown error in template: $filename");
+		}
 	} elsif($filename =~ /\.(html?|txt)$/) {
-		open(my $fin, '<', $filename);
+		open(my $fin, '<', $filename) || die "$filename: $!";
 
 		my @lines = <$fin>;
 

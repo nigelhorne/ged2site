@@ -1,7 +1,7 @@
 package Ged2site::DB;
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2019, Nigel Horne
+# Copyright (C) 2015-2020, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -83,7 +83,7 @@ sub new {
 	}, $class;
 }
 
-# Can also be run as a class level NJH::Snippets::DB::init(directory => '../databases')
+# Can also be run as a class level __PACKAGE__::DB::init(directory => '../databases')
 sub init {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -449,7 +449,9 @@ sub fetchrow_hashref {
 	$query .= ' LIMIT 1';
 	if($self->{'logger'}) {
 		if(defined($query_args[0])) {
-			$self->{'logger'}->debug("fetchrow_hashref $query: ", join(', ', @query_args));
+			my @call_details = caller(0);
+			$self->{'logger'}->debug("fetchrow_hashref $query: ", join(', ', @query_args),
+				' called from ', $call_details[2] . ' of ' . $call_details[1]);
 		} else {
 			$self->{'logger'}->debug("fetchrow_hashref $query");
 		}
@@ -492,6 +494,8 @@ sub execute {
 	} else {
 		$args{'query'} = shift;
 	}
+
+	Carp::croak('Usage: execute(query => $query)') unless(defined($args{'query'}));
 
 	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
