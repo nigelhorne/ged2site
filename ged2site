@@ -7697,6 +7697,10 @@ sub place {
 			} elsif(($language eq 'French') && ($2 eq 'Scotland')) {
 				my $town = $1;
 				$place = "$town, Ecosse";
+			} elsif(($language eq 'Welsh') && ($2 eq 'Wales')) {
+				my $town = $1;
+				$town =~ s/Swansea$/Abertawe/;
+				$place = "$town, Cymru";
 			}
 		} elsif($place !~ /,/) {
 			if(my $code = $lcm->country2code($place)) {
