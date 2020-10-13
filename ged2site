@@ -7998,7 +7998,8 @@ sub validate_place
 			} elsif($place eq 'U.S.A.') {
 				$place = 'USA';
 			}
-			my @locations = $geocoder->geocode($place);
+			# my @locations = $geocoder->geocode($place);
+			my @locations = get_location($place);
 			if(scalar(@locations) == 0) {
 				# Don't die because there are many
 				# false positives as locations
