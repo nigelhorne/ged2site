@@ -23,6 +23,7 @@
 # TODO:	remove date_to_datetime
 # TODO: flag if census locations are XYX and Y is more than (say) 50 miles from X
 # TODO: timeline of each person - like or using timetoast.com
+# TODO: investigate Locale::Geocode
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
