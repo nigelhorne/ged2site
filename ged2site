@@ -53,7 +53,8 @@ BEGIN {
 	my @modules = (
 		'Config::Auto',
 		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
-		 'Gedcom', 'Genealogy::Gedcom::Date',
+		'Date::Manip', 'Parse::RecDescent', 'Roman',
+		'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
 		'Genealogy::Gedcom::Date',
