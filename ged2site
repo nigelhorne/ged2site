@@ -165,6 +165,8 @@ use Class::Simple::Cached 0.03;
 use Class::Simple::Readonly::Cached 0.02;
 use POSIX;
 
+sub get_location($);
+
 my %opts;
 getopts('cdfFG:g:h:J:lL:mwWvx:', \%opts);
 
@@ -808,23 +810,8 @@ foreach my $person(@everyone) {
 		print_person({ person => $person });
 		print $xml "\n\t</person>";
 		print $csv "\n";
-		if($opts{'v'}) {
-			my $log = $geocoder->log();
-			$geocoder->flush();
-			foreach my $l(@{$log}) {
-				print $l->{location}, ': ' if($l->{'location'});
-				if($l->{geocoder}) {
-					if($l->{error}) {
-						print $l->{timetaken}, 's with ', $l->{geocoder}, '(', $l->{error}, ')';
-					} else {
-						print $l->{timetaken}, 's with ', $l->{geocoder};
-					}
-				} else {
-					print 'cached';
-				}
-				print ', wantarray ', $l->{wantarray}, "\n";
-			}
-		}
+
+		dump_geocoder_log();
 	}
 	last if($opts{'L'} && ($index == $opts{'L'}));
 	last if(MAX_INDEX && ($index >= MAX_INDEX));
@@ -9257,7 +9244,8 @@ sub dateofdeath {
 }
 
 # Given a place return its latitude and longitude
-sub get_location {
+sub get_location($)
+{
 	my $place = shift;
 
 	return unless(defined($geocoder));
@@ -9274,24 +9262,38 @@ sub get_location {
 			$rc->lat($location->{geometry}{location}{lat});
 			return $rc;
 		}
-		my $log = $geocoder->log();
-		$geocoder->flush();
-		foreach my $l(@{$log}) {
-			print $l->{location}, ': ' if($l->{'location'});
-			if($l->{geocoder}) {
-				if($l->{error}) {
-					print $l->{timetaken}, 's with ', $l->{geocoder}, '(', $l->{error}, ')';
-				} else {
-					print $l->{timetaken}, 's with ', $l->{geocoder};
-				}
-			} else {
-				print 'cached';
-			}
-			print ', wantarray ', $l->{wantarray}, "\n";
-		}
+		dump_geocoder_log();
+
 		print Data::Dumper->new([\$location])->Dump();
 		print Data::Dumper->new([\@locations])->Dump();
 		complain({ warning => "Probable bug in Geo::Coder::List with '$place'" });
+	}
+}
+
+sub dump_geocoder_log
+{
+	return unless($opts{'v'});
+	return unless(defined($geocoder));
+
+	my $log = $geocoder->log();
+	$geocoder->flush();
+	print Data::Dumper->new([$log])->Dump() if($log);
+	foreach my $l(@{$log}) {
+		if($l->{'line'}) {
+			print 'Line ', $l->{'line'}, ': ';
+		}
+		if($l->{'error'}) {
+			print $l->{'error'}, ', ';
+		}
+		if($l->{geocoder}) {
+			if($l->{error}) {
+				print $l->{location}, ': ', $l->{timetaken}, 's with ', $l->{geocoder}, '(', $l->{error}, ")\n";
+			} else {
+				print $l->{location}, ': ', $l->{timetaken}, 's with ', $l->{geocoder}, "\n";
+			}
+		} else {
+			print $l->{location}, ": cached\n";
+		}
 	}
 }
 
