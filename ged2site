@@ -211,7 +211,7 @@ if($gedcal || !$opts{'w'}) {
 if($opts{'F'}) {
 	push @modules, ' Image::Magick::Thumbnail';
 }
-if($ENV{'LANG'}) {
+if(get_language()) {
 	push @modules, 'Locale::Country::Multilingual';
 }
 
@@ -279,14 +279,7 @@ my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
 $ged = Class::Simple::Cached->new(object => $ged, cache => CHI->new(driver => 'RawMemory', datastore => {}));
 
-my $language;
-if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
-	$language = 'French';
-} elsif(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^la/)) {
-	$language = 'Latin';
-} else {
-	$language = 'English';
-}
+my $language = get_language();
 
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $dfn;
@@ -308,7 +301,7 @@ my $fortyyears = DateTime::Duration->new(years => 40);
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
 my $lcm;
-if($ENV{'LANG'}) {
+if($language) {
 	$lcm = Class::Simple::Cached->new(object => Locale::Country::Multilingual->new(),
 		cache => CHI->new(driver => 'RawMemory', datastore => {}));
 }
@@ -4310,11 +4303,9 @@ sub print_person
 									$residencestring .= '-';
 									$print_year_only = 1;
 								}
-							} else {
-								if($print_year_only && $rdate) {
-									$residencestring .= $rdate;
-									$print_year_only = 0;
-								}
+							} elsif($print_year_only && $rdate) {
+								$residencestring .= $rdate;
+								$print_year_only = 0;
 							}
 						}
 					} elsif($print_year_only) {
@@ -4324,7 +4315,7 @@ sub print_person
 				}
 				if($residencestring) {
 					$residencestring =~ s/^\s//;
-					if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
+					if($language eq 'French') {
 						$residencestring =~ s/(.+), (his|her) /$1 et $2 /;
 					} else {
 						$residencestring =~ s/(.+), (his|her) /$1 and $2 /;
@@ -9127,7 +9118,7 @@ sub chronicling_america
 
 	if(my $loc = Genealogy::ChroniclingAmerica->new($chronicling_params)) {
 		while(my $url = $loc->get_next_entry()) {
-			if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
+			if($language eq 'French') {
 				complain({ person => $person, warning => "Visitez $url" });
 			} else {
 				complain({ person => $person, warning => "Check out $url" });
@@ -9364,5 +9355,38 @@ sub get_year_from_date($)
 	my $date = shift;
 	if($date =~ /(\d{3,4})\s*$/) {
 		return $1;
+	}
+}
+
+# https://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
+# https://www.gnu.org/software/gettext/manual/html_node/The-LANGUAGE-variable.html
+sub get_language
+{
+	if($ENV{'LANGUAGE'}) {
+		foreach my $language(split/:/, $ENV{'LANGUAGE'}) {
+			if($language eq 'en') {
+				return 'English';
+			}
+			if($language eq 'fr') {
+				return 'French';
+			}
+			if($language eq 'la') {
+				return 'Latin';
+			}
+		}
+	}
+	foreach my $variable('LC_ALL', 'LC_MESSAGES', 'LANG') {
+		my $val = $ENV{$variable};
+		next unless(defined($val));
+
+		if($val =~ /^en/) {
+			return 'English';
+		}
+		if($val =~ /^fr/) {
+			return 'French';
+		}
+		if($val =~ /^la/) {
+			return 'Latin';
+		}
 	}
 }
