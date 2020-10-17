@@ -7339,6 +7339,9 @@ sub year
 	}
 
 	if($string =~ /^\d{3,4}$/) {
+		if($language eq 'French') {
+			return "en $string";
+		}
 		return "in $string";
 	}
 	if($string =~ /^(Abt|ca?)\.?\s*(.+)/i) {
