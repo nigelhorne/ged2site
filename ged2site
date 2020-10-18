@@ -6155,22 +6155,35 @@ sub print_person
 
 	my $m;
 	if($opts{'l'} || !$is_alive) {
-		foreach my $spouse(@spouses) {
-			my $date;
-			if(my $rec = $spouse->get_record('fams marriage')) {
-				$date = $rec->date();
-			} elsif($rec = $spouse->get_record('marriage')) {
-				$date = $rec->date();
-			}
-			if($date && ($date =~ /\d$/)) {
-				if(my $marriage_dt = date_to_datetime(date => $date)) {
+		if(scalar(@spouses) == 1) {
+			if($dateofmarriage && ($dateofmarriage =~ /\d$/)) {
+				if(my $marriage_dt = date_to_datetime(date => $dateofmarriage)) {
 					if($marriage_dt->month() && $marriage_dt->day()) {
-						$m .= '---' if($m);
-						$m .= $marriage_dt->strftime('%Y/%m/%d');
+						$m = $marriage_dt->strftime('%Y/%m/%d');
 					}
-				} elsif($date =~ /^\d{3,4}/) {
-					$m .= '---' if($m);
-					$m .= $date;
+				} elsif($dateofmarriage =~ /^\d{3,4}/) {
+					$m = $dateofmarriage;
+				}
+			}
+		} else {
+			foreach my $spouse(@spouses) {
+				my $date;
+				# FIXME: if the spouse has been married more than once we'll get the wrong date
+				if(my $rec = $spouse->get_record('fams marriage')) {
+					$date = $rec->date();
+				} elsif($rec = $spouse->get_record('marriage')) {
+					$date = $rec->date();
+				}
+				if($date && ($date =~ /\d$/)) {
+					if(my $marriage_dt = date_to_datetime(date => $date)) {
+						if($marriage_dt->month() && $marriage_dt->day()) {
+							$m .= '---' if($m);
+							$m .= $marriage_dt->strftime('%Y/%m/%d');
+						}
+					} elsif($date =~ /^\d{3,4}/) {
+						$m .= '---' if($m);
+						$m .= $date;
+					}
 				}
 			}
 		}
@@ -6501,6 +6514,9 @@ sub print_person
 				$marriage_in_last_run = $marriage_in_last_run->first_child()->pcdata();
 				if(($marriage_in_last_run =~ /\-\-\-/) || (scalar(@spouses) >= 2)) {
 					# Married more than once
+					$marriage_in_last_run = undef;
+				} elsif((!$opts{'l'}) && is_alive($spouses[0])) {
+					# Spouse is still alive
 					$marriage_in_last_run = undef;
 				}
 			}
