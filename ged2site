@@ -6515,7 +6515,7 @@ sub print_person
 				if(($marriage_in_last_run =~ /\-\-\-/) || (scalar(@spouses) >= 2)) {
 					# Married more than once
 					$marriage_in_last_run = undef;
-				} elsif((!$opts{'l'}) && is_alive($spouses[0])) {
+				} elsif($spouses[0] && (!$opts{'l'}) && is_alive($spouses[0])) {
 					# Spouse is still alive
 					$marriage_in_last_run = undef;
 				}
