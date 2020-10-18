@@ -8390,8 +8390,8 @@ sub print_graphviz
 		# Warning: Illegal attribute height in <IMG>
 		# print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\" width=\"$x\" height=\"$y\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>",
 			# ",labelloc=b";
-		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>",
-			# ",labelloc=b";
+		print $fout "label=<<TABLE border=\"0\" cellborder=\"0\"><TR><TD><IMG SRC=\"thumbs/$thumbname[0]\" scale=\"true\"/></TD></TR><TR><TD>$label</TD></TR>$dob$dod</TABLE>>",
+			",labelloc=b";
 
 		# print $fout ",image=\"$profile_image\",labelloc=b";
 
