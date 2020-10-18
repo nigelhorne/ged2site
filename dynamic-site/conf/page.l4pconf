@@ -1,5 +1,8 @@
+# Debugging and errors
 # log4perl.logger.page=TRACE, A1, A2
 log4perl.logger.page=TRACE, A1
+# Warnings and errors only
+log4perl.logger.page=WARN, A1, A2
 
 log4perl.appender.A1=Log::Dispatch::File
 # log4perl.appender.A1.Filter=RangeAll
