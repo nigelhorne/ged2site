@@ -34,13 +34,16 @@ our %blacklist_countries = (
 );
 
 our %blacklist_agents = (
+	'Barkrowler' => 'Barkrowler',
 	'masscan' => 'Masscan',
 	'WBSearchBot' => 'Warebay',
 	'MJ12' => 'Majestic',
 	'Mozilla/4.0 (compatible; Vagabondo/4.0; webcrawler at wise-guys dot nl; http://webagent.wise-guys.nl/; http://www.wise-guys.nl/)' => 'wise-guys',
-	'zgrab' => 'Mozilla/5.0 zgrab/0.x',
+	'Mozilla/5.0 zgrab/0.x' => 'zgrab',
+	'Mozilla/5.0 (compatible; IODC-Odysseus Survey 21796-100-051215155936-107; +https://iodc.co.uk)' => 'iodc',
+	'Mozilla/5.0 (compatible; adscanner/)' => 'adscanner',
 	'Mozilla/5.0 (compatible; SemrushBot/6~bl; +http://www.semrush.com/bot.html)' => 'SemrushBot',
-	'iodc' => 'Mozilla/5.0 (compatible; IODC-Odysseus Survey 21796-100-051215155936-107; +https://iodc.co.uk)',
+	'ZoominfoBot (zoominfobot at zoominfo dot com)' => 'zoominfobot',
 );
 
 our %status;
