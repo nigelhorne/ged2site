@@ -7946,7 +7946,11 @@ sub validate_place
 	}
 
 	$place =~ s/^\s+//;
-	$place =~ s/^at\s+//;
+	if($language eq 'French') {
+		$place =~ s/^à\s+//;
+	} else {
+		$place =~ s/^at\s+//;
+	}
 	if(defined($places{$place})) {
 		return $places{$place};
 	}
