@@ -344,7 +344,8 @@ if($opts{'m'} || $opts{'w'}) {
 	if(my $e = $ENV{'CACHEDIR'}) {
 		$cachedir = File::Spec->catfile($e, basename($0));
 	} else {
-		$cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', basename($0));
+		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', basename($0));
+		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', basename($0));
 	}
 	$geocoder = Geo::Coder::List->new(cache => CHI->new(driver => 'File', root_dir => $cachedir));
 	$geocoder->push(Geo::Coder::Free::Local->new());
@@ -631,7 +632,8 @@ if($opts{'d'} || $opts{'m'}) {
 		mkdir $cachedir if(!-d $cachedir);
 		$cachedir = File::Spec->catfile($cachedir, 'http-cache-transparent');
 	} else {
-		$cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'http-cache-transparent');
+		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'http-cache-transparent');
+		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'http-cache-transparent');
 	}
 
 	if(!-d $cachedir) {
@@ -664,7 +666,8 @@ if($opts{'w'}) {
 	if(my $e = $ENV{'CACHEDIR'}) {
 		$cachedir = File::Spec->catfile($e, 'lwp');
 	} else {
-		$cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'lwp');
+		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'lwp');
+		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp');
 	}
 	if(!-d $cachedir) {
 		mkdir $cachedir || die "$cachedir: $!";
