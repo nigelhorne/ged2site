@@ -190,6 +190,10 @@ my @modules;
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 	push @modules, 'File::Spec';
 
+	if(!$ENV{'CACHEDIR'}) {
+		push @modules, 'File::HomeDir';
+	}
+
 	if($opts{'m'} || $opts{'w'}) {
 		push @modules, 'Geo::Coder::Free::Local';
 		if($opts{'w'}) {
