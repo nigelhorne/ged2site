@@ -69,7 +69,7 @@ BEGIN {
 		'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info', 'JSON',
 		'List::Util',
-		'LWP::Simple', 'MIME::Base64',
+		'LWP::Simple::WithCache', 'MIME::Base64',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
@@ -5676,9 +5676,8 @@ sub print_person
 								print "Download image $file\n" if($opts{'v'});
 								my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
 								my $rc;
-								# LWP::Simple
 								if((-r "static-site/$localfile") ||
-								   is_success($rc = getstore($file, "static-site/$localfile"))) {
+								   LWP::Simple::WithCache::is_success($rc = LWP::Simple::WithCache::getstore($file, "static-site/$localfile"))) {
 									my $info = Image::Info::image_info("static-site/$localfile");
 									my ($w, $h) = Image::Info::dim($info);
 									if(!defined($w)) {
