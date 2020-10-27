@@ -2724,7 +2724,7 @@ sub print_person
 			if($dateofbaptism || $placeofbaptism) {
 				$bio .= ' ';
 				unless($dateofbirth || $placeofbirth) {
-					if($numberofchildren == 0) {
+					if(($numberofchildren == 0) || (scalar(@spouses) == 0) || $all_children_are_alive) {
 						$bio .= 'and ';
 					}
 					$bio .= 'was ';
