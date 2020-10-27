@@ -2696,6 +2696,30 @@ sub print_person
 						}
 					}
 				}
+				if($birth_dt || ($dateofbirth && ($dateofbirth=~ /^\d{3,4}$/))) {
+					# TODO: Add more checking
+					my $yob;
+					if($birth_dt) {
+						$yob = $birth_dt->year();
+					} elsif($dateofbirth =~ /^(\d{3,4})$/) {
+						$yob = $1;
+					} else {
+						die "BUG: Impossible case";
+					}
+					foreach my $dc(@deathcitations) {
+						my $citation = $citations{$dc};
+						if(my $title = $citation->title()) {
+							if($title =~ /^(\d{3,4})\s/) {
+								if($1 < $yob) {
+									complain({
+										person => $person,
+										warning => "Year of citation of $title is before the birth year of $yob"
+									});
+								}
+							}
+						}
+					}
+				}
 				if($death_dt || ($dateofdeath && ($dateofdeath =~ /^\d{3,4}$/))) {
 					my $yod;
 					# TODO: Add more checking
@@ -8896,6 +8920,8 @@ sub get_all_occupations
 			$occupations[0] = 'Gardener and Domestic';
 		} elsif($occupations[0] =~ /^General serv.+dom/) {
 			$occupations[0] = 'Domestic General Server';
+		} elsif($occupations[0] =~ /^(.+) on farm/i) {
+			$occupations[0] = "$1 on a farm";
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
 		} elsif($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i) {
 			# Don't change Bus Driver to Bu's Driver
