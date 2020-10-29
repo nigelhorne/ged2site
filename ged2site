@@ -634,7 +634,7 @@ if($opts{'d'} || $opts{'m'}) {
 
 	my $cachedir = $ENV{'CACHEDIR'};
 	if($cachedir) {
-		mkdir $cachedir if(!-d $cachedir);
+		mkdir $cachedir, 0700 if(!-d $cachedir);
 		$cachedir = File::Spec->catfile($cachedir, 'http-cache-transparent');
 	} else {
 		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'http-cache-transparent');
@@ -642,7 +642,7 @@ if($opts{'d'} || $opts{'m'}) {
 	}
 
 	if(!-d $cachedir) {
-		mkdir $cachedir || die "$cachedir: $!";
+		mkdir $cachedir, 0700 || die "$cachedir: $!";
 	}
 	HTTP::Cache::Transparent::init({
 		BasePath => $cachedir,
@@ -675,7 +675,7 @@ if($opts{'w'}) {
 		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp');
 	}
 	if(!-d $cachedir) {
-		mkdir $cachedir || die "$cachedir: $!";
+		mkdir $cachedir, 0700 || die "$cachedir: $!";
 	}
 	$cached_browser = LWP::UserAgent::Cached->new(cache_dir => $cachedir,
 		agent => basename($0),
