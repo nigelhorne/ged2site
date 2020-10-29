@@ -268,6 +268,7 @@ my $facts;
 # my $pi = atan2(1,1) * 4;
 
 binmode(STDOUT, ':utf8');
+umask(0077);	# Don't let PII become publically readable
 
 # Help OSM to match
 my %location_mappings = (
