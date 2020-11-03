@@ -7711,9 +7711,13 @@ sub place {
 			$places_printed->{" in$str"} = 1;
 			$places_printed->{" in$2,$3,$4"} = 1;
 		} elsif($place =~ /(.+),(.+),(.+)$/) {
+			# e.g. Southwark, London, England
 			if($places_printed->{" in$2,$3"}) {
 				# We did place, county, country before, so just
 				# return place, county
+				if(($language eq 'French') && ("$2,$3" eq ' London, England')) {
+					return "$1, Londres";
+				}
 				return "$1,$2";
 			}
 			$places_printed->{" in$2,$3"} = 1;
