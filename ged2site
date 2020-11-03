@@ -24,6 +24,7 @@
 # TODO: flag if census locations are XYX and Y is more than (say) 50 miles from X
 # TODO: timeline of each person - like or using timetoast.com
 # TODO: investigate Locale::Geocode
+# FIXME: with a US state you use 'en' not à
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -268,6 +269,7 @@ my $facts;
 # my $pi = atan2(1,1) * 4;
 
 binmode(STDOUT, ':utf8');
+umask(0077);	# Don't let PII become publically readable
 
 # Help OSM to match
 my %location_mappings = (
@@ -633,7 +635,7 @@ if($opts{'d'} || $opts{'m'}) {
 
 	my $cachedir = $ENV{'CACHEDIR'};
 	if($cachedir) {
-		mkdir $cachedir if(!-d $cachedir);
+		mkdir $cachedir, 0700 if(!-d $cachedir);
 		$cachedir = File::Spec->catfile($cachedir, 'http-cache-transparent');
 	} else {
 		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'http-cache-transparent');
@@ -641,7 +643,7 @@ if($opts{'d'} || $opts{'m'}) {
 	}
 
 	if(!-d $cachedir) {
-		mkdir $cachedir || die "$cachedir: $!";
+		mkdir $cachedir, 0700 || die "$cachedir: $!";
 	}
 	HTTP::Cache::Transparent::init({
 		BasePath => $cachedir,
@@ -674,7 +676,7 @@ if($opts{'w'}) {
 		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp-cache')
 	}
 	if(!-d $cachedir) {
-		mkdir $cachedir || die "$cachedir: $!";
+		mkdir $cachedir, 0700 || die "$cachedir: $!";
 	}
 	$cached_browser = LWP::UserAgent::Cached->new(cache_dir => $cachedir,
 		agent => basename($0),
@@ -2696,6 +2698,30 @@ sub print_person
 						}
 					}
 				}
+				if($birth_dt || ($dateofbirth && ($dateofbirth=~ /^\d{3,4}$/))) {
+					# TODO: Add more checking
+					my $yob;
+					if($birth_dt) {
+						$yob = $birth_dt->year();
+					} elsif($dateofbirth =~ /^(\d{3,4})$/) {
+						$yob = $1;
+					} else {
+						die "BUG: Impossible case";
+					}
+					foreach my $dc(@deathcitations) {
+						my $citation = $citations{$dc};
+						if(my $title = $citation->title()) {
+							if($title =~ /^(\d{3,4})\s/) {
+								if($1 < $yob) {
+									complain({
+										person => $person,
+										warning => "Year of citation of $title is before the birth year of $yob"
+									});
+								}
+							}
+						}
+					}
+				}
 				if($death_dt || ($dateofdeath && ($dateofdeath =~ /^\d{3,4}$/))) {
 					my $yod;
 					# TODO: Add more checking
@@ -2724,7 +2750,7 @@ sub print_person
 			if($dateofbaptism || $placeofbaptism) {
 				$bio .= ' ';
 				unless($dateofbirth || $placeofbirth) {
-					if($numberofchildren == 0) {
+					if(($numberofchildren == 0) || (scalar(@spouses) == 0) || $all_children_are_alive) {
 						$bio .= 'and ';
 					}
 					$bio .= 'was ';
@@ -7685,9 +7711,13 @@ sub place {
 			$places_printed->{" in$str"} = 1;
 			$places_printed->{" in$2,$3,$4"} = 1;
 		} elsif($place =~ /(.+),(.+),(.+)$/) {
+			# e.g. Southwark, London, England
 			if($places_printed->{" in$2,$3"}) {
 				# We did place, county, country before, so just
 				# return place, county
+				if(($language eq 'French') && ("$2,$3" eq ' London, England')) {
+					return "$1, Londres";
+				}
 				return "$1,$2";
 			}
 			$places_printed->{" in$2,$3"} = 1;
@@ -8896,6 +8926,8 @@ sub get_all_occupations
 			$occupations[0] = 'Gardener and Domestic';
 		} elsif($occupations[0] =~ /^General serv.+dom/) {
 			$occupations[0] = 'Domestic General Server';
+		} elsif($occupations[0] =~ /^(.+) on farm/i) {
+			$occupations[0] = "$1 on a farm";
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
 		} elsif($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i) {
 			# Don't change Bus Driver to Bu's Driver

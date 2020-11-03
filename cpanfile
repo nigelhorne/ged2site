@@ -41,7 +41,7 @@ requires 'HTTP::Cache::Transparent';
 requires 'IPC::System::Simple';
 requires 'Image::Info';
 requires 'JSON';
-requires 'LWP::Simple';
+requires 'LWP::Simple::WithCache';
 requires 'LWP::UserAgent::Throttled';
 requires 'Lingua::EN::ABC';
 requires 'Lingua::EN::Inflect';
