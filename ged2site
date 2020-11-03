@@ -668,10 +668,10 @@ my $dtl = DateTime::Locale->load($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG
 if($opts{'w'}) {
 	my $cachedir;
 	if(my $e = $ENV{'CACHEDIR'}) {
-		$cachedir = File::Spec->catfile($e, 'lwp');
+		$cachedir = File::Spec->catfile($e, 'lwp-cache');
 	} else {
 		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'lwp');
-		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp');
+		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp-cache')
 	}
 	if(!-d $cachedir) {
 		mkdir $cachedir || die "$cachedir: $!";
