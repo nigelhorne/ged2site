@@ -7622,8 +7622,7 @@ sub place {
 		my $town = $1;
 		my $province = $3;
 		# FIXME: doesn't work because none of this code properly handles UTF-8 which is needed for Québec
-		my $p = $ca_en->{province2code}{uc($province)} || $ca_fr->{province2code}{uc($province)};
-		if(defined($p)) {
+		if(defined(my $p = $ca_en->{province2code}{uc($province)} || $ca_fr->{province2code}{uc($province)})) {
 			my $ca;
 			if($language eq 'French') {
 				$ca = $ca_fr;
@@ -7644,6 +7643,8 @@ sub place {
 	if($params{'person'}) {
 		validate_place({ person => $params{'person'}, place => $place });
 	}
+
+	utf8::decode($place);
 
 	if($place =~ /^\d/) {
 		if(my $places_printed = $params{'places_printed'}) {
