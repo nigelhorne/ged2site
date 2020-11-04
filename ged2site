@@ -3940,8 +3940,13 @@ sub print_person
 								}
 							} else {
 								if((!defined($residencestring)) && (my $p = pop(@residencestringarray))) {
-									$p =~ s/ and /, /g;
-									$residencestring = "$p and $this_date";
+									if($language eq 'French') {
+										$p =~ s/ et /, /g;
+										$residencestring = "$p et $this_date";
+									} else {
+										$p =~ s/ and /, /g;
+										$residencestring = "$p and $this_date";
+									}
 								} else {
 									$residencestring .= " $this_date";
 								}
@@ -9362,11 +9367,21 @@ sub sortoutcase {
 
 	my $ret = '';
 
-	foreach (split(/ /, $field)) {
+	foreach my $word (split(/\s/, $field)) {
 		if($ret ne '') {
 			$ret .= ' ';
 		}
-		$ret .= ucfirst($_);
+		my @list = split(/-/, $word);
+		if(scalar(@list) > 1) {
+			foreach (@list) {
+				if($ret ne '') {
+					$ret .= '-';
+				}
+				$ret .= ucfirst($_);
+			}
+		} else {
+			$ret .= ucfirst($word);
+		}
 	}
 
 	return $ret;
