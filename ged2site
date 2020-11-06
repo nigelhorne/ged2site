@@ -3825,7 +3825,7 @@ sub print_person
 								}
 							}
 						}
-						if($yob && (($yoe - $yob) <= 10)) {
+						if($yob && (($yoe - $yob) <= 12)) {
 							my $found_parent = 0;
 							if($mother) {
 								foreach my $m_residence(get_all_residences($mother)) {
@@ -4166,7 +4166,7 @@ sub print_person
 							}
 						}
 						# FIXME: only checks when there are @siblings
-						if($bdiff->in_units('years') >= 30) {
+						if(($bdiff->in_units('years') >= 30) || ($bdiff->in_units('years') < 16)) {
 							my $with_mother;
 							my $same_road_as_mother;
 							my $road = $residence->address();
@@ -4231,55 +4231,61 @@ sub print_person
 								}
 							}
 							if($with_mother || $with_father) {
-								if($first) {
-									$residencestring .= ($printed_sibling ? ' and ' : ' with ') .
-										($person->pronoun() eq 'She' ? 'her' : 'his');
-								} else {
-									$residencestring =~ s/,$//;
-									if($language eq 'French') {
-										$residencestring .= ' et';
+								if($bdiff->in_units('years') >= 30) {
+									if($first) {
+										$residencestring .= ($printed_sibling ? ' and ' : ' with ') .
+											($person->pronoun() eq 'She' ? 'her' : 'his');
 									} else {
-										$residencestring .= ' and';
+										$residencestring =~ s/,$//;
+										if($language eq 'French') {
+											$residencestring .= ' et';
+										} else {
+											$residencestring .= ' and';
+										}
 									}
-								}
-								$printed_sibling = 1;
-								$first = 0;
+									$printed_sibling = 1;
+									$first = 0;
 
-								if($with_mother && $with_father) {
-									$residencestring .= ' parents ';
-								} elsif($with_mother) {
-									$residencestring .= ' mother ' . $mother->given_names();
-								} elsif($with_father) {
-									$residencestring .= ' father ' . $father->given_names();
+									if($with_mother && $with_father) {
+										$residencestring .= ' parents ';
+									} elsif($with_mother) {
+										$residencestring .= ' mother ' . $mother->given_names();
+									} elsif($with_father) {
+										$residencestring .= ' father ' . $father->given_names();
+									}
 								}
 							} elsif(($same_road_as_mother || $same_road_as_father) && !$printed_sibling) {
-								$residencestring .= ' on the same road as ' .
-											($person->pronoun() eq 'She' ? 'her' : 'his');
-								$printed_sibling = 1;
-								$first = 0;
+								if($bdiff->in_units('years') >= 30) {
+									$residencestring .= ' on the same road as ' .
+												($person->pronoun() eq 'She' ? 'her' : 'his');
+									$printed_sibling = 1;
+									$first = 0;
 
-								my @r;
-								if($same_road_as_mother && $same_road_as_father) {
-									$residencestring .= ' parents';
-									@r = get_all_residences(person => $father);
-								} elsif($same_road_as_mother) {
-									$residencestring .= ' mother';
-									@r = get_all_residences(person => $mother);
-								} else {
-									$residencestring .= ' father';
-									@r = get_all_residences(person => $father);
-								}
-								foreach my $r(@r) {
-									if($r->date() eq $rdate) {
-										if($same_road_as_mother && $same_road_as_father) {
-											$residencestring .= ' who were';
-										} else {
-											$residencestring .= ' who was';
+									my @r;
+									if($same_road_as_mother && $same_road_as_father) {
+										$residencestring .= ' parents';
+										@r = get_all_residences(person => $father);
+									} elsif($same_road_as_mother) {
+										$residencestring .= ' mother';
+										@r = get_all_residences(person => $mother);
+									} else {
+										$residencestring .= ' father';
+										@r = get_all_residences(person => $father);
+									}
+									foreach my $r(@r) {
+										if($r->date() eq $rdate) {
+											if($same_road_as_mother && $same_road_as_father) {
+												$residencestring .= ' who were';
+											} else {
+												$residencestring .= ' who was';
+											}
+											$residencestring .= ' living at ' . $r->address();
+											last;
 										}
-										$residencestring .= ' living at ' . $r->address();
-										last;
 									}
 								}
+							} elsif(($mother || $father) && ($bdiff->in_units('years') < 16)) {
+								complain({ person => $person, warning => [ 'Not living with either parent in childhood when aged ', $bdiff->in_units('years') ] });
 							}
 						}
 						if($spouse && $marriage_dt && (my $rdate_dt = date_to_datetime($rdate))) {
