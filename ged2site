@@ -6069,13 +6069,7 @@ sub print_person
 				$map = HTML::GoogleMaps::V3->new(%args);
 				$map->center($current_place);
 			}
-			$current_place = HTML::Entities::decode($current_place);
-			$current_place =~ s/,\s/,+/g;
-			# https://www.google.com/maps/place/81+Keightly+Rd,+Greencastle,+Putnam,+IN,+USA
-			# TODO: If BMAP_KEY is set, use Bing maps instead
-			# 	If GMAP_KEY is not set, use OpenStreetMaps
-			$current_place = "&gt;a href=\"https://www.google.com/maps/place/$current_place\"&lt;$current_place&gt;/a&lt;";
-			add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
+			add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
@@ -7961,7 +7955,7 @@ sub notes
 		my $u = URI->new($orig_uri);
 		if($u && (ref($u) ne 'URI::_generic')) {
 			# Some sites give 404 on HEAD but work on GET
-			if((!head($orig_uri)) && !get($orig_uri)) {
+			if((!LWP::Simple::WithCache::head($orig_uri)) && !LWP::Simple::WithCache::get($orig_uri)) {
 				complain({ person => $person, warning => "$orig_uri: in notes is not found" });
 			}
 			$uri =~ s/:$//;
@@ -8687,9 +8681,15 @@ sub add_marker
 			last;
 		}
 	}
+	my $place_link = $place;
+	$place_link =~ s/,\s/,+/g;
+	# https://www.google.com/maps/place/81+Keightly+Rd,+Greencastle,+Putnam,+IN,+USA
+	# TODO: If BMAP_KEY is set, use Bing maps instead
+	# 	If GMAP_KEY is not set, use OpenStreetMaps
+	$place_link = "&gt;a href=\"https://www.google.com/maps/place/$place_link\"&lt;$place&gt;/a&lt;";
 
 	if(my $annotation = $params{'annotation'}) {
-		if($map->add_marker(point => $place, html => "$place<br>$annotation")) {
+		if($map->add_marker(point => $place, html => "$place_link<br>$annotation")) {
 			return;
 		}
 		red_warning({ person => $person, warning => "$place isn't found", stack_trace => 1 });
@@ -8703,7 +8703,7 @@ sub add_marker
 			$map->add_marker(point => $place, html => "$place<br>$annotation");
 		}
 	} else {
-		if($map->add_marker(point => $place, html => $place)) {
+		if($map->add_marker(point => $place, html => $place_link)) {
 			return;
 		}
 		red_warning({ person => $person, warning => "$place isn't found", stack_trace => 1 });
