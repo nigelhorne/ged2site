@@ -6069,7 +6069,13 @@ sub print_person
 				$map = HTML::GoogleMaps::V3->new(%args);
 				$map->center($current_place);
 			}
-			add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
+			$current_place = HTML::Entities::decode($current_place);
+			$current_place =~ s/,\s/,+/g;
+			# https://www.google.com/maps/place/81+Keightly+Rd,+Greencastle,+Putnam,+IN,+USA
+			# TODO: If BMAP_KEY is set, use Bing maps instead
+			# 	If GMAP_KEY is not set, use OpenStreetMaps
+			$current_place = "&gt;a href=\"https://www.google.com/maps/place/$current_place\"&lt;$current_place&gt;/a&lt;";
+			add_marker(person => $person, map => $map, place => $current_place, annotation => $annotation);
 		}
 		if(defined($map)) {
 			# Can't put $head into the head since it's far too
