@@ -8686,7 +8686,7 @@ sub add_marker
 	# https://www.google.com/maps/place/81+Keightly+Rd,+Greencastle,+Putnam,+IN,+USA
 	# TODO: If BMAP_KEY is set, use Bing maps instead
 	# 	If GMAP_KEY is not set, use OpenStreetMaps
-	$place_link = "&gt;a href=\"https://www.google.com/maps/place/$place_link\"&lt;$place&gt;/a&lt;";
+	$place_link = "&lt;a href=\"https://www.google.com/maps/place/$place_link\"&gt;$place&lt;/a&gt;";
 
 	if(my $annotation = $params{'annotation'}) {
 		if($map->add_marker(point => $place, html => "$place_link<br>$annotation")) {
