@@ -7,6 +7,10 @@ package Ged2site::Allow;
 # Ged2site is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
+# Decide if we're going to allow this client to view the website
+# Usage:
+# unless(Ged2site::Allow::allow({info => $info, lingua => $lingua})) {
+
 use strict;
 use warnings;
 use File::Spec;
@@ -124,7 +128,7 @@ sub allow {
 			unlink($db_file);
 		}
 
-		unless($addr =~ /^192\.168\./) {
+		unless(($addr =~ /^192\.168\./) || $info->baidu()) {
 			my $lingua = $args{'lingua'};
 			if(defined($lingua) && $lingua->country() && $blacklist_countries{uc($lingua->country())}) {
 				if($logger) {
@@ -132,15 +136,6 @@ sub allow {
 				}
 				$status{$addr} = 0;
 				throw Error::Simple("$addr: blocked connexion from " . $lingua->country(), 0);
-			}
-			if(($ENV{'HTTP_REFERER'} =~ /^http:\/\/keywords-monitoring-your-success.com\/try.php/) ||
-			   ($ENV{'HTTP_REFERER'} =~ /^http:\/\/www.tcsindustry\.com\//) ||
-			   ($ENV{'HTTP_REFERER'} =~ /^http:\/\/free-video-tool.com\//)) {
-				if($logger) {
-					$logger->warn("$addr: Blocked trawler");
-				}
-				$status{$addr} = 0;
-				throw Error::Simple("$addr: Blocked trawler");
 			}
 		}
 
@@ -164,6 +159,16 @@ sub allow {
 
 		if(my $referer = $ENV{'HTTP_REFERER'}) {
 			$referer =~ tr/ /+/;	# FIXME - this shouldn't be happening
+
+			if(($referer =~ /^http:\/\/keywords-monitoring-your-success.com\/try.php/) ||
+			   ($referer =~ /^http:\/\/www.tcsindustry\.com\//) ||
+			   ($referer =~ /^http:\/\/free-video-tool.com\//)) {
+				if($logger) {
+					$logger->warn("$addr: Blocked trawler");
+				}
+				$status{$addr} = 0;
+				throw Error::Simple("$addr: Blocked trawler");
+			}
 
 			# Protect against Shellshocker
 			require Data::Validate::URI;
