@@ -4168,7 +4168,7 @@ sub print_person
 						# FIXME: only checks when there are @siblings
 						if(($bdiff->in_units('years') >= 30) || ($bdiff->in_units('years') < 16)) {
 							my $with_mother;
-							my $same_road_as_mother;
+							my $same_road_as_mother = 0;
 							my $road = $residence->address();
 							if($road) {
 								if($road =~ /,\s*(.+)/) {
@@ -4188,7 +4188,7 @@ sub print_person
 										$with_mother++;
 										last;
 									}
-									if($mr->place() eq $residence->place()) {
+									if($road && ($mr->place() eq $residence->place())) {
 										if(my $mroad = $mr->address()) {
 											if($mroad =~ /,\s*(.+)/) {
 												$mroad = $1;
@@ -4204,7 +4204,7 @@ sub print_person
 								}
 							}
 							my $with_father;
-							my $same_road_as_father;
+							my $same_road_as_father = 0;
 							if($father) {
 								my @fr = get_all_residences(person => $father);
 								foreach my $fr(@fr) {
@@ -4215,7 +4215,7 @@ sub print_person
 										$with_father++;
 										last;
 									}
-									if($fr->place() eq $residence->place()) {
+									if($road && ($fr->place() eq $residence->place())) {
 										if(my $froad = $fr->address()) {
 											if($froad =~ /,\s*(.+)/) {
 												$froad = $1;
