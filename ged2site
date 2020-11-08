@@ -9090,7 +9090,7 @@ sub journey
 		return "$rc, departing $dod";
 	}
 
-	return "$rc arriving $doa";
+	return "$rc, arriving $doa";
 }
 
 # Compare two dates. Approximate dates are compared.
