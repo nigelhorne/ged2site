@@ -97,7 +97,7 @@ BEGIN {
 	# Fix for this module not being found
 	eval 'use Geo::Coder::PlaceFinder';
 	if($@) {
-		push @needfull, 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
+		push @needfull, 'Net::OAuth', 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
 	}
 	# Apparently it's "unauthorized", but there's no other module with the same name
 
