@@ -8682,7 +8682,7 @@ sub add_marker
 		}
 	}
 	my $place_link = $place;
-	$place_link =~ s/,\s/,+/g;
+	$place_link =~ tr/\s/+/;
 	# https://www.google.com/maps/place/81+Keightly+Rd,+Greencastle,+Putnam,+IN,+USA
 	# TODO: If BMAP_KEY is set, use Bing maps instead
 	# 	If GMAP_KEY is not set, use OpenStreetMaps
