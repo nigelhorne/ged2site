@@ -2382,7 +2382,7 @@ sub print_person
 					}
 					if(scalar(@siblings) && ($age_index == (scalar(@siblings) + 1))) {
 						if($language eq 'French') {
-							$bio .= ($sex eq 'M') ? 'dernier' : 'dernière';
+							$bio .= ($sex eq 'M') ? 'dernier' : "derni\N{U+00E8}re";
 						} else {
 							$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
 						}
@@ -2641,7 +2641,12 @@ sub print_person
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
 				$bio = ',' if($relationship);
-				$bio .= ' was born';
+				if($language eq 'French') {
+					$bio .= ' est ';
+					$bio .= ($sex eq 'M' ? "n\N{U+00E9}" : "n\N{U+00E9}e");
+				} else {
+					$bio .= ' was born';
+				}
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
 					$bio .= $p;
@@ -3491,8 +3496,8 @@ sub print_person
 		if($same_occupation_as_father) {
 			$bio .= '. ' if(!$end_of_sentence);
 			if($language eq 'French') {
-				$bio .= ' Comme son père, ' . lcfirst($pronoun) .
-					(is_alive(person => $person) ? ' est' : ' était') . ' un';
+				$bio .= " Comme son p\N{U+00E8}re, " . lcfirst($pronoun) .
+					(is_alive(person => $person) ? ' est' : " \N{U+00E9}tait") . ' un';
 				if($same_occupation_as_father =~ /^[AEIOU]/) {
 					$bio .= 'e';
 				}
@@ -4613,7 +4618,15 @@ sub print_person
 				} else {
 					$bio .= ' and';
 				}
-				$bio .= (($language eq 'French') ? ' est y enterré à' : ' is buried there at ') . $burial->address();
+				if($language eq 'French') {
+					$bio .= " est y enterr\N{U+00E9}";
+					if($sex eq 'F') {
+						$bio .= 'e';
+					}
+					$bio .= " \N{U+00E0} " . $burial->address();
+				} else {
+					$bio .= ' is buried there at ' . $burial->address();
+				}
 			} elsif(my $b = place($opts)) {
 				if($diedathome) {
 					$bio .= "$pronoun is buried$b";
@@ -5009,11 +5022,11 @@ sub print_person
 								}
 								$bio .= ' ' . lcfirst($pronoun) . ' ';
 								if($language eq 'French') {
-									$bio .= 'est arrivé';
+									$bio .= 'est arriv\N{U+00E9}';
 									if($sex eq 'F') {
 										$bio .= 'e';
 									}
-									$bio .= ' à';
+									$bio .= ' \N{U+00E0}';
 									$place =~ s/^ in//;
 									$bio .= $place;
 								} else {
@@ -5025,11 +5038,11 @@ sub print_person
 								}
 								$bio .= "$pronoun ";
 								if($language eq 'French') {
-									$bio .= 'est arrivé';
+									$bio .= 'est arriv\N{U+00E9}';
 									if($sex eq 'F') {
 										$bio .= 'e';
 									}
-									$bio .= ' à';
+									$bio .= ' \N{U+00E0}';
 									$place =~ s/^ in//;
 									$bio .= $place;
 								} else {
@@ -6881,7 +6894,7 @@ sub Gedcom::Individual::relationship {
 		my $sex = get_value({ person => $other, value => 'sex' });
 		if(($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
 			if($language eq 'French') {
-				return ($sex eq 'M') ? 'frère' : 'sœur';
+				return ($sex eq 'M') ? "fr\N{U+00E8}re" : 'sœur';
 			} elsif($language eq 'Latin') {
 				return ($sex eq 'M') ? 'frāter' : 'soror';
 			}
@@ -6930,7 +6943,7 @@ sub Gedcom::Individual::relationship_up
 			my $steps = stepsabove($self, $other, 0);
 			my $title;
 			if($language eq 'French') {
-				$title = ($sex eq 'M') ? 'père' : 'mère';
+				$title = ($sex eq 'M') ? "p\N{U+00E8}re" : "m\N{U+00E8}re";
 			} elsif($language eq 'Latin') {
 				return ($sex eq 'M') ? 'mater' : 'pater';
 			} else {
@@ -6956,7 +6969,7 @@ sub Gedcom::Individual::relationship_up
 				return "grand$title";
 			} elsif($steps == 3) {
 				if($language eq 'French') {
-					return "arrière-grand-$title";
+					return "arri\N{U+00E8}re-grand-$title";
 				} elsif($language eq 'Latin') {
 					return ($sex eq 'M') ? 'proavus' : 'proavia';
 				}
@@ -7327,7 +7340,7 @@ sub Gedcom::Individual::relationship_down
 			} elsif($steps == 3) {
 				if($language eq 'French') {
 					if($sex eq 'M') {
-						return 'arrière-petit-fils';
+						return "arri\N{U+00E8}re-petit-fils";
 					}
 				} elsif($language eq 'Latin') {
 					return ($sex eq 'M') ? 'prōnepōs' : 'prōneptis';
@@ -7524,7 +7537,7 @@ sub year
 	}
 	if($string =~ /^aft.? (\d{3,4})/i) {
 		if($language eq 'French') {
-			return "après $1";
+			return "apr\N{U+00E8}s $1";
 		}
 		return "after $1";
 	}
@@ -7679,7 +7692,7 @@ sub place {
 		if($params{'nopreposition'}) {
 			$place = " $address, $place";
 		} elsif($language eq 'French') {
-			$place = " à $address, $place";
+			$place = " \N{U+00E0} $address, $place";
 		} elsif($on_road && ($address =~ /^[a-z]+\s+[a-z]+$/i)) {
 			# e.g on Appleby Street
 			$place = " on $address, $place";
@@ -7995,7 +8008,7 @@ sub validate_place
 
 	$place =~ s/^\s+//;
 	if($language eq 'French') {
-		$place =~ s/^à\s+//;
+		$place =~ s/^\N{U+00E0}\s+//;
 	} else {
 		$place =~ s/^at\s+//;
 	}
@@ -8682,7 +8695,7 @@ sub add_marker
 		}
 	}
 	my $place_link = $place;
-	$place_link =~ tr/\s/+/;
+	$place_link =~ tr/ /+/;
 	# https://www.google.com/maps/place/81+Keightly+Rd,+Greencastle,+Putnam,+IN,+USA
 	# TODO: If BMAP_KEY is set, use Bing maps instead
 	# 	If GMAP_KEY is not set, use OpenStreetMaps
@@ -9058,7 +9071,7 @@ sub journey
 	}
 
 	if($language eq 'French') {
-		$rc .= ' a voyagé';
+		$rc .= " a voyag\N{U+00E9}";
 	} elsif($ENV{'LANG'} =~ /^en_US/) {
 		$rc .= ' traveled';
 	} else {
@@ -9076,7 +9089,7 @@ sub journey
 		complain({ person => $person, warning => 'Departure record has no location' });
 	}
 	if(defined($arrival->place())) {
-		$rc .= (($language eq 'French') ? ' à' : ' to') . place({ person => $person, record => $arrival, nopreposition => 1 });
+		$rc .= (($language eq 'French') ? " \N{U+00E0}" : ' to') . place({ person => $person, record => $arrival, nopreposition => 1 });
 		if(my $notes = notes(record => $arrival)) {
 			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 			$notes =~ s/\.$//;
