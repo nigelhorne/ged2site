@@ -32,7 +32,7 @@ use Error qw(:try);
 use File::Spec;
 use Log::WarnDie 0.09;
 use HTTP::Date;
-use Taint::Runtime qw($TAINT taint_env);
+# use Taint::Runtime qw($TAINT taint_env);
 use autodie qw(:all);
 
 # use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
@@ -42,8 +42,8 @@ use lib '../lib';
 
 use Ged2site::Config;
 
-$TAINT = 1;
-taint_env();
+# $TAINT = 1;
+# taint_env();
 
 Log::WarnDie->filter(\&filter);
 
