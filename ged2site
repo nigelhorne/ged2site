@@ -2967,9 +2967,15 @@ sub print_person
 			if($end_of_sentence) {
 				$bio .= " $pronoun";
 			}
+			if($language eq 'French') {
+				# FIXME: remove space after à l'
+				$bio .= ' est ' . (($sex eq 'M' ? "all\N{U+00E9}" : "all\N{U+00E9}e")) .
+					(($education[0] =~ /^[aehiou]/i) ? ' \N{U+00E0} l' : ' au');
+			} else {
+				$bio .= ' went to';
+			}
 			# FIXME: do all schools
-			$bio .= ' went to'.
-				place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }) .
+			$bio .= place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }) .
 				'. ';
 			$end_of_sentence = 1;
 		}
@@ -5022,7 +5028,7 @@ sub print_person
 								}
 								$bio .= ' ' . lcfirst($pronoun) . ' ';
 								if($language eq 'French') {
-									$bio .= 'est arriv\N{U+00E9}';
+									$bio .= "est arriv\N{U+00E9}";
 									if($sex eq 'F') {
 										$bio .= 'e';
 									}
@@ -5038,7 +5044,7 @@ sub print_person
 								}
 								$bio .= "$pronoun ";
 								if($language eq 'French') {
-									$bio .= 'est arriv\N{U+00E9}';
+									$bio .= "est arriv\N{U+00E9}";
 									if($sex eq 'F') {
 										$bio .= 'e';
 									}
