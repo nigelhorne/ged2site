@@ -7655,6 +7655,7 @@ sub place {
 		}
 
 		# FIXME: doesn't work because none of this code properly handles UTF-8 which is needed for Québec
+		# utf8::decode($province);
 		if(defined(my $p = $ca_en->{province2code}{uc($province)} || $ca_fr->{province2code}{uc($province)})) {
 			my $ca;
 			if($language eq 'French') {
@@ -7667,6 +7668,17 @@ sub place {
 				$place = "$town, $p, Canada";
 			} else {
 				$place = "$p, Canada";
+			}
+		} elsif($province eq 'Québec') {
+			if($language eq 'French') {
+				$province = "Qu\N{U+00E9}bec";
+			} else {
+				$province = 'Quebec';
+			}
+			if(defined($town) && length($town)) {
+				$place = "$town, $province, Canada";
+			} else {
+				$place = "$province, Canada";
 			}
 		} else {
 			complain({ person => $params{'person'}, warning => "Unknown Canadian province $province" });
