@@ -7646,6 +7646,14 @@ sub place {
 	} elsif($place =~ /(.*)(^|,\s*)(.+),\s*Canada$/i) {
 		my $town = $1;
 		my $province = $3;
+		if($province eq 'Québec') {
+			if($language eq 'English') {
+				$province = 'Quebec';
+			} else {
+				utf8::decode($province);
+			}
+		}
+
 		# FIXME: doesn't work because none of this code properly handles UTF-8 which is needed for Québec
 		if(defined(my $p = $ca_en->{province2code}{uc($province)} || $ca_fr->{province2code}{uc($province)})) {
 			my $ca;
