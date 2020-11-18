@@ -7646,13 +7646,6 @@ sub place {
 	} elsif($place =~ /(.*)(^|,\s*)(.+),\s*Canada$/i) {
 		my $town = $1;
 		my $province = $3;
-		if($province eq 'Québec') {
-			if($language eq 'English') {
-				$province = 'Quebec';
-			} else {
-				utf8::decode($province);
-			}
-		}
 
 		# FIXME: doesn't work because none of this code properly handles UTF-8 which is needed for Québec
 		# utf8::decode($province);
@@ -7663,7 +7656,21 @@ sub place {
 			} else {
 				$ca = $ca_en;
 			}
-			$p = sortoutcase($ca->{code2province}{$p});
+			if($p eq 'QC') {
+				if($language eq 'French') {
+					$p = "Qu\N{U+00E9}bec";
+					if($town eq 'Montréal') {
+						$town = "Montr\N{U+00E9}al";
+					}
+				} else {
+					$p = 'Quebec';
+					if($town eq 'Montréal') {
+						$town = 'Montreal';
+					}
+				}
+			} else {
+				$p = sortoutcase($ca->{code2province}{$p});
+			}
 			if(defined($town) && length($town)) {
 				$place = "$town, $p, Canada";
 			} else {
@@ -7672,8 +7679,14 @@ sub place {
 		} elsif($province eq 'Québec') {
 			if($language eq 'French') {
 				$province = "Qu\N{U+00E9}bec";
+				if($town eq 'Montréal') {
+					$town = "Montr\N{U+00E9}al";
+				}
 			} else {
 				$province = 'Quebec';
+				if($town eq 'Montréal') {
+					$town = 'Montreal';
+				}
 			}
 			if(defined($town) && length($town)) {
 				$place = "$town, $province, Canada";
