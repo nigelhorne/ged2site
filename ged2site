@@ -7629,9 +7629,10 @@ sub place {
 			if($place =~ /^(.+?),.+,/) {
 				if($params{'nopreposition'}) {
 					return " $address, $1";
-				} else {
-					return " at $address, $1";
+				} elsif($language eq 'French') {
+					return " \N{U+00E0} $address, $1";
 				}
+				return " at $address, $1";
 			}
 		} else {
 			return ' there';
@@ -7746,9 +7747,12 @@ sub place {
 		$place = " in $place";
 	}
 
-	# Only print the town if the location has already been printed
 	if(my $places_printed = $params{'places_printed'}) {
+		if(($language eq 'French') && ($place =~ /(.+), London, England/)) {
+			$place = "$1, Londres, Angleterre";
+		}
 		if($places_printed->{$place} && $place =~ /^(.+?),/) {
+			# Only print the town if the location has already been printed
 			return $1;
 		}
 		if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
