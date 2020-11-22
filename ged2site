@@ -9341,6 +9341,9 @@ sub dateofbirth {
 		}
 		if($dateofbirth =~ /[A-Z]{4,}/i) {
 			complain({ person => $person, warning => "Birth month '$dateofbirth' should be 3 letters" });
+			if($dateofbirth =~ /from (.+) to (.+)/i) {
+				return "bet $1 and $2";
+			}
 			return;
 		}
 	}
@@ -9370,6 +9373,9 @@ sub dateofdeath {
 		}
 		if($dateofdeath =~ /[A-Z]{4,}/i) {
 			complain({ person => $person, warning => "Death month '$dateofdeath' should be 3 letters" });
+			if($dateofdeath =~ /from (.+) to (.+)/i) {
+				return "bet $1 and $2";
+			}
 			return;
 		}
 	}
