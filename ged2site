@@ -2767,12 +2767,18 @@ sub print_person
 			if($dateofbaptism || $placeofbaptism) {
 				$bio .= ' ';
 				unless($dateofbirth || $placeofbirth) {
-					if(($numberofchildren == 0) || (scalar(@spouses) == 0) || $all_children_are_alive) {
-						$bio .= 'and ';
+					if($language eq 'French') {
+						$bio .= "\N{U+00E0} \N{U+00E9}t\N{U+00E9} ";	# à été
+					} else {
+						$bio .= 'was ';
 					}
-					$bio .= 'was ';
 				}
-				if($ENV{'LANG'} =~ /^en_US/) {
+				if($language eq 'French') {
+					$bio .= "baptis\N{U+00E9}";
+					if($sex eq 'F') {
+						$bio .= 'e';
+					}
+				} elsif($ENV{'LANG'} =~ /^en_US/) {
 					$bio .= 'baptized';
 				} else {
 					$bio .= 'baptised';
@@ -2872,9 +2878,22 @@ sub print_person
 				$end_of_sentence = 1;
 			}
 		} elsif($dateofbaptism || $placeofbaptism) {
-			$bio .= " $pronoun was ";
+			if($language eq 'French') {
+				if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
+					$bio .= " $pronoun y \N{U+00E0} \N{U+00E9}t\N{U+00E9} ";	# à été
+				} else {
+					$bio .= " $pronoun \N{U+00E0} \N{U+00E9}t\N{U+00E9} ";	# à été
+				}
+			} else {
+				$bio .= " $pronoun was ";
+			}
 
-			if($ENV{'LANG'} =~ /^en_US/) {
+			if($language eq 'French') {
+				$bio .= "baptis\N{U+00E9}";
+				if($sex eq 'F') {
+					$bio .= 'e';
+				}
+			} elsif($ENV{'LANG'} =~ /^en_US/) {
 				$bio .= 'baptized';
 			} else {
 				$bio .= 'baptised';
