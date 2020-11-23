@@ -9354,7 +9354,7 @@ sub obituaries
 	if(scalar(@obituaries)) {
 		print Data::Dumper->new([\@obituaries])->Dump();
 		foreach my $obituary(@obituaries) {
-			if($death_dt && (my $date = $obituary->{'date'})) {
+			if(my $date = $obituary->{'date'}) {
 				if($date =~ /^(\d+)\-(\d+)\-(\d+)$/) {
 					$date = DateTime->new(year => $1, month => $2, day => $3);
 					if($death_dt) {
@@ -9362,7 +9362,7 @@ sub obituaries
 							die 'TODO';
 						}
 					} elsif($birth_dt && $obituary->{'age'}) {
-						if(abs($date->year() - $birth_dt->year() + $obituary->{'age'}) <= 1) {
+						if(abs($date->year() - ($birth_dt->year() + $obituary->{'age'})) <= 1) {
 							die 'TODO';
 						}
 					}
