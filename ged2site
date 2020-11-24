@@ -2768,7 +2768,11 @@ sub print_person
 				$bio .= ' ';
 				unless($dateofbirth || $placeofbirth) {
 					if($language eq 'French') {
-						$bio .= "a \N{U+00E9}t\N{U+00E9} ";	# a été
+						if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
+							$bio .= " $pronoun y a \N{U+00E9}t\N{U+00E9} ";	# a été
+						} else {
+							$bio .= " $pronoun a \N{U+00E9}t\N{U+00E9} ";	# a été
+						}
 					} else {
 						$bio .= 'was ';
 					}
@@ -2785,7 +2789,7 @@ sub print_person
 				}
 				if($placeofbaptism) {
 					if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
-						$bio .= ' there';
+						$bio .= ' there' unless($language eq 'French');
 						if(my $address = $baptism->address()) {
 							if($address =~ /(.+),\s*$placeofbirth$/) {
 								$address = $1;
@@ -4575,7 +4579,15 @@ sub print_person
 					$bio .= " ($b)";
 				}
 			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
-				$bio .= " $pronoun was buried";
+				$bio .= " $pronoun ";
+				if($language eq 'French') {
+					$bio .= "est enterr\N{U+00E9}";
+					if($sex eq 'F') {
+						$bio .= 'e';
+					}
+				} else {
+					$bio .= 'was buried';
+				}
 				if(my $address = $burial->address()) {
 					$bio .= " at $address";
 				}
@@ -4636,7 +4648,15 @@ sub print_person
 			}
 			if($dateofburial) {
 				if($diedathome) {
-					$bio .= "$pronoun was buried";
+					$bio .= "$pronoun ";
+					if($language eq 'French') {
+						$bio .= "a \N{U+00E9}t\N{U+00E9} enterr\N{U+00E9}";
+						if($sex eq 'F') {
+							$bio .= 'e';
+						}
+					} else {
+						$bio .= 'was buried';
+					}
 				} else {
 					$bio .= ' and was buried';
 				}
@@ -5089,7 +5109,7 @@ sub print_person
 									if($sex eq 'F') {
 										$bio .= 'e';
 									}
-									$bio .= ' \N{U+00E0}';
+									$bio .= " \N{U+00E0}";
 									$place =~ s/^ in//;
 									$bio .= $place;
 								} else {
@@ -5105,7 +5125,7 @@ sub print_person
 									if($sex eq 'F') {
 										$bio .= 'e';
 									}
-									$bio .= ' \N{U+00E0}';
+									$bio .= " \N{U+00E0}";
 									$place =~ s/^ in//;
 									$bio .= $place;
 								} else {
