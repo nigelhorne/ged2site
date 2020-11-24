@@ -4482,7 +4482,14 @@ sub print_person
 					$lastresidence = place({ person => $person, record => $lastresidence });
 					if(defined($lastdate) && ($deathplace eq $lastresidence)) {
 						my $p = lcfirst($pronoun);
-						$bio .= " which is where $p died";
+						if($language eq 'French') {
+							$bio .= " c'est o\N{U+00F9} $p est mort";
+							if($sex eq 'F') {
+								$bio .= 'e';
+							}
+						} else {
+							$bio .= " which is where $p died";
+						}
 						if($dateofdeath) {
 							my $date = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 							$lastdate =~ s/^.*(\d{4})$/$1/;
