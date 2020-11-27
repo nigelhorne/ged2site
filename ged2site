@@ -64,9 +64,8 @@ BEGIN {
 		# 'Geo::Coder::Free::OpenAddresses',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
-		'Geo::Coder::OpenCage', 'Geo::Coder::Google',
-		'Geo::Coder::GooglePlaces',
-		'Geo::Coder::Bing', 'Lingua::EN::ABC',
+		'Geo::Coder::Google',
+		'Lingua::EN::ABC',
 		'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info', 'JSON',
 		'List::Util',
@@ -208,7 +207,7 @@ if($opts{'d'} || $opts{'m'}) {
 	push @modules, 'HTTP::Cache::Transparent';
 }
 if($opts{'m'} || $opts{'w'}) {
-	push @modules, 'LWP::UserAgent::Throttled', 'Geo::GeoNames';
+	push @modules, 'LWP::UserAgent::Throttled';
 }
 if($gedcal || !$opts{'w'}) {
 	push @modules, 'String::ProgressBar';
@@ -218,6 +217,18 @@ if($opts{'F'}) {
 }
 if(get_language()) {
 	push @modules, 'Locale::Country::Multilingual';
+}
+if($ENV{'GEO_CODER_OPENCAGE_API_KEY'}) {
+	push @modules, 'Geo::Coder::OpenCage';
+}
+if($ENV{'GMAP_KEY'}) {
+	push @modules, 'Geo::Coder::GooglePlaces';
+}
+if($ENV{BMAP_KEY}) {
+	push @modules, 'Geo::Coder::Bing';
+}
+if($ENV{'GEONAMES_USER'}) {
+	push @modules, 'Geo::GeoNames';
 }
 
 foreach my $module(@modules) {
@@ -2298,13 +2309,11 @@ sub print_person
 					eval {
 						$d = $date_parser->parse(date => $dob);
 					};
-					if($d) {
-						if($d = @{$d}[0]) {
-							$d = $dfn->parse_datetime($d->{'canonical'});
-							if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
-								push @person_twins, $s;
-								$twins{$person->xref()} = $s->xref();
-							}
+					if($d && ($d = $d->[0])) {
+						$d = $dfn->parse_datetime($d->{'canonical'});
+						if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
+							push @person_twins, $s;
+							$twins{$person->xref()} = $s->xref();
 						}
 					}
 				}
@@ -2341,16 +2350,16 @@ sub print_person
 				my $all_siblings_have_dob = 1;
 				foreach my $sibling(@siblings) {
 					if(my $dob = dateofbirth($sibling)) {
-						if(($dob !~ /^\d/) || ($dob =~ /[a-z]$/i) ||
-						   ($dob =~ /[\/\-]/) || !date_parser_cached(date => $dob)) {
-							$all_siblings_have_dob = 0;
-							last;
-						}
 						if(!date_parser_cached(date => $dob)) {
 							complain({
 								person => $sibling,
 								warning => "has an invalid date of birth: $dob"
 							});
+							$all_siblings_have_dob = 0;
+							last;
+						}
+						if(($dob !~ /^\d/) || ($dob =~ /[a-z]$/i) ||
+						   ($dob =~ /[\/\-]/)) {
 							$all_siblings_have_dob = 0;
 							last;
 						}
@@ -2806,10 +2815,7 @@ sub print_person
 					if($opts{'w'} && $yob && ($dateofbaptism =~ /(\d{3,4})$/)) {
 						# must_predate doesn't work when only years are known
 						if($1 < $yob) {
-							if($opts{'f'}) {
-								die $person->as_string(), ": Year of baptism $1 is before the year of birth $yob";
-							}
-							red_warning({
+							complain({
 								person => $person,
 								warning => "Year of baptism $1 is before the year of birth $yob"
 							});
@@ -2833,6 +2839,31 @@ sub print_person
 							predate => $dateofdeath
 						});
 					}
+					if($mother && $opts{'w'}) {
+						if($dateofbaptism =~ /.*?(\d{3,4})/) {
+							my $yobaptism = $1;
+							if(my $motherdob = dateofbirth($mother)) {
+								my $d = $date_parser->parse(date => $motherdob);
+								if($d && (ref($d) eq 'ARRAY')) {
+									$d = $d->[0];
+									if(defined($d) && !$d->{'flag'}) {
+										$d = $dfn->parse_datetime($d->{'canonical'})->strftime('%Y');
+										if($d > ($yobaptism - 13)) {
+											complain({
+												person => $person,
+												warning => "Something is wrong with the date of baptism which is less than 13 years after the mother was born ($d)"
+											});
+										}
+									}
+								}
+							}
+						} else {
+							complain({
+								person => $person,
+								warning => "invalid date of baptism $dateofbaptism"
+							});
+						}
+					}
 				}
 			} elsif($birth_dt) {
 				my @person_twins;
@@ -2843,10 +2874,7 @@ sub print_person
 							eval {
 								$d = $date_parser->parse(date => $dob);
 							};
-							if($d) {
-								$d = @{$d}[0];
-							}
-							if($d) {
+							if($d && ($d = $d->[0])) {
 								$d = $dfn->parse_datetime($d->{'canonical'});
 								if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
 									push @person_twins, { sibling => $s, dob => $d };
@@ -7532,7 +7560,7 @@ sub year
 		if($language ne 'English') {
 			my $d = $date_parser->parse(date => $rc);
 			if($d && (ref($d) eq 'ARRAY')) {
-				$d = @{$d}[0];
+				$d = $d->[0];
 			}
 			$d = $dfn->parse_datetime($d->{'canonical'});
 			if($ENV{'LC_TIME'}) {
@@ -8784,7 +8812,7 @@ sub date_parser_cached
 		$d = $date_parser->parse(date => $date);
 	};
 	if($d && (ref($d) eq 'ARRAY')) {
-		$d = @{$d}[0];
+		$d = $d->[0];
 		$all_dates{$date} = $d;
 	}
 	return $d;
