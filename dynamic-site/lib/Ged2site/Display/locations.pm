@@ -19,14 +19,14 @@ sub html {
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
 	};
-	my %params = %{$info->params({ allow => $allowed })};
-
-	delete $params{'page'};
-	delete $params{'lint_content'};
-	delete $params{'lang'};
-
 	if(my $db = $args{'locations'}) {
 		my @locations = $db->locations();
+
+		my %params = %{$info->params({ allow => $allowed })};
+
+		delete $params{'page'};
+		delete $params{'lint_content'};
+		delete $params{'lang'};
 
 		if(scalar(keys %params) == 0) {
 			# Display list of locations

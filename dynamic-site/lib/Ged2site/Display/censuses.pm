@@ -17,15 +17,15 @@ sub html {
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
 	};
-	my %params = %{$info->params({ allow => $allowed })};
-
-	delete $params{'page'};
-	delete $params{'lint_content'};
-	delete $params{'lang'};
-
 	# Handles into the databases
 	if(my $censuses = $args{'censuses'}) {
 		my $people = $args{'people'};
+
+		my %params = %{$info->params({ allow => $allowed })};
+
+		delete $params{'page'};
+		delete $params{'lint_content'};
+		delete $params{'lang'};
 
 		if(scalar(keys %params) == 0) {
 			# Display list of censuses
