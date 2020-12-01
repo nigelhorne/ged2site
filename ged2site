@@ -60,7 +60,7 @@ BEGIN {
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
 		'Genealogy::Gedcom::Date',
-		'Geo::Coder::DataScienceToolkit',
+		# 'Geo::Coder::DataScienceToolkit',
 		# 'Geo::Coder::Free::OpenAddresses',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
@@ -398,15 +398,15 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::OSM->new())
 			->push({ regex => qr/^[\w\s-]+,\s*[\w\s]+,\s*(UK|United Kingdom|England|Wales)$/i, geocoder => Geo::Coder::Postcodes->new() })
 			->push(Geo::Coder::Ovi->new())
-			->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })
+			# ->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })	# Off-line
 			->push({ limit => 100, geocoder => Geo::Coder::GooglePlaces->new(%gp_args) })
 			->push({ limit => 200, geocoder => Geo::Coder::XYZ->new()})
 			->push(Geo::Coder::Google->new());
 	} else {
 		# DST isn't that good for the UK
 		# $geocoder->push({ regex => qr/(UK|United Kingdom|England|USA|US|United States|Wales)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })
-		$geocoder->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })
-			->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
+		# $geocoder->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })
+		$geocoder->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
 			->push({ limit => 100, regex => qr/(Canada|USA|US|United States)$/i, geocoder => Geo::Coder::CA->new() })
 			->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::RandMcnally->new() })
 			->push({ regex => qr/^[\w\s-]+,\s*[\w\s]+,\s*(UK|United Kingdom|England|Wales)$/i, geocoder => Geo::Coder::Postcodes->new() })
