@@ -8304,7 +8304,7 @@ sub person_line_csv
 				year({ person => $person, date => $dob });
 		} elsif(my $bd = get_value({ person => $person, value => 'baptism date' })) {
 			return '<a href="?page=people&entry=' . $person->xref() . '">' .
-				$person->given_names() . "</a> was born c. $bd".
+				$person->given_names() . "</a> was born c. $bd";
 		}
 		return '';
 	}
