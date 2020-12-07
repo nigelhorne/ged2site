@@ -1790,10 +1790,10 @@ sub print_person
 						chronicling_america($person, \%chronicling_params);
 					}
 				}
-				obituaries({ first => $firstname, last => $lastname, death_dt => $death_dt, birth_dt => $birth_dt });
+				obituaries({ first => $firstname, last => $lastname, yob => $yob, yod => $yod });
 				my $sex = get_value({ person => $person, value => 'sex' });
 				if(defined($sex) && ($sex eq 'F')) {
-					obituaries({ first => $firstname, maiden => $lastname, death_dt => $death_dt, birth_dt => $birth_dt });
+					obituaries({ first => $firstname, maiden => $lastname, yob => $yob, yod => $yod });
 				}
 			}
 		}
@@ -9400,24 +9400,24 @@ sub obituaries
 		die "BUG: no arguments given\n";
 	}
 
-	my $birth_dt = delete $params{'birth_dt'};
-	my $death_dt = delete $params{'death_dt'};
+	my $yob = delete $params{'yob'};
+	my $yod = delete $params{'yod'};
 	my @obituaries = $obituaries->search(\%params);
 
 	if(scalar(@obituaries)) {
 		foreach my $obituary(@obituaries) {
 			if(my $date = $obituary->{'date'}) {
-				if($date =~ /^(\d+)\-(\d+)\-(\d+)$/) {
-					$date = DateTime->new(year => $1, month => $2, day => $3);
-					if($death_dt) {
-						if(abs($date->year() - $death_dt->year()) <= 1) {
-							print Data::Dumper->new([\@obituaries])->Dump();
+				if($date =~ /^(\d+)\-\d+\-\d+$/) {
+					my $year = $1;
+					if($yod) {
+						if(abs($year - $yod) <= 1) {
+							print Data::Dumper->new([$obituary])->Dump();
 							die 'TODO';
 						}
-					} elsif($birth_dt && $obituary->{'age'}) {
-						if(abs($date->year() - ($birth_dt->year() + $obituary->{'age'})) <= 1) {
-							print Data::Dumper->new([\@obituaries])->Dump();
-							die 'TODO';
+					} elsif($yob && $obituary->{'age'}) {
+						if(abs($year - ($yob + $obituary->{'age'})) <= 1) {
+							print Data::Dumper->new([$obituary])->Dump();
+							die 'TODO: ', $year, ' - (', $yob, ' + ', $obituary->{'age'}, ')';
 						}
 					}
 				}
