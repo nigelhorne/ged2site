@@ -296,7 +296,15 @@ my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
 $ged = Class::Simple::Cached->new(object => $ged, cache => CHI->new(driver => 'RawMemory', datastore => {}));
 
+# Read in the $text table for translation
+my $i18n;
 my $language = get_language();
+my $data = Data::Section::Simple::get_data_section($language);
+my @lines = split /\n/, $data;
+foreach(@lines) {
+	my ($english, $foreign) = split /:/;
+	$i18n->{$english} = $foreign;
+}
 
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $dfn;
@@ -3485,7 +3493,7 @@ sub print_person
 							$bio .= "$numberofchildren children";
 						}
 						# FIXME: do hyperlinks - needs to be correct for $csv and $html
-						my $childnames;
+						my @childnames;
 						if($parentofall) {
 							if($numberofchildren == 2) {
 								$bio .= ', both with ' . $parentofall->as_string();
@@ -3497,9 +3505,9 @@ sub print_person
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
 									# $_->given_names() . '</a>'
 							# } @children);
-							$childnames = join(', ', map { $_->given_names() } @children);
+							@childnames = join(', ', map { $_->given_names() } @children);
 						} elsif($sex eq 'M') {
-							# FIXME: children from the same parent should be listed together
+							# List children by the same mother together
 							# $childnames = join(', ', map {
 								# my $mother = $_->mother();
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
@@ -3509,8 +3517,19 @@ sub print_person
 									# $mother->given_names() . '</a>' .
 								# ')'
 							# } @children);
-							$childnames = join(', ', map { $_->given_names() } @children);
+							my %childmap;
+							foreach my $child(@children) {
+								push @{$childmap{$child->mother()->given_names()}}, $child;
+							}
+							while(my ($key, $value) = each %childmap) {
+								push @childnames, '(' .
+									join(', ', map { $_->given_names() } @{$value}) .
+									' ' .
+									i18n('with') .
+									" $key)";
+							}
 						} else {
+							# List children by the same father together
 							# $childnames = join(', ', map {
 								# my $father = $_->father();
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
@@ -3520,10 +3539,24 @@ sub print_person
 									# $father->given_names() . '</a>' .
 								# ')'
 							# } @children);
-							$childnames = join(', ', map { $_->given_names() } @children);
+							my %childmap;
+							foreach my $child(@children) {
+								push @{$childmap{$child->father()->given_names()}}, $child;
+							}
+							while(my ($key, $value) = each %childmap) {
+								push @childnames, '(' .
+									join(', ', map { $_->name() } @{$value}) .
+									' ' .
+									i18n('with') .
+									" $key)";
+							}
 						}
-						substr($childnames, rindex($childnames, ', '), 2, ' and ');
-						$bio .= ": $childnames";
+						$bio .= ': ' .
+							Lingua::EN::Inflect::WORDLIST(@childnames, {
+								sep => '; ',
+								conj => i18n('and'),
+								final_sep => ''
+							});
 					}
 				}
 			}
@@ -9709,3 +9742,59 @@ sub get_language
 		}
 	}
 }
+
+sub i18n
+{
+	my $format = lc(shift);
+
+	if(my $translation = $i18n->{$format}) {
+		if($format =~ /%/) {	# FIXME: %%
+			return sprintf($translation, @_);
+		}
+
+		return $translation;
+	}
+	my $i = 0;
+	print "\n";
+	while((my @call_details = caller($i++))) {
+		print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+	}
+	die $format;
+}
+
+# Must all be in lower case
+__DATA__
+@@ English
+and:and
+check out %s:check out %s
+he:he
+husband:husband
+is:is
+of %d children:of %d children
+of:of
+she:she
+they:they
+wife:wife
+with:with
+your:your
+@@ French
+and:et
+check out %s:visitez %s
+he:il
+husband:marie
+is:est
+of %d children:de %d enfants
+of:de
+she:elle
+they:ils
+wife:femme
+with:avec
+your:votre
+@@ German
+and:und
+is:ist
+with:mit
+@@ Latin
+husband:maritus
+wife:uxor
+__END__
