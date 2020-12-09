@@ -423,7 +423,7 @@ if($opts{'m'} || $opts{'w'}) {
 		$geocoder->push(Geo::Coder::Bing->new(key => $key));
 	}
 
-	my $ua = LWP::UserAgent::Throttled->new(agent => basename($0), keep_alive => 1);
+	my $ua = LWP::UserAgent::Throttled->new(agent => basename($0), keep_alive => 1, timeout => 60);
 	$ua->env_proxy(1);
 
 	# TODO: throttle other geocoders
@@ -644,7 +644,7 @@ my $browser;
 my $cached_browser;
 
 if($opts{'d'} || $opts{'m'}) {
-	$browser = LWP::UserAgent->new();
+	$browser = LWP::UserAgent->new(agent => basename($0), keep_alive => 1, timeout => 60);
 	$browser->env_proxy(1);
 
 	my $cachedir = $ENV{'CACHEDIR'};
@@ -694,7 +694,8 @@ if($opts{'w'}) {
 	}
 	$cached_browser = LWP::UserAgent::Cached->new(cache_dir => $cachedir,
 		agent => basename($0),
-		keep_alive => 1
+		keep_alive => 1,
+		timeout => 60,
 	);
 	$cached_browser->env_proxy(1);
 
