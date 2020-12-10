@@ -7831,6 +7831,14 @@ sub place {
 	}
 
 	utf8::decode($place);
+	if($place =~ /,,/) {
+		complain({ person => $params{'person'}, warning => "Consecutive commas found in '$place'" });
+		$place =~ s/,,/,/g;
+	}
+	if($place =~ /,(\S)/) {
+		complain({ person => $params{'person'}, warning => "Space missing after comma in '$place'" });
+		$place =~ s/,(\S)/, $1/g;
+	}
 
 	if($place =~ /^\d/) {
 		if(my $places_printed = $params{'places_printed'}) {
