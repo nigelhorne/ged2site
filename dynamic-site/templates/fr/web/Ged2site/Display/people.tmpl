@@ -85,15 +85,15 @@
 								<img src="/images/socicon.com/googleplus.png" alt="Google Plus" width="50" height="50">
 							-->
 							<!--
-								<a href="//plus.google.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
-									<img class="spr-images-googleplus" src="/images/transparent.gif" height="1" width="1" alt="google plus"></a>
+							<a href="//plus.google.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<img class="spr-images-googleplus" src="/images/transparent.gif" height="1" width="1" alt="google plus"></a>
 							-->
 							<!-- Print this page -->
 							<a href="#" onclick="window.print(); return false;">
 								<!--
 									<img src="/images/printer.png" alt="Print Button" height="32" width="32">
 								-->
-								<img class="spr-images-printer" src="/images/transparent.gif" height="1" width="1" alt="Imprimer">
+								<img class="spr-images-printer" src="/images/transparent.gif" height="1" width="1" alt="print">
 							</a>
 						</div>
 					</div>
@@ -195,9 +195,9 @@
 					</div>
 				[% END %]
 				[% IF person.family_tree %]
-					<h2>Family Tree</h2>
+					<h2>L'arbre de la Famille</h2>
 					<center>
-						<img src="[% person.family_tree.split('---').0 %]" [% person.family_tree.split('---').1 %] usemap="#family" alt="Family Tree">
+						<img src="[% person.family_tree.split('---').0 %]" [% person.family_tree.split('---').1 %] usemap="#family" alt="L'arbre de la Famille">
 						[% person.family_tree.split('---').2 %]
 					</center>
 				[% END %]
