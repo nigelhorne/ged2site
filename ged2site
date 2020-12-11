@@ -9768,7 +9768,7 @@ sub i18n
 	}
 
 	my $translation;
-	if(my $gender = $params{'gender'}) {
+	if($params{'gender'}) {
 		my $person = $params{'person'};
 		$translation = $i18n->{$format};
 		if(ref($translation) eq 'HASH') {
