@@ -304,7 +304,7 @@ my @lines = split /\n/, $data;
 foreach(@lines) {
 	my ($english, $gender, $foreign) = split /:/;
 	if($gender) {
-		$i18n->{$english}{$gender} = $foreign;
+		$i18n->{$english}->{$gender} = $foreign;
 	} else {
 		$i18n->{$english} = $foreign;
 	}
@@ -2293,19 +2293,19 @@ sub print_person
 			$same_occupation_as_father = $occupations[0];
 			@occupations = ();
 		} else {
-			$bio = 'A';
+			my $article;
 			if($occupations[0] =~ /^[aeiou]/i) {
-				$bio .= 'n';
-			}
-			$bio .= ' ';
-			if($occupations[1]) {
-				# my $alloccupations = join(', ', @occupations);
-				# substr($alloccupations, rindex($alloccupations, ', '), 2, ' and ');
-				# $bio .= HTML::Entities::encode(lc($alloccupations));
-				$bio .= lc(Lingua::EN::Inflect::WORDLIST(@occupations, {final_sep => ''}));
+				$article = 'an';
 			} else {
-				$bio .= lc($occupations[0]);
+				$article = 'a';
 			}
+
+			$bio = ucfirst(i18n({
+				person => $person,
+				gender => 1,
+				format => "$article %s",
+				args => lc(Lingua::EN::Inflect::WORDLIST(@occupations, {final_sep => ''})),
+			}));
 			if(!($father || $mother || $spouserelationship)) {
 				$bio .= ', ';
 				$printed_comma = 1;
@@ -9770,13 +9770,20 @@ sub i18n
 	my $translation;
 	if(my $gender = $params{'gender'}) {
 		my $person = $params{'person'};
-		$translation = $i18n->{$format}{$person->sex()};
+		$translation = $i18n->{$format};
+		if(ref($translation) eq 'HASH') {
+			$translation = $translation->{$person->sex()};
+		}
 	} else {
 		$translation = $i18n->{$format};
 	}
 	if($translation) {
 		if($format =~ /%/) {	# FIXME: %%
-			return sprintf($translation, @{$params{'args'}});
+			if(ref($params{'args'}) eq 'ARRAY') {
+				return sprintf($translation, @{$params{'args'}});
+			} else {
+				return sprintf($translation, $params{'args'});
+			}
 		}
 
 		return $translation;
@@ -9792,6 +9799,8 @@ sub i18n
 # Must all be in lower case
 __DATA__
 @@ English
+a %s::a %s
+an %s::an %s
 and::and
 check out %s::check out %s
 he::he
@@ -9805,6 +9814,10 @@ wife::wife
 with::with
 your::your
 @@ French
+a %s:M:un %s
+a %s:F:une %s
+an %s:M:un %s
+an %s:F:une %s
 and::et
 check out %s::visitez %s
 he::il
