@@ -2675,12 +2675,7 @@ sub print_person
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
 				$bio = ',' if($relationship);
-				if($language eq 'French') {
-					$bio .= ' est ';
-					$bio .= ($sex eq 'M' ? "n\N{U+00E9}" : "n\N{U+00E9}e");
-				} else {
-					$bio .= ' was born';
-				}
+				$bio .= ' ' . i18n({ person => $person, gender => 1, format => 'was born' });
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
 					$bio .= $p;
@@ -4804,7 +4799,8 @@ sub print_person
 			$bio .= '.' if(!$end_of_sentence);
 			$bio .= "<p>$pronoun";
 		}
-		$bio .= ' died';
+		$bio .= ' ' . i18n({ person => $person, gender => 1, format => 'died' });
+
 		if($dateofdeath) {
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
 				$bio .= ' on the same day';
@@ -9787,6 +9783,7 @@ sub i18n
 				return sprintf($translation, $params{'args'});
 			}
 		}
+		utf8::decode($translation);
 		return $translation;
 	}
 
@@ -9805,6 +9802,7 @@ a %s::a %s
 an %s::an %s
 and::and
 check out %s::check out %s
+died::died
 during %s life::during %s life
 he::he
 husband::husband
@@ -9813,6 +9811,7 @@ of %d children::of %d children
 of::of
 she::she
 they::they
+was born::was born
 wife::wife
 with::with
 your::your
@@ -9822,6 +9821,8 @@ a %s:F:une %s
 an %s:M:un %s
 an %s:F:une %s
 and::et
+died:M:est mort
+died:F:est morte
 check out %s::visitez %s
 during %s life::pendant sa vie
 he::il
@@ -9832,6 +9833,8 @@ of::de
 she::elle
 they:M:ils
 they:F:elles
+was born:M:est né
+was born:F:est née
 wife::femme
 with::avec
 your::votre
