@@ -4506,10 +4506,11 @@ sub print_person
 					if(!$start_of_paragraph) {
 						$bio .= '</p><p>';
 					}
-					$bio .= 'During ' . lc($person->possessive()) . ' life';
+					$bio .= ucfirst(i18n('during %s life', lc($person->possessive())));
 				}
 
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
+			
 				# Because peek above only looks ahead one element:
 				# [
 					  # 'at Shuart Cottage, Podden Street, St Nicholas-at-Wade on Apr 5, 1891 (was age 0 and the son of the head of the household; was age 0 and the son of the head of the household)',
@@ -4527,8 +4528,8 @@ sub print_person
 				while(!defined($residencestringarray[scalar(@residencestringarray) - 1])) {
 					pop @residencestringarray;
 				}
-				$bio .= ', ' . lcfirst($pronoun) . ' was living ' .
-					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; '});
+				$bio .= ', ' . lcfirst($pronoun) . ' ' . i18n('was living') . ' ' .
+					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; ', conj => i18n('and')});
 
 				if($placeofdeath) {
 					my $lastresidence = $residencelist[scalar(@residencelist) - 1];
@@ -9777,17 +9778,18 @@ sub i18n
 	} else {
 		$translation = $i18n->{$format};
 	}
+
 	if($translation) {
-		if($format =~ /%/) {	# FIXME: %%
+		if($translation =~ /%/) {	# FIXME: %%
 			if(ref($params{'args'}) eq 'ARRAY') {
 				return sprintf($translation, @{$params{'args'}});
 			} else {
 				return sprintf($translation, $params{'args'});
 			}
 		}
-
 		return $translation;
 	}
+
 	my $i = 0;
 	print "\n";
 	while((my @call_details = caller($i++))) {
@@ -9803,6 +9805,7 @@ a %s::a %s
 an %s::an %s
 and::and
 check out %s::check out %s
+during %s life::during %s life
 he::he
 husband::husband
 is::is
@@ -9820,6 +9823,7 @@ an %s:M:un %s
 an %s:F:une %s
 and::et
 check out %s::visitez %s
+during %s life::pendant sa vie
 he::il
 husband::marie
 is::est
