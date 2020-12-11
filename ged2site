@@ -9750,7 +9750,7 @@ sub i18n
 
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
-	} elsif(scalar(@_) % 2 == 0) {
+	} elsif((scalar(@_) % 2 == 0) && ref($_[1])) {
 		%params = @_;
 	} else {
 		$params{'format'} = lc(shift);
@@ -9758,13 +9758,21 @@ sub i18n
 	}
 
 	my $format = $params{'format'};
+	if(!defined($format)) {
+		my $i = 0;
+		print "\n";
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die "BUG: format argument not given\n";
+	}
 
 	my $translation;
 	if(my $gender = $params{'gender'}) {
 		my $person = $params{'person'};
-		$translation = $i18n->{$format}{$person->sex()}->{'format'};
+		$translation = $i18n->{$format}{$person->sex()};
 	} else {
-		$translation = $i18n->{$format}->{'format'};
+		$translation = $i18n->{$format};
 	}
 	if($translation) {
 		if($format =~ /%/) {	# FIXME: %%
