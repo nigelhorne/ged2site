@@ -3521,11 +3521,19 @@ sub print_person
 							my %childmap;
 							if($sex eq 'M') {
 								foreach my $child(@children) {
-									push @{$childmap{$child->mother()->given_names()}}, $child;
+									if(my $mother = $child->mother()) {
+										push @{$childmap{$mother->given_names()}}, $child;
+									} else {
+										push @{$childmap{'unknown'}}, $child;
+									}
 								}
 							} else {
 								foreach my $child(@children) {
-									push @{$childmap{$child->father()->given_names()}}, $child;
+									if(my $father = $child->father()) {
+										push @{$childmap{$father->given_names()}}, $child;
+									} else {
+										push @{$childmap{'unknown'}}, $child;
+									}
 								}
 							}
 							my @childnames;
