@@ -7966,6 +7966,7 @@ sub place {
 			} elsif(($language eq 'French') && ($2 eq 'England')) {
 				my $town = $1;
 				$town =~ s/London$/Londres/;
+				$town =~ s/Dover$/Douvres/;
 				$place = "$town, Angleterre";
 			} elsif(($language eq 'French') && ($2 eq 'France')) {
 				$place =~ s/Normandy,/Normandie,/;
