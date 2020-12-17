@@ -331,8 +331,9 @@ my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
 my $lcm;
 if($language) {
-	$lcm = Class::Simple::Cached->new(object => Locale::Country::Multilingual->new(),
-		cache => CHI->new(driver => 'RawMemory', datastore => {}));
+	# $lcm = Class::Simple::Cached->new(object => Locale::Country::Multilingual->new(),
+		# cache => CHI->new(driver => 'RawMemory', datastore => {}));
+	$lcm = Locale::Country::Multilingual->new();
 }
 
 my $obituaries = Genealogy::ObituaryDailyTimes->new();
@@ -7983,11 +7984,14 @@ sub place {
 				$town =~ s/Swansea$/Abertawe/;
 				$place = "$town, Cymru";
 			} elsif(my $code = $lcm->country2code($c)) {
-				$place = "$1, " . $lcm->code2country($code, $ENV{'LANG'});
+				$c = $lcm->code2country($code, $ENV{'LANG'});
+				utf8::decode($c);
+				$place = "$1, $c";
 			}
 		} elsif($place !~ /,/) {
 			if(my $code = $lcm->country2code($place)) {
 				$place = $lcm->code2country($code, $ENV{'LANG'});
+				utf8::decode($place);
 			}
 		}
 	}
