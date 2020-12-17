@@ -7982,10 +7982,12 @@ sub place {
 				my $town = $1;
 				$town =~ s/Swansea$/Abertawe/;
 				$place = "$town, Cymru";
-			} elsif(($c ne 'United States') && (my $code = $lcm->country2code($c))) {
+			} elsif(my $code = $lcm->country2code($c)) {
 				$c = $lcm->code2country($code, $ENV{'LANG'});
-				utf8::decode($c);
-				$place = "$1, $c";
+				if($c ne 'United States') {
+					utf8::decode($c);
+					$place = "$1, $c";
+				}
 			}
 		} elsif($place !~ /,/) {
 			if(my $code = $lcm->country2code($place)) {
