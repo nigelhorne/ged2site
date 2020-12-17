@@ -331,9 +331,8 @@ my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
 my $lcm;
 if($language) {
-	# $lcm = Class::Simple::Cached->new(object => Locale::Country::Multilingual->new(),
-		# cache => CHI->new(driver => 'RawMemory', datastore => {}));
-	$lcm = Locale::Country::Multilingual->new();
+	$lcm = Class::Simple::Readonly::Cached->new(object => Locale::Country::Multilingual->new(),
+		cache => CHI->new(driver => 'RawMemory', datastore => {}));
 }
 
 my $obituaries = Genealogy::ObituaryDailyTimes->new();
