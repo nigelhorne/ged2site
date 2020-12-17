@@ -7896,6 +7896,7 @@ sub place {
 	}
 
 	if($address) {
+		utf8::decode($address);
 		if($params{'nopreposition'}) {
 			$place = " $address, $place";
 		} elsif($language eq 'French') {
@@ -7961,24 +7962,28 @@ sub place {
 	}
 	if($lcm) {
 		if($place =~ /(.*),\s+([A-Z\s]+)$/i) {
-			if(my $code = $lcm->country2code($2)) {
-				$place = "$1, " . $lcm->code2country($code, $ENV{'LANG'});
-			} elsif(($language eq 'French') && ($2 eq 'England')) {
+			my $c = $2;
+			if($c eq 'USA') {
+				$c = 'United States';
+			}
+			if(($language eq 'French') && ($c eq 'England')) {
 				my $town = $1;
 				$town =~ s/London$/Londres/;
 				$town =~ s/Dover$/Douvres/;
 				$place = "$town, Angleterre";
-			} elsif(($language eq 'French') && ($2 eq 'France')) {
+			} elsif(($language eq 'French') && ($c eq 'France')) {
 				$place =~ s/Normandy,/Normandie,/;
-			} elsif(($language eq 'English') && ($2 eq 'France')) {
+			} elsif(($language eq 'English') && ($c eq 'France')) {
 				$place =~ s/Normandie,/Normandy,/;
-			} elsif(($language eq 'French') && ($2 eq 'Scotland')) {
+			} elsif(($language eq 'French') && ($c eq 'Scotland')) {
 				my $town = $1;
 				$place = "$town, Ecosse";
-			} elsif(($language eq 'Welsh') && ($2 eq 'Wales')) {
+			} elsif(($language eq 'Welsh') && ($c eq 'Wales')) {
 				my $town = $1;
 				$town =~ s/Swansea$/Abertawe/;
 				$place = "$town, Cymru";
+			} elsif(my $code = $lcm->country2code($c)) {
+				$place = "$1, " . $lcm->code2country($code, $ENV{'LANG'});
 			}
 		} elsif($place !~ /,/) {
 			if(my $code = $lcm->country2code($place)) {
