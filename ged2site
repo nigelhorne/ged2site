@@ -184,6 +184,8 @@ if(-x '/usr/bin/gedcom') {
 	$gedcal = '../gedcom/gedcom';
 }
 
+my $language = get_language();
+
 my @modules;
 @needfull = ();
 
@@ -215,8 +217,11 @@ if($gedcal || !$opts{'w'}) {
 if($opts{'F'}) {
 	push @modules, ' Image::Magick::Thumbnail';
 }
-if(get_language()) {
+if($language) {
 	push @modules, 'Locale::Country::Multilingual';
+	if($language ne 'English') {
+		push @modules, 'Locale::Places';
+	}
 }
 if($ENV{'GEO_CODER_OPENCAGE_API_KEY'}) {
 	push @modules, 'Geo::Coder::OpenCage';
@@ -296,9 +301,13 @@ my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
 $ged = Class::Simple::Cached->new(object => $ged, cache => CHI->new(driver => 'RawMemory', datastore => {}));
 
+my $places;
+if($language ne 'English') {
+	$places = Locale::Places->new();
+}
+
 # Read in the $text table for translation
 my $i18n;
-my $language = get_language();
 my $data = Data::Section::Simple::get_data_section($language);
 my @lines = split /\n/, $data;
 foreach(@lines) {
@@ -7861,6 +7870,21 @@ sub place {
 			}
 		} else {
 			complain({ person => $params{'person'}, warning => "Unknown Canadian province $province" });
+		}
+	} elsif($place =~ /(.*)(^|,\s*.+),\s*(UK|England|Wales|Scotland)$/i) {
+		# Translate the city from English
+		# TODO: if language eq English, translate a city to English
+		if($language ne 'English') {
+			# FIXME: should be table driven
+			my $to = 'en';
+			if($language eq 'French') {
+				$to = 'fr';
+			} else {
+				die "TODO: add language $language";
+			}
+			if(my $t = $places->translate({ place => $1, from => 'en', to => $to })) {
+				$place = "$t$2, $3";
+			}
 		}
 	}
 
