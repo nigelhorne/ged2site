@@ -9722,6 +9722,9 @@ sub issister
 sub get_year_from_date($)
 {
 	my $date = shift;
+	my $year = UnixDate(ParseDate($date), "%Y");	# Date::Manip
+
+	return $year if($year);
 	if($date =~ /(\d{3,4})\s*$/) {
 		return $1;
 	}
