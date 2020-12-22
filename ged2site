@@ -9734,6 +9734,7 @@ sub get_year_from_date($)
 	if($date =~ /(\d{3,4})\s*$/) {
 		return $1;
 	}
+	complain("Can't parse date '$date'");
 }
 
 # https://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
