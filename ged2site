@@ -59,7 +59,7 @@ BEGIN {
 		'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
-		'Genealogy::Gedcom::Date',
+		'Genealogy::Gedcom::Date', 'Genealogy::ObituaryDailyTimes',
 		# 'Geo::Coder::DataScienceToolkit',
 		# 'Geo::Coder::Free::OpenAddresses',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
@@ -9865,6 +9865,7 @@ of::of
 she::she
 they::they
 was born::was born
+was living::was living
 wife::wife
 with::with
 your::your
@@ -9888,6 +9889,7 @@ they:M:ils
 they:F:elles
 was born:M:est né
 was born:F:est née
+was living::habitait
 wife::femme
 with::avec
 your::votre
