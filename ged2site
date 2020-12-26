@@ -6579,7 +6579,7 @@ sub print_person
 		}
 		print $csv '!';
 		if($placeofdeath) {
-			if(my $location = get_location($placeofbirth)) {
+			if(my $location = get_location($placeofdeath)) {
 				# if(scalar(@locations) > 1) {
 					# if($opts{'f'}) {
 						# die $person->as_string(), ": Ambiguous death location $placeofdeath";
