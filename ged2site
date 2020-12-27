@@ -1818,10 +1818,10 @@ sub print_person
 						chronicling_america($person, \%chronicling_params);
 					}
 				}
-				obituaries({ first => $firstname, last => $lastname, yob => $yob, yod => $yod });
+				obituaries({ person => $person, first => $firstname, last => $lastname, yob => $yob, yod => $yod });
 				my $sex = get_value({ person => $person, value => 'sex' });
 				if(defined($sex) && ($sex eq 'F')) {
-					obituaries({ first => $firstname, maiden => $lastname, yob => $yob, yod => $yod });
+					obituaries({ person => $person, first => $firstname, maiden => $lastname, yob => $yob, yod => $yod });
 				}
 			}
 		}
@@ -9456,11 +9456,7 @@ sub chronicling_america
 
 	if(my $loc = Genealogy::ChroniclingAmerica->new($chronicling_params)) {
 		while(my $url = $loc->get_next_entry()) {
-			if($language eq 'French') {
-				complain({ person => $person, warning => "Visitez $url" });
-			} else {
-				complain({ person => $person, warning => "Check out $url" });
-			}
+			complain({ person => $person, warning => ucfirst(i18n('check out %s', $url)) });
 		}
 	}
 }
@@ -9492,8 +9488,15 @@ sub obituaries
 					my $year = $1;
 					if($yod) {
 						if(abs($year - $yod) <= 1) {
-							print Data::Dumper->new([$obituary])->Dump();
-							die 'TODO';
+							if($yob && $obituary->{'age'}) {
+								if(abs($year - ($yob + $obituary->{'age'})) <= 1) {
+									print Data::Dumper->new([$obituary])->Dump();
+									die 'TODO';
+								}
+							} else {
+								print Data::Dumper->new([$obituary])->Dump();
+								die 'TODO';
+							}
 						}
 					} elsif($yob && $obituary->{'age'}) {
 						if(abs($year - ($yob + $obituary->{'age'})) <= 1) {
