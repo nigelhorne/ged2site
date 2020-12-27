@@ -9479,6 +9479,7 @@ sub obituaries
 
 	my $yob = delete $params{'yob'};
 	my $yod = delete $params{'yod'};
+	my $person = delete $params{'person'};
 	my @obituaries = $obituaries->search(\%params);
 
 	if(scalar(@obituaries)) {
