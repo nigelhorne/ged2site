@@ -59,7 +59,7 @@ BEGIN {
 		'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
-		'Genealogy::Gedcom::Date', 'Genealogy::ObituaryDailyTimes',
+		'Genealogy::Gedcom::Date',
 		# 'Geo::Coder::DataScienceToolkit',
 		# 'Geo::Coder::Free::OpenAddresses',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
@@ -235,6 +235,9 @@ if($ENV{BMAP_KEY}) {
 if($ENV{'GEONAMES_USER'}) {
 	push @modules, 'Geo::GeoNames';
 }
+if($opts{'w'}) {
+	push @modules, 'Genealogy::ObituaryDailyTimes';
+}
 
 foreach my $module(@modules) {
 	eval "require $module";
@@ -349,8 +352,6 @@ if($language) {
 	$lcm = Class::Simple::Readonly::Cached->new(object => Locale::Country::Multilingual->new(),
 		cache => CHI->new(driver => 'RawMemory', datastore => {}));
 }
-
-my $obituaries = Genealogy::ObituaryDailyTimes->new();
 
 my $config;
 
@@ -707,6 +708,7 @@ my $ca_en = Locale::CA->new(lang => 'en');
 my $ca_fr = Locale::CA->new(lang => 'fr');
 my $us = Locale::US->new();
 my $dtl = DateTime::Locale->load($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'});
+my $obituaries;
 
 if($opts{'w'}) {
 	my $cachedir;
@@ -729,6 +731,7 @@ if($opts{'w'}) {
 	if(!defined($ENV{'CLICOLOR'})) {
 		$opts{'W'} = 1;
 	}
+	$obituaries = Genealogy::ObituaryDailyTimes->new();
 } else {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
