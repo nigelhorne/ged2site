@@ -186,7 +186,7 @@ if(-x '/usr/bin/gedcom') {
 
 my $language = get_language();
 
-my @modules;
+my @modules = ('NJH::Normalize');
 @needfull = ();
 
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
@@ -237,6 +237,15 @@ if($ENV{'GEONAMES_USER'}) {
 }
 if($opts{'w'}) {
 	push @modules, 'Genealogy::ObituaryDailyTimes';
+}
+
+my $libdir1 = File::Spec->catfile($FindBin::Bin, File::Spec->updir(), 'lib');
+if(-d $libdir1) {
+	unshift @INC, ($libdir1);
+}
+my $libdir2 = File::Spec->catfile(File::HomeDir->my_home(), 'lib');
+if(($libdir2 ne $libdir1) && (-d $libdir2)) {
+	unshift @INC, ($libdir2);
 }
 
 foreach my $module(@modules) {
@@ -4102,12 +4111,12 @@ sub print_person
 							$prev_residence = $residence;
 						}
 					}
-					if(defined($latitude) && date_to_datetime($rdate)) {
+					if(defined($latitude) && (my $dt = date_to_datetime($rdate))) {
 						# Print close relatives living close by
 						# This really only works when printing a lot of people, for example with the -a
 						#	flag, or when producing a PDF book, since it relies on having found data
 						#	on people beforehand
-						my $year = date_to_datetime($rdate)->year();
+						my $year = $dt->year();
 						my $printed_person = 0;
 						my $gis = GIS::Distance->new('MathTrig');
 						my $p2 = place({ record => $residence, nopreposition => 1 });
@@ -8422,9 +8431,11 @@ sub places_are_the_same
 		$place1 = "$1 USA";
 	}
 	if(my $address = $record1->address()) {
+		$address = NJH::Normalize::normalize($address);
 		$place1 = "$address, $place1";
 	}
 	if(my $address = $record2->address()) {
+		$address = NJH::Normalize::normalize($address);
 		$place2 = "$address, $place2";
 	}
 	if($place2 =~ /(.+?)\s*United States$/i) {
