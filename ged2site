@@ -8446,28 +8446,6 @@ sub places_are_the_same
 		}
 		$place2 = "$1 USA";
 	}
-	if($place2 =~ /(.+)\sSt\.?$/) {
-		if($person) {
-			complain({ person => $person, warning => "Changing 'St' to 'Street' in $place2" });
-		} else {
-			complain("Changing 'St' to 'Street' in $place2");
-		}
-		$place2 = "$1 Street";
-	} elsif($place2 =~ /(.+)\sAve\.?$/) {
-		if($person) {
-			complain({ person => $person, warning => "Changing 'Ave' to 'Avenue' in $place2" });
-		} else {
-			complain("Changing 'Ave' to 'Avenue' in $place2");
-		}
-		$place2 = "$1 Avenue";
-	} elsif($place2 =~ /(.+)\sRd\.?$/) {
-		if($person) {
-			complain({ person => $person, warning => "Changing 'Rd' to 'Road' in $place2" });
-		} else {
-			complain("Changing 'Rd' to 'Road' in $place2");
-		}
-		$place2 = "$1 Road";
-	}
 	return 1 if($place1 eq $place2);
 	if(compare($place1, $place2) > 0.5) {
 		if($person) {
