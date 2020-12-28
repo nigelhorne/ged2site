@@ -118,6 +118,10 @@ in which case you'll need to add them by hand.
 To ensure you'll be installing them in a directory you can use either use local::lib
 or perlbrew.
 
+[Library](https://github.com/nigelhorne/lib) - library of code common with
+[gedcom](https://github.com/nigelhorne/gedcom).
+
+
 Ancestry on Windows
 ===================
 
