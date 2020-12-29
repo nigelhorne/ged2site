@@ -56,7 +56,7 @@ BEGIN {
 		'Config::Auto',
 		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
 		'Date::Manip', 'Parse::RecDescent', 'Roman',
-		'Gedcom', 'Genealogy::Gedcom::Date',
+		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
 		'Genealogy::Gedcom::Date',
