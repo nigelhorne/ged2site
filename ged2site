@@ -8466,7 +8466,7 @@ sub places_are_the_same
 		# }
 		# $place2 = "$1 Road";
 	# }
-	return 1 if($place1 eq $place2);
+	return 1 if(lc($place1) eq lc($place2));
 	if(compare($place1, $place2) > 0.5) {
 		if($person) {
 			complain({ $person => $person, warning => "The places '$place1' and '$place2' seem similar; is there a typo?" });
