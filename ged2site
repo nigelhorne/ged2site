@@ -6734,7 +6734,7 @@ sub print_person
 		foreach my $p($current_people->root()->children('person')) {
 			my $entry = $p->first_child('entry');
 			next if($entry->first_child()->pcdata() ne $person->xref());
-			if($firstname && (my $f = $p->first_child('firstname'))) {
+			if($firstname && (my $f = $p->first_child('first_name'))) {
 				next if($f->first_child()->pcdata() ne $firstname);
 			}
 			if($surname && (my $s = $p->first_child('surname'))) {
