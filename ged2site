@@ -3910,7 +3910,7 @@ sub print_person
 								# Check this person was living at the same place as their spouse.
 								# TODO: Also check all children under 10
 								foreach my $l(@{$all_locations{$year}}) {
-									if(($l->{'person'} eq $spouses[0]) &&
+									if(($l->{'person'}->xref() eq $spouses[0]->xref()) &&
 									   ($l->{'date'} eq $strftime)) {
 										my $r1 = place(record => $residence, nopreposition => 1);
 										my $r2 = place(record => $l->{'residence'}, nopreposition => 1);
@@ -4137,11 +4137,11 @@ sub print_person
 							     (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
 								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
 								my $peek = $sorted_locations[$count];
-								next if($peek && ($peek->{'person'} eq $l->{'person'}));
+								next if($peek && ($peek->{'person'}->xref() eq $l->{'person'}->xref()));
 								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1});
 								if($p1 eq $p2) {
 									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
-										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'} ne $l->{'person'})) {
+										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'}->xref() ne $l->{'person'}->xref())) {
 											push @people_at_p3, $l;
 										}
 										next;
@@ -4159,7 +4159,7 @@ sub print_person
 									});
 								} elsif($distance->miles() < 1) {
 									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
-										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'} ne $l->{'person'})) {
+										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'}->xref() ne $l->{'person'}->xref())) {
 											push @people_at_p3, $l;
 										}
 										next;
