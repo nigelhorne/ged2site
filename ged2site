@@ -7863,7 +7863,7 @@ sub place {
 			} else {
 				$place = "$p, Canada";
 			}
-		} elsif($province eq 'Québec') {
+		} elsif($province =~ /^Qu.+bec$/) {
 			if($language eq 'French') {
 				$province = "Qu\N{U+00E9}bec";
 				if($town eq 'Montréal') {
