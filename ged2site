@@ -9503,21 +9503,15 @@ sub obituaries
 						if(abs($year - $yod) <= 1) {
 							if($yob && $obituary->{'age'}) {
 								if(abs($year - ($yob + $obituary->{'age'})) <= 1) {
-									print Data::Dumper->new([$obituary])->Dump();
-									die $obituary->{'url'} if(defined($obituary->{'url'}));
-									die 'TODO';
+									complain({ person => $person, warning => ucfirst(i18n('check out %s', $obituary->{'url'})) });
 								}
 							} else {
-								print Data::Dumper->new([$obituary])->Dump();
-								die $obituary->{'url'} if(defined($obituary->{'url'}));
-								die 'TODO';
+								complain({ person => $person, warning => ucfirst(i18n('check out %s', $obituary->{'url'})) });
 							}
 						}
 					} elsif($yob && $obituary->{'age'}) {
 						if(abs($year - ($yob + $obituary->{'age'})) <= 1) {
-							print Data::Dumper->new([$obituary])->Dump();
-							die $obituary->{'url'} if(defined($obituary->{'url'}));
-							die 'TODO: ', $year, ' - (', $yob, ' + ', $obituary->{'age'}, ')';
+							complain({ person => $person, warning => ucfirst(i18n('check out %s', $obituary->{'url'})) });
 						}
 					}
 				}
