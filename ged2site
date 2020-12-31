@@ -705,6 +705,7 @@ if($opts{'d'} || $opts{'m'}) {
 
 # my @everyone = $ged->individuals();
 my @everyone = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } $ged->individuals();
+# my @everyone = $ged->get_individual('Jocasta Claire Traill Innes');
 my $total = scalar(@everyone);
 if($total == 0) {
 	die "$0: gedcom file is empty";
@@ -6192,6 +6193,7 @@ sub print_person
 			if(defined($place) && ($place =~ /,.+,/)) {
 				$place =~ s/^\s+//;
 				if(defined($current_place) && ($place ne $current_place)) {
+					$current_place =~ s/&rsquo;/'/g;
 					if(!defined($map)) {
 						# my %args = (geocoder => $geocoder, z_index => -1);
 						my %args = (geocoder => $geocoder);
@@ -6231,6 +6233,7 @@ sub print_person
 			my $place = $match->{'location'};
 			next if(!defined($place));	# The text didn't match a location
 			if(defined($current_place) && ($place ne $current_place)) {
+				$current_place =~ s/&rsquo;/'/g;
 				# FIXME: no need to look up again, use $match->longt and lattt
 				if(!defined($map)) {
 					# my %args = (geocoder => $geocoder, z_index => -1);
@@ -6250,6 +6253,7 @@ sub print_person
 			$annotation .= '<p>' . $location->{'text'} . '</p>';
 		}
 		if($current_place) {
+			$current_place =~ s/&rsquo;/'/g;
 			if(!defined($map)) {
 				# my %args = (geocoder => $geocoder, z_index => -1);
 				my %args = (geocoder => $geocoder);
