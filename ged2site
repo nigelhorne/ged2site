@@ -5754,6 +5754,8 @@ sub print_person
 
 			my %downloadhistory;
 
+			my %objects_printed;
+
 			# Two passes, the first one where the links are pictures, the second where they are not
 			for(my $pass = 1; $pass <= 2; $pass++) {
 				print "Media pass $pass\n" if($opts{'v'});
@@ -5771,6 +5773,8 @@ sub print_person
 							$file = $file->{'file'};
 							next if($file eq '*');
 						}
+						next if($objects_printed{$file});
+						$objects_printed{$file} = 1;
 						if(!$printed_media_header) {
 							print $html '<h2>Media</h2>';
 							print $xml "\n\t\t<media>";
