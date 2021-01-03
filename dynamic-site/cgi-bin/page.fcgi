@@ -164,6 +164,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		$people->set_logger($logger);
 		$names->set_logger($logger);
 		$info->set_logger($logger);
+		$Config::Auto::Debug = 1;
 
 		# TODO:  Make this neater
 		# Tries again without the database if it can't be opened
