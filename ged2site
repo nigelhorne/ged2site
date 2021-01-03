@@ -2836,7 +2836,7 @@ sub print_person
 							if($address =~ /(.+),\s*$placeofbirth$/) {
 								$address = $1;
 							}
-							$bio .= ' ' . i18n('at') . " $address";
+							$bio .= i18n(' at') . " $address";
 						}
 					} else {
 						my $p = place({ person => $person, place => $placeofbaptism });
@@ -9888,6 +9888,7 @@ __DATA__
 a %s::a %s
 an %s::an %s
 and::and
+at::at
 check out %s::check out %s
 died::died
 during %s life::during %s life
@@ -9909,6 +9910,7 @@ a %s:F:une %s
 an %s:M:un %s
 an %s:F:une %s
 and::et
+at::à
 died:M:est mort
 died:F:est morte
 check out %s::visitez %s
