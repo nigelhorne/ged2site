@@ -89,6 +89,9 @@ sub new {
 			}
 		}
 	}
+	# if($args{'debug'}) {
+		# $Config::Auto::Debug = 1;
+	# }
 	my $config;
 	eval {
 		if($args{logger}) {
@@ -103,7 +106,7 @@ sub new {
 		}
 	};
 	if($@ || !defined($config)) {
-		throw Error::Simple("Configuration error: $@" . $path . '/' . $info->domain_name());
+		throw Error::Simple("Configuration error $@: $path/" . $info->domain_name());
 	}
 
 	# The values in config are defaults which can be overriden by
