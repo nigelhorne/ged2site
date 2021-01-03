@@ -90,23 +90,33 @@ sub new {
 		}
 	}
 	# if($args{'debug'}) {
+		# # Not sure this really does anything
 		# $Config::Auto::Debug = 1;
 	# }
 	my $config;
+	my $config_file;
 	eval {
+		$config_file = File::Spec->catdir($path, $info->domain_name());
 		if($args{logger}) {
-			$args{logger}->debug("Configuration path: $path/", $info->domain_name());
+			$args{logger}->debug("Configuration path: $config_file");
 		}
-		if(-r File::Spec->catdir($path, $info->domain_name())) {
-			$config = Config::Auto::parse($info->domain_name(), path => $path);
+		if(-r $config_file) {
+			if($args{logger}) {
+				$args{logger}->debug("Found configuration in $config_file");
+			}
+			$config = Config::Auto::parse($config_file);
 		} elsif (-r File::Spec->catdir($path, 'default')) {
+			$config_file = File::Spec->catdir($path, 'default');
+			if($args{logger}) {
+				$args{logger}->debug("Found configuration in $config_file");
+			}
 			$config = Config::Auto::parse('default', path => $path);
 		} else {
 			die "no suitable config file found in $path";
 		}
 	};
 	if($@ || !defined($config)) {
-		throw Error::Simple("Configuration error $@: $path/" . $info->domain_name());
+		throw Error::Simple("$config_file: configuration error: $@");
 	}
 
 	# The values in config are defaults which can be overriden by
