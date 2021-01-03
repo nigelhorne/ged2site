@@ -2727,7 +2727,7 @@ sub print_person
 					if(scalar(@spouses) && ($numberofchildren > 0)) {
 						$bio .= ', was';
 					} else {
-						$bio .= ' and';
+						$bio .= i18n(' and');
 					}
 				}
 				$end_of_sentence = 0;
@@ -2823,10 +2823,7 @@ sub print_person
 					}
 				}
 				if($language eq 'French') {
-					$bio .= "baptis\N{U+00E9}";
-					if($sex eq 'F') {
-						$bio .= 'e';
-					}
+					$bio .= "a baptis\N{U+00E9}";
 				} elsif($ENV{'LANG'} =~ /^en_US/) {
 					$bio .= 'baptized';
 				} else {
@@ -2839,7 +2836,7 @@ sub print_person
 							if($address =~ /(.+),\s*$placeofbirth$/) {
 								$address = $1;
 							}
-							$bio .= " at $address";
+							$bio .= ' ' . i18n('at') . " $address";
 						}
 					} else {
 						my $p = place({ person => $person, place => $placeofbaptism });
@@ -9835,7 +9832,13 @@ sub i18n
 		while((my @call_details = caller($i++))) {
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
-		die "BUG: format argument not given\n";
+		die "BUG: format argument not given";
+	}
+
+	my $prepend_space;
+	if($format =~ /^\s(.+)$/) {
+		$format = $1;
+		$prepend_space = 1;
 	}
 
 	my $translation;
@@ -9858,6 +9861,9 @@ sub i18n
 			}
 		}
 		utf8::decode($translation);
+		if($prepend_space) {
+			return " $translation";
+		}
 		return $translation;
 	}
 
