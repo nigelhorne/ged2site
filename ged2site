@@ -5376,10 +5376,10 @@ sub print_person
 		$bio =~ s/&amp;#/&#/g;
 		$bio =~ s/</&lt;/g;
 		$bio =~ s/>/&gt;/g;
-		$bio =~ s/&eacute;/&#233;/g;
+		$bio =~ s/&amp;eacute;/&#233;/g;
 		$bio =~ s/\xc3\xb1/&#241;/g;	# ntilde
 		$bio =~ s/\xc3\xab/&#235;/g;	# eumlaut
-		$bio =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
+		$bio =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
 		print $xml $bio;
 	}
 	print $csv '!';
