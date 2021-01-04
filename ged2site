@@ -6763,10 +6763,10 @@ sub print_person
 				$marriage_in_last_run = $marriage_in_last_run->first_child()->pcdata();
 				if(($marriage_in_last_run =~ /\-\-\-/) || (scalar(@spouses) >= 2)) {
 					# Married more than once
-					$marriage_in_last_run = undef;
+					$marriage_dt = undef;
 				} elsif($spouses[0] && (!$opts{'l'}) && is_alive($spouses[0])) {
 					# Spouse is still alive
-					$marriage_in_last_run = undef;
+					$marriage_dt = undef;
 				}
 			}
 			if($death_in_last_run = $p->first_child('death')) {
