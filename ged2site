@@ -706,6 +706,7 @@ if($opts{'d'} || $opts{'m'}) {
 # my @everyone = $ged->individuals();
 my @everyone = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } $ged->individuals();
 # my @everyone = $ged->get_individual('Jocasta Claire Traill Innes');
+# my @everyone = $ged->get_individual('Adeline Janet Kewley');
 my $total = scalar(@everyone);
 if($total == 0) {
 	die "$0: gedcom file is empty";
@@ -7989,10 +7990,10 @@ sub place {
 				return "$1,$2";
 			}
 			$str = "$3,$4";
-			if($places_printed->{" in$str"}) {
-				return "$1,$2,$3";
-			}
-			if($places_printed->{" at$str"}) {
+			if($places_printed->{" in$str"} || $places_printed->{" at$str"}) {
+				if($params{'encode'}) {
+					return HTML::Entities::encode("$1,$2,$3");
+				}
 				return "$1,$2,$3";
 			}
 			$places_printed->{" in$str"} = 1;
