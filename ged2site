@@ -1361,6 +1361,8 @@ if($opts{'w'}) {
 					$summary = 'Country missing or misspelt';
 				} elsif($warning =~ /^Can't parse the name - assuming first name:  /) {
 					$summary = "Can't parse the name";
+				} elsif($warning =~ /^Not living with either parent in childhood aged \d/) {
+					$summary = 'Not living with either parent in childhood';
 				} elsif($warning =~ /^Check out https?:\/\/chroniclingamerica.loc.gov/) {
 					# FIXME: Lots of false positives
 					next;
