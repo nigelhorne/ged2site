@@ -706,7 +706,7 @@ if($opts{'d'} || $opts{'m'}) {
 # my @everyone = $ged->individuals();
 my @everyone = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } $ged->individuals();
 # my @everyone = $ged->get_individual('Jocasta Claire Traill Innes');
-# my @everyone = $ged->get_individual('Adeline Janet Kewley');
+# my @everyone = $ged->get_individual('Francis Eric Irving Bloy');
 my $total = scalar(@everyone);
 if($total == 0) {
 	die "$0: gedcom file is empty";
@@ -5378,6 +5378,7 @@ sub print_person
 		$bio =~ s/>/&gt;/g;
 		$bio =~ s/&amp;eacute;/&#233;/g;
 		$bio =~ s/\xc3\xb1/&#241;/g;	# ntilde
+		$bio =~ s/ñ/&#241;/g;
 		$bio =~ s/\xc3\xab/&#235;/g;	# eumlaut
 		$bio =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
 		print $xml $bio;
@@ -6627,6 +6628,7 @@ sub print_person
 				if(my $rplace = place({ person => $person, record => $residence, nopreposition => 1, encode => 0 })) {
 					$rplace =~ s/^\s+//;
 					$rplace =~ s/\xc3\xb1/&#241;/g;	# ntilde
+					$rplace =~ s/ñ/&#241;/g;
 					$rplace =~ s/\s&\s/ &amp; /g;
 					print $xml "\n\t\t\t\t<location>$rplace</location>";
 				}
