@@ -5816,8 +5816,6 @@ sub print_person
 								if($file =~ /^http:\/\/(\w+)\.findmypast\.(co[\w\.]+)\/(.+)/) {
 									$file = "https://$1.findmypast.$2/$3";
 								}
-								next if($objects_printed{$file});
-								$objects_printed{$file} = 1;
 								print "Download non-image $file\n" if($opts{'v'});
 								my $resp = $cached_browser->get($file);
 								if($resp->is_success() && ($resp->content_type() eq 'image/jpeg')) {
@@ -5911,8 +5909,6 @@ sub print_person
 								if($file =~ /^http:\/\/(\w+)\.findmypast\.(co[\w\.]+)\/(.+)/) {
 									$file = "https://$1.findmypast.$2/$3";
 								}
-								next if($objects_printed{$file});
-								$objects_printed{$file} = 1;
 
 								print "Download image $file\n" if($opts{'v'});
 								my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
