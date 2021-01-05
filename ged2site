@@ -706,7 +706,7 @@ if($opts{'d'} || $opts{'m'}) {
 # my @everyone = $ged->individuals();
 my @everyone = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } $ged->individuals();
 # my @everyone = $ged->get_individual('Jocasta Claire Traill Innes');
-# my @everyone = $ged->get_individual('Francis Eric Irving Bloy');
+# my @everyone = $ged->get_individual('May Spratt');
 my $total = scalar(@everyone);
 if($total == 0) {
 	die "$0: gedcom file is empty";
@@ -5756,10 +5756,10 @@ sub print_person
 			}
 			my $printed_media_header = 0;
 
+			my %titlehistory;
 			my %downloadhistory;
 
-			my %objects_printed;
-
+			# FIXME:  refactor - this code is horribly dense
 			# Two passes, the first one where the links are pictures, the second where they are not
 			for(my $pass = 1; $pass <= 2; $pass++) {
 				print "Media pass $pass\n" if($opts{'v'});
@@ -5777,8 +5777,6 @@ sub print_person
 							$file = $file->{'file'};
 							next if($file eq '*');
 						}
-						next if($objects_printed{$file});
-						$objects_printed{$file} = 1;
 						if(!$printed_media_header) {
 							print $html '<h2>Media</h2>';
 							print $xml "\n\t\t<media>";
@@ -5816,10 +5814,18 @@ sub print_person
 								if($file =~ /^http:\/\/(\w+)\.findmypast\.(co[\w\.]+)\/(.+)/) {
 									$file = "https://$1.findmypast.$2/$3";
 								}
+
+								if($downloadhistory{$file}) {
+                                                                        # Ancestry does this
+                                                                        print "Skip duplicate image $file\n" if($opts{'v'});
+                                                                        next OBJE;
+                                                                }
+
 								print "Download non-image $file\n" if($opts{'v'});
 								my $resp = $cached_browser->get($file);
 								if($resp->is_success() && ($resp->content_type() eq 'image/jpeg')) {
 									next OBJE if($pass == 2);
+									$downloadhistory{$file} = 1;
 									my $key = $person->as_string() . ";$localfile";
 									if($images{$key}) {
 										# Flag a person having two images of the same
@@ -5846,6 +5852,10 @@ sub print_person
 										link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 										chmod 0444, $localfile;
 									}
+									print "File saved in $localfile\n" if($opts{'v'});
+								} else {
+									next OBJE if($pass == 1);
+									$downloadhistory{$file} = 1;
 								}
 							}
 						} elsif(($file =~ /^([A-Z]:[\/\\].+\.jpe?g+)/) || ($file =~ /^(\/.+\.jpe?g)/)) {
@@ -5879,18 +5889,15 @@ sub print_person
 						if($form && (lc($form) eq 'jpg')) {
 							next OBJE if($pass == 2);
 							if($title) {
+								print "Process image $title\n" if($opts{'v'});
 								print $html "<h3>$title</h3>";
+								next if($titlehistory{$title});
+								$titlehistory{$title} = 1;
 							} else {
+								print "Process file with no title\n" if($opts{'v'});
 								print $html '<br>';
 							}
 							if($opts{'d'}) {
-								if($downloadhistory{$file}) {
-									# Ancestry does this
-									print "Skip duplicate image $file\n" if($opts{'v'});
-									next OBJE;
-								}
-								$downloadhistory{$file} = 1;
-
 								# Get and stash a local copy
 								if($file =~ /ancestry.com.+guid=.+&tid=/) {
 									# Ancestry's Gedcoms are broken, perhaps pointing to an old
@@ -5997,6 +6004,7 @@ sub print_person
 							}
 						} else {
 							next OBJE if($pass == 1);
+							print "Process non-image $title\n" if($opts{'v'} && $title);
 							print $html "<a href=\"$file\" target=\"_blank\">",
 								$title ? HTML::Entities::encode($title) : 'Media',
 								'</a>';
