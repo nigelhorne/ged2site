@@ -333,16 +333,24 @@ foreach(@lines) {
 	}
 }
 
+my $lcm;
+if($language) {
+	$lcm = Class::Simple::Readonly::Cached->new(object => Locale::Country::Multilingual->new(),
+		cache => CHI->new(driver => 'RawMemory', datastore => {}));
+}
+
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $dfn;
 if($language eq 'French') {
 	# $dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy', lang => 'fr');	 # not supported
 	$dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy');
 	Date_Init("DateFormat=FR");	# Date::Manip
+	$lcm->set_lang('fr');
 } elsif((defined($ENV{'LC_TIME'}) && ($ENV{'LC_TIME'} =~ /^en_US/)) ||
 	((defined($ENV{'LC_ALL'}) && ($ENV{'LC_ALL'} =~ /^en_US/)))) {
 	$dfn = DateTime::Format::Natural->new();
 	Date_Init("DateFormat=US");	# Date::Manip
+	$lcm->set_lang('en');
 } else {
 	$dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy');
 	Date_Init("DateFormat=International");	# Date::Manip
@@ -357,12 +365,6 @@ my $sixteenyears = DateTime::Duration->new(years => 16);
 my $fortyyears = DateTime::Duration->new(years => 40);
 # my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
-
-my $lcm;
-if($language) {
-	$lcm = Class::Simple::Readonly::Cached->new(object => Locale::Country::Multilingual->new(),
-		cache => CHI->new(driver => 'RawMemory', datastore => {}));
-}
 
 my $config;
 
@@ -9685,6 +9687,19 @@ sub get_location($)
 	my $place = shift;
 
 	return unless(defined($geocoder));
+
+	if($lcm) {
+		if($place =~ /(.+),\s*(.+)$/) {
+			if($2 ne 'England') {
+				# Translate country to English to use the right geocoder
+				if(($language eq 'French') && ($2 eq 'Angleterre')) {
+					$place = "$1, England";
+				} elsif(my $code = $lcm->country2code($2)) {
+					$place = "$1, " . $lcm->code2country($code, 'en');
+				}
+			}
+		}
+	}
 
 	my @locations = $geocoder->geocode($place);	# Use array to improve caching
 
