@@ -83,6 +83,7 @@ BEGIN {
 		'Locale::AU', 'Locale::CA', 'Locale::US',
 		'XML::Dumper', 'XML::Twig', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
+		# 'Lingua::Conjunction',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
 		'Lingua::EN::Inflect',
 		'Locale::Object::Country',
