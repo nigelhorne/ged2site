@@ -3315,7 +3315,7 @@ sub print_person
 					if($spouses[0]->xref() eq $spouses[1]->xref()) {
 						complain({ person => $person, warning => [ 'Married twice to ', $spouses[0]->as_string() ] });
 					} else {
-						$bio .= 'twice';
+						$bio .= i18n('twice');
 					}
 				} else {
 					$bio .= scalar(@spouses);
@@ -9936,6 +9936,7 @@ of %d children::of %d children
 of::of
 she::she
 they::they
+twice::twice
 was buried::was buried
 was born::was born
 was living::was living
@@ -9961,6 +9962,7 @@ of::de
 she::elle
 they:M:ils
 they:F:elles
+twice::deux fois
 was buried:M:a été enterré
 was buried:F:a été enterrée
 was born:M:est né
