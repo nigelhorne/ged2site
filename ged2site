@@ -4753,17 +4753,14 @@ sub print_person
 			if($dateofburial) {
 				if($diedathome) {
 					$bio .= "$pronoun ";
-					if($language eq 'French') {
-						$bio .= "a \N{U+00E9}t\N{U+00E9} enterr\N{U+00E9}";
-						if($sex eq 'F') {
-							$bio .= 'e';
-						}
-					} else {
-						$bio .= 'was buried';
-					}
 				} else {
-					$bio .= ' and was buried';
+					$bio .= i18n(' and');
 				}
+				if(($language eq 'French') && $placeofburial &&
+				  defined($placeofdeath) && ($placeofburial eq $placeofdeath) && (!$address) && !$death->address()) {
+					$bio .= ' y';
+				}
+				$bio .= i18n({ person => $person, gender => 1, format => ' was buried' });
 				if($placeofburial) {
 					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && !$death->address()) {
 						$bio .= ' there';
@@ -9894,6 +9891,9 @@ sub i18n
 		}
 	} else {
 		$translation = $i18n->{$format};
+		if(ref($translation) eq 'HASH') {
+			die "BUG: '$format' requires the gender argument";
+		}
 	}
 
 	if($translation) {
@@ -9936,6 +9936,7 @@ of %d children::of %d children
 of::of
 she::she
 they::they
+was buried::was buried
 was born::was born
 was living::was living
 wife::wife
@@ -9960,6 +9961,8 @@ of::de
 she::elle
 they:M:ils
 they:F:elles
+was buried:M:a été enterré
+was buried:F:a été enterrée
 was born:M:est né
 was born:F:est née
 was living::habitait
