@@ -3103,7 +3103,7 @@ sub print_person
 				if($placeofmarriage || $dateofmarriage) {
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
 					   !$end_of_sentence) {
-						$bio .= ' also';
+					   	$bio .= i18n(' also');
 					}
 					$bio .= ' married ';
 				} else {
@@ -3391,7 +3391,7 @@ sub print_person
 						$placeofmarriage = place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed });
 						if($previousplace && ($placeofmarriage eq $previousplace)) {
 							if($placeofmarriage =~ /^(.+?),/) {
-								$placeofmarriage = " also$1";
+								$placeofmarriage = i18n({ person => $person, format => ' also%s', args => $1 });
 							}
 						} else {
 							$previousplace = $placeofmarriage;
@@ -9899,9 +9899,9 @@ sub i18n
 	if($translation) {
 		if($translation =~ /%/) {	# FIXME: %%
 			if(ref($params{'args'}) eq 'ARRAY') {
-				return sprintf($translation, @{$params{'args'}});
+				$translation = sprintf($translation, @{$params{'args'}});
 			} else {
-				return sprintf($translation, $params{'args'});
+				$translation = sprintf($translation, $params{'args'});
 			}
 		}
 		utf8::decode($translation);
@@ -9923,6 +9923,8 @@ sub i18n
 __DATA__
 @@ English
 a %s::a %s
+also::also
+also%s::also%s
 an %s::an %s
 and::and
 at::at
@@ -9946,6 +9948,8 @@ your::your
 @@ French
 a %s:M:un %s
 a %s:F:une %s
+also::aussi
+also%s::aussi%s
 an %s:M:un %s
 an %s:F:une %s
 and::et
