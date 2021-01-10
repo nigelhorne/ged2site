@@ -3105,7 +3105,7 @@ sub print_person
 					   !$end_of_sentence) {
 					   	$bio .= i18n(' also');
 					}
-					$bio .= ' married ';
+					$bio .= i18n(' married ');
 				} else {
 					$bio .= ' was married to ';
 				}
@@ -9881,6 +9881,11 @@ sub i18n
 		$format = $1;
 		$prepend_space = 1;
 	}
+	my $append_space;
+	if($format =~ /^(.+)\s$/) {
+		$format = $1;
+		$append_space = 1;
+	}
 
 	my $translation;
 	if($params{'gender'}) {
@@ -9905,6 +9910,7 @@ sub i18n
 			}
 		}
 		utf8::decode($translation);
+		$translation .= ' ' if($append_space);
 		if($prepend_space) {
 			return " $translation";
 		}
@@ -9934,6 +9940,7 @@ during %s life::during %s life
 he::he
 husband::husband
 is::is
+married::married
 of %d children::of %d children
 of::of
 she::she
@@ -9961,6 +9968,7 @@ during %s life::pendant sa vie
 he::il
 husband::marie
 is::est
+married::a marié
 of %d children::de %d enfants
 of::de
 she::elle
