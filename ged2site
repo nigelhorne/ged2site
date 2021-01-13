@@ -1371,6 +1371,9 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Check out https?:\/\/chroniclingamerica.loc.gov/) {
 					# FIXME: Lots of false positives
 					next;
+				} elsif(($warning =~ /^Check out https:\/\/mlarchives.rootsweb.com\/listindexes\/emails?listname=gen-obit/) ||
+					($warning =~ /^Check out https:\/\/www.freelists.org\/post\/obitdailytimes\/Obituary-Daily-Times-v/)) {
+					$summary = 'Check out Obituary Daily Times';
 				} elsif($warning =~ /^Missing house number /) {
 					$summary = 'Missing house number';
 				} else {
