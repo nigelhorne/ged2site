@@ -4573,8 +4573,9 @@ sub print_person
 				while(!defined($residencestringarray[scalar(@residencestringarray) - 1])) {
 					pop @residencestringarray;
 				}
-				$bio .= ', ' . lcfirst($pronoun) . ' ' . i18n('was living') . ' ' .
-					Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; ', conj => i18n('and')});
+				# $bio .= ', ' . lcfirst($pronoun) . ' ' . i18n('was living') . ' ' .
+					# Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; ', conj => i18n('and')});
+				$bio .= ', ' . lcfirst($pronoun) . i18n(' was living ') . conjunction(@residencestringarray);
 
 				if($placeofdeath) {
 					my $lastresidence = $residencelist[scalar(@residencelist) - 1];
@@ -9363,7 +9364,8 @@ sub journey
 		} else {
 			$rc = " In $year " . lc($rc);
 		}
-	# } else {
+	} else {
+		die 'TODO: handle departure only record';
 		# $yod = year({ person => $person, record => $departure });
 		# $yoa = year({ person => $person, record => $arrival });
 	}
