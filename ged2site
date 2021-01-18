@@ -3592,7 +3592,7 @@ sub print_person
 							$bio .= ': ' .
 								Lingua::EN::Inflect::WORDLIST(@childnames, {
 									sep => '; ',
-									conj => ''
+									conj => ' '
 								});
 						}
 					}
@@ -9814,15 +9814,16 @@ sub issister
 	return 0;
 }
 
+# See also https://github.com/SBECK-github/Date-Manip/issues/34
 sub get_year_from_date($)
 {
 	my $date = shift;
-	my $year = UnixDate(ParseDate($date), "%Y");	# Date::Manip
-
-	return $year if($year);
 	if($date =~ /(\d{3,4})\s*$/) {
 		return $1;
 	}
+	my $year = UnixDate(ParseDate($date), '%Y');	# Date::Manip
+
+	return $year if($year);
 	complain("Can't parse date '$date'");
 }
 
