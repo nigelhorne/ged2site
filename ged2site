@@ -3870,7 +3870,7 @@ sub print_person
 					}
 					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 						$residencestring = ' at ' . ($person->pronoun() eq 'She' ? 'her' : 'his')
-								. ' birthplace';
+								. i18n(' birthplace');
 					} else {
 						my $p = place({
 							person => $person,
@@ -9941,6 +9941,7 @@ also%s::also%s
 an %s::an %s
 and::and
 at::at
+birthplace::ville natal
 both with %s::les deux avec %s
 check out %s::check out %s
 died::died
@@ -9969,10 +9970,11 @@ an %s:M:un %s
 an %s:F:une %s
 and::et
 at::à
-died:M:est mort
-died:F:est morte
+birthplace::ville natal
 both with %s::les deux %s
 check out %s::visitez %s
+died:M:est mort
+died:F:est morte
 during %s life::pendant sa vie
 he::il
 husband::marie
