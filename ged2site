@@ -2343,7 +2343,7 @@ sub print_person
 				person => $person,
 				gender => 1,
 				format => "$article %s",
-				args => lc(Lingua::EN::Inflect::WORDLIST(@occupations, {final_sep => ''})),
+				args => lc(conjunction(@occupations))
 			}));
 			if(!($father || $mother || $spouserelationship)) {
 				$bio .= ', ';
@@ -3545,10 +3545,7 @@ sub print_person
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
 									# $_->given_names() . '</a>'
 							# } @children);
-							$bio .= ': ' . Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @children), {
-								conj => i18n('and'),
-								final_sep => ''
-							});
+							$bio .= ': ' . conjunction(map { $_->given_names() } @children);
 						} else {
 							# List children by the same parent together
 							# $childnames = join(', ', map {
@@ -3581,19 +3578,11 @@ sub print_person
 							my @childnames;
 							while(my ($key, $value) = each %childmap) {
 								push @childnames, '(' .
-									Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @{$value}), {
-										conj => i18n('and'),
-										final_sep => ''
-									}) .
-									' ' .
-									i18n('with') .
+									conjunction(map { $_->given_names() } @{$value}) .
+									i18n(' with') .
 									" $key)";
 							}
-							$bio .= ': ' .
-								Lingua::EN::Inflect::WORDLIST(@childnames, {
-									sep => '; ',
-									conj => ' '
-								});
+							$bio .= ': ' . conjunction(@childnames);
 						}
 					}
 				}
@@ -3642,7 +3631,7 @@ sub print_person
 			} else {
 				$bio .= 'children, ';
 			}
-			$bio .= Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @childrenunknownparent), {final_sep => ''}) .
+			$bio .= conjunction(map { $_->given_names() } @childrenunknownparent) .
 				', whose ' .
 				(($sex eq 'F') ? 'father' : 'mother') .
 				' is unknown';
@@ -4221,56 +4210,6 @@ sub print_person
 						}
 						$residencestring .= ',' if($printed_person);
 					}
-					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
-						if($rdate_dt > $spdeath_dt) {
-							# Living with a child following death of spouse?
-							CHILD: foreach my $child(@children) {
-								my @cevents = $child->event();
-								my $index = 0;
-								EVENT: foreach my $event(@cevents) {
-									$index++;
-									if(!ref($event)) {
-										my $e = $child->tag_record('EVEN', $index);
-										if(ref($e) eq 'Gedcom::Record') {
-											$event = $e;
-										} else {
-											# red_warning({ person => $child, warning => "Event record is just description ($event), infomation has been lost" });
-											next EVENT;
-										}
-									}
-									my $type = $event->type();
-
-									# if(($type !~ /^Census U[KS] \d{4}$/) && ($type ne 'Register UK 1939')) {
-									if(($type !~ /Census/) && ($type ne 'Register UK 1939')) {
-										next EVENT;
-									}
-									if((ref($event) eq 'Gedcom::Record') &&
-									   $event->date() && ($event->date() eq $rdate) &&
-									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
-										$residencestring .= ' when ' .
-											lcfirst($person->pronoun()) .
-											' was living with ' .
-											lcfirst($person->possessive()) .
-											(($child->sex() eq 'F') ? ' daughter, ' : ' son, ') .
-											$child->given_names() .
-											', following the death of ' .
-											(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-											year(date => dateofdeath($spouses[0]));
-										$spdeath_dt = undef;
-										last CHILD;
-									}
-								}
-							}
-							if($spdeath_dt) {
-								# Outlived spouse, but not living with a child
-								$residencestring .= ' following the death of ' .
-									($person->pronoun() eq 'She' ? 'her' : 'his') .
-									(($sex eq 'M') ? ' wife ' : ' husband ') .
-									year(date => dateofdeath($spouses[0]));
-							}
-							$printed_following_message = 1;
-						}
-					}
 					# Find if they are an adult living with an adult sibling or in-law
 					if($all_residences_have_date && scalar(@siblings) && $birth_dt) {
 						my $printed_sibling = 0;
@@ -4404,16 +4343,24 @@ sub print_person
 							}
 							if($with_mother || $with_father) {
 								if($bdiff->in_units('years') >= 30) {
+									$residencestring .= ' when ' . (($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
 									if($first) {
-										$residencestring .= ($printed_sibling ? ' and ' : ' with ') .
-											($person->pronoun() eq 'She' ? 'her' : 'his');
+										if($language eq 'French') {
+											$residencestring .= ($printed_sibling ? ' et ' : ' avec ');
+											if($with_mother && $with_father) {
+												$residencestring .= 'ses';
+											} elsif($with_mother) {
+												$residencestring .= 'sa';
+											} else {
+												$residencestring .= 'son';
+											}
+										} else {
+											$residencestring .= ($printed_sibling ? ' and ' : ' with ') .
+												($sex eq 'M' ? 'his' : 'her');
+										}
 									} else {
 										$residencestring =~ s/,$//;
-										if($language eq 'French') {
-											$residencestring .= ' et';
-										} else {
-											$residencestring .= ' and';
-										}
+										$residencestring .= i18n(' and');
 									}
 									$printed_sibling = 1;
 									$first = 0;
@@ -4475,6 +4422,56 @@ sub print_person
 									}
 								}
 							}
+						}
+					}
+					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
+						if($rdate_dt > $spdeath_dt) {
+							# Living with a child following death of spouse?
+							CHILD: foreach my $child(@children) {
+								my @cevents = $child->event();
+								my $index = 0;
+								EVENT: foreach my $event(@cevents) {
+									$index++;
+									if(!ref($event)) {
+										my $e = $child->tag_record('EVEN', $index);
+										if(ref($e) eq 'Gedcom::Record') {
+											$event = $e;
+										} else {
+											# red_warning({ person => $child, warning => "Event record is just description ($event), infomation has been lost" });
+											next EVENT;
+										}
+									}
+									my $type = $event->type();
+
+									# if(($type !~ /^Census U[KS] \d{4}$/) && ($type ne 'Register UK 1939')) {
+									if(($type !~ /Census/) && ($type ne 'Register UK 1939')) {
+										next EVENT;
+									}
+									if((ref($event) eq 'Gedcom::Record') &&
+									   $event->date() && ($event->date() eq $rdate) &&
+									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
+										$residencestring .= ' when ' .
+											lcfirst($person->pronoun()) .
+											' was living with ' .
+											lcfirst($person->possessive()) .
+											(($child->sex() eq 'F') ? ' daughter, ' : ' son, ') .
+											$child->given_names() .
+											', following the death of ' .
+											(($sex eq 'M') ? 'his wife ' : 'her husband ') .
+											year(date => dateofdeath($spouses[0]));
+										$spdeath_dt = undef;
+										last CHILD;
+									}
+								}
+							}
+							if($spdeath_dt) {
+								# Outlived spouse, but not living with a child
+								$residencestring .= ' following the death of ' .
+									($person->pronoun() eq 'She' ? 'her' : 'his') .
+									(($sex eq 'M') ? ' wife ' : ' husband ') .
+									year(date => dateofdeath($spouses[0]));
+							}
+							$printed_following_message = 1;
 						}
 					}
 				}
@@ -8556,7 +8553,7 @@ sub sibling_baptism_string
 	if($allsamesex) {
 		return ', the same day as ' . lcfirst($person->possessive()) . ' ' .
 			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ') .
-			Lingua::EN::Inflect::WORDLIST((map { $_->given_names() } @onsameday), {final_sep => ''});
+			conjunction(map { $_->given_names() } @onsameday);
 	}
 	my $count = 0;
 	my $rc = '';
