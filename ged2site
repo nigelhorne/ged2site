@@ -4844,7 +4844,7 @@ sub print_person
 			$bio .= '.' if(!$end_of_sentence);
 			$bio .= "<p>$pronoun";
 		}
-		$bio .= ' ' . i18n({ person => $person, gender => 1, format => 'died' });
+		$bio .= i18n({ person => $person, gender => 1, format => ' died' });
 
 		if($dateofdeath) {
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
