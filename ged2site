@@ -175,6 +175,8 @@ getopts('cdfFG:g:h:J:lL:mwWvx:', \%opts);
 
 die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w [ -W ] ] [ -x current_people.xml ] filename [ filename2 ]\n" unless($ARGV[0]);
 
+print "Starting\n" if($opts{'v'});
+
 use	constant	MAX_INDEX => 0;	# Debugging, set this to the number of records to print.
 					# Set to 0 to run on the entire database
 
