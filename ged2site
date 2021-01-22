@@ -3565,7 +3565,7 @@ sub print_person
 									if(my $mother = $child->mother()) {
 										push @{$childmap{$mother->given_names()}}, $child;
 									} else {
-										push @{$childmap{'unknown'}}, $child;
+										push @{$childmap{'unknown mother'}}, $child;
 									}
 								}
 							} else {
@@ -3573,16 +3573,16 @@ sub print_person
 									if(my $father = $child->father()) {
 										push @{$childmap{$father->given_names()}}, $child;
 									} else {
-										push @{$childmap{'unknown'}}, $child;
+										push @{$childmap{'unknown mother'}}, $child;
 									}
 								}
 							}
 							my @childnames;
 							while(my ($key, $value) = each %childmap) {
-								push @childnames, '(' .
+								push @childnames,
 									conjunction(map { $_->given_names() } @{$value}) .
 									i18n(' with') .
-									" $key)";
+									" $key";
 							}
 							$bio .= ': ' . conjunction(@childnames);
 						}
