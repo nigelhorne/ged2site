@@ -4236,7 +4236,7 @@ sub print_person
 										if(($place =~ /^d/ && (my $ssp = place({ person => $ss, record => $ssr })))) {
 											if($ssp eq $place) {
 												if($first) {
-													$residencestring .= ' when ' . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													$residencestring .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
 														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
 														$ss->as_string();
@@ -4345,7 +4345,7 @@ sub print_person
 							}
 							if($with_mother || $with_father) {
 								if($bdiff->in_units('years') >= 30) {
-									$residencestring .= ' when ' . (($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
+									$residencestring .= i18n(' when ') . (($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
 									if($first) {
 										if($language eq 'French') {
 											$residencestring .= ($printed_sibling ? ' et ' : ' avec ');
@@ -4452,7 +4452,7 @@ sub print_person
 									if((ref($event) eq 'Gedcom::Record') &&
 									   $event->date() && ($event->date() eq $rdate) &&
 									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
-										$residencestring .= ' when ' .
+										$residencestring .= i18n(' when ') .
 											lcfirst($person->pronoun()) .
 											' was living with ' .
 											lcfirst($person->possessive()) .
@@ -9957,6 +9957,7 @@ twice::twice
 was buried::was buried
 was born::was born
 was living::was living
+when::when
 wife::wife
 with::with
 your::your
@@ -9990,6 +9991,7 @@ was buried:F:a été enterrée
 was born:M:est né
 was born:F:est née
 was living::habitait
+when::lorsque
 wife::femme
 with::avec
 your::votre
