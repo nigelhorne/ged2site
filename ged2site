@@ -67,7 +67,7 @@ BEGIN {
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Geo::Coder::Google',
-		'Lingua::EN::ABC',
+		'Lingua::EN::ABC', 'Lingua::String',
 		'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info', 'JSON',
 		'List::Util',
@@ -8043,46 +8043,51 @@ sub place {
 		}
 		$places_printed->{$place} = 1;
 	}
+	my $rc = Lingua::String->new();
+	$rc->en($place);
+
 	if($lcm) {
+		my $lang = get_language_code() // 'en';
+		$rc->set({ lang => $lang, string => $place });
 		if($place =~ /(.*),\s+([A-Z\s]+)$/i) {
 			my $c = $2;
-			if($c eq 'USA') {
+			if($c eq 'USA' || ($c eq 'US')) {
 				$c = 'United States';
 			}
 			if(($language eq 'French') && ($c eq 'England')) {
-				my $town = $1;
-				$town =~ s/London$/Londres/;
-				$town =~ s/Dover$/Douvres/;
-				$place = "$town, Angleterre";
+				$rc->fr("$1, Angleterre");
 			} elsif(($language eq 'French') && ($c eq 'France')) {
 				$place =~ s/Normandy,/Normandie,/;
+				$rc->fr($place);
 			} elsif(($language eq 'English') && ($c eq 'France')) {
 				$place =~ s/Normandie,/Normandy,/;
+				$rc->en($place);
 			} elsif(($language eq 'French') && ($c eq 'Scotland')) {
-				my $town = $1;
-				$place = "$town, Ecosse";
+				$rc->fr("$1, Ecosse");
 			} elsif(($language eq 'Welsh') && ($c eq 'Wales')) {
 				my $town = $1;
 				$town =~ s/Swansea$/Abertawe/;
-				$place = "$town, Cymru";
+				$rc->cy("$town, Cymru");
 			} elsif(my $code = $lcm->country2code($c)) {
-				$c = $lcm->code2country($code, $ENV{'LANG'});
+				$c = $lcm->code2country($code, $lang);
 				if($c ne 'United States') {
 					utf8::decode($c);
-					$place = "$1, $c";
+					$rc->set({ lang => $lang, string => "$1, $c" });
 				}
 			}
 		} elsif($place !~ /,/) {
 			if(my $code = $lcm->country2code($place)) {
-				$place = $lcm->code2country($code, $ENV{'LANG'});
-				utf8::decode($place);
+				$rc->set({ lang => $lang, string => $lcm->code2country($code, $lang) });
 			}
 		}
 	}
 	if($params{'encode'}) {
-		return HTML::Entities::encode($place);
+		$rc->en(HTML::Entities::encode($rc->en()));
+		if($language eq 'French') {
+			$rc->fr(HTML::Entities::encode($rc->fr()));
+		}
 	}
-	return $place;
+	return $rc;
 }
 
 sub getaddress {
@@ -9692,7 +9697,9 @@ sub get_location($)
 
 	return unless(defined($geocoder));
 
-	if($lcm) {
+	if(ref($place) eq 'Lingua::String') {
+		$place = $place->en();
+	} elsif($lcm) {
 		if($place =~ /(.+),\s*(.+)$/) {
 			if($2 ne 'England') {
 				# Translate country to English to use the right geocoder
@@ -9858,6 +9865,7 @@ sub get_language
 			return 'Latin';
 		}
 	}
+	return;	# undef
 }
 
 sub i18n
