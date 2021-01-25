@@ -8082,10 +8082,7 @@ sub place {
 		}
 	}
 	if($params{'encode'}) {
-		$rc->en(HTML::Entities::encode($rc->en()));
-		if($language eq 'French') {
-			$rc->fr(HTML::Entities::encode($rc->fr()));
-		}
+		$rc->encode();
 	}
 	return $rc;
 }
@@ -9710,6 +9707,13 @@ sub get_location($)
 				}
 			}
 		}
+	}
+
+	$place =~ s/^\s+//;
+	if($language eq 'French') {
+		$place =~ s/^\N{U+00E0}\s+//;
+	} else {
+		$place =~ s/^at\s+//;
 	}
 
 	my @locations = $geocoder->geocode($place);	# Use array to improve caching
