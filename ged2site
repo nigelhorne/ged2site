@@ -7860,13 +7860,20 @@ sub place {
 	}
 
 	# The more consistent the data, the fewer lookups on Geocoders and the smoother the English output
+	$place =~ s/\xc3\xa9/é/g;
+	my $rc = Lingua::String->new();
+	my $lang = get_language_code() // 'en';
+
 	if($place =~ /(.+?)\s*United States$/i) {
 		$place = "$1 USA";
+		$rc->en($place);
 	} elsif($place =~ /States\s*$/) {
 		complain({ person => $params{'person'}, warning => "Unexpected text at the end of the place '$place'" });
 	} elsif($place =~ /(.*)(^|,\s*)(.+),\s*Canada$/i) {
 		my $town = $1;
 		my $province = $3;
+
+		$rc->en($place);
 
 		# FIXME: doesn't work because none of this code properly handles UTF-8 which is needed for Québec
 		# utf8::decode($province);
@@ -7883,11 +7890,13 @@ sub place {
 					if($town eq 'Montréal') {
 						$town = "Montr\N{U+00E9}al";
 					}
+					$rc->fr("$town, Qu\N{U+00E9}bec, Canada");
 				} else {
 					$p = 'Quebec';
 					if($town eq 'Montréal') {
 						$town = 'Montreal';
 					}
+					$rc->en("$town, Quebec, Canada");
 				}
 			} else {
 				$p = sortoutcase($ca->{code2province}{$p});
@@ -7897,23 +7906,27 @@ sub place {
 			} else {
 				$place = "$p, Canada";
 			}
+			$rc->set({ lang => $lang, string => $place });
 		} elsif($province =~ /^Qu.+bec$/) {
 			if($language eq 'French') {
 				$province = "Qu\N{U+00E9}bec";
 				if($town eq 'Montréal') {
 					$town = "Montr\N{U+00E9}al";
 				}
+				$rc->fr("$town, Qu\N{U+00E9}bec, Canada");
 			} else {
 				$province = 'Quebec';
 				if($town eq 'Montréal') {
 					$town = 'Montreal';
 				}
+				$rc->en("$town, Quebec, Canada");
 			}
 			if(defined($town) && length($town)) {
 				$place = "$town, $province, Canada";
 			} else {
 				$place = "$province, Canada";
 			}
+			$rc->set({ lang => $lang, string => $place });
 		} else {
 			complain({ person => $params{'person'}, warning => "Unknown Canadian province $province" });
 		}
@@ -8043,11 +8056,8 @@ sub place {
 		}
 		$places_printed->{$place} = 1;
 	}
-	my $rc = Lingua::String->new();
-	$rc->en($place);
 
 	if($lcm) {
-		my $lang = get_language_code() // 'en';
 		$rc->set({ lang => $lang, string => $place });
 		if($place =~ /(.*),\s+([A-Z\s]+)$/i) {
 			my $c = $2;
