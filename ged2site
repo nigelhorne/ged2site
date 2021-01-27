@@ -7860,9 +7860,12 @@ sub place {
 	}
 
 	# The more consistent the data, the fewer lookups on Geocoders and the smoother the English output
-	$place =~ s/\xc3\xa9/é/g;
-	my $rc = Lingua::String->new();
+	my $rc = Lingua::String->new('en' => $place);
 	my $lang = get_language_code() // 'en';
+	if($lang ne 'en') {
+		$rc->set({ lang => $lang, string => $place });
+	}
+	$place =~ s/\xc3\xa9/é/g;
 
 	if($place =~ /(.+?)\s*United States$/i) {
 		$place = "$1 USA";
@@ -8041,14 +8044,13 @@ sub place {
 			if($places_printed->{" in$2,$3"}) {
 				# We did place, county, country before, so just
 				# return place, county
-				my $rc;
 				if(($language eq 'French') && ("$2,$3" eq ' London, England')) {
-					$rc = "$1, Londres";
+					$rc->fr("$1, Londres");
 				} else {
-					$rc = "$1,$2";
+					$rc->fr("$1,$2");
 				}
 				if($params{'encode'}) {
-					return HTML::Entities::encode($rc);
+					$rc->encode();
 				}
 				return $rc;
 			}
