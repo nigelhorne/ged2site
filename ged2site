@@ -3220,6 +3220,9 @@ sub print_person
 							}
 						}
 						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
+							if(is_alive(person => $person)) {
+								$bio .= ' has';
+							}
 							$bio .= ' had ';
 						} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
 							$bio .= ' has had ';
