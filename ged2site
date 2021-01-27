@@ -3103,59 +3103,61 @@ sub print_person
 				if((!$end_of_sentence) &&
 				   ($dateofbirth || $dateofdeath) &&
 				   ((scalar(@residences) > 0) || ((!($dateofbaptism)) && !$placeofbaptism))) {
-					$bio .= ' and';
+					$bio .= i18n(' and');
 				}
 				if($placeofmarriage || $dateofmarriage) {
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
 					   !$end_of_sentence) {
 					   	$bio .= i18n(' also');
 					}
-					$bio .= i18n(' married ');
-				} else {
-					$bio .= ' was married to ';
-				}
-				if($haveprintedspousename) {
-					$nameparser->parse($spouses[0]->name());
-
-					my %name_components = $nameparser->components();
-					if(my $n = $name_components{'given_name_1'}) {
-						$bio .= $n;
+					if(is_alive(person => $person) && is_alive(person => $spouses[0])) {
+						$bio .= i18n({ person => $person, format => ' is married to ' });
 					} else {
-						complain({ person => $spouses[0], warning => 'seems to have no first name' });
+						$bio .= i18n({ person => $person, format => ' was married to ' });
 					}
-				} else {
-					$html_and_csv->print($bio);
-					$bio =~ s/&/&amp;/g;
-					$bio =~ s/</&lt;/g;
-					$bio =~ s/>/&gt;/g;
-					$bio =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
-					print $xml $bio;
+					if($haveprintedspousename) {
+						$nameparser->parse($spouses[0]->name());
 
-					$fullbio .= $bio . $spouses[0]->as_string();
-					$bio = '';
-
-					if($opts{'l'} || !$is_alive) {
-						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
-							$spouses[0]->as_string(),
-							'</a>';
-						print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
-							$spouses[0]->as_string(),
-							'</a>';
-						print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
-							$spouses[0]->as_string(),
-							'&lt;/a&gt;';
+						my %name_components = $nameparser->components();
+						if(my $n = $name_components{'given_name_1'}) {
+							$bio .= $n;
+						} else {
+							complain({ person => $spouses[0], warning => 'seems to have no first name' });
+						}
 					} else {
-						print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
-							$spouses[0]->given_names(),
-							'</a>';
-						print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
-							$spouses[0]->given_names(),
-							'</a>';
-						print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
-							$spouses[0]->given_names(),
-							'&lt;/a&gt;';
+						$html_and_csv->print($bio);
+						$bio =~ s/&/&amp;/g;
+						$bio =~ s/</&lt;/g;
+						$bio =~ s/>/&gt;/g;
+						$bio =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
+						print $xml $bio;
+
+						$fullbio .= $bio . $spouses[0]->as_string();
+						$bio = '';
+
+						if($opts{'l'} || !$is_alive) {
+							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
+								$spouses[0]->as_string(),
+								'</a>';
+							print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
+								$spouses[0]->as_string(),
+								'</a>';
+							print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
+								$spouses[0]->as_string(),
+								'&lt;/a&gt;';
+						} else {
+							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
+								$spouses[0]->given_names(),
+								'</a>';
+							print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
+								$spouses[0]->given_names(),
+								'</a>';
+							print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
+								$spouses[0]->given_names(),
+								'&lt;/a&gt;';
+						}
+						$haveprintedspousename = 1;
 					}
-					$haveprintedspousename = 1;
 				}
 				my $parentheses = 0;
 				if($numberofchildren) {
@@ -3206,11 +3208,17 @@ sub print_person
 						}
 					}
 					if(scalar(@childrenunknownparent) < $numberofchildren) {
-						if(!$parentheses) {
-							$bio .= ' (';
-							$parentheses = 1;
+						if($placeofmarriage || $dateofmarriage) {
+							if(!$parentheses) {
+								$bio .= ' (';
+								$parentheses = 1;
+							}
+							if($language eq 'French') {
+								$bio .= "avec qu'" . lcfirst($pronoun);
+							} else {
+								$bio .= 'with whom ' . lcfirst($pronoun);
+							}
 						}
-						$bio .= 'with whom ' . lcfirst($pronoun);
 						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
 							$bio .= ' had ';
 						} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
@@ -3227,10 +3235,17 @@ sub print_person
 							}
 						} else {
 							if($all_children_are_alive) {
-								$bio .= "$numberofchildrenwiththisspouse surviving children: ";
+								$bio .= "$numberofchildrenwiththisspouse surviving children";
 							} else {
-								$bio .= "$numberofchildrenwiththisspouse children: ";
+								$bio .= "$numberofchildrenwiththisspouse children";
 							}
+							if($placeofmarriage || $dateofmarriage) {
+								$bio .= ':';
+							}
+							$bio .= ' ';
+						}
+						if((!($placeofmarriage)) && !$dateofmarriage) {
+							$bio .= i18n({ format => 'with %s, ', args => $spouse->as_string() });
 						}
 						if($numberofchildrenwiththisspouse == 1) {
 							$bio .= $children[0]->given_names();
@@ -3371,15 +3386,6 @@ sub print_person
 				my $spouse_number = 0;
 				my $previousplace;
 				foreach my $spouse(@spouses) {
-					print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
-						$spouse->as_string(), '</a>';
-					print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
-						$spouse->as_string(),
-						'</a>';
-					print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
-						$spouse->as_string(),
-						'&lt;/a&gt;';
-
 					my $dateofmarriage = get_value({ person => $spouse, value => 'marriage date' });
 					if(!defined($dateofmarriage)) {
 						if(my $marriage = ($spouse->get_record('marriage') || $spouse->get_record('fams marriage'))) {
@@ -3401,7 +3407,18 @@ sub print_person
 						} else {
 							$previousplace = $placeofmarriage;
 						}
+					} elsif(!$dateofmarriage) {
+						next;
 					}
+
+					print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
+						$spouse->as_string(), '</a>';
+					print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
+						$spouse->as_string(),
+						'</a>';
+					print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
+						$spouse->as_string(),
+						'&lt;/a&gt;';
 
 					my $printed_bracket = 0;
 					if($dateofmarriage && $placeofmarriage) {
@@ -3882,7 +3899,6 @@ sub print_person
 								record => $residence,
 								nopreposition => 1,
 							});
-							$p =~ s/^\s+//;
 							if(my $location = get_location($p)) {
 								$latitude = $location->lat();
 								$longitude = $location->long();
@@ -3898,7 +3914,6 @@ sub print_person
 							nopreposition => 1,
 						});
 						if($place) {
-							$place =~ s/^\s+//;
 							if(my $location = get_location($place)) {
 								push @{$all_locations{$year}}, {
 									'residence' => $residence,
@@ -7951,7 +7966,7 @@ sub place {
 	}
 
 	if($params{'person'}) {
-		validate_place({ person => $params{'person'}, place => $place });
+		validate_place({ person => $params{'person'}, place => $rc });
 	}
 
 	utf8::decode($place);
@@ -8080,7 +8095,7 @@ sub place {
 				my $town = $1;
 				$town =~ s/Swansea$/Abertawe/;
 				$rc->cy("$town, Cymru");
-			} elsif(my $code = $lcm->country2code($c)) {
+			} elsif(my $code = $lcm->country2code($c, 'LOCALE_CODE_ALPHA_2', 'en')) {
 				$c = $lcm->code2country($code, $lang);
 				if($c ne 'United States') {
 					utf8::decode($c);
@@ -8088,7 +8103,7 @@ sub place {
 				}
 			}
 		} elsif($place !~ /,/) {
-			if(my $code = $lcm->country2code($place)) {
+			if(my $code = $lcm->country2code($place, 'LOCALE_CODE_ALPHA_2', 'en')) {
 				$rc->set({ lang => $lang, string => $lcm->code2country($code, $lang) });
 			}
 		}
@@ -8397,7 +8412,7 @@ sub validate_place
 				}
 				$places{$place} = 0;
 				return 0;
-			} elsif(($place !~ /,/) && (!Locale::Country::country2code($place))) {
+			} elsif(($place !~ /,/) && !Locale::Country::country2code($place, 'LOCALE_CODE_ALPHA_2', 'en')) {
 				if(my $person = $params{'person'}) {
 					complain({ person => $person, warning => "Country not included in country, or misspelt country '$place'" });
 				} else {
@@ -9706,17 +9721,27 @@ sub get_location($)
 
 	return unless(defined($geocoder));
 
+	print "get_location: $place\n" if($opts{'v'});
+
+	# Translate to English so that Geo::Coder::List can choose the right geocoder
 	if(ref($place) eq 'Lingua::String') {
 		$place = $place->en();
+		print "English translation: $place\n" if($opts{'v'});
 	} elsif($lcm) {
 		if($place =~ /(.+),\s*(.+)$/) {
 			if($2 ne 'England') {
-				# Translate country to English to use the right geocoder
-				if(($language eq 'French') && ($2 eq 'Angleterre')) {
+				my $c = $2;
+				utf8::encode($c);
+				if(($language eq 'French') && ($c eq 'Angleterre')) {
 					$place = "$1, England";
-				} elsif(my $code = $lcm->country2code($2)) {
-					$place = "$1, " . $lcm->code2country($code, 'en');
+				} elsif(my $code = $lcm->country2code($c, 'LOCALE_CODE_ALPHA_2', get_language_code())) {
+					$c = $lcm->code2country($code, 'en');
+					if($c eq 'United States') {
+						$c = 'USA';
+					}
+					$place = "$1, $c";
 				}
+				print "English translation: $place\n" if($opts{'v'});
 			}
 		}
 	}
@@ -9884,6 +9909,7 @@ sub get_language
 	return;	# undef
 }
 
+# TODO format containing ':'
 sub i18n
 {
 	my %params;
@@ -9904,7 +9930,7 @@ sub i18n
 		while((my @call_details = caller($i++))) {
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
-		die "BUG: format argument not given";
+		die 'BUG: format argument not given';
 	}
 
 	my $prepend_space;
@@ -9919,17 +9945,13 @@ sub i18n
 	}
 
 	my $translation;
-	if($params{'gender'}) {
-		my $person = $params{'person'};
-		$translation = $i18n->{$format};
-		if(ref($translation) eq 'HASH') {
-			$translation = $translation->{$person->sex()};
+	my $person = $params{'person'};
+	$translation = $i18n->{$format};
+	if(ref($translation) eq 'HASH') {
+		if(!defined($person)) {
+			die "BUG: '$format' requires the person argument to determine gender";
 		}
-	} else {
-		$translation = $i18n->{$format};
-		if(ref($translation) eq 'HASH') {
-			die "BUG: '$format' requires the gender argument";
-		}
+		$translation = $translation->{$person->sex()};
 	}
 
 	if($translation) {
@@ -9973,6 +9995,7 @@ during %s life::during %s life
 he::he
 husband::husband
 is::is
+is married to::is married to
 married::married
 of %d children::of %d children
 of::of
@@ -9982,9 +10005,11 @@ twice::twice
 was buried::was buried
 was born::was born
 was living::was living
+was married to::was married to
 when::when
 wife::wife
 with::with
+with %s,::with %s,
 your::your
 @@ French
 a %s:M:un %s
@@ -10004,6 +10029,8 @@ during %s life::pendant sa vie
 he::il
 husband::marie
 is::est
+is married to:M:est marié à
+is married to:F:est mariée à
 married::a marié
 of %d children::de %d enfants
 of::de
@@ -10016,9 +10043,12 @@ was buried:F:a été enterrée
 was born:M:est né
 was born:F:est née
 was living::habitait
+was married to:M:a été marié à
+was married to:F:a été marié à
 when::lorsque
 wife::femme
 with::avec
+with %s,::avec %s,
 your::votre
 @@ German
 and::und
