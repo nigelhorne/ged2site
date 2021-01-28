@@ -2948,9 +2948,14 @@ sub print_person
 					} else {
 						$bio .= ', a day after ';
 					}
-					$bio .= ($sex eq 'M' ? 'his' : 'her') . ' twin ' .
-						(($sibling->sex() eq 'F') ? 'sister ' : 'brother ') .
-						$sibling->given_names() . ',';
+					my $ssex = $sibling->sex();
+					if($language eq 'French') {
+						$bio .= ($ssex eq 'M' ? "son jumeau fr\N{U+00E8}re " : "sa jumelle s\N{U+0153}er ");
+					} else {
+						$bio .= ($sex eq 'M' ? 'his' : 'her') . ' twin ' .
+							(($ssex eq 'F') ? 'sister ' : 'brother ');
+					}
+					$bio .= $sibling->given_names() . ',';
 				}
 			}
 
@@ -3108,7 +3113,7 @@ sub print_person
 				if($placeofmarriage || $dateofmarriage) {
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
 					   !$end_of_sentence) {
-					   	$bio .= i18n(' also');
+						$bio .= i18n(' also');
 					}
 					if(is_alive(person => $person) && is_alive(person => $spouses[0])) {
 						$bio .= i18n({ person => $person, format => ' is married to ' });
@@ -4572,7 +4577,7 @@ sub print_person
 				}
 
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
-			
+
 				# Because peek above only looks ahead one element:
 				# [
 					  # 'at Shuart Cottage, Podden Street, St Nicholas-at-Wade on Apr 5, 1891 (was age 0 and the son of the head of the household; was age 0 and the son of the head of the household)',
@@ -8009,8 +8014,11 @@ sub place {
 		utf8::decode($address);
 		if($params{'nopreposition'}) {
 			$place = " $address, $place";
+			$rc->en(" $address, " . $rc->en());
 		} elsif($language eq 'French') {
 			$place = " \N{U+00E0} $address, $place";
+			$rc->fr($place);
+			$rc->en("$address, " . $rc->en());
 		} elsif($on_road && ($address =~ /^[a-z]+\s+[a-z]+$/i)) {
 			# e.g on Appleby Street
 			$place = " on $address, $place";
@@ -8024,10 +8032,12 @@ sub place {
 	} else {
 		$place = " in $place";
 	}
+	$rc->set({ lang => $lang, string => $place });
 
 	if(my $places_printed = $params{'places_printed'}) {
 		if(($language eq 'French') && ($place =~ /(.+), London, England/)) {
 			$place = "$1, Londres, Angleterre";
+			$rc->fr($place);
 		}
 		if($places_printed->{$place} && ($place =~ /^(.+?),/)) {
 			# Only print the town if the location has already been printed
