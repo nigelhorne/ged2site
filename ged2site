@@ -9567,7 +9567,7 @@ sub obituaries
 		while((my @call_details = caller($i++))) {
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
-		die "BUG: no arguments given\n";
+		die 'BUG: no arguments given';
 	}
 
 	my $yob = delete $params{'yob'};
