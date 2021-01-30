@@ -3572,7 +3572,9 @@ sub print_person
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
 									# $_->given_names() . '</a>'
 							# } @children);
-							$bio .= ': ' . conjunction(map { $_->given_names() } @children);
+							my $decoded = conjunction(map { $_->given_names() } @children);
+							utf8::decode($decoded);
+							$bio .= ": $decoded";
 						} else {
 							# List children by the same parent together
 							# $childnames = join(', ', map {
