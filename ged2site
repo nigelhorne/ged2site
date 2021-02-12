@@ -3563,11 +3563,13 @@ sub print_person
 						# FIXME: do hyperlinks - needs to be correct for $csv and $html
 						if($parentofall) {
 							$bio .= ', ';
+							my $format;
 							if($numberofchildren == 2) {
-								$bio .= i18n(person => $person, format => 'both with %s', args => $parentofall->as_string());
+								$format = 'both with %s';
 							} else {
-								$bio .= 'all with ' . $parentofall->as_string();
+								$format = 'all with %s';
 							}
+							$bio .= i18n(person => $person, format => $format, args => $parentofall->as_string());
 							# TODO: only add hyperlink to dead children
 							# $childnames = join(', ', map {
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
@@ -9998,6 +10000,7 @@ sub i18n
 __DATA__
 @@ English
 a %s::a %s
+all with %s::all with %s
 also::also
 also%s::also%s
 an %s::an %s
@@ -10032,6 +10035,7 @@ a %s:M:un %s
 a %s:F:une %s
 also::aussi
 also%s::aussi%s
+all with %s::tout avec %s
 an %s:M:un %s
 an %s:F:une %s
 and::et
