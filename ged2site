@@ -3321,6 +3321,19 @@ sub print_person
 							my $p = place($args);
 							$bio .= $p;
 							$places_printed{$p} = 1;
+						} elsif(!$haveprintedspousename) {
+							$spouse //= $spouses[0];
+							if(my $s = $spouse->as_string({ middle_names => 1, title => 1 })) {
+								if(is_alive(person => $person) && is_alive(person => $spouse)) {
+									$bio .= i18n({ person => $person, format => ' is married to ' });
+								} else {
+									$bio .= i18n({ person => $person, format => ' was married to ' });
+								}
+								$bio .= $s;
+							} else {
+								complain({ person => $spouse, warning => 'Seems to have no name' });
+							}
+							$haveprintedspousename = 1;
 						}
 						$bio .= ' ' . year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
 					}
