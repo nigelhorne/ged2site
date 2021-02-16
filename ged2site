@@ -320,20 +320,21 @@ my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
 $ged = Class::Simple::Cached->new(object => $ged, cache => CHI->new(driver => 'RawMemory', datastore => {}));
 
 my $places;
-if($language ne 'English') {
-	$places = Locale::Places->new();
+if(defined($language) && ($language ne 'English')) {
+	$places = Class::Simple::Readonly::Cached->new(object => Locale::Places->new(), cache => { });
 }
 
 # Read in the $text table for translation
 my $i18n;
-my $data = Data::Section::Simple::get_data_section($language);
-my @lines = split /\n/, $data;
-foreach(@lines) {
-	my ($english, $gender, $foreign) = split /:/;
-	if($gender) {
-		$i18n->{$english}->{$gender} = $foreign;
-	} else {
-		$i18n->{$english} = $foreign;
+if(my $data = Data::Section::Simple::get_data_section($language)) {
+	my @lines = split /\n/, $data;
+	foreach(@lines) {
+		my ($english, $gender, $foreign) = split /:/;
+		if($gender) {
+			$i18n->{$english}->{$gender} = $foreign;
+		} else {
+			$i18n->{$english} = $foreign;
+		}
 	}
 }
 
@@ -345,7 +346,7 @@ if($language) {
 
 my $date_parser = Genealogy::Gedcom::Date->new();
 my $dfn;
-if($language eq 'French') {
+if(defined($language) && ($language eq 'French')) {
 	# $dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy', lang => 'fr');	 # not supported
 	$dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy');
 	Date_Init("DateFormat=FR");	# Date::Manip
@@ -360,7 +361,9 @@ if($language eq 'French') {
 	Date_Init("DateFormat=International");	# Date::Manip
 }
 
-Date_Init("Language=$language");	# Date::Manip
+if(defined($language)) {
+	Date_Init("Language=$language");	# Date::Manip
+}
 
 my $dfg = DateTime::Format::Genealogy->new();
 my $oneday = DateTime::Duration->new(days => 1);
@@ -7262,7 +7265,7 @@ sub Gedcom::Individual::relationship_up
 				# die $steps2 if($steps2 > 23);
 				return if($steps2 > 23);
 
-				if($language eq 'Latin') {
+				if(defined($language) && ($language eq 'Latin')) {
 					if(($steps1 == 1) && ($steps2 == 1)) {
 						return ($sex eq 'M') ? 'frāter' : 'soror';
 					}
@@ -9937,7 +9940,8 @@ sub get_language
 			return 'Latin';
 		}
 	}
-	return;	# undef
+	complain("Can't determine the language, falling back to English");
+	return 'English';
 }
 
 # TODO format containing ':'
@@ -9975,38 +9979,53 @@ sub i18n
 		$append_space = 1;
 	}
 
-	my $translation;
-	my $person = $params{'person'};
-	$translation = $i18n->{$format};
-	if(ref($translation) eq 'HASH') {
-		if(!defined($person)) {
-			die "BUG: '$format' requires the person argument to determine gender";
-		}
-		$translation = $translation->{$person->sex()};
-	}
-
-	if($translation) {
-		if($translation =~ /%/) {	# FIXME: %%
-			if(ref($params{'args'}) eq 'ARRAY') {
-				$translation = sprintf($translation, @{$params{'args'}});
-			} else {
-				$translation = sprintf($translation, $params{'args'});
+	if($i18n) {
+		my $translation;
+		my $person = $params{'person'};
+		$translation = $i18n->{$format};
+		if(ref($translation) eq 'HASH') {
+			if(!defined($person)) {
+				die "BUG: '$format' requires the person argument to determine gender";
 			}
+			$translation = $translation->{$person->sex()};
 		}
-		utf8::decode($translation);
-		$translation .= ' ' if($append_space);
-		if($prepend_space) {
-			return " $translation";
-		}
-		return $translation;
-	}
 
-	my $i = 0;
-	print "\n";
-	while((my @call_details = caller($i++))) {
-		print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		if($translation) {
+			if($translation =~ /%/) {	# FIXME: %%
+				if(ref($params{'args'}) eq 'ARRAY') {
+					$translation = sprintf($translation, @{$params{'args'}});
+				} else {
+					$translation = sprintf($translation, $params{'args'});
+				}
+			}
+			utf8::decode($translation);
+			$translation .= ' ' if($append_space);
+			if($prepend_space) {
+				return " $translation";
+			}
+			return $translation;
+		}
+
+		my $i = 0;
+		print "\n";
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die $format;
 	}
-	die $format;
+	if($format =~ /%/) {	# FIXME: %%
+		if(ref($params{'args'}) eq 'ARRAY') {
+			$format = sprintf($format, @{$params{'args'}});
+		} else {
+			$format = sprintf($format, $params{'args'});
+		}
+	}
+	utf8::decode($format);
+	$format .= ' ' if($append_space);
+	if($prepend_space) {
+		return " $format";
+	}
+	return $format;
 }
 
 # Must all be in lower case
