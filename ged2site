@@ -8446,7 +8446,7 @@ sub validate_place
 				}
 				$places{$place} = 0;
 				return 0;
-			} elsif(($place !~ /,/) && !Locale::Country::country2code($place, 'LOCALE_CODE_ALPHA_2', 'en')) {
+			} elsif(($place !~ /,/) && !Locale::Country::country2code($place)) {
 				if(my $person = $params{'person'}) {
 					complain({ person => $person, warning => "Country not included in country, or misspelt country '$place'" });
 				} else {
