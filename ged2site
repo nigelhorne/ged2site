@@ -7713,6 +7713,10 @@ sub year
 		my $to = year({ %params, string => $2 });
 		$from =~ s/^(in|on|c.) //;
 		$to =~ s/^(in|on|c.) //;
+		if($language eq 'French') {
+			$from =~ s/^le //;
+			return "du $from \N{U+00E0} $to";
+		}
 		return "from $from to $to";
 	}
 
