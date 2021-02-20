@@ -4880,12 +4880,21 @@ sub print_person
 			# die 'foo';
 		# }
 		if($placeofdeath && (scalar(@spouses) <= 1) && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-			if($end_of_sentence) {
-				$bio .= 'That';
+			if($language eq 'French') {
+				if($end_of_sentence) {
+					$bio .= " C'est";
+				} else {
+					$bio .= ', qui est';
+				}
+				$bio .= " aussi o\N{U+00F9} " . lcfirst($pronoun);
 			} else {
-				$bio .= ', which';
+				if($end_of_sentence) {
+					$bio .= ' That';
+				} else {
+					$bio .= ', which';
+				}
+				$bio .= ' is also where ' . lcfirst($pronoun);
 			}
-			$bio .= ' is also where ' . lcfirst($pronoun);
 		} else {
 			$bio .= '.' if(!$end_of_sentence);
 			$bio .= "<p>$pronoun";
@@ -7715,7 +7724,8 @@ sub year
 		$to =~ s/^(in|on|c.) //;
 		if($language eq 'French') {
 			$from =~ s/^le //;
-			return "du $from \N{U+00E0} $to";
+			$to =~ s/^le //;
+			return "du $from au $to";
 		}
 		return "from $from to $to";
 	}
