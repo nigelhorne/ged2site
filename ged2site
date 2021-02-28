@@ -25,7 +25,6 @@
 # TODO: timeline of each person - like or using timetoast.com
 # TODO: investigate Locale::Geocode
 # FIXME: with a US state you use 'en' not à
-# TODO: Investigate Lingua::Conjunction
 # TODO: Investigate List::ToHumanString
 
 # -d:	Download copies of objects rather than link to them, useful if the
@@ -83,7 +82,7 @@ BEGIN {
 		'Locale::AU', 'Locale::CA', 'Locale::US',
 		'XML::Dumper', 'XML::Twig', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
-		# 'Lingua::Conjunction',
+		'Lingua::Conjunction',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
 		'Lingua::EN::Inflect',
 		'Locale::Object::Country',
@@ -9956,6 +9955,24 @@ sub get_language
 	}
 	complain("Can't determine the language, falling back to English");
 	return 'English';
+}
+
+sub get_language_code
+{
+	if($ENV{'LANGUAGE'}) {
+		if($ENV{'LANGUAGE'} =~ /^([a-z]{2})/i) {
+			return lc($1);
+		}
+	}
+	foreach my $variable('LC_ALL', 'LC_MESSAGES', 'LANG') {
+		my $val = $ENV{$variable};
+		next unless(defined($val));
+
+		if($val =~ /^([a-z]{2})/i) {
+			return lc($1);
+		}
+	}
+	return;	# undef
 }
 
 # TODO format containing ':'
