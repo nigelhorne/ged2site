@@ -366,12 +366,13 @@ sub selectall_hash {
 			$self->{'logger'}->debug("selectall_hash $query");
 		}
 	}
-	my $key = $query;
-	if(defined($query_args[0])) {
-		$key .= ' ' . join(', ', @query_args);
-	}
+	my $key;
 	my $c;
 	if($c = $self->{cache}) {
+		$key = $query;
+		if(defined($query_args[0])) {
+			$key .= ' ' . join(', ', @query_args);
+		}
 		if(my $rc = $c->get($key)) {
 			# This use of a temporary variable is to avoid
 			#	"Implicit scalar context for array in return"
@@ -451,19 +452,19 @@ sub fetchrow_hashref {
 		if(defined($query_args[0])) {
 			my @call_details = caller(0);
 			$self->{'logger'}->debug("fetchrow_hashref $query: ", join(', ', @query_args),
-				' called from ', $call_details[2] . ' of ' . $call_details[1]);
+				' called from ', $call_details[2], ' of ', $call_details[1]);
 		} else {
 			$self->{'logger'}->debug("fetchrow_hashref $query");
 		}
 	}
 	my $key;
-	if(defined($query_args[0])) {
-		$key = "fetchrow $query " . join(', ', @query_args);
-	} else {
-		$key = "fetchrow $query";
-	}
 	my $c;
 	if($c = $self->{cache}) {
+		if(defined($query_args[0])) {
+			$key = "fetchrow $query " . join(', ', @query_args);
+		} else {
+			$key = "fetchrow $query";
+		}
 		if(my $rc = $c->get($key)) {
 			return $rc;
 		}
