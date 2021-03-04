@@ -3362,12 +3362,7 @@ sub print_person
 						$bio .= i18n('twice');
 					}
 				} else {
-					$bio .= scalar(@spouses);
-					if($language eq 'French') {
-						$bio .= ' temps';
-					} else {
-						$bio .= ' times';
-					}
+					$bio .= scalar(@spouses) . i18n(' times');
 				}
 
 				$bio .= ', to';
@@ -10083,6 +10078,8 @@ of %d children::of %d children
 of::of
 she::she
 they::they
+times::times
+to::to
 twice::twice
 was buried::was buried
 was born::was born
@@ -10120,6 +10117,8 @@ of::de
 she::elle
 they:M:ils
 they:F:elles
+times::temps
+to::à
 twice::deux fois
 was buried:M:a été enterré
 was buried:F:a été enterrée
