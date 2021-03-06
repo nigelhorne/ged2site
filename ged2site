@@ -2465,7 +2465,11 @@ sub print_person
 							$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
 						}
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
-						$bio .= ((scalar(@siblings) > 1) ? 'eldest' : 'older');
+						if(scalar(@siblings) > 1) {
+							$bio .= i18n('eldest');
+						} else {
+							$bio .= 'older';
+						}
 					} elsif($language eq 'French') {
 						$bio .= Lingua::FR::Numbers::Ordinate::ordinate($age_index);
 					} else {
@@ -10069,6 +10073,7 @@ both with %s::les deux avec %s
 check out %s::check out %s
 died::died
 during %s life::during %s life
+eldest::eldest
 he::he
 husband::husband
 is::is
@@ -10106,6 +10111,7 @@ check out %s::visitez %s
 died:M:est mort
 died:F:est morte
 during %s life::pendant sa vie
+eldest::l'aîne
 he::il
 husband::marie
 is::est
