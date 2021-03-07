@@ -4997,7 +4997,7 @@ sub print_person
 	   (ref($events[1]) eq 'Gedcom::Record') &&
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	   (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
-		$bio .= '.  ' if(!$end_of_sentence);
+		$bio .= '. ' if(!$end_of_sentence);
 
 		my $arrival = ($events[0]->type() eq 'Arrival') ? $events[0] : $events[1];
 		my $departure = ($events[0]->type() eq 'Departure') ? $events[0] : $events[1];
@@ -9400,7 +9400,6 @@ sub journey
 	my $arrival = $params{'arrival'};
 	my $departure = $params{'departure'};
 
-	my $rc;
 	my $yod;
 	my $yoa;
 	my $dod = $departure->date();
@@ -9428,16 +9427,13 @@ sub journey
 			}
 		}
 	}
-	$rc = $person->pronoun();
-	if($language eq 'French') {
-		$rc = ($rc eq 'He') ? 'Il' : 'Elle';
-	}
+	my $rc = ucfirst(i18n($person->pronoun()));
 	if($yoa || $yod) {
 		my $year = $yoa // $yod;
 		if($language eq 'French') {
-			$rc = " En $year " . lc($rc);
+			$rc = "En $year " . lc($rc);
 		} else {
-			$rc = " In $year " . lc($rc);
+			$rc = "In $year " . lc($rc);
 		}
 	} else {
 		die 'TODO: handle departure only record';
