@@ -5115,10 +5115,14 @@ sub print_person
 			} elsif(($type eq 'Military service') || ($type eq 'Military')) {
 				$bio .= '.' if(!$end_of_sentence);
 				my $date = year(record => $event);
-				if($date && ($date !~ /^from /i)) {
-					$bio .= ' ' . ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
+				if($date) {
+					if($date !~ /^from /i) {
+						$bio .= ' ' . ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
+					} else {
+						$bio .= " $pronoun was serving in the military";
+					}
 				} else {
-					$bio .= " $pronoun was serving in the military";
+					$bio .= " $pronoun served in the military";
 				}
 				if(my $place = place({ person => $person, record => $event })) {
 					$bio .= $place;
@@ -7721,9 +7725,17 @@ sub year
 		$from =~ s/^(in|on|c.) //;
 		$to =~ s/^(in|on|c.) //;
 		if($language eq 'French') {
-			$from =~ s/^le //;
-			$to =~ s/^le //;
-			return "du $from au $to";
+			if($from =~ /^le (.+)/) {
+				$from = "du $1";
+			} else {
+				$from = "de $from";
+			}
+			if($to =~ /^le (.+)/) {
+				$to = "au $1";
+			} else {
+				$to = "\N{U+00E0} $to";
+			}
+			return "$from $to";
 		}
 		return "from $from to $to";
 	}
