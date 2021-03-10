@@ -533,6 +533,7 @@ my %censusmaps = (
 	'1911 Wales Census' => '1911 UK Census',
 
 	'1851 Census of Canada East, Canada West, New Brunswick, and Nova Scotia' => '1851 Canadian Census',
+	'Canada Census 1851 - Findmypast' => '1851 Canadian Census',
 	'1861 Census of Canada' => '1861 Canadian Census',
 	'Canada Census 1861 - Findmypast' => '1861 Canadian Census',
 	'1871 Census of Canada' => '1871 Canadian Census',
