@@ -4730,14 +4730,7 @@ sub print_person
 				}
 			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
 				$bio .= " $pronoun ";
-				if($language eq 'French') {
-					$bio .= "est enterr\N{U+00E9}";
-					if($sex eq 'F') {
-						$bio .= 'e';
-					}
-				} else {
-					$bio .= 'was buried';
-				}
+				$bio .= i18n({ person => $person, gender => 1, format => 'was buried' });
 				if(my $address = $burial->address()) {
 					$bio .= " at $address";
 				}
@@ -10088,6 +10081,7 @@ eldest::eldest
 he::he
 husband::husband
 is::is
+is buried::is buried
 is married to::is married to
 married::married
 of %d children::of %d children
@@ -10126,6 +10120,8 @@ eldest::l'aîne
 he::il
 husband::marie
 is::est
+is buried:M:est enterré
+is buried:F:est enterrée
 is married to:M:est marié à
 is married to:F:est mariée à
 married::a marié
