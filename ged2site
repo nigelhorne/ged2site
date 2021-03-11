@@ -9718,22 +9718,34 @@ sub dateofbirth {
 	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birth'))) {
 		$dateofbirth = $birth->date();
 	}
-	if(defined($dateofbirth)) {
-		if(lc($dateofbirth) eq 'unknown') {
-			return;
-		}
-		if($dateofbirth =~ /[A-Z]{4,}/i) {
-			complain({ person => $person, warning => "Birth month '$dateofbirth' should be 3 letters" });
-			if($dateofbirth =~ /from (.+) to (.+)/i) {
-				return "bet $1 and $2";
-			}
-			return;
-		}
-	}
-	return $dateofbirth;
+	return parse_date({ date => $dateofbirth, type => 'Birth', person => $person });
 }
 
-sub dateofdeath {
+sub dateofmarriage
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'person'} = shift;
+	}
+
+	my $person = $params{'person'};
+
+
+	my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
+	if((!defined($dateofmarriage)) && (my $marriage = $person->get_record('marriage') || $person->get_record('fams marriage'))) {
+		$dateofmarriage = $marriage->date();
+	}
+
+	return parse_date({ date => $dateofmarriage, type => 'Marriage', person => $person });
+}
+
+sub dateofdeath
+{
 	my %params;
 
 	if(ref($_[0]) eq 'HASH') {
@@ -9750,19 +9762,44 @@ sub dateofdeath {
 	if((!defined($dateofdeath)) && (my $death = $person->get_record('death'))) {
 		$dateofdeath = $death->date();
 	}
-	if(defined($dateofdeath)) {
-		if(lc($dateofdeath) eq 'unknown') {
+	return parse_date({ date => $dateofdeath, type => 'Death', person => $person });
+}
+
+sub parse_date
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		$params{'person'} = shift;
+	}
+
+	if(my $date = $params{'date'}) {
+		if(lc($date) eq 'unknown') {
 			return;
 		}
-		if($dateofdeath =~ /[A-Z]{4,}/i) {
-			complain({ person => $person, warning => "Death month '$dateofdeath' should be 3 letters" });
-			if($dateofdeath =~ /from (.+) to (.+)/i) {
+		if($date =~ /[A-Z]{4,}/i) {
+			my $person = $params{'person'};
+			my $type = $params{'type'};
+
+			complain({ person => $person, warning => "$type month '$date' should be 3 letters" });
+			if($date =~ /from (.+) to (.+)/i) {
 				return "bet $1 and $2";
 			}
-			return;
+			if($date =~ /([\d\s]*)([A-Z]{4,})\s+(\d{3,4})$/i) {
+				if(lc($2) eq 'about') {
+					return "Abt $3";
+				}
+				# FIXME: assumes the months are in English
+				return $1 . ucfirst(lc(substr($2, 0, 3))) . " $3";
+			}
+			die "BUG: handle '$date'";
 		}
+		return $date;
 	}
-	return $dateofdeath;
 }
 
 # Given a place return its latitude and longitude
