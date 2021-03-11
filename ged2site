@@ -6612,7 +6612,7 @@ sub print_person
 			$death_country = 'United Kingdom';
 		} elsif($c eq 'Wales') {
 			$death_country = 'United Kingdom';
-		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex')) {
+		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland')) {
 			$death_country = 'United Kingdom';
 			complain({ person => $person, warning => 'Assuming country of death is UK' });
 		} elsif(($c eq 'Nova Scotia') || (uc($c) eq 'NFLD') || ($c eq 'Newfoundland') || ($c eq 'NS')) {
@@ -9789,7 +9789,7 @@ sub parse_date
 			if($date =~ /from (.+) to (.+)/i) {
 				return "bet $1 and $2";
 			}
-			if($date =~ /([\d\s]*)([A-Z]{4,})\s+(\d{3,4})$/i) {
+			if($date =~ /([\d\s]*)([A-Z]{4,})\s+([\d\/]+)$/i) {
 				if(lc($2) eq 'about') {
 					return "Abt $3";
 				}
@@ -9953,14 +9953,19 @@ sub issister
 # See also https://github.com/SBECK-github/Date-Manip/issues/34
 sub get_year_from_date($)
 {
-	my $date = shift;
-	if($date =~ /(\d{3,4})\s*$/) {
+	my $string = shift;
+	if($string =~ /(\d{3,4})\s*$/) {
 		return $1;
 	}
-	my $year = UnixDate(ParseDate($date), '%Y');	# Date::Manip
+	if($string =~ /(.+)\s(\d{4})\/\d{1,2}/) {
+		my $year = $2 + 1;
+		complain("old-style string ($string) should be in $year");
+		return $year;
+	}
+	my $year = UnixDate(ParseDate($string), '%Y');	# Date::Manip
 
 	return $year if($year);
-	complain("Can't parse date '$date'");
+	complain("Can't parse string '$string'");
 }
 
 # https://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
