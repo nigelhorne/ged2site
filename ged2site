@@ -4009,148 +4009,150 @@ sub print_person
 				if($rdate) {	# residence has a date?
 					next if($printed_dates{$rdate});
 					$printed_dates{$rdate}++;
-					if($opts{'w'} && ($rdate =~ /(\d{3,4})$/)) {
-						my $yoe = $1;
-						if($yod) {
-							if($yoe > $yod) {
-								complain({
-									person => $person,
-									warning => "Year of residence $yoe is after the year of death $yod"
-								});
-							} elsif($death_dt && (my $rdate_dt = date_to_datetime($rdate))) {
-								# FIXME: If $rdate is a date range, should check both dates in the range
-								if($rdate_dt > $death_dt) {
+					if($rdate =~ /(\d{3,4})$/) {
+						if($opts{'w'}) {
+							my $yoe = $1;
+							if($yod) {
+								if($yoe > $yod) {
 									complain({
 										person => $person,
-										warning => "Date of residence $rdate is after date of death " . $death_dt->strftime('%x')
+										warning => "Year of residence $yoe is after the year of death $yod"
 									});
+								} elsif($death_dt && (my $rdate_dt = date_to_datetime($rdate))) {
+									# FIXME: If $rdate is a date range, should check both dates in the range
+									if($rdate_dt > $death_dt) {
+										complain({
+											person => $person,
+											warning => "Date of residence $rdate is after date of death " . $death_dt->strftime('%x')
+										});
+									}
 								}
 							}
-						}
-						# Check if spouse listed at all residences when we only know the year
-						if($spouses[0]) {
-							my $spyod = dateofdeath($spouses[0]) || ($yoe + 1);
-							if($spyod =~ /(\d{3,4})$/) {
-								$spyod = $1;
+							# Check if spouse listed at all residences when we only know the year
+							if($spouses[0]) {
+								my $spyod = dateofdeath($spouses[0]) || ($yoe + 1);
+								if($spyod =~ /(\d{3,4})$/) {
+									$spyod = $1;
+								}
+								if(defined($dateofmarriage) &&
+								   ($dateofmarriage =~ /(\d{3,4})$/) &&
+								   (my $spouse = $spouses[0]) &&
+								   ($yoe < $spyod)) {
+									my $yom = $1;
+									if($yom < $yoe) {
+										my $found_spouse;
+										foreach my $residence(get_all_residences($spouse)) {
+											my $date = $residence->date();
+											if(defined($date) && ($date =~ /(\d{3,4})$/)) {
+												if($1 == $yoe) {
+													$found_spouse = $residence;
+													last;
+												}
+											}
+										}
+										if(!$found_spouse) {
+											complain({ person => $person, warning => ["Listed in the residence for $rdate, but spouse ", $spouse->as_string(), ' is not'] });
+										}
+									}
+								}
 							}
-							if(defined($dateofmarriage) &&
-							   ($dateofmarriage =~ /(\d{3,4})$/) &&
-							   (my $spouse = $spouses[0]) &&
-							   ($yoe < $spyod)) {
-								my $yom = $1;
-								if($yom < $yoe) {
-									my $found_spouse;
-									foreach my $residence(get_all_residences($spouse)) {
-										my $date = $residence->date();
+							if($yob && (($yoe - $yob) <= 12)) {
+								my $found_parent = 0;
+								if($mother) {
+									foreach my $m_residence(get_all_residences($mother)) {
+										my $date = $m_residence->date();
 										if(defined($date) && ($date =~ /(\d{3,4})$/)) {
 											if($1 == $yoe) {
-												$found_spouse = $residence;
+												$found_parent = $m_residence;
+												my $p1 = place({
+														person => $mother,
+														record => $m_residence,
+														nopreposition => 1
+													});
+												my $p2 = place({
+														person => $person,
+														record => $residence,
+														nopreposition => 1
+													});
+												if($p1 ne $p2) {
+													$p1 =~ s/^\s+//;
+													$p2 =~ s/^\s+//;
+													complain({ person => $person, warning => "Location for $date ($p2) differs from mother's ($p1)" });
+												}
+												if($date ne $rdate) {
+													complain({ person => $person, warning => "Date of residence ($rdate) differs from mother's in same year ($date)" });
+												}
 												last;
 											}
 										}
 									}
-									if(!$found_spouse) {
-										complain({ person => $person, warning => ["Listed in the residence for $rdate, but spouse ", $spouse->as_string(), ' is not'] });
-									}
 								}
-							}
-						}
-						if($yob && (($yoe - $yob) <= 12)) {
-							my $found_parent = 0;
-							if($mother) {
-								foreach my $m_residence(get_all_residences($mother)) {
-									my $date = $m_residence->date();
-									if(defined($date) && ($date =~ /(\d{3,4})$/)) {
-										if($1 == $yoe) {
-											$found_parent = $m_residence;
-											my $p1 = place({
-													person => $mother,
-													record => $m_residence,
-													nopreposition => 1
-												});
-											my $p2 = place({
-													person => $person,
-													record => $residence,
-													nopreposition => 1
-												});
-											if($p1 ne $p2) {
-												$p1 =~ s/^\s+//;
-												$p2 =~ s/^\s+//;
-												complain({ person => $person, warning => "Location for $date ($p2) differs from mother's ($p1)" });
+								if($father && !$found_parent) {
+									foreach my $f_residence(get_all_residences($father)) {
+										my $date = $f_residence->date();
+										if(defined($date) && ($date =~ /(\d{3,4})$/)) {
+											if($1 == $yoe) {
+												$found_parent = $f_residence;
+												my $p1 = place({
+														person => $father,
+														record => $f_residence,
+														nopreposition => 1
+													});
+												my $p2 = place({
+														person => $person,
+														record => $residence,
+														nopreposition => 1
+													});
+												if($p1 ne $p2) {
+													$p1 =~ s/^\s+//;
+													$p2 =~ s/^\s+//;
+													complain({ person => $person, warning => "Location for $date ($p2) differs from father's ($p1)" });
+												}
+												if($date ne $rdate) {
+													complain({ person => $person, warning => "Date of residence ($rdate) differs from father's in same year ($date)" });
+												}
+												last;
 											}
-											if($date ne $rdate) {
-												complain({ person => $person, warning => "Date of residence ($rdate) differs from mother's in same year ($date)" });
-											}
-											last;
 										}
 									}
 								}
-							}
-							if($father && ($opts{'w'} || !$found_parent)) {
-								foreach my $f_residence(get_all_residences($father)) {
-									my $date = $f_residence->date();
-									if(defined($date) && ($date =~ /(\d{3,4})$/)) {
-										if($1 == $yoe) {
-											$found_parent = $f_residence;
-											my $p1 = place({
-													person => $father,
-													record => $f_residence,
-													nopreposition => 1
-												});
-											my $p2 = place({
-													person => $person,
-													record => $residence,
-													nopreposition => 1
-												});
-											if($p1 ne $p2) {
-												$p1 =~ s/^\s+//;
-												$p2 =~ s/^\s+//;
-												complain({ person => $person, warning => "Location for $date ($p2) differs from father's ($p1)" });
-											}
-											if($date ne $rdate) {
-												complain({ person => $person, warning => "Date of residence ($rdate) differs from father's in same year ($date)" });
-											}
-											last;
-										}
+								if((!$mother) && !$father) {
+									# People not related by blood tend not to have been researched
+									if($relationship) {
+										complain({ person => $person, warning => 'Census information not used to determine a parent' });
 									}
-								}
-							}
-							if((!$mother) && !$father) {
-								# People not related by blood tend not to have been researched
-								if($relationship) {
-									complain({ person => $person, warning => 'Census information not used to determine a parent' });
-								}
-							} elsif(!$found_parent) {
-								# FIXME: both parents could be dead
-								complain({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
-							}	# TODO: else warn if both parents locations are different
-						} elsif($numberofchildren && ($rdate !~ /^bet\s/i)) {
-							# Look if a young child isn't with this parent
-							foreach my $child(@children) {
-								my $cyob = dateofbirth($child);
-								next if(!defined($cyob));
-								next if(datecmp($cyob, $rdate) >= 0);	# Child was not born yet
-								if($cyob =~ /(\d{3,4})\s*$/) {
-									$cyob = $1;
-								}
-								next if(($yoe - $cyob) > 10);	# Over 10 years old
-								if(my $cyod = dateofdeath($child)) {
-									next if(datecmp($cyod, $rdate) <= 0);	# Child was dead by this event
-								}
+								} elsif(!$found_parent) {
+									# FIXME: both parents could be dead
+									complain({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
+								}	# TODO: else warn if both parents locations are different
+							} elsif($numberofchildren && ($rdate !~ /^bet\s/i)) {
+								# Look if a young child isn't with this parent
+								foreach my $child(@children) {
+									my $cyob = dateofbirth($child);
+									next if(!defined($cyob));
+									next if(datecmp($cyob, $rdate) >= 0);	# Child was not born yet
+									if($cyob =~ /(\d{3,4})\s*$/) {
+										$cyob = $1;
+									}
+									next if(($yoe - $cyob) > 10);	# Over 10 years old
+									if(my $cyod = dateofdeath($child)) {
+										next if(datecmp($cyod, $rdate) <= 0);	# Child was dead by this event
+									}
 
-								my $missing_child = 1;
-								foreach my $event(get_all_residences($child)) {
-									my $edate = $event->date();
-									if($edate && ($edate !~ /^bet\s/i) && (datecmp($edate, $rdate) >= 0)) {
-										$missing_child = 0;
-										last;
+									my $missing_child = 1;
+									foreach my $event(get_all_residences($child)) {
+										my $edate = $event->date();
+										if($edate && ($edate !~ /^bet\s/i) && (datecmp($edate, $rdate) >= 0)) {
+											$missing_child = 0;
+											last;
+										}
 									}
-								}
-								if($missing_child) {
-									if($firstname) {
-										complain({ person => $child, warning => "Parent $firstname is listed in the residence for $rdate, but this child is not" });
-									} else {
-										complain({ person => $child, warning => "Parent is listed in the residence for $rdate, but this child is not" });
+									if($missing_child) {
+										if($firstname) {
+											complain({ person => $child, warning => "Parent $firstname is listed in the residence for $rdate, but this child is not" });
+										} else {
+											complain({ person => $child, warning => "Parent is listed in the residence for $rdate, but this child is not" });
+										}
 									}
 								}
 							}
