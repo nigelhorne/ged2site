@@ -1773,9 +1773,18 @@ sub print_person
 		$placeofdeath = $death->place();
 	}
 
-	if($placeofdeath && ($placeofdeath =~ /\s\s/)) {
-		complain({ person => $person, warning => 'Removing successive spaces from place of death' });
-		$placeofdeath =~ s/\s\s+/ /g;
+	if($placeofdeath) {
+		if(lc($placeofdeath) eq 'unknown') {
+			$placeofdeath = undef;
+		} elsif($placeofdeath =~ /\s\s/) {
+			complain({ person => $person, warning => 'Removing successive spaces from place of death' });
+			$placeofdeath =~ s/\s\s+/ /g;
+		}
+	}
+
+	if($placeofdeath && ($placeofdeath =~ /[,\.]\s*$/) && ($placeofdeath ne 'U.S.A.')) {
+		complain({ person => $person, warning => "Trailing punctuation in death location '$placeofdeath'" });
+		$placeofdeath =~ s/\s*[,\.]\s*$//;
 	}
 
 	if($placeofdeath && ($placeofdeath =~ /,\s*$/)) {
@@ -3443,6 +3452,9 @@ sub print_person
 						}
 					}
 					if($placeofmarriage) {
+						$placeofmarriage = undef if(lc($placeofmarriage) eq 'unknown');
+					}
+					if($placeofmarriage) {
 						$placeofmarriage = place({ person => $spouse, place => $placeofmarriage, places_printed => \%places_printed });
 						if($previousplace && ($placeofmarriage eq $previousplace)) {
 							if($placeofmarriage =~ /^(.+?),/) {
@@ -3931,12 +3943,7 @@ sub print_person
 					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 						$residencestring = ' at ' . ($person->pronoun() eq 'She' ? 'her' : 'his')
 								. i18n(' birthplace');
-					} else {
-						my $p = place({
-							person => $person,
-							record => $residence,
-							places_printed => \%places_printed
-						});
+					} elsif(my $p = place({ person => $person, record => $residence, places_printed => \%places_printed })) {
 						if($residence->type() && ($residence->type() eq 'Hospitalisation')) {
 							$residencestring = ' in hospital';
 						}
@@ -4263,20 +4270,35 @@ sub print_person
 										$residencestring .= $l->{'person'}->as_string();
 									}
 									if(scalar(@people_at_p3)) {
+										my @people_living_together;
 										while(my $p = pop(@people_at_p3)) {
-											if(scalar(@people_at_p3)) {
-												$residencestring .= ',';
-											} else {
-												$residencestring .= i18n(' and');
+											if(my $r = $person->relationship($p->{'person'})) {
+												push @people_living_together, "$r " .
+													$p->{'person'}->as_string();
 											}
-											$residencestring .= ' ' .
-												$person->relationship($p->{'person'}) .
-												' ' .
-												$p->{'person'}->as_string();
 										}
-										$residencestring .= ' who were living';
+										if(scalar(@people_living_together)) {
+											$residencestring .= conjunction(@people_living_together);
+										}
+										if(scalar(@people_living_together) > 1) {
+											if($language eq 'French') {
+												$residencestring .= ' qui habitaient';
+											} else {
+												$residencestring .= ' who were living';
+											}
+										} else {
+											if($language eq 'French') {
+												$residencestring .= ' qui habitait';
+											} else {
+												$residencestring .= ' who was living';
+											}
+										}
 									} else {
-										$residencestring .= ' who was living';
+										if($language eq 'French') {
+											$residencestring .= ' qui habitait';
+										} else {
+											$residencestring .= ' who was living';
+										}
 									}
 									$residencestring .= place({ record => $l->{'residence'}, there => $p2 });
 									$printed_person = 1;
@@ -4291,6 +4313,7 @@ sub print_person
 						my $r = $residence;
 						next if($r->date() ne $rdate);
 						my $place = place({ person => $person, record => $r });
+						next if(!defined($place));
 						my $first = 1;
 
 						my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
@@ -4370,10 +4393,14 @@ sub print_person
 									my $mdate = $mr->date();
 									next if(!defined($mdate));
 									next if($mdate ne $rdate);
-									if(place({ person => $mother, record => $mr }) eq $place) {
+
+									my $p = place({ person => $mother, record => $mr });
+									next unless($p);
+									if($p eq $place) {
 										$with_mother++;
 										last;
 									}
+
 									if($road && ($mr->place() eq $residence->place())) {
 										if(my $mroad = $mr->address()) {
 											if($mroad =~ /,\s*(.+)/) {
@@ -4397,10 +4424,14 @@ sub print_person
 									my $fdate = $fr->date();
 									next if(!defined($fdate));
 									next if($fdate ne $rdate);
-									if(place({ person => $father, record => $fr }) eq $place) {
+
+									my $p = place({ person => $father, record => $fr });
+									next unless($p);
+									if($p eq $place) {
 										$with_father++;
 										last;
 									}
+
 									if($road && ($fr->place() eq $residence->place())) {
 										if(my $froad = $fr->address()) {
 											if($froad =~ /,\s*(.+)/) {
@@ -4659,7 +4690,7 @@ sub print_person
 					my $deathplace = place({ person => $person, record => $death });
 					my $lastdate = $lastresidence->date();
 					$lastresidence = place({ person => $person, record => $lastresidence });
-					if(defined($lastdate) && ($deathplace eq $lastresidence)) {
+					if(defined($lastdate) && defined($lastresidence) && ($deathplace eq $lastresidence)) {
 						my $p = lcfirst($pronoun);
 						if($language eq 'French') {
 							$bio .= " c'est o\N{U+00F9} $p est mort";
@@ -4831,7 +4862,7 @@ sub print_person
 			}
 			if($dateofburial) {
 				if($diedathome) {
-					$bio .= "$pronoun ";
+					$bio .= $pronoun;
 				} else {
 					$bio .= i18n(' and');
 				}
@@ -6619,7 +6650,7 @@ sub print_person
 			complain({ person => $person, warning => 'Assuming country of birth is Canada' });
 			$birth_country = 'Canada';
 			$placeofbirth .= ', Canada';
-		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland')) {
+		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland') || ($c eq 'London')) {
 			$birth_country = 'United Kingdom';
 			complain({ person => $person, warning => 'Assuming country of birth is UK' });
 		} elsif($c =~ 'England,?\sUK') {
@@ -7199,7 +7230,7 @@ sub Gedcom::Individual::relationship {
 	die $self->as_string() if($other eq $self);
 
 	if($self->mother() && $other->mother() && $self->father() && $other->father()) {
-		my $sex = get_value({ person => $other, value => 'sex' });
+		my $sex = $other->sex() || get_value({ person => $other, value => 'sex' });
 		if(($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
 			if($language eq 'French') {
 				return ($sex eq 'M') ? "fr\N{U+00E8}re" : 'sœur';
@@ -7937,6 +7968,8 @@ sub place {
 		$place = getaddress($address);
 		$address = undef;
 	}
+
+	return if(lc($place) eq 'unknown');
 
 	# if((!defined($address)) &&
 	   # ($place !~ /USA$/) && ($place !~ /United States$/) &&
