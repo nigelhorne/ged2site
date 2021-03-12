@@ -4256,42 +4256,40 @@ sub print_person
 									} else {
 										$residencestring .= ', less than a mile from ';
 									}
+									my $first_string;
 									if($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) {
 										# FIXME: Only when before they married, though when
 										#	they are married it should be the same place, right?
-										$residencestring .= (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
+										if($language eq 'French') {
+											$first_string = (($sex eq 'M') ? 'sa futur femme ' : 'son futur mari ');
+										} else {
+											$first_string = (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
+										}
 									} else {
-										$residencestring .= ($sex eq 'M' ? 'his' : 'her') .
+										$first_string = ($sex eq 'M' ? 'his' : 'her') .
 											" $relationship ";
 									}
 									if(defined($relationship) && (($relationship eq 'sister') || ($relationship eq 'brother'))) {
-										$residencestring .= $l->{'person'}->given_names();
+										$first_string .= $l->{'person'}->given_names();
 									} else {
-										$residencestring .= $l->{'person'}->as_string();
+										$first_string .= $l->{'person'}->as_string();
 									}
+									my @people_living_together = ($first_string);
 									if(scalar(@people_at_p3)) {
-										my @people_living_together;
 										while(my $p = pop(@people_at_p3)) {
 											if(my $r = $person->relationship($p->{'person'})) {
 												push @people_living_together, "$r " .
 													$p->{'person'}->as_string();
 											}
 										}
-										if(scalar(@people_living_together)) {
-											$residencestring .= conjunction(@people_living_together);
-										}
-										if(scalar(@people_living_together) > 1) {
-											if($language eq 'French') {
-												$residencestring .= ' qui habitaient';
-											} else {
-												$residencestring .= ' who were living';
-											}
+									}
+									$residencestring .= conjunction(@people_living_together);
+
+									if(scalar(@people_living_together) > 1) {
+										if($language eq 'French') {
+											$residencestring .= ' qui habitaient';
 										} else {
-											if($language eq 'French') {
-												$residencestring .= ' qui habitait';
-											} else {
-												$residencestring .= ' who was living';
-											}
+											$residencestring .= ' who were living';
 										}
 									} else {
 										if($language eq 'French') {
