@@ -4012,7 +4012,57 @@ sub print_person
 						}
 					}
 				}
-				# Citation residence notes print later
+				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence }))) {
+					$notes =~ s/\.$//;
+					$notes = lcfirst($notes);
+					$residencestring .= " ($notes)";
+				} elsif($opts{'c'}) {
+					my @citationlist;
+					if($residencecitations{$residence}) {
+						push @citationlist, $residencecitations{$residence};
+					}
+					if($residence->place() &&
+					  (!$rdate) &&
+					  ($count <= (scalar(@residencelist) - 1)) &&
+					  ($residencecitations{$residence})) {
+						my $peek = $residencelist[$count + 1];
+						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+							push @citationlist, $residencecitations{$peek};
+						}
+					}
+					if(scalar(@citationlist)) {
+						$residencestring =~ s/,$//;
+						$residencestring .= cite(@citationlist);
+					}
+				}
+				$count++;
+				if(($count == 1) && (scalar(@residencelist) == 2)) {
+					if($print_year_only) {
+						$residencestring .= $rdate;
+						$print_year_only = 0;
+					}
+				} else {
+					my $peek = $residencelist[$count];
+					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+						my $nextnotes = notes(record => $peek);
+						$peek = $residencelist[$count + 1];
+						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+							# FIXME: work with citations by printing them all
+							if((!$opts{'c'}) && $rdate && ($rdate =~ /^\d{4}$/) && $peek->date() && ($peek->date() =~ /^\d{4}$/)) {
+								if((!$print_year_only) && (!defined($nextnotes)) && !notes(record => $peek)) {
+									$residencestring .= '-';
+									$print_year_only = 1;
+								}
+							} elsif($print_year_only && $rdate) {
+								$residencestring .= $rdate;
+								$print_year_only = 0;
+							}
+						}
+					} elsif($print_year_only) {
+						$residencestring .= $rdate if((!defined($residencestring)) || ($rdate ne $residencestring));
+						$print_year_only = 0;
+					}
+				}
 				if($rdate) {	# residence has a date?
 					next if($printed_dates{$rdate});
 					$printed_dates{$rdate}++;
@@ -4197,7 +4247,13 @@ sub print_person
 							$prev_residence = $residence;
 						}
 					}
-					if(defined($latitude) && (my $dt = date_to_datetime($rdate))) {
+					my $bdiff;
+					if($birth_dt) {
+						$bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
+					}
+					if(defined($latitude) && defined($bdiff) &&
+					  ($bdiff->in_units('years') >= 30) &&
+					  (my $dt = date_to_datetime($rdate))) {
 						# Print close relatives living close by
 						# This really only works when printing a lot of people, for example with the -a
 						#	flag, or when producing a PDF book, since it relies on having found data
@@ -4254,7 +4310,7 @@ sub print_person
 									if($printed_person) {
 										$residencestring .= ', ';
 									} else {
-										$residencestring .= ', less than a mile from ';
+										$residencestring .= ' - less than a mile from ';
 									}
 									my $first_string;
 									if($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) {
@@ -4315,8 +4371,6 @@ sub print_person
 						my $place = place({ person => $person, record => $r });
 						next if(!defined($place));
 						my $first = 1;
-
-						my $bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
 
 						foreach my $sibling(@siblings) {
 							if(my $ss = $sibling->spouse()) {
@@ -4584,57 +4638,6 @@ sub print_person
 							}
 							$printed_following_message = 1;
 						}
-					}
-				}
-				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence }))) {
-					$notes =~ s/\.$//;
-					$notes = lcfirst($notes);
-					$residencestring .= " ($notes)";
-				} elsif($opts{'c'}) {
-					my @citationlist;
-					if($residencecitations{$residence}) {
-						push @citationlist, $residencecitations{$residence};
-					}
-					if($residence->place() &&
-					  (!$rdate) &&
-					  ($count <= (scalar(@residencelist) - 1)) &&
-					  ($residencecitations{$residence})) {
-						my $peek = $residencelist[$count + 1];
-						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-							push @citationlist, $residencecitations{$peek};
-						}
-					}
-					if(scalar(@citationlist)) {
-						$residencestring =~ s/,$//;
-						$residencestring .= cite(@citationlist);
-					}
-				}
-				$count++;
-				if(($count == 1) && (scalar(@residencelist) == 2)) {
-					if($print_year_only) {
-						$residencestring .= $rdate;
-						$print_year_only = 0;
-					}
-				} else {
-					my $peek = $residencelist[$count];
-					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-						my $nextnotes = notes(record => $peek);
-						$peek = $residencelist[$count + 1];
-						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
-							# FIXME: work with citations by printing them all
-							if((!$opts{'c'}) && $rdate && ($rdate =~ /^\d{4}$/) && $peek->date() && ($peek->date() =~ /^\d{4}$/)) {
-								if((!$print_year_only) && (!defined($nextnotes)) && !notes(record => $peek)) {
-									$residencestring .= '-';
-									$print_year_only = 1;
-								}
-							} elsif($print_year_only && $rdate) {
-								$residencestring .= $rdate;
-								$print_year_only = 0;
-							}
-						}
-					} elsif($print_year_only) {
-						$residencestring .= $rdate if((!defined($residencestring)) || ($rdate ne $residencestring));
-						$print_year_only = 0;
 					}
 				}
 				if($residencestring) {
