@@ -4271,6 +4271,8 @@ sub print_person
 									}
 									if(defined($relationship) && (($relationship eq 'sister') || ($relationship eq 'brother'))) {
 										$first_string .= $l->{'person'}->given_names();
+									} elsif($l->{'person'}->surname() eq $surname) {
+										$first_string .= $l->{'person'}->given_names();
 									} else {
 										$first_string .= $l->{'person'}->as_string();
 									}
