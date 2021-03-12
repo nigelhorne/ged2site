@@ -2077,6 +2077,10 @@ sub print_person
 	if((!$dateofmarriage) && $marriage) {
 		$dateofmarriage = $marriage->date();
 	}
+	if($dateofmarriage && ($dateofmarriage =~ /\s$/)) {
+		complain({ person => $person, warning => 'Removing trailing spaces from date of marriage' });
+		$dateofmarriage =~ s/\s+$//;
+	}
 	if($dateofmarriage && ($dateofmarriage =~ /\d$/)) {
 		$marriage_dt = $dfg->parse_datetime(date => $dateofmarriage, quiet => 1);
 	}
@@ -2408,6 +2412,10 @@ sub print_person
 				my $all_siblings_have_dob = 1;
 				foreach my $sibling(@siblings) {
 					if(my $dob = dateofbirth($sibling)) {
+						if($dob =~ /\s$/) {
+							complain({ person => $sibling, warning => 'Removing trailing spaces from date of birth' });
+							$dob =~ s/\s+$//;
+						}
 						if(!date_parser_cached(date => $dob)) {
 							complain({
 								person => $sibling,
@@ -2433,6 +2441,10 @@ sub print_person
 				$print_sibling_count = 1;
 				foreach my $sibling(@siblings) {
 					if(my $dob = dateofbirth($sibling)) {
+						if($dob =~ /\s$/) {
+							complain({ person => $sibling, warning => 'Removing trailing spaces from date of birth' });
+							$dob =~ s/\s+$//;
+						}
 						if(my $d = date_parser_cached(date => $dob)) {
 							$d = $dfn->parse_datetime($d->{'canonical'});
 							if($opts{'w'} &&
@@ -2735,6 +2747,10 @@ sub print_person
 					complain({ person => $person, warning => 'Date of birth is known, but not place' });
 				}
 				if($dateofbirth) {
+					if($dateofbirth =~ /\s$/) {
+						complain({ person => $person, warning => "Removing trailing spaces from date of birth '$dateofbirth'" });
+						$dateofbirth =~ s/\s+$//;
+					}
 					my $y = year({
 						person => $person,
 						date => $dateofbirth,
@@ -3416,6 +3432,10 @@ sub print_person
 							$dateofmarriage = $marriage->date();
 						}
 					}
+					if($dateofmarriage && ($dateofmarriage =~ /\s$/)) {
+						complain({ person => $person, warning => 'Removing trailing spaces from date of marriage' });
+						$dateofmarriage =~ s/\s+$//;
+					}
 					my $placeofmarriage = get_value({ person => $spouse, value => 'marriage place' });
 					if(!defined($placeofmarriage)) {
 						if(my $marriage = $spouse->get_record('marriage') || $spouse->get_record('fams marriage')) {
@@ -3466,6 +3486,10 @@ sub print_person
 							} else {
 								$bio .= '(';
 								$printed_bracket = 1;
+							}
+							if($death_of_first_spouse =~ /\s$/) {
+								complain({ person => $person, warning => 'Removing trailing spaces from date' });
+								$death_of_first_spouse =~ s/\s+$//;
 							}
 							$bio .= 'following the death of ' .
 								$spouses[0]->as_string() . ' ' .
@@ -4133,6 +4157,10 @@ sub print_person
 						}
 					}
 					if(scalar(@residencelist) > 1) {
+						if($rdate =~ /\s$/) {
+							complain({ person => $person, warning => 'Removing trailing spaces from "$rdate"' });
+							$rdate =~ s/\s+$//;
+						}
 						my $this_date = year({ person => $person, date => $rdate });
 						if($prev_residence && (year(record => $prev_residence) eq $this_date)) {
 							if(place(record => $prev_residence) ne place(record => $residence)) {
@@ -4511,10 +4539,15 @@ sub print_person
 							}
 							if($spdeath_dt) {
 								# Outlived spouse, but not living with a child
+								my $date = dateofdeath($spouses[0]);
+								if($date =~ /\s$/) {
+									complain({ person => $person, warning => 'Removing trailing spaces from date of marriage' });
+									$date =~ s/\s+$//;
+								}
 								$residencestring .= ' following the death of ' .
 									($person->pronoun() eq 'She' ? 'her' : 'his') .
 									(($sex eq 'M') ? ' wife ' : ' husband ') .
-									year(date => dateofdeath($spouses[0]));
+									year(date => $date);
 							}
 							$printed_following_message = 1;
 						}
@@ -4635,6 +4668,10 @@ sub print_person
 							$bio .= " which is where $p died";
 						}
 						if($dateofdeath) {
+							if($dateofdeath =~ /\s$/) {
+								complain({ person => $person, warning => 'Removing trailing spaces from date of death' });
+								$dateofdeath =~ s/\s+$//;
+							}
 							my $date = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 							$lastdate =~ s/^.*(\d{4})$/$1/;
 							$date =~ /, (\d{3,4})$/;
@@ -4903,9 +4940,18 @@ sub print_person
 				}
 				$bio .= " $y";
 			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
-				$bio .= " in $1 " .
+				my $p = $1;
+				if($dateofdeath =~ /\s$/) {
+					complain({ person => $person, warning => 'Removing trailing spaces from date of death' });
+					$dateofdeath =~ s/\s+$//;
+				}
+				$bio .= " in $p " .
 					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 			} else {
+				if($dateofdeath =~ /\s$/) {
+					complain({ person => $person, warning => "Removing trailing spaces from date of death '$death'" });
+					$dateofdeath =~ s/\s+$//;
+				}
 				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($y =~ /^from (.+) to (.+)/i) {
 					$y = "between $1 and $2";
@@ -6516,6 +6562,10 @@ sub print_person
 		$birth_country = 'United States';
 	} elsif($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
+		if($c =~ /\)$/) {
+			complain({ person => $person, warning => 'Trailing bracket in birth location' });
+			$c =~ s/\)$//;
+		}
 		if($c eq 'England') {
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
@@ -7657,6 +7707,7 @@ sub year
 		if(ref($string) eq 'Gedcom::Record') {
 			$string = $string->date();
 			return unless($string);
+			$string =~ s/\s+$//;
 		}
 	}
 
@@ -9015,7 +9066,7 @@ sub date_parser_cached
 		while((my @call_details = caller($i++))) {
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
-		die 'BUG: illegal date should have been trapped by now';
+		die "BUG: illegal '$date' should have been trapped by now";
 	}
 	print "Parse date $date\n" if($opts{'v'});
 	my $d;
