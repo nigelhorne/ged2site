@@ -4252,7 +4252,6 @@ sub print_person
 						$bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
 					}
 					if(defined($latitude) && defined($bdiff) &&
-					  ($bdiff->in_units('years') >= 30) &&
 					  (my $dt = date_to_datetime($rdate))) {
 						# Print close relatives living close by
 						# This really only works when printing a lot of people, for example with the -a
@@ -4313,7 +4312,17 @@ sub print_person
 										$residencestring .= ' - less than a mile from ';
 									}
 									my $first_string;
+									my $future_spouse;
 									if($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) {
+										if(defined($dateofmarriage) && ($dateofmarriage =~ /(\d{3,4})$/)) {
+											if($year < $1) {
+												$future_spouse = 1;
+											}
+										} elsif($bdiff->in_units('years') < 16) {
+											$future_spouse = 1;
+										}
+									}
+									if($future_spouse) {
 										# FIXME: Only when before they married, though when
 										#	they are married it should be the same place, right?
 										if($language eq 'French') {
@@ -4322,12 +4331,23 @@ sub print_person
 											$first_string = (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
 										}
 									} else {
+										next unless($relationship);
+										if($bdiff->in_units('years') < 21) {
+											if(my $mother = $person->mother()) {
+												if($l->{'person'}->xref() eq $mother->xref()) {
+													next;
+												}
+											}
+											if(my $father = $person->father()) {
+												if($l->{'person'}->xref() eq $father->xref()) {
+													next;
+												}
+											}
+										}
 										$first_string = ($sex eq 'M' ? 'his' : 'her') .
 											" $relationship ";
 									}
-									if(defined($relationship) && (($relationship eq 'sister') || ($relationship eq 'brother'))) {
-										$first_string .= $l->{'person'}->given_names();
-									} elsif($l->{'person'}->surname() eq $surname) {
+									if($l->{'person'}->surname() eq $surname) {
 										$first_string .= $l->{'person'}->given_names();
 									} else {
 										$first_string .= $l->{'person'}->as_string();
