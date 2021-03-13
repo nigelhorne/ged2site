@@ -4946,6 +4946,7 @@ sub print_person
 					$bio .= ' is buried there at ' . $burial->address();
 				}
 			} elsif(my $b = place($opts)) {
+				$b = HTML::Entities::encode($b);
 				if($diedathome) {
 					$bio .= "$pronoun is buried$b";
 				} else {
