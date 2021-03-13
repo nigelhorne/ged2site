@@ -202,10 +202,9 @@ if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 	}
 
 	if($opts{'m'} || $opts{'w'}) {
-		push @modules, 'Geo::Coder::Free::Local';
+		push @modules, 'Geo::Coder::Free::Local', 'Geo::Coder::Postcodes';
 		if($opts{'w'}) {
 			push @modules,
-				'Geo::Coder::Postcodes',
 				'LWP::UserAgent::Cached', 'Genealogy::ChroniclingAmerica', 'Locale::Country';
 		}
 	}
