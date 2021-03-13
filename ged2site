@@ -4165,7 +4165,7 @@ sub print_person
 					}
 					if(scalar(@residencelist) > 1) {
 						if($rdate =~ /\s$/) {
-							complain({ person => $person, warning => 'Removing trailing spaces from "$rdate"' });
+							complain({ person => $person, warning => "Removing trailing spaces from '$rdate'" });
 							$rdate =~ s/\s+$//;
 						}
 						my $this_date = year({ person => $person, date => $rdate });
