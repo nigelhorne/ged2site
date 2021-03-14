@@ -6371,6 +6371,8 @@ sub print_person
 			my $record = $place_records{$event};
 			my $place = place({ record => $record, nopreposition => 1 });
 			if(defined($place) && ($place =~ /,.+,/)) {
+				$place =~ s/&eacute;/&#233;/g;
+				print "Adding '$place' to map\n" if($opts{'v'});
 				$place =~ s/^\s+//;
 				if(defined($current_place) && ($place ne $current_place)) {
 					$current_place =~ s/&rsquo;/'/g;
@@ -6446,6 +6448,7 @@ sub print_person
 			add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
 		}
 		if(defined($map)) {
+			print "Create map HTML\n" if($opts{'v'});
 			# Can't put $head into the head since it's far too
 			# late now!
 			my ($head, $map_div) = $map->onload_render();
@@ -6461,6 +6464,7 @@ sub print_person
 		} else {
 			print $csv '!!';
 		}
+		print "Finished creating map\n" if($opts{'v'});
 	} else {
 		print $csv '!!';
 	}
@@ -9196,6 +9200,9 @@ sub add_marker
 	$place_link = "<a href=\"https://www.google.com/maps/place/$place_link\">$place</a>";
 
 	if(my $annotation = $params{'annotation'}) {
+		$place =~ s/é/&eacute;/g;
+		$place_link =~ s/é/e/g;
+		$annotation =~ s/é/&eacute;/g;
 		if($map->add_marker(point => $place, html => "$place_link<br>$annotation")) {
 			return;
 		}
