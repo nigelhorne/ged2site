@@ -8274,9 +8274,33 @@ sub place {
 					$rc->set({ lang => $lang, string => "$1, $c" });
 				}
 			}
-		} elsif($place !~ /,/) {
-			if(my $code = $lcm->country2code($place, 'LOCALE_CODE_ALPHA_2', 'en')) {
-				$rc->set({ lang => $lang, string => $lcm->code2country($code, $lang) });
+		} elsif($place !~ /,/ && ($language ne 'English')) {
+			$rc->en($place);
+			my $en = $place;
+			$en =~ s/^ in //;
+			if(my $code = $lcm->country2code($en, 'LOCALE_CODE_ALPHA_2', 'en')) {
+				$place = $lcm->code2country($code, $lang);
+				if(!$params{'nopreposition'}) {
+					if($language eq 'French') {
+						my $preposition;
+						if($place =~ /e$/) {
+							# TODO: others https://yolainebodin.com/the-language-nook/french/gender-of-countries-in-french
+							if($place eq 'Mexique') {
+								$preposition = 'au';
+							} else {
+								$preposition = 'en';
+							}
+						} else {
+							if($place =~ /^[aeiou]/) {
+								$preposition = 'en';
+							} else {
+								$preposition = 'au';
+							}
+						}
+						$place = " $preposition $place";
+					}
+				}
+				$rc->set({ lang => $lang, string => $place });
 			}
 		}
 	}
