@@ -3147,11 +3147,15 @@ sub print_person
 					   !$end_of_sentence) {
 						$bio .= i18n(' also');
 					}
-					if(is_alive(person => $person) && is_alive(person => $spouses[0])) {
-						$bio .= i18n({ person => $person, format => ' is married to ' });
+					my %args = (person => $person);
+					if($spouserelationship) {
+						$args{'format'} = ' married ';
+					} elsif(is_alive(person => $person) && is_alive(person => $spouses[0])) {
+						$args{'format'} = ' is married to ';
 					} else {
-						$bio .= i18n({ person => $person, format => ' was married to ' });
+						$args{'format'} = ' was married to ';
 					}
+					$bio .= i18n(\%args);
 					if($haveprintedspousename) {
 						$nameparser->parse($spouses[0]->name());
 
