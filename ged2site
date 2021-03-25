@@ -4551,7 +4551,7 @@ sub print_person
 									$first = 0;
 
 									if($with_mother && $with_father) {
-										$residencestring .= ' parents ';
+										$residencestring .= ' parents';
 									} elsif($with_mother) {
 										$residencestring .= ' mother ' . $mother->given_names();
 									} elsif($with_father) {
