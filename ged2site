@@ -7985,7 +7985,7 @@ sub place {
 				$place = $place->place();
 			}
 			if(!defined($place)) {
-				if($opts{'w'} && (!$params{'allow_empty'}) && ($params{'record'}->type() ne 'Story')) {
+				if($opts{'w'} && (!$params{'allow_empty'}) && $params{'record'}->type() && ($params{'record'}->type() ne 'Story')) {
 					if(my $date = $p->date()) {
 						if($date =~ /^bet\s*(.+)/i) {
 							complain({ person => $params{'person'}, warning => "Location for the event between $1 is empty" });
