@@ -8680,9 +8680,10 @@ sub person_line_csv
 		}
 		return '';
 	}
-	return '<a href="?page=people&entry=' . $person->xref() . '">' .
-		$person->given_names() .
-		'</a>';
+	# return '<a href="?page=people&entry=' . $person->xref() . '">' .
+		# $person->given_names() .
+		# '</a>';
+	return $person->given_names();
 }
 
 sub places_are_the_same
