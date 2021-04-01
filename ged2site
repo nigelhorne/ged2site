@@ -1856,10 +1856,13 @@ sub print_person
 						chronicling_america($person, \%chronicling_params);
 					}
 				}
-				obituaries({ person => $person, first => $firstname, last => $lastname, yob => $yob, yod => $yod });
 				my $sex = get_value({ person => $person, value => 'sex' });
-				if(defined($sex) && ($sex eq 'F')) {
-					obituaries({ person => $person, first => $firstname, maiden => $lastname, yob => $yob, yod => $yod });
+				if(defined($sex) && ($sex eq 'F') && (my $husband = $person->husband())) {
+					my $married_name = ucfirst(lc($husband->surname()));
+					if($married_name eq $lastname) {
+						complain({ person => $person, warning => 'Maiden name same as married name' });
+					}
+					obituaries({ person => $person, first => $firstname, last => $married_name, yob => $yob, yod => $yod });
 				}
 			}
 		}
