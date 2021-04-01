@@ -1661,8 +1661,8 @@ sub print_person
 	my $is_alive = is_alive(person => $person);
 	my $title;
 	if($is_alive && !$opts{'l'}) {
-		print $csv $person->xref(), '!',
-			$person->as_string({ middle_names => 1, title => 1 }), '!';
+		print $csv $person->xref(), '!', $person->given_names(), '!';
+			# $person->as_string({ middle_names => 1, title => 1 }), '!';
 		$title = $firstname;
 	} else {
 		print $csv $person->xref(), '!',
@@ -2337,7 +2337,10 @@ sub print_person
 		complain({ person => $person, warning => 'Baptism information not used to determine a parent' });
 	}
 
-	my @occupations = get_all_occupations($person);
+	my @occupations;
+	if($opts{'l'} || !$is_alive) {
+		@occupations = get_all_occupations($person);
+	}
 
 	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
 
@@ -2410,7 +2413,8 @@ sub print_person
 	# my $html_and_xml = File::Print::Many->new([$xml, $html]);
 	my $all = File::Print::Many->new([$xml, $html, $csv]);
 
-	if($father || $mother) {
+	if(($father || $mother) &&
+	   ((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() ne $me->xref()))) {
 		if(scalar(@occupations) || scalar(@person_twins)) {
 			$bio .= ' and the ';
 		} else {
@@ -2476,7 +2480,7 @@ sub print_person
 					} else {
 						$all_siblings_have_dob = 0;
 						last;
-				}
+					}
 				}
 				if($all_siblings_have_dob) {
 					if($language eq 'French') {
@@ -3306,12 +3310,17 @@ sub print_person
 							print $html $childnames;
 							# FIXME: breaks static HTML page, because of the print $bio
 							#	later on
-							$childnames = join(', ', map {
-								'<a href="?page=people&entry=' . $_->xref() . '">'.
-									$_->given_names() . '</a>'
-							} @childrenofthisspouse);
-							substr($childnames, rindex($childnames, ', '), 2, ' and ');
-							$bio .= $childnames;
+							my @childlist;
+							foreach my $child(@childrenofthisspouse) {
+								if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
+									push @childlist, 
+										'<a href="?page=people&entry=' . $child->xref() . '">'.
+											$child->given_names() . '</a>'
+								} else {
+									push @childlist, $child->given_names;
+								}
+							}
+							$bio .= conjunction(@childlist);
 						}
 					}
 				} else {
