@@ -2414,7 +2414,7 @@ sub print_person
 	my $all = File::Print::Many->new([$xml, $html, $csv]);
 
 	if(($father || $mother) &&
-	   ((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() ne $me->xref()))) {
+	   ((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() eq $me->xref()))) {
 		if(scalar(@occupations) || scalar(@person_twins)) {
 			$bio .= ' and the ';
 		} else {
@@ -5522,8 +5522,10 @@ sub print_person
 				}
 			}
 		}
-		$bio .= '.' if(!$end_of_sentence);
-		$end_of_sentence = 1;
+		if($bio) {
+			$bio .= '.' if(!$end_of_sentence);
+			$end_of_sentence = 1;
+		}
 	}
 
 	if(my $profile_object = $person->tag_record('_MILT')) {
