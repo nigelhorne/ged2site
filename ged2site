@@ -8281,6 +8281,8 @@ sub place {
 				$rc->en($place);
 			} elsif(($language eq 'French') && ($c eq 'Scotland')) {
 				$rc->fr("$1, Ecosse");
+			} elsif(($language eq 'French') && ($c eq 'Wales')) {
+				$rc->fr("$1, Pays de Galles");
 			} elsif(($language eq 'Welsh') && ($c eq 'Wales')) {
 				my $town = $1;
 				$town =~ s/Swansea$/Abertawe/;
