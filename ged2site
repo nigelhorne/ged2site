@@ -3314,7 +3314,7 @@ sub print_person
 							my $alive_children = 0;
 							foreach my $child(@childrenofthisspouse) {
 								if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
-									push @childlist, 
+									push @childlist,
 										'<a href="?page=people&entry=' . $child->xref() . '">'.
 											$child->given_names() . '</a>'
 								} else {
@@ -5615,6 +5615,8 @@ sub print_person
 
 		my $c = '';
 		foreach my $child(@children) {
+			next if((!$opts{'l'}) && is_alive(person => $child));
+
 			my $line = person_line_html({ person => $child, year => $year });
 			next if($line eq '');
 			if(!$printed_children_header) {
