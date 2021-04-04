@@ -3486,6 +3486,13 @@ sub print_person
 							$previousplace = $placeofmarriage;
 						}
 					} elsif(!$dateofmarriage) {
+						# FIXME: possibly not married, so above it shouldn't have said "married x times"
+						$name .= ' (possibly not married to';
+						if($spouse->sex() eq 'M') {
+							$name .= ' him)';
+						} else {
+							$name .= ' her)';
+						}
 						next;
 					}
 
