@@ -3322,11 +3322,13 @@ sub print_person
 									# push @childlist, $child->given_names();
 								}
 							}
-							$bio .= conjunction(@childlist);
-							if($alive_children == 1) {
-								$bio .= ' along with 1 child who is still alive';
-							} elsif($alive_children > 1) {
-								$bio .= " along with $alive_children children who are still alive";
+							if(scalar(@childlist)) {
+								$bio .= conjunction(@childlist);
+								if($alive_children == 1) {
+									$bio .= ', along with 1 surviving child';
+								} elsif($alive_children > 1) {
+									$bio .= ", along with $alive_children surviving children";
+								}
 							}
 						}
 					}
