@@ -3311,16 +3311,23 @@ sub print_person
 							# FIXME: breaks static HTML page, because of the print $bio
 							#	later on
 							my @childlist;
+							my $alive_children;
 							foreach my $child(@childrenofthisspouse) {
 								if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
 									push @childlist, 
 										'<a href="?page=people&entry=' . $child->xref() . '">'.
 											$child->given_names() . '</a>'
 								} else {
-									push @childlist, $child->given_names;
+									$alive_children++;
+									# push @childlist, $child->given_names();
 								}
 							}
 							$bio .= conjunction(@childlist);
+							if($alive_children == 1) {
+								$bio .= ' along with 1 child who is still alive';
+							} elsif($alive_children > 1) {
+								$bio .= " along with $alive_children children who are still alive";
+							}
 						}
 					}
 				} else {
