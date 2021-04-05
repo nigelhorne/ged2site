@@ -8986,22 +8986,33 @@ sub print_graphviz
 	print $fout $person->xref(), ' [shape=box,fontsize="10",',
 		"color=\"$colour\",";
 
-	if($params{'format'} eq 'dynamic') {
-		print $fout 'href="?page=people&entry=', $person->xref(), '",';
-	} else {
-		print $fout 'href="', make_filename_from_person(person => $person), '",';
+	my $is_alive = is_alive(person => $person);
+
+	if(!$is_alive || $opts{'l'}) {
+		if($params{'format'} eq 'dynamic') {
+			print $fout 'href="?page=people&entry=', $person->xref(), '",';
+		} else {
+			print $fout 'href="', make_filename_from_person(person => $person), '",';
+		}
 	}
 
-	my $label = $person->as_string();
-	my $dob = dateofbirth($person);
-	my $dod = dateofdeath($person);
+	my $label;
+	my $dob;
+	my $dod;
+	if($is_alive && !$opts{'l'}) {
+		$label = 'private';
+	} else {
+		$label = $person->as_string();
+		$dob = dateofbirth($person);
+		$dod = dateofdeath($person);
+	}
 
 	my $thumbnail;
 
 	# If you get 'Warning: No loadimage plugin for "jpeg:cairo"', do this
 	# instead:
 	# if(0) {
-	if($profile_image && (defined($dod) || $opts{'l'})) {
+	if($profile_image && (!$is_alive || $opts{'l'})) {
 		if(!-r $profile_image) {
 			die $person->as_string(), ": can't read $profile_image";
 		}
@@ -9038,7 +9049,7 @@ sub print_graphviz
 		# print $fout ",image=\"$profile_image\",labelloc=b";
 
 		chmod 0444, $thumbnail;
-	} elsif(defined($dod) || $opts{'l'}) {
+	} elsif(!$is_alive || $opts{'l'}) {
 		if(defined($dob)) {
 			$label .= "\\nb. $dob";
 		}
