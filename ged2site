@@ -9000,7 +9000,7 @@ sub print_graphviz
 	my $dob;
 	my $dod;
 	if($is_alive && !$opts{'l'}) {
-		$label = 'private';
+		$label = 'living';
 	} else {
 		$label = $person->as_string();
 		$dob = dateofbirth($person);
