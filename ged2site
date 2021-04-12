@@ -4167,10 +4167,12 @@ sub print_person
 								foreach my $child(@children) {
 									my $cyob = dateofbirth($child);
 									next if(!defined($cyob));
-									next if(datecmp($cyob, $rdate) >= 0);	# Child was not born yet
 									if($cyob =~ /(\d{3,4})\s*$/) {
 										$cyob = $1;
 									}
+									# FIXME:  it would be best to check the full date not just the
+									#	year, once datecmp() works when only the month is known
+									next if(datecmp($cyob, $rdate) >= 0);	# Child was not born yet
 									next if(($yoe - $cyob) > 10);	# Over 10 years old
 									if(my $cyod = dateofdeath($child)) {
 										next if(datecmp($cyod, $rdate) <= 0);	# Child was dead by this event
@@ -5337,6 +5339,7 @@ sub print_person
 					}
 					if($previous) {
 						if($prev_type eq 'Departure') {
+							$bio .= '. ' if(!$end_of_sentence);
 							$bio .= journey({ person => $person, arrival => $event, departure => $previous });
 						} else {
 							# Two arrival records, put into one sentence for improved readability
