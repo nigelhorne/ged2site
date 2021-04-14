@@ -10363,8 +10363,10 @@ is::is
 is buried::is buried
 is married to::is married to
 married::married
-of %d children::of %d children
 of::of
+of %d children::of %d children
+on your father's side::on your father's side
+on your mother's side::on your mother's side
 she::she
 they::they
 times::times
@@ -10404,8 +10406,10 @@ is buried:F:est enterrée
 is married to:M:est marié à
 is married to:F:est mariée à
 married::a marié
-of %d children::de %d enfants
 of::de
+of %d children::de %d enfants
+on your father's side::sur la côté de votre père
+on your mother's side::sur la côté de votre mère
 she::elle
 they:M:ils
 they:F:elles
