@@ -8961,6 +8961,13 @@ sub get_value
 		}
 		die 'BUG: person argument is mandatory';
 	}
+	if(!ref($person)) {
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die "BUG: person argument isn't an object";
+	}
 	return $params{'person'}->get_value($params{'value'});
 }
 
