@@ -4434,7 +4434,7 @@ sub print_person
 											$residencestring .= ' who was living';
 										}
 									}
-									$residencestring .= place({ record => $l->{'residence'}, there => $p2 });
+									$residencestring .= place({ record => $l->{'residence'}, there => $p2, places_printed => \%places_printed });
 									$printed_person = 1;
 								}
 							}
@@ -4581,7 +4581,11 @@ sub print_person
 							}
 							if($with_mother || $with_father) {
 								if($bdiff->in_units('years') >= 30) {
-									$residencestring .= i18n(' when ') . (($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
+									$residencestring .= ' ';
+									if($first) {
+										$residencestring .= '(';
+									}
+									$residencestring .= i18n('when ') . (($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
 									if($first) {
 										if($language eq 'French') {
 											$residencestring .= ($printed_sibling ? ' et ' : ' avec ');
@@ -4601,14 +4605,19 @@ sub print_person
 										$residencestring .= i18n(' and');
 									}
 									$printed_sibling = 1;
-									$first = 0;
 
 									if($with_mother && $with_father) {
 										$residencestring .= ' parents';
 									} elsif($with_mother) {
-										$residencestring .= ' mother ' . $mother->given_names();
+										$residencestring .= ' mother, ' . $mother->given_names();
 									} elsif($with_father) {
-										$residencestring .= ' father ' . $father->given_names();
+										$residencestring .= ' father, ' . $father->given_names();
+									}
+									if($first) {
+										$residencestring .= ')';
+										$first = 0;
+									} else {
+										$residencestring .= ' ';
 									}
 								}
 							} elsif(($same_road_as_mother || $same_road_as_father) && !$printed_sibling) {
@@ -8823,6 +8832,8 @@ sub sibling_baptism_string
 			push @onsameday, $sibling;
 		}
 	}
+	return '' if(scalar(@onsameday) == 0);
+
 	my $allsamesex = 1;
 	if(scalar(@onsameday) > 1) {
 		foreach my $sibling(@onsameday) {
@@ -8846,32 +8857,31 @@ sub sibling_baptism_string
 	if($allsamesex) {
 		return ', the same day as ' . lcfirst($person->possessive()) . ' ' .
 			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ') .
-			conjunction(map { $_->given_names() } @onsameday);
+			conjunction(map {
+				if($opts{'l'} || !is_alive($_)) {
+					'<a><href="?page=people&entry=' . $_->xref() . '">' . $_->given_names() . '</a>'
+				} else {
+					$_->given_names()
+				}
+			} @onsameday);
 	}
-	my $count = 0;
-	my $rc = '';
+
+	my @baptisms;
 	foreach my $sibling(@onsameday) {
-		if($count == 0) {
-			$rc = ', the same day as ';
-		} elsif($count < (scalar(@onsameday) - 1)) {
-			$rc .= ', ';
-		} elsif($count == (scalar(@onsameday) - 1)) {
-			$rc .= ' and ';
-		}
-		$rc .= lcfirst($person->possessive()) . ' ';
+		my $baptism = lcfirst($person->possessive()) . ' ';
 		my $dateofsiblingbirth = dateofbirth($sibling);
 		if($dateofsiblingbirth && $birthdate && ($dateofsiblingbirth eq $birthdate)) {
 			if($language eq 'French') {
-				$rc .= ($sibling->sex() eq 'F') ? 'jumelle ' : 'jumeau ';
+				$baptism .= ($sibling->sex() eq 'F') ? 'jumelle ' : 'jumeau ';
 			} else {
-				$rc .= 'twin ';
+				$baptism .= 'twin ';
 			}
 		}
-		$rc .= ($sibling->sex() eq 'M' ? 'brother ' : 'sister ') .
+		$baptism .= ($sibling->sex() eq 'M' ? 'brother ' : 'sister ') .
 			$sibling->given_names();
-		$count++;
+		push @baptisms, $baptism;
 	}
-	return $rc;
+	return ', the same day as ' . conjunction(@baptisms);
 }
 
 sub complain
