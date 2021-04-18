@@ -5012,14 +5012,18 @@ sub print_person
 					$bio .= ' is buried there at ' . $burial->address();
 				}
 			} elsif(my $b = place($opts)) {
+				if($diedathome) {
+					$bio .= " $pronoun ";
+				} else {
+					$bio .= i18n(' and ');
+				}
+
 				utf8::decode($b);
 				$b = HTML::Entities::encode($b);
 				$b =~ s/&eacute;/&#233;/g;
-				if($diedathome) {
-					$bio .= "$pronoun is buried$b";
-				} else {
-					$bio .= " and is buried$b";
-				}
+
+				$bio .= i18n({ person => $person, format => 'is buried' }) .
+					$b;
 			}
 			if($notes && (length($notes) > 160)) {
 				$bio .= ".</p><p>";
@@ -10411,8 +10415,8 @@ eldest::l'aîne
 he::il
 husband::marie
 is::est
-is buried:M:est enterré
-is buried:F:est enterrée
+is buried:M:est inhumé
+is buried:F:est inhumée
 is married to:M:est marié à
 is married to:F:est mariée à
 married::a marié
