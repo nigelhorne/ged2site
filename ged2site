@@ -397,6 +397,8 @@ if($opts{'J'}) {
 my $geocoder;
 my $textgeocoder;
 my $freegeocoder;
+my $browser;
+my $cached_browser;
 
 if($opts{'m'} || $opts{'w'}) {
 	my $l = $ENV{'LANG'};
@@ -411,6 +413,9 @@ if($opts{'m'} || $opts{'w'}) {
 	} else {
 		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', basename($0));
 		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', basename($0));
+	}
+	if(!-d $cachedir) {
+		mkdir $cachedir, 0700 || die "$cachedir: $!";
 	}
 	$geocoder = Geo::Coder::List->new(cache => CHI->new(driver => 'File', root_dir => $cachedir));
 	$geocoder->push(Geo::Coder::Free::Local->new());
@@ -469,8 +474,27 @@ if($opts{'m'} || $opts{'w'}) {
 		$geocoder->push(Geo::Coder::Bing->new(key => $key));
 	}
 
+	if(my $e = $ENV{'CACHEDIR'}) {
+		$cachedir = File::Spec->catfile($e, 'lwp-cache');
+	} else {
+		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'lwp');
+		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp-cache')
+	}
+	if(!-d $cachedir) {
+		mkdir $cachedir, 0700 || die "$cachedir: $!";
+	}
+	$cached_browser = LWP::UserAgent::Cached->new(cache_dir => $cachedir,
+		agent => basename($0),
+		keep_alive => 1,
+		timeout => 60,
+	);
+	$cached_browser->env_proxy(1);
+	$cached_browser->conn_cache->total_capacity(undef);
+
 	my $ua = LWP::UserAgent::Throttled->new(agent => basename($0), keep_alive => 1, timeout => 60);
+	$ua->conn_cache->total_capacity(undef);
 	$ua->env_proxy(1);
+	$ua->ua($cached_browser);
 
 	# TODO: throttle other geocoders
 	$ua->throttle({
@@ -687,12 +711,10 @@ foreach my $dir(@dirlist) {
 	mkdir $dir if(!-d $dir);
 }
 
-my $browser;
-my $cached_browser;
-
 if($opts{'d'} || $opts{'m'}) {
 	$browser = LWP::UserAgent->new(agent => basename($0), keep_alive => 1, timeout => 60);
 	$browser->env_proxy(1);
+	$browser->conn_cache->total_capacity(undef);
 
 	my $cachedir = $ENV{'CACHEDIR'};
 	if($cachedir) {
@@ -732,23 +754,6 @@ my $dtl = DateTime::Locale->load($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG
 my $obituaries;
 
 if($opts{'w'}) {
-	my $cachedir;
-	if(my $e = $ENV{'CACHEDIR'}) {
-		$cachedir = File::Spec->catfile($e, 'lwp-cache');
-	} else {
-		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'lwp');
-		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp-cache')
-	}
-	if(!-d $cachedir) {
-		mkdir $cachedir, 0700 || die "$cachedir: $!";
-	}
-	$cached_browser = LWP::UserAgent::Cached->new(cache_dir => $cachedir,
-		agent => basename($0),
-		keep_alive => 1,
-		timeout => 60,
-	);
-	$cached_browser->env_proxy(1);
-
 	if(!defined($ENV{'CLICOLOR'})) {
 		$opts{'W'} = 1;
 	}
