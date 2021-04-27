@@ -282,7 +282,7 @@ foreach my $module(@modules) {
 
 my $me;
 my @myancestors;
-my @mydescendents;
+my @mydescendant;
 my %printed;
 my %places;
 my $surnames;
@@ -301,7 +301,7 @@ my $facts;
 # my $pi = atan2(1,1) * 4;
 
 binmode(STDOUT, ':utf8');
-umask(0077);	# Don't let PII become publically readable
+umask(0077);	# Don't let PII become publicly readable
 
 # Help OSM to match
 my %location_mappings = (
@@ -3231,7 +3231,7 @@ sub print_person
 					my $spouse = $spouses[0];
 					foreach my $child(@children) {
 						if($sex eq 'F') {
-							# Check through all possible fathers, since there could be a biologial and
+							# Check through all possible fathers, since there could be a biological and
 							# and adoptive one listed
 							# FIXME: this assumes that the spouse is the biological father, which is not
 							#	a good assumption to make
@@ -3809,7 +3809,7 @@ sub print_person
 					if(ref($e) eq 'Gedcom::Record') {
 						$event = $e;
 					} else {
-						red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
+						red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
 					}
 				}
 				if(ref($event) eq 'Gedcom::Record') {
@@ -3849,7 +3849,7 @@ sub print_person
 						if(ref($r) eq 'Gedcom::Record') {
 							$residence = $r;
 						} else {
-							red_warning({ person => $person, warning => "Residence record is just description ($residence), infomation has been lost" });
+							red_warning({ person => $person, warning => "Residence record is just description ($residence), information has been lost" });
 						}
 					}
 				}
@@ -4689,7 +4689,7 @@ sub print_person
 										if(ref($e) eq 'Gedcom::Record') {
 											$event = $e;
 										} else {
-											# red_warning({ person => $child, warning => "Event record is just description ($event), infomation has been lost" });
+											# red_warning({ person => $child, warning => "Event record is just description ($event), information has been lost" });
 											next EVENT;
 										}
 									}
@@ -5156,7 +5156,7 @@ sub print_person
 	if($all_events_have_date && (scalar(@events) > 0)) {
 		@events = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @events;
 	}
-	# Let's remove things that aren't relavent that may
+	# Let's remove things that aren't relevant that may
 	# allow optimisations in the English
 	while(scalar(@events) > 2) {
 		my $e = $events[scalar(@events) - 1];
@@ -5222,7 +5222,7 @@ sub print_person
 			if(ref($e) eq 'Gedcom::Record') {
 				$event = $e;
 			} else {
-				red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
+				red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
 				$bio .= ' ' . ucfirst($event) . '.';
 			}
 		}
@@ -5339,7 +5339,7 @@ sub print_person
 				if(ref($e) eq 'Gedcom::Record') {
 					$event = $e;
 				} else {
-					red_warning({ person => $person, warning => "Event record is just description ($event), infomation has been lost" });
+					red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
 					$bio .= ' ' . ucfirst($event) . '.';
 				}
 			}
@@ -7736,16 +7736,16 @@ sub Gedcom::Individual::relationship_down
 {
 	my $self = shift;
 	my $other = shift;
-	my @descendents;
+	my @descendant;
 
 	if($me && ($self eq $me)) {
-		unless(@mydescendents) {
-			@mydescendents = $me->descendents();
+		unless(@mydescendant) {
+			@mydescendant = $me->descendants();
 		}
-		return unless scalar(@mydescendents);
-		@descendents = @mydescendents;
+		return unless scalar(@mydescendant);
+		@descendant = @mydescendant;
 	} else {
-		@descendents = $self->descendents();
+		@descendant = $self->descendants();
 	}
 
 	my $sex = get_value({ person => $other, value => 'sex' });
@@ -7759,11 +7759,11 @@ sub Gedcom::Individual::relationship_down
 	# while((my @call_details = caller($i++))) {
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 	# }
-	foreach my $person1(@descendents) {
+	foreach my $person1(@descendant) {
 		# print "\t", $person1->as_string(), "\n";
 		die $person1->as_string() if($person1 eq $self);
 		if($person1 eq $other) {
-			# Direct desendent
+			# Direct descendant
 			my $steps = stepsabove($other, $self, 0);
 			my $title = ($sex eq 'M') ? 'son' : 'daughter';
 			if($steps >= 5) {
@@ -8284,7 +8284,6 @@ sub place {
 		}
 		if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
 			my $str = "$2,$3,$4";
-			# If !defined($address) is't already been validated
 			if($params{'person'} && $address) {
 				validate_place({ person => $params{'person'}, place => $place });
 			}
@@ -8437,7 +8436,7 @@ sub notes
 			if(ref($note) eq 'Gedcom::Record') {
 				$note = $note->full_value();	# Include CONC records
 			# } else {
-				# complain("Note record is just description ($note), infomation may have been lost");
+				# complain("Note record is just description ($note), information may have been lost");
 			}
 			$note =~ s/\r//g;
 			next if($note =~ /^\s*$/);
