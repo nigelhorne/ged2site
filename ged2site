@@ -3092,8 +3092,8 @@ sub print_person
 				if((($fyod - $yob) < 16) && (($myod - $yob) < 16)) {
 					if($end_of_sentence) {
 						$bio .= " $pronoun";
-					} elsif(scalar(@person_twins)) {
-						$bio .= ' and';
+					} elsif(scalar(@person_twins) || $dateofbaptism) {
+						$bio .= i18n(' and');
 					} else {
 						$bio .= ', and';
 					}
