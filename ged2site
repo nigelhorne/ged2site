@@ -10210,9 +10210,9 @@ sub get_year_from_date($)
 		complain("old-style string ($string) should be in $year");
 		return $year;
 	}
-	my $year = UnixDate(ParseDate($string), '%Y');	# Date::Manip
-
-	return $year if($year);
+	if(my $year = UnixDate(ParseDate($string), '%Y')) {	# Date::Manip
+		return $year;
+	}
 	complain("Can't parse string '$string'");
 }
 
