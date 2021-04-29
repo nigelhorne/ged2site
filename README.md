@@ -131,8 +131,10 @@ have this rough guide which works for me, but understand that you'll still
 need to be an advanced Windows user, this is not for the Novice.  If you
 still need help, e-mail me or put an issue on github.com/nigelhorne/ged2site.
 
-* Firstly install a Perl, either ActiveState or Strawberry will work fine. I
-have also had success using Cygwin's Perl.
+* Firstly, if you're running Windows 10, install
+[Ubuntu](https://ubuntu.com/tutorials/ubuntu-on-windows#1-overview)
+or install Perl directly, either ActiveState or Strawberry should work fine.
+I have also had success using Cygwin's Perl.
 
 * Load in all the CPAN modules that ged2site uses.
 
@@ -240,7 +242,7 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 # LICENSE AND COPYRIGHT
 
-Copyright 2015-2020 Nigel Horne.
+Copyright 2015-2021 Nigel Horne.
 
 This program is released under the following licence: GPL2 for personal use on
 a single computer.
