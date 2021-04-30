@@ -136,7 +136,10 @@ still need help, e-mail me or put an issue on github.com/nigelhorne/ged2site.
 or install Perl directly, either ActiveState or Strawberry should work fine.
 I have also had success using Cygwin's Perl.
 
+* Next follow the instructions at [local::lib](https://metacpan.org/pod/local::lib#The-bootstrapping-technique).
+
 * Load in all the CPAN modules that ged2site uses.
+If you're not sure, run ged2site with no arguments and the program will install its core modules to get started.
 
 * Install Family Tree Maker.  Sorry; there's no alternative so you'll just have
 to find a copy and buy it.
