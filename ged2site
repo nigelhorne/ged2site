@@ -10022,7 +10022,7 @@ sub parse_date
 	} elsif(scalar(@_) % 2 == 0) {
 		%params = @_;
 	} else {
-		$params{'person'} = shift;
+		$params{'date'} = shift;
 	}
 
 	if(my $date = $params{'date'}) {
