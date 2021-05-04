@@ -1,7 +1,7 @@
 package Ged2site::DB;
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2020, Nigel Horne
+# Copyright (C) 2015-2021, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -39,7 +39,7 @@ package Ged2site::DB;
 # reasons it's enabled by default
 # TODO: Switch that to off by default, and enable by passing 'entry'
 
-# TODO: support a directory hierachy of databases
+# TODO: support a directory hierarchy of databases
 # TODO: consider returning an object or array of objects, rather than hashes
 # TODO:	Add redis database - could be of use for Geo::Coder::Free
 #	use select() to select a database - use the table arg
@@ -366,13 +366,12 @@ sub selectall_hash {
 			$self->{'logger'}->debug("selectall_hash $query");
 		}
 	}
-	my $key;
+	my $key = $query;
+	if(defined($query_args[0])) {
+		$key .= ' ' . join(', ', @query_args);
+	}
 	my $c;
 	if($c = $self->{cache}) {
-		$key = $query;
-		if(defined($query_args[0])) {
-			$key .= ' ' . join(', ', @query_args);
-		}
 		if(my $rc = $c->get($key)) {
 			# This use of a temporary variable is to avoid
 			#	"Implicit scalar context for array in return"
@@ -452,19 +451,19 @@ sub fetchrow_hashref {
 		if(defined($query_args[0])) {
 			my @call_details = caller(0);
 			$self->{'logger'}->debug("fetchrow_hashref $query: ", join(', ', @query_args),
-				' called from ', $call_details[2], ' of ', $call_details[1]);
+				' called from ', $call_details[2] . ' of ' . $call_details[1]);
 		} else {
 			$self->{'logger'}->debug("fetchrow_hashref $query");
 		}
 	}
 	my $key;
+	if(defined($query_args[0])) {
+		$key = "fetchrow $query " . join(', ', @query_args);
+	} else {
+		$key = "fetchrow $query";
+	}
 	my $c;
 	if($c = $self->{cache}) {
-		if(defined($query_args[0])) {
-			$key = "fetchrow $query " . join(', ', @query_args);
-		} else {
-			$key = "fetchrow $query";
-		}
 		if(my $rc = $c->get($key)) {
 			return $rc;
 		}

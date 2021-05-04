@@ -188,7 +188,7 @@ sub http {
 	} elsif($language eq 'Polish') {
 		binmode(STDOUT, ':utf8');
 
-		# print "Content-type: text/html; charset=ISO-8859-2\n";
+		# print "Content-Type: text/html; charset=ISO-8859-2\n";
 		$rc = "Content-Type: text/html; charset=UTF-8\n";
 	} else {
 		# $rc = "Content-Type: text/html; charset=ISO-8859-1\n";
@@ -218,7 +218,7 @@ sub html {
 
 		my $info = $self->{_info};
 
-		# The values in config are defaults which can be overriden by
+		# The values in config are defaults which can be overridden by
 		# the values in info, then the values in params
 		my $vals;
 		if(defined($self->{_config})) {
