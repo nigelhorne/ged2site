@@ -76,7 +76,7 @@ sub new {
 
 	return bless {
 		logger => $args{'logger'} || $logger,
-		directory => $args{'directory'} || $directory,	# The directory conainting the tables in XML, SQLite or CSV format
+		directory => $args{'directory'} || $directory,	# The directory containing the tables in XML, SQLite or CSV format
 		cache => $args{'cache'} || $cache,
 		table => $args{'table'},	# The name of the file containing the table, defaults to the class name
 		no_entry => $args{'no_entry'} || 0,
@@ -366,12 +366,13 @@ sub selectall_hash {
 			$self->{'logger'}->debug("selectall_hash $query");
 		}
 	}
-	my $key = $query;
-	if(defined($query_args[0])) {
-		$key .= ' ' . join(', ', @query_args);
-	}
+	my $key;
 	my $c;
 	if($c = $self->{cache}) {
+		$key = $query;
+		if(defined($query_args[0])) {
+			$key .= ' ' . join(', ', @query_args);
+		}
 		if(my $rc = $c->get($key)) {
 			# This use of a temporary variable is to avoid
 			#	"Implicit scalar context for array in return"
@@ -451,7 +452,7 @@ sub fetchrow_hashref {
 		if(defined($query_args[0])) {
 			my @call_details = caller(0);
 			$self->{'logger'}->debug("fetchrow_hashref $query: ", join(', ', @query_args),
-				' called from ', $call_details[2] . ' of ' . $call_details[1]);
+				' called from ', $call_details[2], ' of ', $call_details[1]);
 		} else {
 			$self->{'logger'}->debug("fetchrow_hashref $query");
 		}
@@ -524,12 +525,12 @@ sub updated {
 	return $self->{'_updated'};
 }
 
-# Return the contents of an arbiratary column in the database which match the
+# Return the contents of an arbitrary column in the database which match the
 #	given criteria
 # Returns an array of the matches, or just the first entry when called in
 #	scalar context
 
-# Set distinct to 1 if you're after a uniq list
+# Set distinct to 1 if you're after a unique list
 sub AUTOLOAD {
 	our $AUTOLOAD;
 	my $column = $AUTOLOAD;
@@ -538,7 +539,7 @@ sub AUTOLOAD {
 
 	return if($column eq 'DESTROY');
 
-	my $self = shift or return undef;
+	my $self = shift or return;
 
 	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
