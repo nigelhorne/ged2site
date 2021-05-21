@@ -3739,16 +3739,23 @@ sub print_person
 			if($end_of_sentence) {
 				$bio .= " $pronoun";
 			} elsif(scalar(@residences) == 0) {
-				$bio .= ' and';
+				$bio .= i18n(' and');
 			}
-			$bio .= ' had ' .
-				(($numberofchildren == 1) ? '1 child, ' : "$numberofchildren children, ");
-			if($numberofchildren == 1) {
-				$bio .= $children[0]->given_names();
+			$bio .= i18n(' had ');
+			if($language eq 'French') {
+				$bio .= (($numberofchildren == 1) ? '1 enfant' : "$numberofchildren enfants");
 			} else {
-				my $childnames = join(', ', map { $_->given_names() } @children);
-				substr($childnames, rindex($childnames, ', '), 2, ' and ');
-				$bio .= $childnames;
+				$bio .= (($numberofchildren == 1) ? '1 child' : "$numberofchildren children");
+			}
+			if($numberofchildren == 1) {
+				if(my $first_name = $children[0]->given_names()) {
+					$bio .= ", $first_name";
+				}
+			} else {
+				# my $childnames = join(', ', map { $_->given_names() } @children);
+				# substr($childnames, rindex($childnames, ', '), 2, ' and ');
+				# $bio .= ", $childnames";
+				$bio .= ', ' . conjunction(map { $_->given_names() } @children);
 			}
 			$end_of_sentence = 0;
 		}
@@ -10375,6 +10382,7 @@ check out %s::check out %s
 died::died
 during %s life::during %s life
 eldest::eldest
+had::had
 he::he
 husband::husband
 is::is
@@ -10416,6 +10424,7 @@ died:M:est mort
 died:F:est morte
 during %s life::pendant sa vie
 eldest::l'aîne
+had::a eu
 he::il
 husband::marie
 is::est
