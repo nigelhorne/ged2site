@@ -144,6 +144,7 @@ foreach my $module(@needfull) {
 	if($module =~ /.+\/(.+)/) {
 		$module = $1;
 	}
+	$module =~ s/\-/::/g;
 	$module =~ s/\.tar\.gz$//;
 	eval "require $module";
 	if($@) {
