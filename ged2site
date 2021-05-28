@@ -280,9 +280,6 @@ foreach my $module(@modules) {
 		}
 	} else {
 		$module->import();
-		if($version) {
-			$module->VERSION($version);
-		}
 	}
 }
 if(scalar(@needfull)) {
@@ -300,9 +297,9 @@ foreach my $module(@modules) {
 		die $@;
 	}
 	$module->import();
-	if($version) {
-		$module->VERSION($version);
-	}
+	# if($version) {
+		# $module->VERSION($version);
+	# }
 	# if($version && ($module::VERSION < $version)) {
 		# die "$module: need $version got ", $module::VERSION;
 	# }
