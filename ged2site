@@ -220,7 +220,8 @@ if($gedcal || !$opts{'w'}) {
 	push @modules, 'String::ProgressBar';
 }
 if($opts{'F'}) {
-	push @modules, ' Image::Magick::Thumbnail';
+	# Debian lacks ImageMagick-7
+	push @modules, 'Image::Magick 6.9.12-1', 'Image::Magick::Thumbnail';
 }
 if($language) {
 	push @modules, 'Locale::Country::Multilingual';
@@ -254,11 +255,34 @@ if(($libdir2 ne $libdir1) && (-d $libdir2)) {
 }
 
 foreach my $module(@modules) {
-	eval "require $module";
+	my $version;
+	my $module_name;
+	if($module =~ /(.+)\s(.+)$/) {
+		$module_name = $1;
+		$version = $2;
+		eval "require $1";
+	} else {
+		eval "require $module";
+	}
 	if($@) {
-		push @needfull, $module;
+		if($version) {
+			my $s = `cpan -D $module_name | grep /`;
+
+			chomp($s);
+			$s =~ s/^\s+//;
+			$s =~ s/(.+)\/.+/$1/;
+			$module_name =~ s/::/-/g;
+
+			# FIXME - could end in .tgz or even .zip
+			push @needfull, "$s/$module_name-$version.tar.gz";
+		} else {
+			push @needfull, $module;
+		}
 	} else {
 		$module->import();
+		if($version) {
+			$module->VERSION($version);
+		}
 	}
 }
 if(scalar(@needfull)) {
@@ -276,10 +300,15 @@ foreach my $module(@modules) {
 		die $@;
 	}
 	$module->import();
+	if($version) {
+		$module->VERSION($version);
+	}
 	# if($version && ($module::VERSION < $version)) {
 		# die "$module: need $version got ", $module::VERSION;
 	# }
 }
+
+umask(0077);	# Don't let PII become publicly readable
 
 my $me;
 my @myancestors;
