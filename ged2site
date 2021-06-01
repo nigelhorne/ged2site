@@ -3748,8 +3748,8 @@ sub print_person
 							while(my ($key, $value) = each %childmap) {
 								push @childnames,
 									conjunction(map { $_->given_names() } @{$value}) .
-									i18n(' with') .
-									" $key";
+									i18n(' with ') .
+									$key;
 							}
 							$bio .= ': ' . conjunction(@childnames);
 						}
