@@ -221,7 +221,15 @@ if($gedcal || !$opts{'w'}) {
 }
 if($opts{'F'}) {
 	# Debian lacks ImageMagick-7
-	push @modules, 'Image::Magick 6.9.12-1', 'Image::Magick::Thumbnail';
+	# yum install gd-devel ImageMagick-devel
+	my $magick;
+	if($^O eq 'linux') {
+		# Debian lacks ImageMagick-7
+		$magick = 'Image::Magick 6.9.12-1';
+	} else {
+		$magick = 'Image::Magick';
+	}
+	push @modules, $magick, 'Image::Magick::Thumbnail';
 }
 if($language) {
 	push @modules, 'Locale::Country::Multilingual';
