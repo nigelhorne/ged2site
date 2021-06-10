@@ -2793,7 +2793,7 @@ sub print_person
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
 				$bio = ',' if($relationship);
-				$bio .= ' ' . i18n({ person => $person, gender => 1, format => 'was born' });
+				$bio .= i18n({ person => $person, gender => 1, format => ' was born' });
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
 					$bio .= $p;
