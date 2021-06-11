@@ -4818,7 +4818,7 @@ sub print_person
 				while(!defined($residencestringarray[scalar(@residencestringarray) - 1])) {
 					pop @residencestringarray;
 				}
-				# $bio .= ', ' . lcfirst($pronoun) . ' ' . i18n('was living') . ' ' .
+				# $bio .= ', ' . lcfirst($pronoun) . i18n(' was living ') .
 					# Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; ', conj => i18n('and')});
 				$bio .= ', ' . lcfirst($pronoun) . i18n(' was living ') . conjunction(@residencestringarray);
 
