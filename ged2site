@@ -7387,6 +7387,8 @@ sub Gedcom::Individual::relationship {
 		if(($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
 			if($language eq 'French') {
 				return ($sex eq 'M') ? "fr\N{U+00E8}re" : 'sœur';
+			} elsif($language eq 'Farsi') {
+				return ($sex eq 'M') ? 'barādar' : 'sister';	# TODO: sister
 			} elsif($language eq 'Latin') {
 				return ($sex eq 'M') ? 'frāter' : 'soror';
 			}
@@ -7816,6 +7818,8 @@ sub Gedcom::Individual::relationship_down
 					if($sex eq 'M') {
 						return 'fils';
 					}
+				} elsif($language eq 'Farsi') {
+					return ($sex eq 'M') ? 'son' : 'dokhtar';
 				} elsif($language eq 'Latin') {
 					return ($sex eq 'M') ? 'fīlius' : 'fīlia';
 				}
@@ -10270,6 +10274,9 @@ sub get_language
 			if($language eq 'fr') {
 				return 'French';
 			}
+			if($language eq 'fa') {
+				return 'Farsi';
+			}
 			if($language eq 'la') {
 				return 'Latin';
 			}
@@ -10284,6 +10291,9 @@ sub get_language
 		}
 		if($val =~ /^fr/) {
 			return 'French';
+		}
+		if($val =~ /^fa/) {
+			return 'Farsi';
 		}
 		if($val =~ /^la/) {
 			return 'Latin';
