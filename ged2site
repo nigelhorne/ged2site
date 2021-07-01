@@ -2606,17 +2606,18 @@ sub print_person
 								$occupation = Lingua::EN::ABC::a2b($occupation);
 							}
 						}
-						if($language eq 'English') {
-							$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
-						} else {
+						if($language eq 'French') {
 							$all->print(" (un $occupation)");
+						} else {
+							$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
 						}
 					}
 				}
 				$fullbio .= ' ' . $father->as_string();
 				if($mother) {
-					$all->print(' and');
-					$fullbio .= ' and';
+					my $and = i18n(' and');
+					$all->print($and);
+					$fullbio .= $and;
 				}
 			}
 			if($mother) {
@@ -7394,7 +7395,8 @@ sub Gedcom::Individual::relationship {
 			if($language eq 'French') {
 				return ($sex eq 'M') ? "fr\N{U+00E8}re" : 'sœur';
 			} elsif($language eq 'Farsi') {
-				return ($sex eq 'M') ? 'barādar' : 'khāhar';
+				# return ($sex eq 'M') ? 'barādar' : 'khāhar';
+				return ($sex eq 'M') ? "\N{U+0631}\N{U+062F}\N{U+0637}\N{U+0631}\N{U+0638}" : "khāhar\N{U+0631}\N{U+0647}\N{U+0627}\N{U+0648}\N{U+062E}";
 			} elsif($language eq 'Latin') {
 				return ($sex eq 'M') ? 'frāter' : 'soror';
 			}
@@ -7813,7 +7815,7 @@ sub Gedcom::Individual::relationship_down
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 	# }
 	foreach my $person1(@descendant) {
-		# print "\t", $person1->as_string(), "\n";
+		# print __LINE__, "\t", $person1->as_string(), "\n";
 		die $person1->as_string() if($person1 eq $self);
 		if($person1 eq $other) {
 			# Direct descendant
@@ -7828,7 +7830,8 @@ sub Gedcom::Individual::relationship_down
 						return 'fils';
 					}
 				} elsif($language eq 'Farsi') {
-					return ($sex eq 'M') ? 'son' : 'dokhtar';
+					# return ($sex eq 'M') ? 'pesar' : 'dokhtar';
+					return ($sex eq 'M') ? "\N{U+0631}\N{U+0633}\N{U+067E}" : "\N{U+0631}\N{U+062A}\N{U+062E}\N{U+062F}";
 				} elsif($language eq 'Latin') {
 					return ($sex eq 'M') ? 'fīlius' : 'fīlia';
 				}
