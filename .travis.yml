@@ -1,3 +1,4 @@
+---
 language: perl
 
 os:
@@ -5,7 +6,7 @@ os:
   # - osx
 
 # services:
-  # - docker
+#    - docker
 
 perl:
   # - "5.30-extras"
