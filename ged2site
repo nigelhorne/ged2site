@@ -100,14 +100,20 @@ BEGIN {
 	if($@) {
 		push @needfull, 'Net::OAuth', 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
 	}
-	# Apparently it's "unauthorized", but there's no other module with the same name
 
 	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
 		eval 'use Lingua::FR::Numbers::Ordinate';
 		if($@) {
+			# Apparently it's "unauthorized", but there's no other module with the same name
 			push @needfull, 'N/NH/NHORNE/Lingua-FR-Numbers-Ordinate-0.03.tar.gz';
 		}
 	} else {
+		if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fa/)) {
+			eval 'use Lingua::FA::Number';
+			if($@) {
+				push @needfull, 'Lingua::FA::Number';
+			}
+		}
 		eval 'use Lingua::EN::Numbers::Ordinate';
 		if($@) {
 			push @needfull, 'Lingua::EN::Numbers::Ordinate';
@@ -8012,21 +8018,32 @@ sub year
 			} elsif($ENV{'LANG'}) {
 				$d->set_locale($ENV{'LANG'});
 			}
+			# if($language eq 'French') {
+				# # FIXME: French Canadian time etc.
+				# my $rc = DateTime->from_object(object => $d, locale => 'FR-fr')->strftime('%x');
+				# if($rc =~ /^[AEIOU]/) {
+					# return "l'$rc";
+				# }
+				# return "le $rc";
+			# } else {
+				# if(my $locale = ($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'})) {
+					# $locale =~ s/_/-/;
+					# return 'on '.
+						# DateTime->from_object(object => $d, locale => $locale)->strftime('%x');
+				# }
+				# return 'on ' . $d->strftime('%x');
+			# }
+			my $year = $d->strftime('%x');
 			if($language eq 'French') {
-				# FIXME: French Canadian time etc.
-				my $rc = DateTime->from_object(object => $d, locale => 'FR-fr')->strftime('%x');
-				if($rc =~ /^[AEIOU]/) {
-					return "l'$rc";
+				if($year =~ /^[AEIOU]/) {
+					return "l'$year";
 				}
-				return "le $rc";
-			} else {
-				if(my $locale = ($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'})) {
-					$locale =~ s/_/-/;
-					return 'on '.
-						DateTime->from_object(object => $d, locale => $locale)->strftime('%x');
-				}
-				return 'on ' . $d->strftime('%x');
+				return "le $year";
 			}
+			if($language eq 'Farsi') {
+				$year = HTML::Entities::decode(Lingua::FA::Number::convert($year));
+			}
+			return "on $year";
 		}
 		if($@) {
 			# RT 107354
