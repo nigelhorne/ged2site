@@ -2600,17 +2600,18 @@ sub print_person
 								$occupation = Lingua::EN::ABC::a2b($occupation);
 							}
 						}
-						if($language eq 'English') {
-							$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
-						} else {
+						if($language eq 'French') {
 							$all->print(" (un $occupation)");
+						} else {
+							$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
 						}
 					}
 				}
 				$fullbio .= ' ' . $father->as_string();
 				if($mother) {
-					$all->print(' and');
-					$fullbio .= ' and';
+					my $and = i18n(' and');
+					$all->print($and);
+					$fullbio .= $and;
 				}
 			}
 			if($mother) {
