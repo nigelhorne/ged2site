@@ -8036,15 +8036,18 @@ sub year
 				# }
 				# return 'on ' . $d->strftime('%x');
 			# }
-			my $year = $d->strftime('%x');
 			if($language eq 'French') {
+				my $year = $d->strftime('%x');
 				if($year =~ /^[AEIOU]/) {
 					return "l'$year";
 				}
 				return "le $year";
 			}
+			my $year;
 			if($language eq 'Farsi') {
-				$year = HTML::Entities::decode(Lingua::FA::Number::convert($year));
+				$year = HTML::Entities::decode(Lingua::FA::Number::convert($d->strftime('%Y %b %e')));
+			} else {
+				$year = $d->strftime('%x');
 			}
 			return "on $year";
 		}
