@@ -3351,7 +3351,7 @@ sub print_person
 							}
 							$bio .= ' ';
 						}
-						if((!($placeofmarriage)) && !$dateofmarriage) {
+						if((!$placeofmarriage) && !$dateofmarriage) {
 							$bio .= i18n({ format => 'with %s', args => $spouse->as_string({ middle_names => 1, title => 1 }) });
 							my @spouse_occupations = get_all_occupations($spouses[0]);
 							if(my $soccupation = $spouse_occupations[0]) {
@@ -3766,7 +3766,12 @@ sub print_person
 									i18n(' with ') .
 									$key;
 							}
+							Lingua::Conjunction->separator_phrase(';');
+							Lingua::Conjunction->penultimate(1);
 							$bio .= ': ' . conjunction(@childnames);
+							# TODO: restore old values
+							Lingua::Conjunction->separator_phrase(',');
+							Lingua::Conjunction->penultimate(0);
 						}
 					}
 				}
