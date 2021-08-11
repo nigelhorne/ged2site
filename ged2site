@@ -4578,21 +4578,25 @@ sub print_person
 									$road = $1;
 								}
 							}
+							my $mother_date;
 							if($mother) {
 								my @mr = get_all_residences(person => $mother);
 								foreach my $mr(@mr) {
 									my $mdate = $mr->date();
 									next if(!defined($mdate));
-									next if($mdate ne $rdate);
 
 									my $p = place({ person => $mother, record => $mr });
 									next unless($p);
 									if($p eq $place) {
-										$with_mother++;
-										last;
+										if($mdate eq $rdate) {
+											$with_mother++;
+											last;
+										} else {
+											$mother_date = $mdate;
+										}
 									}
 
-									if($road && ($mr->place() eq $residence->place())) {
+									if(($rdate eq $mdate) && $road && ($mr->place() eq $residence->place())) {
 										if(my $mroad = $mr->address()) {
 											if($mroad =~ /,\s*(.+)/) {
 												$mroad = $1;
@@ -4601,7 +4605,7 @@ sub print_person
 												$mroad = $1;
 											}
 											if($mroad eq $road) {
-												$same_road_as_mother = 1;
+												$same_road_as_mother = $rdate;
 											}
 										}
 									}
@@ -4609,21 +4613,25 @@ sub print_person
 							}
 							my $with_father;
 							my $same_road_as_father = 0;
+							my $father_date;
 							if($father) {
 								my @fr = get_all_residences(person => $father);
 								foreach my $fr(@fr) {
 									my $fdate = $fr->date();
 									next if(!defined($fdate));
-									next if($fdate ne $rdate);
 
 									my $p = place({ person => $father, record => $fr });
 									next unless($p);
 									if($p eq $place) {
-										$with_father++;
-										last;
+										if($fdate eq $rdate) {
+											$with_father++;
+											last;
+										} else {
+											$father_date = $fdate;
+										}
 									}
 
-									if($road && ($fr->place() eq $residence->place())) {
+									if(($rdate eq $fdate) && $road && ($fr->place() eq $residence->place())) {
 										if(my $froad = $fr->address()) {
 											if($froad =~ /,\s*(.+)/) {
 												$froad = $1;
@@ -4632,7 +4640,7 @@ sub print_person
 												$froad = $1;
 											}
 											if($froad eq $road) {
-												$same_road_as_father = 1;
+												$same_road_as_father = $rdate;
 											}
 										}
 									}
@@ -4711,6 +4719,28 @@ sub print_person
 								}
 							} elsif(($mother || $father) && ($bdiff->in_units('years') < 16)) {
 								complain({ person => $person, warning => [ 'Not living with either parent in childhood when aged ', $bdiff->in_units('years') ] });
+							} elsif($father_date) {
+								$residencestring .= ' (the same place as ' . 
+									($person->pronoun() eq 'She' ? 'her' : 'his') .  ' father ';
+								if(datecmp($rdate, $mother_date) > 0) {
+									$residencestring .= 'had been';
+								} else {
+									$residencestring .= 'was';
+								}
+								$residencestring .= ' living ' .
+									year({ person => $person, string => $father_date }) .
+									')';
+							} elsif($mother_date) {
+								$residencestring .= ' (the same place as ' . 
+									($person->pronoun() eq 'She' ? 'her' : 'his') .  ' mother ';
+								if(datecmp($rdate, $mother_date) > 0) {
+									$residencestring .= 'had been';
+								} else {
+									$residencestring .= 'was';
+								}
+								$residencestring .= ' living ' .
+									year({ person => $person, string => $mother_date }) .
+									')';
 							}
 						}
 						if($spouse && $marriage_dt && (my $rdate_dt = date_to_datetime($rdate))) {
