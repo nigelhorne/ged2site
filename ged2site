@@ -3466,6 +3466,10 @@ sub print_person
 					if($marriagecitation) {
 						$bio .= cite(($marriagecitation));
 					}
+					if(my $notes = notes(record => $marriage)) {
+						$notes =~ s/\.$//;
+						$bio .= " ($notes)";
+					}
 				}
 			} elsif($opts{'l'} || !$is_alive) {
 				if($is_alive) {
