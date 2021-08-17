@@ -3466,7 +3466,7 @@ sub print_person
 					if($marriagecitation) {
 						$bio .= cite(($marriagecitation));
 					}
-					if(my $notes = notes(record => $marriage)) {
+					if(defined($marriage) && (my $notes = notes(record => $marriage))) {
 						$notes =~ s/\.$//;
 						$bio .= " ($notes)";
 					}
@@ -4726,7 +4726,7 @@ sub print_person
 							} elsif($father_date) {
 								$residencestring .= ' (the same place as ' . 
 									($person->pronoun() eq 'She' ? 'her' : 'his') .  ' father ';
-								if(datecmp($rdate, $mother_date) > 0) {
+								if(datecmp($rdate, $father_date) > 0) {
 									$residencestring .= 'had been';
 								} else {
 									$residencestring .= 'was';
@@ -8532,6 +8532,8 @@ sub notes
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $record = $params{'record'};
+	die 'Usage: notes(record => $record)' unless($record);
+
 	my $person = $params{'person'};
 	my $paragraph = $params{'paragraph'};
 	my @notes = $record->get_record('note');
@@ -9504,7 +9506,7 @@ sub get_all_residences
 
 	my $person = $params{'person'};
 
-	die "Usage: get_all_residences(\$person')" unless($person);
+	die 'Usage: get_all_residences($person)' unless($person);
 
 	my @residences = $person->residence();
 	my @rc;
@@ -9618,7 +9620,7 @@ sub get_all_occupations
 
 	my $person = $params{'person'};
 
-	die "Usage: get_all_occupations(\$person')" unless($person);
+	die 'Usage: get_all_occupations($person)' unless($person);
 
 	my @occupations = get_value({ person => $person, value => 'occupation' });
 
