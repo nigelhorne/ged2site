@@ -3366,7 +3366,11 @@ sub print_person
 							$haveprintedspousename = 1;
 						}
 						if($numberofchildrenwiththisspouse == 1) {
-							$bio .= $children[0]->given_names();
+							if(my $first_name = $children[0]->given_names()) {
+								$bio .= $first_name;
+							} else {
+								$bio .= 'whose first name is unknown';
+							}
 						} elsif($numberofchildrenwiththisspouse > 1) {
 							my $childnames = join(', ', map {
 								'<a href="' . make_filename_from_person(person => $_) . '">'.
