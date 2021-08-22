@@ -3345,11 +3345,11 @@ sub print_person
 								$bio .= "$numberofchildrenwiththisspouse surviving children";
 							} else {
 								$bio .= "$numberofchildrenwiththisspouse children";
+								if($placeofmarriage || $dateofmarriage) {
+									$bio .= ':';
+								}
+								$bio .= ' ';
 							}
-							if($placeofmarriage || $dateofmarriage) {
-								$bio .= ':';
-							}
-							$bio .= ' ';
 						}
 						if((!$placeofmarriage) && !$dateofmarriage) {
 							$bio .= i18n({ format => 'with %s', args => $spouse->as_string({ middle_names => 1, title => 1 }) });
