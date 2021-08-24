@@ -5231,16 +5231,15 @@ sub print_person
 			last;
 		}
 		my $date = $event->date();
-		if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
-		   ($date =~ /[\/\-]/) || !date_parser_cached(date => $date)) {
-			$all_events_have_date = 0;
-			last;
-		}
 		if(!date_parser_cached(date => $date)) {
 			complain({
 				person => $person,
 				warning => "Event has an invalid date of $date"
 			});
+			$all_events_have_date = 0;
+			last;
+		}
+		if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) || ($date =~ /[\/\-]/)) {
 			$all_events_have_date = 0;
 			last;
 		}
