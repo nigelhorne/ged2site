@@ -492,8 +492,11 @@ if($opts{'m'} || $opts{'w'}) {
 			->push(Geo::Coder::Ovi->new())
 			# ->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })	# Off-line
 			->push({ limit => 100, geocoder => Geo::Coder::GooglePlaces->new(%gp_args) })
-			->push({ limit => 200, geocoder => Geo::Coder::XYZ->new()})
-			->push(Geo::Coder::Google->new());
+			->push({ limit => 200, geocoder => Geo::Coder::XYZ->new()});
+			if(my $client = $ENV{'GMAP_CLIENT'}) {
+				$gp_args{'client'} = $client;
+				$geocoder->push(Geo::Coder::Google->new(%gp_args));
+			}
 	} else {
 		# DST isn't that good for the UK
 		# $geocoder->push({ regex => qr/(UK|United Kingdom|England|USA|US|United States|Wales)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })
