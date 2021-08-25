@@ -65,7 +65,6 @@ BEGIN {
 		# 'Geo::Coder::Free::OpenAddresses',
 		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
-		'Geo::Coder::Google',
 		'Lingua::EN::ABC', 'Lingua::String',
 		'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info', 'JSON',
@@ -248,6 +247,9 @@ if($ENV{'GEO_CODER_OPENCAGE_API_KEY'}) {
 }
 if($ENV{'GMAP_KEY'}) {
 	push @modules, 'Geo::Coder::GooglePlaces';
+	if($ENV{'GMAP_CLIENT'}) {
+		push @modules, 'Geo::Coder::Google';
+	}
 }
 if($ENV{BMAP_KEY}) {
 	push @modules, 'Geo::Coder::Bing';
