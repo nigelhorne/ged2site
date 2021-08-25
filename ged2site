@@ -423,7 +423,7 @@ if($opts{'G'}) {
 } elsif($ENV{'GMAP_KEY'}) {	# Compatibility with various CPAN modules
 	$geolocation_key = $ENV{'GMAP_KEY'};
 } elsif($config && $config->{'google_maps_geolocation_key'}) {
-	$geolocation_key = $config->{'google_maps_gelocation_key'};
+	$geolocation_key = $config->{'google_maps_geolocation_key'};
 }
 $gp_args{'key'} = $geolocation_key;
 $gp_args{'api_key'} = $geolocation_key;
