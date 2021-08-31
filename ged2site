@@ -5446,12 +5446,17 @@ sub print_person
 					if(!$mentioned_military) {
 						$bio .= '.' if(!$end_of_sentence);
 
-						my $date = year(record => $event);
-						if(defined($date) && ($date =~ /^on /)) {
-							if($date =~ /(.+)\-(.+)/) {
-								$bio .= " Between $1 and $2 ";
+						if(defined(my $date = year(record => $event))) {
+							if($date =~ /^on /) {
+								if($date =~ /(.+)\-(.+)/) {
+									$bio .= " Between $1 and $2 ";
+								} else {
+									$bio .= ' ' . ucfirst($date) . ' ';
+								}
+							} elsif($date =~ /^in (\d{4})/) {
+								$bio .= " During $1, ";
 							} else {
-								$bio .= ' ' . ucfirst($date) . ' ';
+								$bio .= " $date";
 							}
 							$bio .= lcfirst($pronoun) . ' was serving in the military';
 						} else {
@@ -5460,10 +5465,6 @@ sub print_person
 
 						if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
 							$bio .= $place;
-						}
-
-						if(defined($date) && ($date !~ /^on /)) {
-							$bio .= " $date";
 						}
 
 						$mentioned_military = 1;
