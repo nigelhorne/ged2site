@@ -4980,16 +4980,18 @@ sub print_person
 						});
 					}
 				}
+				my $record;
 				if($type eq 'burial') {
 					$bio .= ' ' . year({ person => $person, date => $dateofburial });
-					$b = notes({ record => $burial, paragraph => 0 });
+					$record = $burial;
 				} else {
 					$bio .= ' ' . year({ person => $person, date => $dateofcremation });
-					$b = notes({ record => $cremation, paragraph => 0 });
+					$record = $cremation;
 				}
-				if($b) {
-					$b =~ tr/\r//;
-					$bio .= " ($b)";
+				if(my $n = notes({ record => $record, paragraph => 0 })) {
+					$n =~ s/\.$//;
+					$n =~ tr/\r//;
+					$bio .= " ($n)";
 				}
 			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
 				$bio .= " $pronoun ";
@@ -9605,7 +9607,7 @@ sub get_all_residences
 				next unless($date);
 
 				if(my $place = place({ person => $person, record => $residence, nopreposition => 1 })) {
-					my $year = get_year_from_date($date);
+					$year = get_year_from_date($date);
 					$place =~ s/^\s+//;
 					if($prev_year && $prev_place) {
 						if(($year >= 1900) && ($year >= $prev_year)) {
