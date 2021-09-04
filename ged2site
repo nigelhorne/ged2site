@@ -4381,138 +4381,6 @@ sub print_person
 					if($birth_dt) {
 						$bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
 					}
-					if(defined($latitude) && defined($bdiff) &&
-					  (my $dt = date_to_datetime($rdate))) {
-						# Print close relatives living close by
-						# This really only works when printing a lot of people, for example with the -a
-						#	flag, or when producing a PDF book, since it relies on having found data
-						#	on people beforehand
-						my $year = $dt->year();
-						my $printed_person = 0;
-						my $gis = GIS::Distance->new('MathTrig');
-						my $p2 = place({ record => $residence, nopreposition => 1 });
-						my $count = 0;
-						my $p3;	# previous place
-						my @people_at_p3;
-
-						my @sorted_locations = sort { $a->{'latitude'} <=> $b->{'latitude'} } @{$all_locations{$year}};
-
-						# $Data::Dumper::Maxdepth = 2;
-						foreach my $l(@sorted_locations) {
-							$count++;
-							# print Data::Dumper->new([$l])->Dump();
-							if(($l->{'person'}->xref() ne $person->xref()) &&
-							   (($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) ||
-							   (my $relationship = $person->relationship($l->{'person'})) &&
-							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
-							     (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
-								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
-								my $peek = $sorted_locations[$count];
-								next if($peek && ($peek->{'person'}->xref() eq $l->{'person'}->xref()));
-								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1});
-								if($p1 eq $p2) {
-									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
-										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'}->xref() ne $l->{'person'}->xref())) {
-											push @people_at_p3, $l;
-										}
-										next;
-									}
-									$p3 = $p1;
-								} elsif(($l->{'latitude'} == $latitude) && ($l->{'longitude'} == $longitude)) {
-									complain({
-										person => $person,
-										warning => [ $l->{'person'}->as_string(nee => 1), " residence is same location probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
-									});
-								} elsif($distance->yards() < 20) {
-									complain({
-										person => $person,
-										warning => [ $l->{'person'}->as_string(nee => 1), " residence is very close probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
-									});
-								} elsif($distance->miles() < 1) {
-									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
-										if((!defined($people_at_p3[0])) || ($people_at_p3[0]->{'person'}->xref() ne $l->{'person'}->xref())) {
-											push @people_at_p3, $l;
-										}
-										next;
-									}
-									$p3 = $p1;
-									if($printed_person) {
-										$residencestring .= ', ';
-									} else {
-										$residencestring .= ' - less than a mile from ';
-									}
-									my $first_string;
-									my $future_spouse;
-									if($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) {
-										if(defined($dateofmarriage) && ($dateofmarriage =~ /(\d{3,4})$/)) {
-											if($year < $1) {
-												$future_spouse = 1;
-											}
-										} elsif($bdiff->in_units('years') < 16) {
-											$future_spouse = 1;
-										}
-									}
-									if($future_spouse) {
-										# FIXME: Only when before they married, though when
-										#	they are married it should be the same place, right?
-										if($language eq 'French') {
-											$first_string = (($sex eq 'M') ? 'sa futur femme ' : 'son futur mari ');
-										} else {
-											$first_string = (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
-										}
-									} else {
-										next unless($relationship);
-										if($bdiff->in_units('years') < 21) {
-											if(my $mother = $person->mother()) {
-												if($l->{'person'}->xref() eq $mother->xref()) {
-													next;
-												}
-											}
-											if(my $father = $person->father()) {
-												if($l->{'person'}->xref() eq $father->xref()) {
-													next;
-												}
-											}
-										}
-										$first_string = ($sex eq 'M' ? 'his' : 'her') .
-											" $relationship ";
-									}
-									if($l->{'person'}->surname() eq $surname) {
-										$first_string .= $l->{'person'}->given_names();
-									} else {
-										$first_string .= $l->{'person'}->as_string();
-									}
-									my @people_living_together = ($first_string);
-									if(scalar(@people_at_p3)) {
-										while(my $p = pop(@people_at_p3)) {
-											if(my $r = $person->relationship($p->{'person'})) {
-												push @people_living_together, "$r " .
-													$p->{'person'}->as_string();
-											}
-										}
-									}
-									$residencestring .= conjunction(@people_living_together);
-
-									if(scalar(@people_living_together) > 1) {
-										if($language eq 'French') {
-											$residencestring .= ' qui habitaient';
-										} else {
-											$residencestring .= ' who were living';
-										}
-									} else {
-										if($language eq 'French') {
-											$residencestring .= ' qui habitait';
-										} else {
-											$residencestring .= ' who was living';
-										}
-									}
-									$residencestring .= place({ record => $l->{'residence'}, there => $p2, places_printed => \%places_printed });
-									$printed_person = 1;
-								}
-							}
-						}
-						$residencestring .= ',' if($printed_person);
-					}
 					# Find if they are an adult living with an adult sibling or in-law
 					if($all_residences_have_date && scalar(@siblings) && $birth_dt) {
 						my $printed_sibling = 0;
@@ -4540,7 +4408,7 @@ sub print_person
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
 														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
 														$ss->as_string();
-														$first = 0;
+													$first = 0;
 												} else {
 													# FIXME: If possible, should say
 													#	sisters-in-law or
@@ -4772,6 +4640,151 @@ sub print_person
 								}
 							}
 						}
+					}
+					if(defined($latitude) && defined($bdiff) &&
+					  (my $dt = date_to_datetime($rdate))) {
+						# Print close relatives living close by
+						# This really only works when printing a lot of people, for example with the -a
+						#	flag, or when producing a PDF book, since it relies on having found data
+						#	on people beforehand
+						my $year = $dt->year();
+						my $printed_person = 0;
+						my $gis = GIS::Distance->new('MathTrig');
+						my $p2 = place({ record => $residence, nopreposition => 1 });
+						my @people_near_p2;
+						my $count = 0;
+						my $p3;	# previous place
+
+						my @sorted_locations = sort { $a->{'latitude'} <=> $b->{'latitude'} } @{$all_locations{$year}};
+
+						# $Data::Dumper::Maxdepth = 2;
+						foreach my $l(@sorted_locations) {
+							$count++;
+							# print Data::Dumper->new([$l])->Dump();
+							if(($l->{'person'}->xref() ne $person->xref()) &&
+							   (($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) ||
+							   (my $relationship = $person->relationship($l->{'person'})) &&
+							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
+							     (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
+								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1 });
+								# This stops verbosity when the list is:
+								#	high street, 33 high street, high street
+								next unless($p1 =~ /^\s?\d/);
+
+								my $peek = $sorted_locations[$count];
+								next if($peek && ($peek->{'person'}->xref() eq $l->{'person'}->xref()));
+
+								my $close_relative;
+								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
+								# print "p1: $p1\n\tp2 $p2\n";
+								# print "\t", $distance->yards(), '/', $distance->miles(), "\n";
+
+								if($p1 eq $p2) {
+									$close_relative = 1;
+								} elsif(($l->{'latitude'} == $latitude) && ($l->{'longitude'} == $longitude)) {
+									complain({
+										person => $person,
+										warning => [ $l->{'person'}->as_string(nee => 1), " residence is same location probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
+									});
+									$close_relative = 1;
+								} elsif($distance->miles() < 1) {
+									if($distance->yards() < 20) {
+										complain({
+											person => $person,
+											warning => [ $l->{'person'}->as_string(nee => 1), " residence is very close probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
+										});
+									}
+									$close_relative = 1;
+								}
+								if($close_relative) {
+									# Add this relative to the list of close people, unless they are
+									#	already in the list
+									# p1 is the place of the relative we're considering ($l)
+									# p2 is the place of the current person
+									# p3 is the place of the previous relative we're considering
+									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
+										if((!defined($people_near_p2[0])) || ($people_near_p2[0]->{'person'}->xref() ne $l->{'person'}->xref())) {
+											push @people_near_p2, $l;
+										}
+										next;
+									}
+									$p3 = $p1;
+									my $first_string;
+									my $future_spouse;
+									if($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) {
+										if(defined($dateofmarriage) && ($dateofmarriage =~ /(\d{3,4})$/)) {
+											if($year < $1) {
+												$future_spouse = 1;
+											}
+										} elsif($bdiff->in_units('years') < 16) {
+											$future_spouse = 1;
+										}
+									}
+									if($future_spouse) {
+										# FIXME: Only when before they married, though when
+										#	they are married it should be the same place, right?
+										if($language eq 'French') {
+											$first_string = (($sex eq 'M') ? 'sa futur femme ' : 'son futur mari ');
+										} else {
+											$first_string = (($sex eq 'M') ? 'his future wife ' : 'her future husband ');
+										}
+									} else {
+										next unless($relationship);
+										if($bdiff->in_units('years') < 21) {
+											if(my $mother = $person->mother()) {
+												if($l->{'person'}->xref() eq $mother->xref()) {
+													next;
+												}
+											}
+											if(my $father = $person->father()) {
+												if($l->{'person'}->xref() eq $father->xref()) {
+													next;
+												}
+											}
+										}
+										$first_string = ($sex eq 'M' ? 'his' : 'her') .
+											" $relationship ";
+									}
+									if($l->{'person'}->surname() eq $surname) {
+										$first_string .= $l->{'person'}->given_names();
+									} else {
+										$first_string .= $l->{'person'}->as_string();
+									}
+									my @people_living_together = ($first_string);
+									if(scalar(@people_near_p2)) {
+										while(my $p = pop(@people_near_p2)) {
+											if(my $r = $person->relationship($p->{'person'})) {
+												push @people_living_together, "$r " .
+													$p->{'person'}->as_string();
+											}
+										}
+									}
+									if($printed_person) {
+										$residencestring .= ', ';
+									} else {
+										$residencestring .= ' - less than a mile from ';
+									}
+									$residencestring .= conjunction(@people_living_together);
+
+									if(scalar(@people_living_together) > 1) {
+										if($language eq 'French') {
+											$residencestring .= ' qui habitaient';
+										} else {
+											$residencestring .= ' who were living';
+										}
+									} else {
+										if($language eq 'French') {
+											$residencestring .= ' qui habitait';
+										} else {
+											$residencestring .= ' who was living';
+										}
+									}
+									$residencestring .= place({ record => $l->{'residence'}, there => $p2, places_printed => \%places_printed });
+									$printed_person = 1;
+								}
+							}
+						}
+						$residencestring .= ',' if($printed_person);
 					}
 					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
