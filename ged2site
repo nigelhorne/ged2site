@@ -97,7 +97,7 @@ BEGIN {
 	# Fix for this module not being found
 	eval 'use Geo::Coder::PlaceFinder';
 	if($@) {
-		push @needfull, 'Net::OAuth', 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
+		push @needfull, 'Net::OAuth', 'JSON', 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
 	}
 
 	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
@@ -110,7 +110,7 @@ BEGIN {
 		if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fa/)) {
 			eval 'use Lingua::FA::Number';
 			if($@) {
-				push @needfull, 'Lingua::FA::Number';
+				push @needfull, 'Lingua::FA::Number', 'HTML::Entities';
 			}
 		}
 		eval 'use Lingua::EN::Numbers::Ordinate';
