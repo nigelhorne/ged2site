@@ -5420,9 +5420,11 @@ sub print_person
 				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 					$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 					$notes =~ s/[\s\.]+$//;
-					$bio .= " (<em>$notes</em>)";
+					$bio .= " (<em>$notes</em>). ";
+					$end_of_sentence = 1;
+				} else {
+					$end_of_sentence = 0;
 				}
-				$end_of_sentence = 0;
 			# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 			} elsif(($type !~ /Census/) &&
 				($type ne 'Race') &&
@@ -10268,6 +10270,7 @@ sub dump_geocoder_log
 	my $log = $geocoder->log();
 	$geocoder->flush();
 	print Data::Dumper->new([$log])->Dump() if($log);
+
 	foreach my $l(@{$log}) {
 		if($l->{'line'}) {
 			print 'Line ', $l->{'line'}, ': ';
