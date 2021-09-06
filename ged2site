@@ -4468,7 +4468,7 @@ sub print_person
 
 									my $p = place({ person => $mother, record => $mr });
 									next unless($p);
-									if($p eq $place) {
+									if(($p =~ /^\d/) && ($p eq $place)) {
 										if($mdate eq $rdate) {
 											$with_mother++;
 											last;
@@ -4503,7 +4503,7 @@ sub print_person
 
 									my $p = place({ person => $father, record => $fr });
 									next unless($p);
-									if($p eq $place) {
+									if(($p =~ /^\d/) && ($p eq $place)) {
 										if($fdate eq $rdate) {
 											$with_father++;
 											last;
