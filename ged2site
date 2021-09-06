@@ -9633,7 +9633,7 @@ sub get_all_residences
 								}
 							}
 						}
-					} elsif($place) {
+					} elsif($place && ($place =~ /^\d/)) {
 						$prev_place = $place;
 						$prev_year = $year;
 					}
@@ -9641,6 +9641,7 @@ sub get_all_residences
 			}
 		}
 	}
+
 	return @rc;
 }
 
