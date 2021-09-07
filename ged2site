@@ -4587,7 +4587,7 @@ sub print_person
 										@r = get_all_residences(person => $father);
 									}
 									foreach my $r(@r) {
-										if($r->date() eq $rdate) {
+										if(($r->date() eq $rdate) && $r->address()) {
 											if($same_road_as_mother && $same_road_as_father) {
 												$residencestring .= ' who were';
 											} else {
