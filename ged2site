@@ -5473,15 +5473,15 @@ sub print_person
 
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^on /) {
+								$bio .= ' ' . ucfirst($date) . ' ';
+							} elsif($date =~ /^in (\d{4})/) {
+								$bio .= " During $1, ";
+							} else {
 								if($date =~ /(.+)\-(.+)/) {
 									$bio .= " Between $1 and $2 ";
 								} else {
 									$bio .= ' ' . ucfirst($date) . ' ';
 								}
-							} elsif($date =~ /^in (\d{4})/) {
-								$bio .= " During $1, ";
-							} else {
-								$bio .= " $date";
 							}
 							$bio .= lcfirst($pronoun) . ' was serving in the military';
 						} else {
