@@ -3213,11 +3213,16 @@ sub print_person
 					if($spouserelationship) {
 						$args{'format'} = ' married ';
 					} elsif(is_alive(person => $person) && is_alive(person => $spouses[0])) {
-						$args{'format'} = ' is married to ';
+						if($placeofmarriage || $dateofmarriage) {
+							$args{'format'} = ' married ';
+						} else {
+							$args{'format'} = ' is married to ';
+						}
 					} else {
 						$args{'format'} = ' was married to ';
 					}
 					$bio .= i18n(\%args);
+
 					if($haveprintedspousename) {
 						$nameparser->parse($spouses[0]->name());
 
