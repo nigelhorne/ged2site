@@ -3046,7 +3046,10 @@ sub print_person
 						$bio .= ($sex eq 'M' ? 'his' : 'her') . ' twin ' .
 							(($ssex eq 'F') ? 'sister ' : 'brother ');
 					}
-					$bio .= $sibling->given_names() . ',';
+					$bio .= $sibling->given_names();
+					if($dateofbaptism || $placeofbaptism) {
+						$bio .= ',';
+					}
 				}
 			}
 
@@ -4784,7 +4787,6 @@ sub print_person
 								}
 							}
 						}
-						$residencestring .= ',' if($printed_person);
 					}
 					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
