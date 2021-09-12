@@ -2416,7 +2416,6 @@ sub print_person
 
 			$bio = ucfirst(i18n({
 				person => $person,
-				gender => 1,
 				format => "$article %s",
 				args => lc(conjunction(@occupations))
 			}));
@@ -2805,7 +2804,7 @@ sub print_person
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
 				$bio = ',' if($relationship);
-				$bio .= i18n({ person => $person, gender => 1, format => ' was born' });
+				$bio .= i18n({ person => $person, format => ' was born' });
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
 					$bio .= $p;
@@ -4863,7 +4862,7 @@ sub print_person
 
 			# Print out the residence strings with semi-colons between each residence
 			if(scalar(@residencestringarray)) {
-				$bio .= '. ' unless($end_of_sentence);
+				$bio .= '.' unless($end_of_sentence || $start_of_paragraph);
 				my $first = $residencelist[0];
 				if((scalar(@residencelist) == 1) && (my $rdate = $first->date())) {
 					$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' }));
@@ -4965,7 +4964,7 @@ sub print_person
 						$bio .= 'e';
 					}
 				} else {
-					$bio .= ($type eq 'burial') ? i18n({ person => $person, gender => 1, format => 'was buried' }) : 'was cremated';
+					$bio .= ($type eq 'burial') ? i18n({ person => $person, format => 'was buried' }) : 'was cremated';
 				}
 				$bio .= year({ person => $person, date => $dateofburial });
 				if(my $city = ($placeofburial // $placeofcremation)) {
@@ -5023,7 +5022,7 @@ sub print_person
 				}
 			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
 				$bio .= " $pronoun ";
-				$bio .= i18n({ person => $person, gender => 1, format => 'was buried' });
+				$bio .= i18n({ person => $person, format => 'was buried' });
 				if(my $address = $burial->address()) {
 					$bio .= " at $address";
 				}
@@ -5047,8 +5046,13 @@ sub print_person
 			}
 			my $notes;
 			if(!$diedathome) {
-				$bio .= '.' if(!$end_of_sentence);
-				$bio .= "<p>$pronoun died";
+				$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
+
+				$bio .= "<p>$pronoun" . i18n({ person => $person, format => ' died ' });
+
+				$start_of_paragraph = 0;
+				$end_of_sentence = 0;
+
 				if($dateofdeath) {
 					my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 					if($y =~ /^from (.+) to (.+)/i) {
@@ -5092,7 +5096,7 @@ sub print_person
 				  defined($placeofdeath) && ($placeofburial eq $placeofdeath) && (!$address) && !$death->address()) {
 					$bio .= ' y';
 				}
-				$bio .= i18n({ person => $person, gender => 1, format => ' was buried' });
+				$bio .= i18n({ person => $person, format => ' was buried' });
 				if($placeofburial) {
 					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && !$death->address()) {
 						$bio .= ' there';
@@ -5190,7 +5194,7 @@ sub print_person
 			$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
 			$bio .= "<p>$pronoun";
 		}
-		$bio .= i18n({ person => $person, gender => 1, format => ' died' });
+		$bio .= i18n({ person => $person, format => ' died' });
 
 		if($dateofdeath) {
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
