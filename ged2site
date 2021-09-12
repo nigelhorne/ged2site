@@ -9454,7 +9454,7 @@ sub date_to_datetime
 	}
 
 	if(my $date = $params{'date'}) {
-		if($date !~ /^bef.?\s/i) {
+		if($date !~ /^(bef|abt|aft).?\s/i) {
 			return $dfg->parse_datetime(%params);
 		}
 	}
