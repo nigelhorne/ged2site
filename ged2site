@@ -5043,12 +5043,11 @@ sub print_person
 		} else {	# $dateofdeath || $placeofdeath
 			if((!$placeofburial) && !$diedathome) {
 				$bio .= '. ' if(!$end_of_sentence);
-				$end_of_sentence = 0;
+				$end_of_sentence = 1;
 			}
 			my $notes;
 			if(!$diedathome) {
 				$bio .= '.' if(!$end_of_sentence);
-				$end_of_sentence = 0;
 				$bio .= "<p>$pronoun died";
 				if($dateofdeath) {
 					my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
@@ -5070,6 +5069,7 @@ sub print_person
 					$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 					$bio .= " ($notes)";
 				}
+				$end_of_sentence = 0;
 			}
 			my $opts = {
 				person => $person,
@@ -5187,7 +5187,7 @@ sub print_person
 				$bio .= ' is also where ' . lcfirst($pronoun);
 			}
 		} else {
-			$bio .= '.' if(!$end_of_sentence);
+			$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
 			$bio .= "<p>$pronoun";
 		}
 		$bio .= i18n({ person => $person, gender => 1, format => ' died' });
