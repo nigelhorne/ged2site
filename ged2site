@@ -2447,7 +2447,10 @@ sub print_person
 		}
 		if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
 			if(scalar(@occupations)) {
-				$bio .= ', twin of ' . $person_twins[0]->given_names();
+				if(!$printed_comma) {
+					$bio .= ', ';
+				}
+				$bio .= 'twin of ' . $person_twins[0]->given_names();
 			} else {
 				$bio .= 'The twin ' . (($person->sex() eq 'M') ? 'brother' : 'sister') .
 					' of ' . $person_twins[0]->given_names();
@@ -2701,7 +2704,7 @@ sub print_person
 					$bio .= "<b>$firstname</b>";
 				}
 				if($relationship) {
-					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || scalar(@spouses)) {
+					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {
 						$bio .= ',';
 					} elsif($opts{'l'} || $is_alive) {
 						$bio .= ' is';
@@ -4945,18 +4948,22 @@ sub print_person
 		print $csv '.!!!';
 		print $xml '.';
 	}
-	$bio =~ s/,;/;/g;
-	$bio =~ s/;$//;
-	$bio =~ s/,.$/./;
+
+	# $bio =~ s/,;/;/g;
+	# $bio =~ s/;$//;
+	# $bio =~ s/,.$/./;
 
 	if($placeofburial || $dateofburial || $placeofcremation || $dateofcremation) {
 		if((!$dateofdeath) && !$placeofdeath) {
 			$bio .= '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
+			$end_of_sentence = 1;
+
 			my $type = 'burial';
 			if($placeofcremation || $dateofcremation) {
 				$type = 'cremation';
 			}
 			if($dateofburial) {
+				$end_of_sentence = 0;
 				$bio .= " $pronoun ";
 				if($language eq 'French') {
 					$bio .= "est enterr\N{U+00E9}";
@@ -5038,7 +5045,6 @@ sub print_person
 				$bio .= " $pronoun is buried",
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
 			}
-			$end_of_sentence = 0;
 		} else {	# $dateofdeath || $placeofdeath
 			if((!$placeofburial) && !$diedathome) {
 				$bio .= '. ' if(!$end_of_sentence);
@@ -5396,6 +5402,7 @@ sub print_person
 					$bio .= " ($notes)";
 				}
 				$bio .= '. ';
+				$end_of_sentence = 1;
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$place_records{'Traveled to'} = $event;
 				} else {
@@ -5417,6 +5424,7 @@ sub print_person
 					$bio .= " ($notes)";
 				}
 				$bio .= '. ';
+				$end_of_sentence = 1;
 			} elsif(($type eq 'Military service') || ($type eq 'Military')) {
 				$bio .= '.' if(!$end_of_sentence);
 				my $date = year(record => $event);
