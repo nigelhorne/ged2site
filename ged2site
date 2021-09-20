@@ -3155,12 +3155,12 @@ sub print_person
 						$bio .= "in $myod by the death of both parents in that year.";
 					} elsif($myod > $fyod) {
 						$bio .= 'at the age of ' . ($myod - $yob) .
-							' following the death of ' .
+							i18n(' following the death of ') .
 							(($person->pronoun() eq 'She') ? 'her' : 'his') .
 							" father in $fyod and mother in $myod. ";
 					} else {
 						$bio .= 'at the age of ' . ($fyod - $yob) .
-							' following the death of ' .
+							i18n(' following the death of ') .
 							(($person->pronoun() eq 'She') ? 'her' : 'his') .
 							" mother in $myod and father in $fyod. ";
 					}
@@ -3627,7 +3627,7 @@ sub print_person
 								complain({ person => $person, warning => 'Removing trailing spaces from date' });
 								$death_of_first_spouse =~ s/\s+$//;
 							}
-							$bio .= 'following the death of ' .
+							$bio .= i18n('following the death of ') .
 								$spouses[0]->as_string() . ' ' .
 								year({
 									person => $spouses[0],
@@ -4077,7 +4077,7 @@ sub print_person
 						next;
 					}
 					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
-						$residencestring = ' at ' . ($person->pronoun() eq 'She' ? 'her' : 'his')
+						$residencestring = i18n(' at ') . ($person->pronoun() eq 'She' ? 'her' : 'his')
 								. i18n(' birthplace');
 					} elsif(my $p = place({ person => $person, record => $residence, places_printed => \%places_printed })) {
 						if($residence->type() && ($residence->type() eq 'Hospitalisation')) {
@@ -4842,7 +4842,7 @@ sub print_person
 									complain({ person => $person, warning => 'Removing trailing spaces from date of marriage' });
 									$date =~ s/\s+$//;
 								}
-								$residencestring .= ' following the death of ' .
+								$residencestring .= i18n(' following the death of ') .
 									($person->pronoun() eq 'She' ? 'her' : 'his') .
 									(($sex eq 'M') ? ' wife ' : ' husband ') .
 									year(date => $date);
@@ -10565,6 +10565,7 @@ check out %s::check out %s
 died::died
 during %s life::during %s life
 eldest::eldest
+following the death of::following the death of
 had::had
 he::he
 husband::husband
@@ -10607,6 +10608,7 @@ died:M:est mort
 died:F:est morte
 during %s life::pendant sa vie
 eldest::l'aîne
+following the death of::après le mort de
 had::a eu
 he::il
 husband::marie
