@@ -3842,11 +3842,11 @@ sub print_person
 			$bio .= '. ' if(!$end_of_sentence);
 			$bio .= "$pronoun ";
 			if(scalar(@children) > scalar(@childrenunknownparent)) {
-				$bio .= 'also ';
+				$bio .= i18n('also ');
 			}
-			$bio .= 'had ' . scalar(@childrenunknownparent) . ' ';
+			$bio .= i18n('had ') . scalar(@childrenunknownparent) . ' ';
 			if(scalar(@childrenunknownparent) == 1) {
-				$bio .= 'child, ';
+				$bio .= i18n('child, ');
 			} else {
 				$bio .= 'children, ';
 			}
@@ -10526,7 +10526,7 @@ sub i18n
 				}
 			}
 			utf8::decode($translation);
-			$translation .= ', ' if($append_comma);
+			$translation .= ',' if($append_comma);
 			$translation .= ' ' if($append_space);
 			if($prepend_space) {
 				return " $translation";
@@ -10569,6 +10569,7 @@ at::at
 birthplace::ville natal
 both with %s::both with %s
 check out %s::check out %s
+child::child
 died::died
 during %s life::during %s life
 eldest::eldest
@@ -10612,6 +10613,7 @@ at::à
 birthplace::ville natal
 both with %s::toutes les deux avec %s
 check out %s::visitez %s
+child::enfant
 died:M:est mort
 died:F:est morte
 during %s life::pendant sa vie
