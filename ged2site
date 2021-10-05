@@ -4618,7 +4618,7 @@ sub print_person
 							} elsif(($mother || $father) && ($bdiff->in_units('years') < 16)) {
 								complain({ person => $person, warning => [ 'Not living with either parent in childhood when aged ', $bdiff->in_units('years') ] });
 							} elsif($father_date) {
-								$residencestring .= ' (the same place as ' . 
+								$residencestring .= ' (the same place as ' .
 									($person->pronoun() eq 'She' ? 'her' : 'his') . ' father ';
 								if(datecmp($rdate, $father_date) > 0) {
 									$residencestring .= 'had been';
@@ -4629,7 +4629,7 @@ sub print_person
 									year({ person => $person, string => $father_date }) .
 									')';
 							} elsif($mother_date) {
-								$residencestring .= ' (the same place as ' . 
+								$residencestring .= ' (the same place as ' .
 									($person->pronoun() eq 'She' ? 'her' : 'his') . ' mother ';
 								if(datecmp($rdate, $mother_date) > 0) {
 									$residencestring .= 'had been';
@@ -6221,10 +6221,10 @@ sub print_person
 								}
 
 								if($downloadhistory{$file}) {
-                                                                        # Ancestry does this
-                                                                        print "Skip duplicate image $file\n" if($opts{'v'});
-                                                                        next OBJE;
-                                                                }
+									# Ancestry does this
+									print "Skip duplicate image $file\n" if($opts{'v'});
+									next OBJE;
+								}
 
 								print "Download non-image $file\n" if($opts{'v'});
 								my $resp = $cached_browser->get($file);
