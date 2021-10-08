@@ -5048,6 +5048,8 @@ sub print_person
 				} else {
 					$bio .= place({ person => $person, place => $placeofburial });
 				}
+				$bio .= '. ';
+				$end_of_sentence = 1;
 			} else {
 				$bio .= " $pronoun is buried",
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
