@@ -5,7 +5,9 @@ package main;
 
 use strict;
 use warnings;
+
 use CHI;
+use DBI;
 use Error;
 use POSIX;
 use Log::Any::Adapter;
