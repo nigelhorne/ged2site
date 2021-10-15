@@ -6,7 +6,7 @@ use warnings;
 use strict;
 use Ged2site::Display;
 use File::Spec;
-use JSON;
+use JSON::MaybeXS;
 
 our @ISA = ('Ged2site::Display');
 
@@ -28,7 +28,7 @@ sub html {
 	my $p;
 
 	if(open(my $json, '<', $json_file)) {
-		my $facts = JSON->new()->utf8()->decode(<$json>);
+		my $facts = JSON::MaybeXS->new()->utf8()->decode(<$json>);
 		close($json);
 		if(my $fb = $facts->{'first_birth'}) {
 			$fb->{'person'} = $people->fetchrow_hashref(entry => delete $fb->{'xref'});
