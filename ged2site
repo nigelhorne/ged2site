@@ -6502,6 +6502,7 @@ sub print_person
 				}
 
 				print $fout '}';
+				# If you get an error that png isn't supported, run apt-get install graphviz-dev
 				close $fout;
 
 				print $html '<h2>Family Tree</h2>';
