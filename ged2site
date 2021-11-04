@@ -1385,13 +1385,13 @@ if($opts{'w'}) {
 				} elsif($warning =~ /\sisn't found$/) {
 					$summary = 'Location not found';
 				} elsif($warning =~ /^Something is wrong with the date /) {
-					$summary = 'Inconsistent date';
+					$summary = 'Inconsistent Date';
 				} elsif($warning =~ /^born before parent was born/) {
 					$summary = 'Born before Parent was born';
 				} elsif($warning =~ /^Date of residence .+ is after date of death/) {
 					$summary = 'Date of Residence After Date of Death';
 				} elsif($warning =~ /^Location for the event /) {
-					$summary = 'Location is empty';
+					$summary = 'Location is Empty';
 				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
 					$summary = 'Parent\'s Location is Known but Child\'s is not';
 				} elsif($warning =~ /^The census for year \d{4} has been cited,/) {
@@ -1415,7 +1415,7 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Changing 'United States' to 'USA' in /) {
 					$summary = 'Change &quot;United States&quot; to &quot;USA&quot;';
 				} elsif($warning =~ /Location for .+ differs from /) {
-					$summary = 'Inconsistent location';
+					$summary = 'Inconsistent Location';
 				} elsif($warning =~ /Date of residence \(.+\sdiffers from\s/i) {
 					$summary = 'Date of Residence Differs From Parent\'s';
 				} elsif($warning =~ /^Country not included in country,/) {
