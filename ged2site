@@ -10320,7 +10320,47 @@ sub dateofbirth {
 
 	my $person = $params{'person'};
 
-	my $dateofbirth = get_value({ person => $person, value => 'birth date' });
+	my @d = get_value({ person => $person, value => 'birth date' });
+	my $dateofbirth;
+
+	if(scalar(@d) == 2) {
+		my ($year1, $year2);
+
+		if($d[0] =~ /(\d{3,4})/) {
+			$year1 = $1;
+		}
+		if($d[1] =~ /(\d{3,4})/) {
+			$year2 = $1;
+		}
+		if(defined($year1) && defined($year2)) {
+			if(abs($year1 - $year2) > 30) {
+				complain({ person => $person, warning => 'More than one date of birth separated by many years' });
+			}
+		}
+
+		# Get the primary date.
+		# TODO: Is there a proper way to do this with the Gedcom module?
+		# FIXME: limited to 2 dates
+		my @b = $person->birth();
+
+		for my $i(0..1) {
+			foreach my $item(@{$b[$i]->{'items'}}) {
+				if(($item->tag() eq '_PRIM') && ($item->value() eq 'Y')) {
+					$dateofbirth = $b[$i]->date();
+					last;
+				}
+			}
+		}
+		if(!defined($dateofbirth)) {
+			complain({ person => $person, warning => 'two dates of birth, neither of which is marked primary' });
+			$dateofbirth = $d[0];
+		}
+	} elsif(scalar(@d) == 1) {
+		$dateofbirth = $d[0];
+	} elsif(scalar(@d)) {
+		die 'TODO: handle more than 2 dates of birth';
+	}
+
 	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birth'))) {
 		$dateofbirth = $birth->date();
 	}
