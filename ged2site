@@ -3053,6 +3053,9 @@ sub print_person
 						$bio .= ',';
 					}
 				}
+				if(scalar(@spouses) && ($aod || $aob) && ($numberofchildren > 0)) {
+					$bio .= i18n(' and');
+				}
 			}
 
 			if(scalar(@spouses) && ($numberofchildren > 0) && !$all_children_are_alive) {
