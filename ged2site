@@ -3053,7 +3053,7 @@ sub print_person
 						$bio .= ',';
 					}
 				}
-				if(scalar(@spouses) && ($aod || $aob) && ($numberofchildren > 0)) {
+				if(scalar(@spouses) && ($numberofchildren > 0)) {
 					$bio .= i18n(' and');
 				}
 			}
@@ -4917,7 +4917,13 @@ sub print_person
 				}
 				# $bio .= ', ' . lcfirst($pronoun) . i18n(' was living ') .
 					# Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; ', conj => i18n('and')});
-				$bio .= ', ' . lcfirst($pronoun) . i18n(' was living ') . conjunction(@residencestringarray);
+				my $s;
+				if(is_alive($person)) {
+					$s = 'has lived';
+				} else {
+					$s = 'was living';
+				}
+				$bio .= ', ' . lcfirst($pronoun) . i18n(" $s ") . conjunction(@residencestringarray);
 
 				if($placeofdeath) {
 					my $lastresidence = $residencelist[scalar(@residencelist) - 1];
@@ -7834,13 +7840,13 @@ sub Gedcom::Individual::relationship_up
 					5 << 24 | 3 => 'second cousin twice-removed',
 					5 << 24 | 4 => 'third cousin once-removed',
 					5 << 24 | 5 => 'fourth cousin',
-					5 << 24 | 6 => 'fourth cousin once-removed',
-					5 << 24 | 7 => 'fourth cousin twice-removed',
+					5 << 24 | 6 => "arri\N{U+00E8}re-petit-cousin \N{U+00E9}loing\N{U+00E9} au 1er degr\N{U+00E9}",
+					5 << 24 | 7 => "arri\N{U+00E8}re-petit-cousin \N{U+00E9}loing\N{U+00E9} au 2e degr\N{U+00E9}",
 					6 << 24 | 1 => 'four times great-uncle',
 					6 << 24 | 2 => 'first cousin four-times-removed',
 					6 << 24 | 3 => 'second cousin three-times-removed',
 					6 << 24 | 4 => 'third cousin twice-removed',
-					6 << 24 | 5 => 'fourth cousin once-removed',
+					6 << 24 | 5 => "arri\N{U+00E8}re-petit-cousin \N{U+00E9}loing\N{U+00E9} au 1er degr\N{U+00E9}",
 					6 << 24 | 6 => 'fifth cousin',
 					6 << 24 | 7 => 'fifth cousin once-removed',
 					6 << 24 | 8 => 'fifth cousin twice-removed',
@@ -7848,7 +7854,7 @@ sub Gedcom::Individual::relationship_up
 					7 << 24 | 2 => 'first cousin five-times-removed',
 					7 << 24 | 3 => 'second cousin four-times-removed',
 					7 << 24 | 4 => 'third cousin three-times-removed',
-					7 << 24 | 5 => 'fourth cousin twice-removed',
+					7 << 24 | 5 => "arri\N{U+00E8}re-petit-cousin \N{U+00E9}loing\N{U+00E9} au 2e degr\N{U+00E9}",
 					7 << 24 | 6 => 'fifth cousin once-removed',
 					7 << 24 | 7 => "sixi\N{U+00E8}me cousin",
 					7 << 24 | 8 => "sixi\N{U+00E8}me cousin once-removed",
@@ -7984,13 +7990,13 @@ sub Gedcom::Individual::relationship_up
 					5 << 24 | 3 => 'second cousin twice-removed',
 					5 << 24 | 4 => 'third cousin once-removed',
 					5 << 24 | 5 => 'fourth cousin',
-					5 << 24 | 6 => 'fourth cousin once-removed',
-					5 << 24 | 7 => 'fourth cousin twice-removed',
+					5 << 24 | 6 => "arri\N{U+00E8}re-petite-cousine \N{U+00E9}loing\N{U+00E9}e au 1er degr\N{U+00E9}",
+					5 << 24 | 7 => "arri\N{U+00E8}re-petite-cousine \N{U+00E9}loing\N{U+00E9}e au 2e degr\N{U+00E9}",
 					6 << 24 | 1 => 'four times great-aunt',
 					6 << 24 | 2 => 'first cousin four-times-removed',
 					6 << 24 | 3 => 'second cousin three-times-removed',
 					6 << 24 | 4 => 'third cousin twice-removed',
-					6 << 24 | 5 => 'fourth cousin once-removed',
+					5 << 24 | 5 => "arri\N{U+00E8}re-petite-cousine \N{U+00E9}loing\N{U+00E9}e au 1er degr\N{U+00E9}",
 					6 << 24 | 6 => 'fifth cousin',
 					6 << 24 | 7 => 'fifth cousin once-removed',
 					6 << 24 | 8 => 'fifth cousin twice-removed',
@@ -7998,7 +8004,7 @@ sub Gedcom::Individual::relationship_up
 					7 << 24 | 2 => 'first cousin five-times-removed',
 					7 << 24 | 3 => 'second cousin four-times-removed',
 					7 << 24 | 4 => 'third cousin three-times-removed',
-					7 << 24 | 5 => 'fourth cousin twice-removed',
+					7 << 24 | 5 => "arri\N{U+00E8}re-petite-cousine \N{U+00E9}loing\N{U+00E9}e au 2e degr\N{U+00E9}",
 					7 << 24 | 6 => 'fifth cousin once-removed',
 					7 << 24 | 7 => "sixi\N{U+00E8}me cousin",
 					7 << 24 | 8 => "sixi\N{U+00E8}me cousin once-removed",
@@ -10788,6 +10794,7 @@ during %s life::during %s life
 eldest::eldest
 following the death of::following the death of
 had::had
+has lived::has lived
 he::he
 husband::husband
 is::is
@@ -10833,6 +10840,7 @@ during %s life::pendant sa vie
 eldest::l'aîne
 following the death of::après le mort de
 had::a eu
+has lived::a habité
 he::il
 husband::marie
 is::est
