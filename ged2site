@@ -443,6 +443,9 @@ my $freegeocoder;
 my $browser;
 my $cached_browser;
 
+Lingua::Conjunction->separator_phrase(',');
+Lingua::Conjunction->penultimate(0);
+
 if($opts{'m'} || $opts{'w'}) {
 	my $l = $ENV{'LANG'};
 	if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
@@ -4923,7 +4926,12 @@ sub print_person
 				} else {
 					$s = 'was living';
 				}
+
+				Lingua::Conjunction->separator_phrase(';');
+				Lingua::Conjunction->penultimate(1);
 				$bio .= ', ' . lcfirst($pronoun) . i18n(" $s ") . conjunction(@residencestringarray);
+				Lingua::Conjunction->separator_phrase(',');
+				Lingua::Conjunction->penultimate(0);
 
 				if($placeofdeath) {
 					my $lastresidence = $residencelist[scalar(@residencelist) - 1];
