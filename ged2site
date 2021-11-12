@@ -5240,7 +5240,7 @@ sub print_person
 
 		if($dateofdeath) {
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
-				$bio .= ' on the same day';
+				$bio .= i18n(' on the same day');
 			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
 				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
 				if($y =~ /^from (.+) to (.+)/i) {
@@ -8297,6 +8297,7 @@ sub year
 	}
 
 	if(($string =~ /^\d/) && ($string !~ /[a-z]$/i)) {
+		# Precise date
 		my $person = $params{'person'};
 		if($string =~ /^31 Nov/) {
 			complain({ person => $person, warning => "$string is invalid, there are only 30 days in November" });
@@ -8344,7 +8345,7 @@ sub year
 				return "le $year";
 			}
 			my $year;
-			if($language eq 'Farsi') {
+			if($language eq 'Farsi') {	# For Tulip
 				$year = HTML::Entities::decode(Lingua::FA::Number::convert($d->strftime('%Y %b %e')));
 			} else {
 				$year = $d->strftime('%x');
@@ -9237,7 +9238,7 @@ sub sibling_baptism_string
 	}
 
 	if($allsamesex) {
-		return ', the same day as ' . lcfirst($person->possessive()) . ' ' .
+		return i18n(', the same day as ') . lcfirst($person->possessive()) . ' ' .
 			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ') .
 			conjunction(map {
 				if($opts{'l'} || !is_alive($_)) {
@@ -9263,7 +9264,7 @@ sub sibling_baptism_string
 			$sibling->given_names();
 		push @baptisms, $baptism;
 	}
-	return ', the same day as ' . conjunction(@baptisms);
+	return i18n(', the same day as ') . conjunction(@baptisms);
 }
 
 sub complain
@@ -10812,9 +10813,11 @@ later that same year::later that same year
 married::married
 of::of
 of %d children::of %d children
+on the same day::on the same day
 on your father's side::on your father's side
 on your mother's side::on your mother's side
 she::she
+the same day as::the same day as
 they::they
 times::times
 to::to
@@ -10860,9 +10863,11 @@ later that same year::plus tard cette année
 married::a marié
 of::de
 of %d children::de %d enfants
+on the same day::sur la même jour
 on your father's side::sur la côté de votre père
 on your mother's side::sur la côté de votre mère
 she::elle
+the same day as::le même jour comme
 they:M:ils
 they:F:elles
 times::temps
