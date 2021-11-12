@@ -9238,7 +9238,7 @@ sub sibling_baptism_string
 	}
 
 	if($allsamesex) {
-		return i18n(', the same day as ') . lcfirst($person->possessive()) . ' ' .
+		return ', ' . i18n('the same day as ') . lcfirst($person->possessive()) . ' ' .
 			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ') .
 			conjunction(map {
 				if($opts{'l'} || !is_alive($_)) {
@@ -9264,7 +9264,7 @@ sub sibling_baptism_string
 			$sibling->given_names();
 		push @baptisms, $baptism;
 	}
-	return i18n(', the same day as ') . conjunction(@baptisms);
+	return ', ' . i18n('the same day as ') . conjunction(@baptisms);
 }
 
 sub complain
