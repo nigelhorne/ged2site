@@ -5733,10 +5733,11 @@ sub print_person
 					}
 				} elsif($type eq 'Court') {
 					$bio .= '. ' if(!$end_of_sentence);
+					$bio .= $firstname // $pronoun;
 					if($language eq 'French') {
-						$bio .= "$pronoun a \N{U+00E9}t\N{U+00E9} au tribunal";
+						$bio .= " a \N{U+00E9}t\N{U+00E9} au tribunal";
 					} else {
-						$bio .= "$pronoun was in court";
+						$bio .= " was in court";
 					}
 					if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
 						$bio .= $place;
