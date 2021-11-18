@@ -10853,7 +10853,8 @@ child::enfant
 died:M:est mort
 died:F:est morte
 during %s life::pendant sa vie
-eldest::l'aîne
+eldest:M:l'aîne
+eldest:F:l'aînee
 following the death of::après le mort de
 had::a eu
 has lived::a habité
