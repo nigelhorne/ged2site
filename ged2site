@@ -4921,8 +4921,8 @@ sub print_person
 				# $bio .= ', ' . lcfirst($pronoun) . i18n(' was living ') .
 					# Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; ', conj => i18n('and')});
 				my $s;
-				if(is_alive($person)) {
-					$s = 'has lived';
+				if(is_alive($person) && !$first->date()) {
+					$s = i18n('has lived');
 				} else {
 					$s = 'was living';
 				}
