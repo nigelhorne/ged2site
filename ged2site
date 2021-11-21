@@ -3040,7 +3040,7 @@ sub print_person
 					if($dob == $birth_dt) {
 						$bio .= ' along with ';
 					} elsif($dob == ($birth_dt + $oneday)) {
-						$bio .= ', a day before ';
+						$bio .= i18n(', a day before ');
 					} else {
 						$bio .= ', a day after ';
 					}
@@ -10793,6 +10793,7 @@ sub i18n
 __DATA__
 @@ English
 a %s::a %s
+a day before::a day before
 all with %s::all with %s
 also::also
 also%s::also%s
@@ -10839,6 +10840,7 @@ your::your
 @@ French
 a %s:M:un %s
 a %s:F:une %s
+a day before::la veille
 also::aussi
 also%s::aussi%s
 all with %s::tout avec %s
