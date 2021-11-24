@@ -3843,6 +3843,17 @@ sub print_person
 	my @residencelist;
 	my $diedathome;
 
+	my $military_location;
+
+	if((scalar(@residences) == 1) && (scalar(@events) == 1) &&
+	   $residences[0]->date() && $events[0]->date() &&
+	   (year(string => $residences[0]->date()) eq year(string => $events[0]->date())) &&
+	   (($events[0]->type() eq 'Military service') || ($events[0]->type() eq 'Military'))) {
+		# There's just one residence and one event which is military, and they are at the same time
+		# so put them together: "in 1970 he was living in London when he was serving in the milirary"
+		$military_location = 1;
+	}
+
 	if($opts{'l'} || !$is_alive) {
 		if(scalar(@childrenunknownparent)) {
 			$bio .= '. ' if(!$end_of_sentence);
@@ -4974,8 +4985,10 @@ sub print_person
 						$diedathome = 1;
 					}
 				}
-				$bio .= '. ';
-				$end_of_sentence = 1;
+				if(!$military_location) {
+					$bio .= '. ';
+					$end_of_sentence = 1;
+				}
 			}
 		}
 	} else {
@@ -5417,10 +5430,10 @@ sub print_person
 				if(my $spouse = $spouses[0]) {
 					foreach my $sevent($spouse->event()) {
 						if(ref($sevent) eq 'Gedcom::Record') {
-							my $type = $event->type();
-							if(!defined($type)) {
+							my $stype = $sevent->type();
+							if(!defined($stype)) {
 								red_warning({ person => $spouse, warning => "Can't determine type of event, or the event type is empty" });
-							} elsif($sevent->place() && ($type eq 'Arrival') &&
+							} elsif($sevent->place() && ($stype eq 'Arrival') &&
 							   $event->date() && $sevent->date() &&
 							   ($event->date() eq $sevent->date()) &&
 							   ($event->place() eq $sevent->place())) {
@@ -5464,7 +5477,9 @@ sub print_person
 			} elsif(($type eq 'Military service') || ($type eq 'Military')) {
 				$bio .= '.' if(!$end_of_sentence);
 				my $date = year(record => $event);
-				if($date) {
+				if($military_location) {
+					$bio .= ' when ' . lcfirst($pronoun) . (' was serving in the military');
+				} elsif($date) {
 					if($date !~ /^from /i) {
 						$bio .= ' ' . ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
 					} else {
