@@ -4880,6 +4880,7 @@ sub print_person
 									($person->pronoun() eq 'She' ? 'her' : 'his') .
 									(($sex eq 'M') ? ' wife ' : ' husband ') .
 									year(date => $date);
+								$spdeath_dt = undef;
 							}
 							$printed_following_message = 1;
 						}
