@@ -2823,14 +2823,11 @@ sub print_person
 						complain({ person => $person, warning => "Removing trailing spaces from date of birth '$dateofbirth'" });
 						$dateofbirth =~ s/\s+$//;
 					}
-					my $y = year({
+					my $y = between(year({
 						person => $person,
 						date => $dateofbirth,
 						must_predate => $death_dt
-					});
-					if($y =~ /^fro?m (.+) to (.+)/i) {
-						$y = "between $1 and $2";
-					}
+					}));
 					$bio .= " $y" if($y);
 				}
 				$bio .= cite(@birthcitations);
@@ -5110,11 +5107,7 @@ sub print_person
 				$end_of_sentence = 0;
 
 				if($dateofdeath) {
-					my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-					if($y =~ /^from (.+) to (.+)/i) {
-						$y = "between $1 and $2";
-					}
-					$bio .= " $y";
+					$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
 				}
 				if($placeofdeath && (my $p = place({ person => $person, record => $death, places_printed => \%places_printed }))) {
 					$bio .= $p;
@@ -5256,11 +5249,7 @@ sub print_person
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
 				$bio .= i18n(' on the same day');
 			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($y =~ /^from (.+) to (.+)/i) {
-					$y = "between $1 and $2";
-				}
-				$bio .= " $y";
+				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
 			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
 				my $p = $1;
 				if($dateofdeath =~ /\s$/) {
@@ -5274,11 +5263,7 @@ sub print_person
 					complain({ person => $person, warning => "Removing trailing spaces from date of death '$death'" });
 					$dateofdeath =~ s/\s+$//;
 				}
-				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($y =~ /^from (.+) to (.+)/i) {
-					$y = "between $1 and $2";
-				}
-				$bio .= " $y";
+				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
 					my $place = place({ person => $person, record => $death, places_printed => \%places_printed });
 					if(!defined($place)) {
@@ -10803,6 +10788,19 @@ sub i18n
 		return " $format";
 	}
 	return $format;
+}
+
+sub between
+{
+	if(my $phrase = shift) {
+		if($phrase =~ /^fro?m (.+) to (.+)/i) {
+			if($language eq 'French') {
+				return "entre $1 et $2";
+			}
+			return "between $1 and $2";
+		}
+		return $phrase;
+	}
 }
 
 # Must all be in lower case
