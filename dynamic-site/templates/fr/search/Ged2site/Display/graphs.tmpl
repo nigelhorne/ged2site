@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+		<meta http-equiv="Content-Language" content="en">
+		<meta name="robots" content="INDEX,FOLLOW">
+		<meta name="language" content="ENGLISH">
+		<meta name="object" content="Index">
+		<meta name="owner" content="Nigel Horne">
+		<meta name="Author" content="Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne, all rights reserved">
+		[% IF graph == 'ageatdeath' %]
+			[% SET title = 'Adult Life Span' %]
+		[% ELSIF graph == 'birthmonth' %]
+			[% SET title = 'Mois de Naissance' %]
+		[% ELSIF graph == 'marriagemonth' %]
+			[% SET title = 'Month of Marriage' %]
+		[% ELSIF graph == 'deathmonth' %]
+			[% SET title = 'Month of Death' %]
+		[% ELSIF graph == 'ageatmarriage' %]
+			[% SET title = 'Average Age at First Marriage' %]
+		[% ELSIF graph == 'infantdeaths' %]
+			[% SET title = 'Infant Deaths' %]
+		[% ELSIF graph == 'firstborn' %]
+			[% SET title = 'Months between marriage and first born' %]
+		[% ELSIF graph == 'sex' %]
+			[% SET title = 'Sex of people born in each year' %]
+		[% ELSIF graph == 'ageatfirstchild' %]
+			[% SET title = 'Age of Parents on Birth of First Child' %]
+		[% ELSIF graph == 'ageatlastchild' %]
+			[% SET title = 'Age of Parents on Birth of Last Child' %]
+		[% ELSIF graph == 'dist' %]
+			[% SET title = 'Average distance between places of birth and death' %]
+		[% ELSIF graph == 'distcount' %]
+			[% SET title = 'Distance between places of birth and death' %]
+		[% ELSIF graph == 'familysizetime' %]
+			[% SET title = 'How Family Size Changes over Time' %]
+		[% ELSIF graph == 'motherchildren' %]
+			[% SET title = 'Number of Children by Women' %]
+		[% ELSE %]
+			[% SET title = 'Family Tree Analytics' %]
+		[% END %]
+		<title>[% title %]</title>
+		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A ged2site webpage">
+	</head>
+
+	<body>
+		<h1>[% title %]</h1>
+		<center>
+			[ <a href="?page=people&home=1">Home</a> ]
+			[ <a href="?page=censuses">Census Index</a> ]
+			[ <a href="?page=surnames">Surname Index</a> ]
+			[ <a href="?page=history">Family History</a> ]
+			[ <a href="?page=todo">To Do</a> ]
+			[ <a href="?page=calendar">Calendar</a> ]
+			[% IF graph %]
+				[ <a href="?page=graphs">Analytics</a> ] |
+			[% END %]
+			[ <a href="/visjs.html">Timeline</a> ]
+		</center>
+
+		[% IF graph == 'ageatdeath' %]
+			<p>
+				This graph of average age at death against year of death, starting at 1840,
+				only includes those who lived past the age of 20.
+			</p>
+		[% ELSIF graph == 'distcount' %]
+			<p>Select an area to zoom in.</p>
+		[% ELSIF graph == 'motherchildren' %]
+			<p>
+				This graph depends a lot on all children being recorded.
+				To make that more likely, mothers born before 1820 are not included.
+			</p>
+		[% ELSIF graph == 'ageatmarriage' %]
+			<p>If the data size is not large anomolies can appear.</p>
+		[% ELSIF graph == 'familysizetime' %]
+			<p>
+				The time period is set by the 5 year period of the birth of the first child.
+				Only 5 year periods that contain at least 5 families are shown.
+			</p>
+		[% ELSIF graph == 'infantdeaths' %]
+			<p>This graph shows percentage of those born who died aged 5 or younger.</p>
+		[% ELSIF graph == 'sex' %]
+			<p>This graph only includes data from 5 year periods that contain at least 25 births.</p>
+			<p>Select an area to zoom in.</p>
+		[% ELSIF graph == 'firstborn' %]
+			<p>This graph only includes data when the exact date of marriage and births are known.</p>
+			<p>Select an area to zoom in.</p>
+		[% ELSIF graph == 'dist' %]
+			<p>This graph only includes data from 5 year periods that contain at least 10 births.</p>
+			<p>People who moved much further away than most (for example emigrants) are not included so that the graph more reflects the norm.</p>
+			<p>Select an area to zoom in.</p>
+		[% ELSIF graph == 'ageatfirstchild' || graph == 'ageatlastchild' %]
+			<p>This graph only includes data when the year of births of parents and children are known.</p>
+			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
+		[% ELSIF graph == 'percentagedying' %]
+			<p>
+				If the percentage dying looks very large, probably the number of births is low in the tree,
+				so more births should be added to the tree.
+			</p>
+			<p>
+				People with no death information born after 1920 are assumed to be alive, those born before 1920
+				are assuming to be missing a death record.
+				These differences could cause anomolies.
+			</p>
+		[% END %]
+
+		<h2>Choose a Graph</h2>
+		<ul>
+			<li><a href="?page=graphs&graph=birthmonth">Month of birth</a></li>
+			<li><a href="?page=graphs&graph=marriagemonth">Month of marriage</a></li>
+			<li><a href="?page=graphs&graph=deathmonth">Month of death</a></li>
+			<li><a href="?page=graphs&graph=infantdeaths">Infant deaths</a></li>
+			<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
+			<li><a href="?page=graphs&graph=ageatdeath">Average age at death</a></li>
+			<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
+			<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
+			<li><a href="?page=graphs&graph=dist">Average distance between birth and death</a></li>
+			<li><a href="?page=graphs&graph=distcount">Distance count</a></li>
+			<li><a href="?page=graphs&graph=ageatfirstchild">Age of Parents on birth of first child</a></li>
+			<li><a href="?page=graphs&graph=ageatlastchild">Age of Parents on birth of last child</a></li>
+			<li><a href="?page=graphs&graph=familysizetime">How family size changes over time</a></li>
+			<li><a href="?page=graphs&graph=motherchildren">Number of children by women</a></li>
+		</ul>
+
+		Cette site web a &eacute;t&eacute; cr&eacute;&eacute; par <a href="https://github.com/nigelhorne/ged2site">ged2site</a>.
+		[% IF updated %]
+			[% USE date %]
+			Derni&egrave;re modification le [% date.format(time = updated, format = '%d %b %Y', locale = lingua.language_code_alpha2) %]
+		[% END %]
+	</body>
+</html>
