@@ -9,7 +9,7 @@
 		<meta name="object" content="Index">
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne, all rights reserved">
+		<meta name="Copyright" content="Copyright (C) 2021 Nigel Horne, all rights reserved">
 		[% IF graph == 'ageatdeath' %]
 			[% SET title = 'Adult Life Span' %]
 		[% ELSIF graph == 'birthmonth' %]
@@ -19,7 +19,7 @@
 		[% ELSIF graph == 'deathmonth' %]
 			[% SET title = 'Month of Death' %]
 		[% ELSIF graph == 'ageatmarriage' %]
-			[% SET title = 'Average Age at First Marriage' %]
+			[% SET title = 'Moyen &Acirc;age &aacute; Premi&egrave;e Mariage' %]
 		[% ELSIF graph == 'infantdeaths' %]
 			[% SET title = 'Infant Deaths' %]
 		[% ELSIF graph == 'firstborn' %]
@@ -48,7 +48,7 @@
 	<body>
 		<h1>[% title %]</h1>
 		<center>
-			[ <a href="?page=people&home=1">Home</a> ]
+			[ <a href="?page=people&home=1">Acceuil</a> ]
 			[ <a href="?page=censuses">Census Index</a> ]
 			[ <a href="?page=surnames">Surname Index</a> ]
 			[ <a href="?page=history">Family History</a> ]
@@ -112,7 +112,7 @@
 			<li><a href="?page=graphs&graph=marriagemonth">Month of marriage</a></li>
 			<li><a href="?page=graphs&graph=deathmonth">Month of death</a></li>
 			<li><a href="?page=graphs&graph=infantdeaths">Infant deaths</a></li>
-			<li><a href="?page=graphs&graph=ageatmarriage">Average age at marriage</a></li>
+			<li><a href="?page=graphs&amp;graph=ageatmarriage">Moyen &Acirc;age &aacute; Premi&egrave;e Mariage</a></li>
 			<li><a href="?page=graphs&graph=ageatdeath">Average age at death</a></li>
 			<li><a href="?page=graphs&graph=firstborn">Months of marriage before first child</a></li>
 			<li><a href="?page=graphs&graph=sex">Sex of people born in each year</a></li>
