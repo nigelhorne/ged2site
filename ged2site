@@ -2823,14 +2823,11 @@ sub print_person
 						complain({ person => $person, warning => "Removing trailing spaces from date of birth '$dateofbirth'" });
 						$dateofbirth =~ s/\s+$//;
 					}
-					my $y = year({
+					my $y = between(year({
 						person => $person,
 						date => $dateofbirth,
 						must_predate => $death_dt
-					});
-					if($y =~ /^fro?m (.+) to (.+)/i) {
-						$y = "between $1 and $2";
-					}
+					}));
 					$bio .= " $y" if($y);
 				}
 				$bio .= cite(@birthcitations);
@@ -3847,6 +3844,17 @@ sub print_person
 	my @note_locations;
 	my @residencelist;
 	my $diedathome;
+
+	my $military_location;
+
+	if((scalar(@residences) == 1) && (scalar(@events) == 1) &&
+	   $residences[0]->date() && $events[0]->date() &&
+	   (year(string => $residences[0]->date()) eq year(string => $events[0]->date())) &&
+	   (($events[0]->type() eq 'Military service') || ($events[0]->type() eq 'Military'))) {
+		# There's just one residence and one event which is military, and they are at the same time
+		# so put them together: "in 1970 he was living in London when he was serving in the milirary"
+		$military_location = 1;
+	}
 
 	if($opts{'l'} || !$is_alive) {
 		if(scalar(@childrenunknownparent)) {
@@ -4874,6 +4882,7 @@ sub print_person
 									($person->pronoun() eq 'She' ? 'her' : 'his') .
 									(($sex eq 'M') ? ' wife ' : ' husband ') .
 									year(date => $date);
+								$spdeath_dt = undef;
 							}
 							$printed_following_message = 1;
 						}
@@ -4979,8 +4988,10 @@ sub print_person
 						$diedathome = 1;
 					}
 				}
-				$bio .= '. ';
-				$end_of_sentence = 1;
+				if(!$military_location) {
+					$bio .= '. ';
+					$end_of_sentence = 1;
+				}
 			}
 		}
 	} else {
@@ -5101,11 +5112,7 @@ sub print_person
 				$end_of_sentence = 0;
 
 				if($dateofdeath) {
-					my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-					if($y =~ /^from (.+) to (.+)/i) {
-						$y = "between $1 and $2";
-					}
-					$bio .= " $y";
+					$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
 				}
 				if($placeofdeath && (my $p = place({ person => $person, record => $death, places_printed => \%places_printed }))) {
 					$bio .= $p;
@@ -5247,11 +5254,7 @@ sub print_person
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
 				$bio .= i18n(' on the same day');
 			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($y =~ /^from (.+) to (.+)/i) {
-					$y = "between $1 and $2";
-				}
-				$bio .= " $y";
+				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
 			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
 				my $p = $1;
 				if($dateofdeath =~ /\s$/) {
@@ -5265,11 +5268,7 @@ sub print_person
 					complain({ person => $person, warning => "Removing trailing spaces from date of death '$death'" });
 					$dateofdeath =~ s/\s+$//;
 				}
-				my $y = year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				if($y =~ /^from (.+) to (.+)/i) {
-					$y = "between $1 and $2";
-				}
-				$bio .= " $y";
+				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
 					my $place = place({ person => $person, record => $death, places_printed => \%places_printed });
 					if(!defined($place)) {
@@ -5422,10 +5421,10 @@ sub print_person
 				if(my $spouse = $spouses[0]) {
 					foreach my $sevent($spouse->event()) {
 						if(ref($sevent) eq 'Gedcom::Record') {
-							my $type = $event->type();
-							if(!defined($type)) {
+							my $stype = $sevent->type();
+							if(!defined($stype)) {
 								red_warning({ person => $spouse, warning => "Can't determine type of event, or the event type is empty" });
-							} elsif($sevent->place() && ($type eq 'Arrival') &&
+							} elsif($sevent->place() && ($stype eq 'Arrival') &&
 							   $event->date() && $sevent->date() &&
 							   ($event->date() eq $sevent->date()) &&
 							   ($event->place() eq $sevent->place())) {
@@ -5469,7 +5468,9 @@ sub print_person
 			} elsif(($type eq 'Military service') || ($type eq 'Military')) {
 				$bio .= '.' if(!$end_of_sentence);
 				my $date = year(record => $event);
-				if($date) {
+				if($military_location) {
+					$bio .= ' when ' . lcfirst($pronoun) . (' was serving in the military');
+				} elsif($date) {
 					if($date !~ /^from /i) {
 						$bio .= ' ' . ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
 					} else {
@@ -10792,6 +10793,19 @@ sub i18n
 		return " $format";
 	}
 	return $format;
+}
+
+sub between
+{
+	if(my $phrase = shift) {
+		if($phrase =~ /^fro?m (.+) to (.+)/i) {
+			if($language eq 'French') {
+				return "entre $1 et $2";
+			}
+			return "between $1 and $2";
+		}
+		return $phrase;
+	}
 }
 
 # Must all be in lower case
