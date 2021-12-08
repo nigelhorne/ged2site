@@ -3159,6 +3159,11 @@ sub print_person
 					my $orphaned_year = (($myod > $fyod) ? $myod : $fyod);
 					if($myod == $fyod) {
 						$bio .= "in $myod by the death of both parents in that year.";
+						$bio .= 'when both of ' .
+							($person->pronoun() eq 'She') ? 'her' : 'his' .
+							" parents died in $myod when " .
+							lcfirst($person->pronoun()) .
+							' was ' .  $myod - $yob .  ' years old';
 					} elsif($myod > $fyod) {
 						$bio .= 'at the age of ' . ($myod - $yob) .
 							i18n(' following the death of ') .
