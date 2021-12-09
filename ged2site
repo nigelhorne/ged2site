@@ -3510,6 +3510,8 @@ sub print_person
 					$bio .= ' was married';
 				}
 				$bio .= ' ';
+				$bio .= i18n(' and') if($numberofchildren > 0);
+
 				if(scalar(@spouses) == 2) {
 					if($spouses[0]->xref() eq $spouses[1]->xref()) {
 						complain({ person => $person, warning => [ 'Married twice to ', $spouses[0]->as_string() ] });
@@ -3528,7 +3530,7 @@ sub print_person
 				$bio =~ s/&/&amp;/g;
 				print $xml $bio;
 
-				$fullbio .= $bio;
+				$fullbio .= "$bio,";
 				$bio = '';
 
 				my $all_marriages_have_date = 1;
