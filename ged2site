@@ -9914,7 +9914,18 @@ sub get_all_occupations
 	while($occupations[0] && ($occupations[0] =~ /Unpaid domestic duties/i)) {
 		shift @occupations;
 	}
-	# TODO: sortout case
+
+	while(scalar(@occupations) > 1) {
+		if(($occupations[0] =~ /^labou?rer/i) && ($occupations[1] =~ /^labou?rer/i)) {
+			shift @occupations;
+		} elsif(lc($occupations[0]) eq lc($occupations[1])) {
+			shift @occupations;
+		} else {
+			last;
+		}
+	}
+
+	# TODO: sort out case
 	if(scalar(@occupations)) {
 		if($occupations[0] =~ /works? on (.+)/i) {
 			$occupations[0] = "$1 worker";
@@ -9976,24 +9987,15 @@ sub get_all_occupations
 		} elsif($occupations[0] =~ /^(.+) on farm/i) {
 			$occupations[0] = "$1 on a farm";
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
+		} elsif($occupations[0] =~ /police$/i) {
+			$occupations[0] .= ' officer';
 		} elsif(($occupations[0] eq 'Nurse') && ($language eq 'French')) {
 			$occupations[0] = ($person->sex() eq 'M') ? 'infirmier' : "infirmi\N{U+00E8}re";
 		} elsif($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i) {
 			# Don't change Bus Driver to Bu's Driver
 			$occupations[0] = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
 		}
-	}
-	while(scalar(@occupations) > 1) {
-		if(($occupations[0] =~ /^labou?rer/i) && ($occupations[1] =~ /^labou?rer/i)) {
-			shift @occupations;
-		} elsif(lc($occupations[0]) eq lc($occupations[1])) {
-			shift @occupations;
-		} else {
-			last;
-		}
-	}
 
-	if(scalar(@occupations)) {
 		if($occupations[0]) {
 			if($language eq 'English') {
 				if($ENV{'LANG'} =~ /^en_US/) {
