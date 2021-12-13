@@ -3522,7 +3522,7 @@ sub print_person
 					$bio .= scalar(@spouses) . i18n(' times');
 				}
 
-				$bio .= ', to';
+				$bio .= ' - to';
 
 				$html_and_csv->print($bio);
 				$bio =~ s/</&lt;/g;
@@ -3530,7 +3530,7 @@ sub print_person
 				$bio =~ s/&/&amp;/g;
 				print $xml $bio;
 
-				$fullbio .= "$bio,";
+				$fullbio .= $bio;
 				$bio = '';
 
 				my $all_marriages_have_date = 1;
