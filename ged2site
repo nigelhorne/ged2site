@@ -3297,7 +3297,7 @@ sub print_person
 					foreach my $child(@children) {
 						if($sex eq 'F') {
 							# Check through all possible fathers, since there could be a biological and
-							# and adoptive one listed
+							# and adoptive ones listed
 							# FIXME: this assumes that the spouse is the biological father, which is not
 							#	a good assumption to make
 							my @candidates = $child->father();
