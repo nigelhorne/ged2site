@@ -312,7 +312,7 @@ sub doit
 	$linguacache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Lingua');
 
 	my $lingua = CGI::Lingua->new({
-		supported => [ 'en-gb', 'fr-fr' ],
+		supported => [ 'en-gb', 'fr' ],
 		cache => $linguacache,
 		info => $info,
 		logger => $logger,
