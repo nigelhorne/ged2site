@@ -84,6 +84,7 @@ use Ged2site::Display::twins;
 use Ged2site::Display::reports;
 use Ged2site::Display::facts;
 use Ged2site::Display::mailto;
+use Ged2site::Display::meta_data;
 
 use Ged2site::DB::people;
 if($@) {
@@ -411,6 +412,8 @@ sub doit
 			$display = Ged2site::Display::mailto->new($args);
 		} elsif($page eq 'home') {
 			$display = Ged2site::Display::home->new($args);
+		} elsif($page eq 'meta-data') {
+			$display = Ged2site::Display::meta_data->new($args);
 		} else {
 			$logger->info("Unknown page $page");
 			$invalidpage = 1;
@@ -510,7 +513,8 @@ sub choose
 			"/cgi-bin/page.fcgi?page=twins\n",
 			"/cgi-bin/page.fcgi?page=reports\n",
 			"/cgi-bin/page.fcgi?page=facts\n",
-			"/cgi-bin/page.fcgi?page=mailto\n";
+			"/cgi-bin/page.fcgi?page=mailto\n",
+			"/cgi-bin/page.fcgi?page=meta-data\n";
 	}
 }
 

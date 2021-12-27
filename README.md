@@ -107,6 +107,10 @@ site before you deploy. Be aware that you will also see debugging messages.
     ./page.fcgi page=surnames surname=horne lang=fr # List people whose surname is Horne, in French
     ./page.fcgi --mobile page=surnames surname=horne # List people whose surname is Horne, as it would appear on a smart-phone
 
+To see the environment of the system to help with debugging
+
+    https://localhost/cgi-bin/page.fcgi?page=meta-data
+
 Pre-Requisites
 ==============
 
