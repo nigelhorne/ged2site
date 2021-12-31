@@ -3850,7 +3850,7 @@ sub print_person
 	my $military_location;
 
 	if((scalar(@residences) == 1) && (scalar(@events) == 1) &&
-	   $residences[0]->date() && $events[0]->date() &&
+	   $residences[0]->date() && ref($events[0]) && $events[0]->date() &&
 	   (year(string => $residences[0]->date()) eq year(string => $events[0]->date())) &&
 	   (($events[0]->type() eq 'Military service') || ($events[0]->type() eq 'Military'))) {
 		# There's just one residence and one event which is military, and they are at the same time
