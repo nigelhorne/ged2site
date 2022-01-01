@@ -3775,23 +3775,33 @@ sub print_person
 								# ')'
 							# } @children);
 							my %childmap;
+							my $surviving_children;
 							if($sex eq 'M') {
 								foreach my $child(@children) {
-									if(my $mother = $child->mother()) {
-										push @{$childmap{$mother->given_names()}}, $child;
+									if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
+										if(my $mother = $child->mother()) {
+											push @{$childmap{$mother->given_names()}}, $child;
+										} else {
+											push @{$childmap{'unknown mother'}}, $child;
+										}
 									} else {
-										push @{$childmap{'unknown mother'}}, $child;
+										$surviving_children++;
 									}
 								}
 							} else {
 								foreach my $child(@children) {
-									if(my $father = $child->father()) {
-										push @{$childmap{$father->given_names()}}, $child;
+									if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
+										if(my $father = $child->father()) {
+											push @{$childmap{$father->given_names()}}, $child;
+										} else {
+											push @{$childmap{'unknown father'}}, $child;
+										}
 									} else {
-										push @{$childmap{'unknown mother'}}, $child;
+										$surviving_children++;
 									}
 								}
 							}
+
 							my @childnames;
 							while(my ($key, $value) = each %childmap) {
 								push @childnames,
@@ -3805,6 +3815,12 @@ sub print_person
 							# TODO: restore old values
 							Lingua::Conjunction->separator_phrase(',');
 							Lingua::Conjunction->penultimate(0);
+
+							if($surviving_children == 1) {
+								$bio .= ', and one surviving child';
+							} elsif($surviving_children > 1) {
+								$bio .= ", and $surviving_children surviving children";
+							}
 						}
 					}
 				}
