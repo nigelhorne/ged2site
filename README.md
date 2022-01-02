@@ -226,7 +226,7 @@ Profile pictures are not handled with output from Ancestry.  Findmypast is handl
 Acknowledgements
 ================
 
-http://fullcalendar.io for the calendar view
+https://fullcalendar.io for the calendar view
 
 https://github.com/weichie/animated-Timeline for the family history view
 
@@ -249,7 +249,7 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 # LICENSE AND COPYRIGHT
 
-Copyright 2015-2021 Nigel Horne.
+Copyright 2015-2022 Nigel Horne.
 
 This program is released under the following licence: GPL2 for personal use on
 a single computer.

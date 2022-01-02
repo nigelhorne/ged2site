@@ -7,64 +7,21 @@
 		[% ELSE %]
 			<title>Calendar of [% SiteTitle.join(' ') %]</title>
 		[% END %]
+		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
 		<meta http-equiv="Content-Language" content="English">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
-		<!--
-			https://fullcalendar.io/js/fullcalendar-2.9.1/demos/agenda-views.html
-			<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
-		-->
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.css" />
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.print.css" media="print" />
-
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.9.0/fullcalendar.min.js"></script>
-
-		<script>
-			\$(document).ready(function() {
-				\$('#calendar').fullCalendar({
-					header: {
-						left: 'prev,next',
-						// center: 'Calendar of [% SiteTitle.join(" ") %]'
-						center: 'title',
-						right: '',
-					},
-					eventLimit: true, // allow "more" link when too many events
-					events: [
-						[% FOREACH event IN events %]
-							{
-								title: '[% event.title %]: [% event.year %] [% event.event %]',
-								start: '[% year %]-[% event.month | format('%02d') %]-[% event.day | format('%02d') %]',
-								url: '/cgi-bin/page.fcgi?page=people&entry=[% event.person %]'
-							},
-						[% END %]
-					]
-				});
-			});
-		</script>
-		<style>
-			body {
-				margin: 40px 10px;
-				padding: 0;
-				font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-				font-size: 14px;
-			}
-
-			#calendar {
-				max-width: 1500px;
-				margin: 0 auto;
-			}
-		</style>
 	</head>
 	<body>
 		<center>
 			<h1>Calendar of [% SiteTitle.join(' ') %]</h1>
+			<p>
+				This page shows a calendar of births, marriages and deaths in [% SiteTitle.join(' ') %]
+			</p>
 			[% IF error %]
 				<p><font color="red" size="+2">[% error %]</font></p>
 			[% END %]
-			<div id='calendar'></div>
 			<a href="?page=people&home=1">Home</a><br>
 			<a href="?page=censuses">Census Index</a><br>
 			<a href="?page=surnames">Surname Index</a><br>
