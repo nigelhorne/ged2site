@@ -5099,7 +5099,11 @@ sub print_person
 				$bio .= " $pronoun ";
 				$bio .= i18n({ person => $person, format => 'was buried' });
 				if(my $address = $burial->address()) {
-					$bio .= " at $address";
+					if($language eq 'French') {
+						$bio .= " \N{U+00E0} $address";
+					} else {
+						$bio .= " at $address";
+					}
 				}
 				$bio .= ' in ' . lcfirst($person->possessive()) .
 					' home town of ';
@@ -5173,7 +5177,11 @@ sub print_person
 					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && !$death->address()) {
 						$bio .= ' there';
 						if($address) {
-							$bio .= " at $address";
+							if($language eq 'French') {
+								$bio .= " \N{U+00E0} $address";
+							} else {
+								$bio .= " at $address";
+							}
 						}
 					} else {
 						$bio .= place($opts);
