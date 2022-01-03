@@ -1,7 +1,7 @@
 package Ged2site::DB;
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2021, Nigel Horne
+# Copyright (C) 2015-2022, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -68,10 +68,10 @@ sub new {
 	my $class = ref($proto) || $proto;
 
 	if($class eq __PACKAGE__) {
-		die "$class: abstract class";
+		croak("$class: abstract class");
 	}
 
-	die "$class: where are the files?" unless($directory || $args{'directory'});
+	croak("$class: where are the files?") unless($directory || $args{'directory'});
 	# init(\%args);
 
 	return bless {
@@ -108,6 +108,8 @@ sub set_logger {
 	}
 
 	$self->{'logger'} = $args{'logger'};
+
+	return $self;
 }
 
 # Open the database.
@@ -285,6 +287,8 @@ sub _open {
 	$self->{$table} = $dbh;
 	my @statb = stat($slurp_file);
 	$self->{'_updated'} = $statb[9];
+
+	return $self;
 }
 
 # Returns a reference to an array of hash references of all the data meeting
@@ -578,6 +582,12 @@ sub AUTOLOAD {
 		} else {
 			if($self->{'logger'}) {
 				$self->{'logger'}->debug("AUTOLOAD params $key isn't defined");
+			}
+			if($done_where) {
+				$query .= " AND $key IS NULL";
+			} else {
+				$query .= " WHERE $key IS NULL";
+				$done_where = 1;
 			}
 		}
 	}
