@@ -17,6 +17,8 @@ use File::Spec;
 use Carp;
 use Error;
 
+use constant DSHIELD => 'https://secure.dshield.org/api/sources/attacks/100/2012-03-08';
+
 our %blacklist_countries = (
 	'BY' => 1,
 	'MD' => 1,
@@ -227,9 +229,14 @@ sub allow {
 		if($logger) {
 			$logger->trace('Downloading DShield signatures');
 		}
+
 		my $xml;
 		eval {
-			$xml = XML::LibXML->load_xml(string => LWP::Simple::WithCache::get('https://secure.dshield.org/api/sources/attacks/100/2012-03-08'));
+			if(my $string = LWP::Simple::WithCache::get(DSHIELD)) {
+                                $xml = XML::LibXML->load_xml(string => $string);
+                        } else {
+                                warn DSHIELD;
+                        }
 		};
 		unless($@ || !defined($xml)) {
 			foreach my $source ($xml->findnodes('/sources/data')) {
