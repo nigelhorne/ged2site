@@ -4526,7 +4526,8 @@ sub print_person
 
 									my $p = place({ person => $mother, record => $mr, nopreposition => 1 });
 									next unless($p);
-									if(($p =~ /^\s\d/) && ($p eq $place)) {
+									# if(($p =~ /^\s\d/) && ($p eq $place)) {
+									if($p eq $place) {
 										if($mdate eq $rdate) {
 											$with_mother++;
 											last;
@@ -4561,7 +4562,8 @@ sub print_person
 
 									my $p = place({ person => $father, record => $fr, nopreposition => 1 });
 									next unless($p);
-									if(($p =~ /^\s\d/) && ($p eq $place)) {
+									# if(($p =~ /^\s\d/) && ($p eq $place)) {
+									if($p eq $place) {
 										if($fdate eq $rdate) {
 											$with_father++;
 											last;
@@ -10949,4 +10951,7 @@ with::mit
 @@ Latin
 husband::maritus
 wife::uxor
+@@ Spanish
+he::él
+is::es
 __END__
