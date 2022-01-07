@@ -118,9 +118,11 @@ my $names = Ged2site::DB::names->new();
 my $twins = Ged2site::DB::twins->new();
 my $military = Ged2site::DB::military->new();
 
-# open STDERR, ">&STDOUT";
-close STDERR;
-open(STDERR, '>>', "$tmpdir/$script_name.stderr");
+if($ENV{'HTTP_USER_AGENT'}) {
+	# open STDERR, ">&STDOUT";
+	close STDERR;
+	open(STDERR, '>>', "$tmpdir/$script_name.stderr");
+}
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
