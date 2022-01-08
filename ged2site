@@ -9858,7 +9858,8 @@ sub get_all_residences
 		}
 	}
 
-	@rc = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @rc;
+	# TODO: Can't do this as so many things check ref($record) eq 'Gedcom::Record'
+	# @rc = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @rc;
 
 	if($opts{'w'}) {
 		# Warn if the address was 33 Foo St in 1900, and Foo St in 1910.
