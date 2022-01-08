@@ -3309,7 +3309,7 @@ sub print_person
 									last;
 								}
 							}
-							if((!defined($father)) || ($father ne $spouse)) {
+							if((!defined($father)) || ($father->xref() ne $spouse->xref())) {
 								push @childrenunknownparent, $child;
 								$numberofchildrenwiththisspouse--;
 							} else {
@@ -3317,7 +3317,7 @@ sub print_person
 							}
 						} else {
 							my $mother = $child->mother();
-							if((!defined($mother)) || ($mother ne $spouse)) {
+							if((!defined($mother)) || ($mother->xref() ne $spouse->xref())) {
 								push @childrenunknownparent, $child;
 								$numberofchildrenwiththisspouse--;
 							} else {
@@ -3628,7 +3628,7 @@ sub print_person
 					$spouse_number++;
 					if((scalar(@spouses) == 2) && ($spouse_number == 2)) {
 						my $death_of_first_spouse = dateofdeath($spouses[0]);
-						if(datecmp($dateofmarriage, $death_of_first_spouse) > 0) {
+						if($death_of_first_spouse && (datecmp($dateofmarriage, $death_of_first_spouse) > 0)) {
 							if($printed_bracket) {
 								$bio .= ', ';
 							} else {
