@@ -1602,6 +1602,7 @@ sub print_person
 	my $mother = $person->mother();
 	my $father = $person->father();
 	my @spouses = $person->spouse();
+	@spouses = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @spouses;
 
 	# TODO: Properly chart which spouse a child comes from
 	if($opts{'w'}) {
@@ -3557,6 +3558,7 @@ sub print_person
 						}
 						date_to_datetime(date => $date);
 					} @spouses;
+					@spouses = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @spouses;
 				}
 
 				my $spouse_number = 0;
@@ -3624,8 +3626,8 @@ sub print_person
 						$printed_bracket = 1;
 					}
 					$spouse_number++;
-					if((scalar(@spouses) == 2) && $all_marriages_have_date && ($spouse_number == 2) &&
-					   (my $death_of_first_spouse = dateofdeath($spouses[0]))) {
+					if((scalar(@spouses) == 2) && ($spouse_number == 2)) {
+						my $death_of_first_spouse = dateofdeath($spouses[0]);
 						if(datecmp($dateofmarriage, $death_of_first_spouse) > 0) {
 							if($printed_bracket) {
 								$bio .= ', ';
@@ -3638,7 +3640,7 @@ sub print_person
 								$death_of_first_spouse =~ s/\s+$//;
 							}
 							$bio .= i18n('following the death of ') .
-								$spouses[0]->as_string() . ' ' .
+								$spouses[0]->given_names() . ' ' .
 								year({
 									person => $spouses[0],
 									record => $death_of_first_spouse,
@@ -3672,12 +3674,12 @@ sub print_person
 					foreach my $family ($person->fams()) {
 						if($family->number_of_children() &&
 						   ($spouse = ($sex eq 'M') ? $family->wife() : $family->husband())) {
-							my $spouse = ($sex eq 'M') ? $family->wife() : $family->husband();
 							foreach my $child($person->children()) {
 								$unknown = $child;
+								my $xref = $child->xref();
 								foreach my $spouseschild($spouse->children()) {
-									if($spouseschild eq $child) {
-										$childrenbyspouse{$spouse}++;
+									if($spouseschild->xref() eq $xref) {
+										$childrenbyspouse{$spouse->xref()}++;
 										$childrenseen++;
 										$unknown = undef;
 										last;
@@ -3692,9 +3694,6 @@ sub print_person
 						# may be the case where someone married more than once,
 						# and has a child by a 3rd unknown (or unfound) person
 						if($opts{'w'}) {
-							if($opts{'f'}) {
-								die $person->as_string(), ': one of the parents of ', ($numberofchildren - $childrenseen), ' children is not known';
-							}
 							if(($numberofchildren - $childrenseen) == 1) {
 								if($unknown) {
 									red_warning({ person => $person, warning => 'One of the parents of ' . $unknown->as_string() . ' is not known'});
@@ -3707,11 +3706,11 @@ sub print_person
 						}
 					} else {
 						foreach my $spouse(@spouses) {
-							if($parentofall && $childrenbyspouse{$spouse}) {
+							if($parentofall && $childrenbyspouse{$spouse->xref()}) {
 								$parentofall = undef;
 								last;
 							}
-							if($childrenbyspouse{$spouse}) {
+							if($childrenbyspouse{$spouse->xref()}) {
 								$parentofall = $spouse;
 							}
 						}
