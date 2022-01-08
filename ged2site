@@ -9858,6 +9858,8 @@ sub get_all_residences
 		}
 	}
 
+	@rc = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @rc;
+
 	if($opts{'w'}) {
 		# Warn if the address was 33 Foo St in 1900, and Foo St in 1910.
 		# Don't warn about earlier years if the year was before 1900
