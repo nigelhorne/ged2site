@@ -3295,6 +3295,7 @@ sub print_person
 					my @childrenofthisspouse;
 					my $numberofchildrenwiththisspouse = $numberofchildren;
 					my $spouse = $spouses[0];
+					my $sxref = $spouse->xref();
 					foreach my $child(@children) {
 						if($sex eq 'F') {
 							# Check through all possible fathers, since there could be a biological and
@@ -3304,12 +3305,12 @@ sub print_person
 							my @candidates = $child->father();
 							my $father;
 							foreach (@candidates) {
-								if($_ eq $spouse) {
+								if($_->xref() eq $sxref) {
 									$father = $_;
 									last;
 								}
 							}
-							if((!defined($father)) || ($father->xref() ne $spouse->xref())) {
+							if((!defined($father)) || ($father->xref() ne $sxref)) {
 								push @childrenunknownparent, $child;
 								$numberofchildrenwiththisspouse--;
 							} else {
@@ -3317,7 +3318,7 @@ sub print_person
 							}
 						} else {
 							my $mother = $child->mother();
-							if((!defined($mother)) || ($mother->xref() ne $spouse->xref())) {
+							if((!defined($mother)) || ($mother->xref() ne $sxref)) {
 								push @childrenunknownparent, $child;
 								$numberofchildrenwiththisspouse--;
 							} else {
