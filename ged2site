@@ -10426,7 +10426,13 @@ sub dateofbirth {
 	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birth'))) {
 		$dateofbirth = $birth->date();
 	}
-	return parse_date({ date => $dateofbirth, type => 'Birth', person => $person });
+	if(defined($dateofbirth)) {
+		if($dateofbirth =~ /\s$/) {
+			complain({ person => $person, warning => "Removing trailing spaces from date of birth '$dateofbirth'" });
+			$dateofbirth =~ s/\s+$//;
+		}
+		return parse_date({ date => $dateofbirth, type => 'Birth', person => $person });
+	}
 }
 
 sub dateofmarriage
@@ -10502,6 +10508,11 @@ sub parse_date
 				}
 				# FIXME: assumes the months are in English
 				return $1 . ucfirst(lc(substr($2, 0, 3))) . " $3";
+			}
+			print "\n";
+			my $i = 0;
+			while((my @call_details = caller($i++))) {
+				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			}
 			die "BUG: handle '$date'";
 		}
