@@ -3884,7 +3884,7 @@ sub print_person
 			if(scalar(@childrenunknownparent) == 1) {
 				$bio .= i18n('child, ');
 			} else {
-				$bio .= 'children, ';
+				$bio .= i18n('children, ');
 			}
 			$bio .= conjunction(map { $_->given_names() } @childrenunknownparent) .
 				', whose ' .
@@ -10856,6 +10856,7 @@ birthplace::ville natal
 both with %s::both with %s
 check out %s::check out %s
 child::child
+children::children
 died::died
 during %s life::during %s life
 eldest::eldest
@@ -10904,6 +10905,7 @@ birthplace::ville natal
 both with %s::tous les deux avec %s
 check out %s::visitez %s
 child::enfant
+children::enfants
 died:M:est mort
 died:F:est morte
 during %s life::pendant sa vie
