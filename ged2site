@@ -10433,6 +10433,7 @@ sub dateofbirth {
 		}
 		return parse_date({ date => $dateofbirth, type => 'Birth', person => $person });
 	}
+	return;	# return undef
 }
 
 sub dateofmarriage
