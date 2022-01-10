@@ -8791,6 +8791,7 @@ sub place {
 								$preposition = 'au';
 							}
 						}
+						utf8::decode($place);
 						$place = " $preposition $place";
 					}
 				}
