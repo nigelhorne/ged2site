@@ -2,6 +2,7 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
+		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
 		[% IF graph == 'ageatdeath' %]
 			[% SET title = 'Adult Life Span' %]
 		[% ELSIF graph == 'birthmonth' %]
@@ -11,7 +12,7 @@
 		[% ELSIF graph == 'deathmonth' %]
 			[% SET title = 'Month of Death' %]
 		[% ELSIF graph == 'ageatmarriage' %]
-			[% SET title = 'Moyen &Acirc;age &aacute; Premi&egrave;e Mariage' %]
+			[% SET title = 'Moyen &Acirc;ge &aacute; Premi&egrave;e Mariage' %]
 		[% ELSIF graph == 'infantdeaths' %]
 			[% SET title = 'Infant Deaths' %]
 		[% ELSIF graph == 'firstborn' %]
@@ -31,7 +32,6 @@
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="Copyright" content="Copyright (C) 2019 Nigel Horne">
 		<title>[% title %]</title>
 		[% IF datapoints %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
@@ -200,7 +200,7 @@
 				<a href="?page=graphs&graph=marriagemonth" class="myButton">Month of Marriage</a><br><br>
 				<a href="?page=graphs&graph=deathmonth" class="myButton">Month of Death</a><br><br>
 				<a href="?page=graphs&graph=infantdeaths" class="myButton">Infant deaths</a><br><br>
-				<li><a href="?page=graphs&amp;graph=ageatmarriage">Moyen &Acirc;age &aacute; Premi&egrave;e Mariage</a></li>
+				<li><a href="?page=graphs&amp;graph=ageatmarriage">Moyen &Acirc;ge &aacute; Premi&egrave;e Mariage</a></li>
 				<a href="?page=graphs&graph=firstborn" class="myButton">Months of marriage before first child</a><br><br>
 				<a href="?page=graphs&graph=sex" class="myButton">Sex of people born in each year</a><br><br>
 				<a href="?page=graphs&graph=dist" class="myButton">Average distance between birth and death</a><br><br>
