@@ -7,7 +7,7 @@
 		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
 		<link rel="stylesheet" href="/css/sprite.css" type="text/css">
 		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
-		<meta name="Copyright" content="Copyright (C) 2021 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
 		[% IF person %]
 			<title>[% person.title %]</title>
 			<meta name="description" content="About [% person.title %] - A ged2site webpage">
@@ -73,9 +73,9 @@
 							<!-- Twitter -->
 							[% IF twitter %]
 								<!-- use the twitter value from the configuration file -->
-								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% person.title | replace('\s+', '%20') %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=g&eacute;n&eacute;alogie&amp;text=[% person.title | replace('\s+', '%20') %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 							[% ELSE %]
-								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% person.title | replace('\s+', '%20') %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=g&eacute;n&eacute;alogie&amp;text=[% person.title | replace('\s+', '%20') %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 							[% END %]
 								<!--
 									<img src="/images/socicon.com/twitter.png" alt="Twitter" height="50" width="50">
@@ -204,7 +204,7 @@
 				[% END %]
 				[% IF person.map_body %]
 					<div class="non-printable">
-						<h2>Map</h2>
+						<h2>Carte</h2>
 						<center>
 							[% decode_base64url(person.map_body) %]
 						</center>
