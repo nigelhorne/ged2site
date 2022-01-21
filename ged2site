@@ -9993,7 +9993,7 @@ sub get_all_occupations
 			$occupations[0] = 'Agricultural Labourer';
 		} elsif($occupations[0] eq 'Poultry Farming') {
 			if($language eq 'French') {
-				$occupations[0] = 'Agriculteur de poulet';
+				$occupations[0] = (($person->sex() eq 'M') ? 'Agriculteur de poulet' : 'Agricultrice de poulet');
 			} else {
 				$occupations[0] = 'Poultry Farmer';
 			}
@@ -10062,9 +10062,9 @@ sub get_all_occupations
 				if($occupations[0] eq 'Postman') {
 					$occupations[0] = (($person->sex() eq 'M') ? 'Facteur' : 'Factrisse');
 				} elsif($occupations[0] =~ /(.+)\sFarmer/) {
-					$occupations[0] = "Agriculteur $1";
+					$occupations[0] = (($person->sex() eq 'M') ? "Agriculteur $1" : "Agricultrice $1");
 				} elsif($occupations[0] eq 'Farmer') {
-					$occupations[0] = 'Agriculteur';
+					$occupations[0] = (($person->sex() eq 'M') ? 'Agriculteur' : 'Agricultrice');
 				}
 			}
 			$occupations[0] =~ s/[\(\)]//g;
