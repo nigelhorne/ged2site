@@ -193,9 +193,11 @@ Environment Variables
 For compatibility with other code, these environment variables are honoured:
 
     BMAP_KEY: Bing (virtualearth.net) API Key
-    GMAP_KEY: Google Places (maps.googleapis.com) API Key
     GEONAMES_USE: geonames.org registered username
+    GMAP_KEY: Google Places (maps.googleapis.com) API Key
+    LANG: some handling of en_GB and en_US translating between then, fr_FR is a work in progress
     OPENADDR_HOME: directory of data from http://results.openaddresses.io/
+    REDIS_SERVER: ip:port pair of where to cache geo-coding data
 
 Bugs
 ====

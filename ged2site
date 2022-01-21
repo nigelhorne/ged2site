@@ -463,23 +463,28 @@ if($opts{'m'} || $opts{'w'}) {
 	if(!-d $cachedir) {
 		mkdir $cachedir, 0700 || die "$cachedir: $!";
 	}
-	# FIXME: The location of the geo-coding database should be configurable
-	$geocoder = Geo::Coder::List->new(
-		# cache => CHI->new(driver => 'File', root_dir => $cachedir)
-		# cache => CHI->new(
+
+	my $gopts;
+	if(my $redis = $ENV{'REDIS_SERVER'}) {
+		$gopts->{'cache'} = CHI->new(
+			driver => 'Redis',
+			namespace => 'gedcom',
+			server => $redis,
+			debug => $opts{'v'}
+		);
+	} else {
+		# FIXME: The location of the geo-coding cache should be configurable
+		$gopts->{'cache'} = CHI->new(driver => 'File', root_dir => $cachedir);
+		# $gopts->{'cache'} = CHI->new(
 			# driver => 'Memcached',
 			# namespace => 'gedcom',
 			# servers => [ '192.168.1.16:11211', '192.168.1.15:11211', '127.0.0.1:11211', '192.168.1.2:11211' ],
 			# debug => $opts{'v'},
 			# compress_threshold => 10_000
-		# )
-		cache => CHI->new(
-			driver => 'Redis',
-			namespace => 'gedcom',
-			server => '192.168.1.16:6379',
-			debug => $opts{'v'}
-		)
-	);
+		# );
+	}
+	$geocoder = Geo::Coder::List->new($gopts);
+
 	$geocoder->push(Geo::Coder::Free::Local->new());
 
 	if(my $oa = $ENV{'OPENADDR_HOME'}) {
