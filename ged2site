@@ -54,7 +54,7 @@ my @needfull;
 # Install Pre-requisites
 BEGIN {
 	my @modules = (
-		'Config::Auto',
+		'Array::Iterator', 'Config::Auto',
 		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
 		'Date::Manip', 'Parse::RecDescent', 'Roman',
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
@@ -4107,24 +4107,27 @@ sub print_person
 			if($spouses[0] && ($spdeath_dt = dateofdeath($spouses[0]))) {
 				$spdeath_dt = date_to_datetime(date => $spdeath_dt);
 			}
-			my $print_year_only;	# used when printing a range, e.g. 1871-1891
 			my $printed_following_message;
 			# my $yod;
 			# my $dod = dateofdeath($person);
 			# if($dod && ($dod =~ /.*?(\d{3,4})/)) {
 				# $yod = $1;
 			# }
+			my $print_year_only;	# used when printing a range, e.g. 1871-1891
 			my %printed_dates;
 
 			my @residencestringarray;
 
 			print "Sanity checking the residences\n" if($opts{'v'});
 			# Create a list of residence strings
-			foreach my $residence(@residencelist) {
+			#
+			# foreach my $residence(@residencelist) {
+			my $r = Array::Iterator->new({ __array__ => \@residencelist });
+			while(my $residence = $r->get_next()) {
 				my $rdate = $residence->date();
+				my $residencestring;
 				my $latitude;
 				my $longitude;
-				my $residencestring;
 
 				print __LINE__, ": count = $count\n" if($opts{'v'});
 
@@ -4413,7 +4416,8 @@ sub print_person
 					  (!$rdate) &&
 					  ($count <= (scalar(@residencelist) - 1)) &&
 					  ($residencecitations{$residence})) {
-						my $peek = $residencelist[$count + 1];
+						# my $peek = $residencelist[$count + 1];
+						my $peek = $r->peek();
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							push @citationlist, $residencecitations{$peek};
 						}
@@ -4430,10 +4434,12 @@ sub print_person
 						$print_year_only = 0;
 					}
 				} else {
-					my $peek = $residencelist[$count];
+					# my $peek = $residencelist[$count];
+					my $peek = $r->peek();
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						my $nextnotes = notes(record => $peek);
-						$peek = $residencelist[$count + 1];
+						# $peek = $residencelist[$count + 1];
+						$peek = $r->peek(2);
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							# FIXME: work with citations by printing them all
 							if((!$opts{'c'}) && $rdate && ($rdate =~ /^\d{4}$/) && $peek->date() && ($peek->date() =~ /^\d{4}$/)) {
