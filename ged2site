@@ -4120,8 +4120,7 @@ sub print_person
 
 			print "Sanity checking the residences\n" if($opts{'v'});
 			# Create a list of residence strings
-			#
-			# foreach my $residence(@residencelist) {
+
 			my $r = Array::Iterator->new({ __array__ => \@residencelist });
 			while(my $residence = $r->get_next()) {
 				my $rdate = $residence->date();
@@ -4416,7 +4415,6 @@ sub print_person
 					  (!$rdate) &&
 					  ($count <= (scalar(@residencelist) - 1)) &&
 					  ($residencecitations{$residence})) {
-						# my $peek = $residencelist[$count + 1];
 						my $peek = $r->peek();
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							push @citationlist, $residencecitations{$peek};
@@ -4434,11 +4432,9 @@ sub print_person
 						$print_year_only = 0;
 					}
 				} else {
-					# my $peek = $residencelist[$count];
 					my $peek = $r->peek();
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						my $nextnotes = notes(record => $peek);
-						# $peek = $residencelist[$count + 1];
 						$peek = $r->peek(2);
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							# FIXME: work with citations by printing them all
@@ -4751,8 +4747,8 @@ sub print_person
 						my @sorted_locations = sort { $a->{'latitude'} <=> $b->{'latitude'} } @{$all_locations{$year}};
 
 						# $Data::Dumper::Maxdepth = 2;
-						foreach my $l(@sorted_locations) {
-							$count++;
+						my $iterator = Array::Iterator->new({ __array__ => \@sorted_locations });
+						while(my $l = $iterator->get_next()) {
 							# print Data::Dumper->new([$l])->Dump();
 							if(($l->{'person'}->xref() ne $person->xref()) &&
 							   (($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) ||
@@ -4764,7 +4760,7 @@ sub print_person
 								#	high street, 33 high street, high street
 								next unless($p1 =~ /^\s?\d/);
 
-								my $peek = $sorted_locations[$count];
+								my $peek = $iterator->peek();
 								next if($peek && ($peek->{'person'}->xref() eq $l->{'person'}->xref()));
 
 								my $close_relative;
@@ -10115,6 +10111,11 @@ sub journey
 	my $dod = $departure->date();
 	my $doa = $arrival->date();
 	my $only_have_departure_year;
+
+	# my $i = 0;
+	# while((my @call_details = (caller($i++)))) {
+		# print STDERR "\t", $call_details[1], ':', $call_details[2], ' calling function ', $call_details[3], "\n";
+	# }
 
 	if($doa && ($doa =~ /(\d{3,4})$/)) {
 		$yoa = $1;
