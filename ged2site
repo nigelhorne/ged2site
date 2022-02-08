@@ -564,6 +564,7 @@ if($opts{'m'} || $opts{'w'}) {
 	my $ua = LWP::UserAgent::Throttled->new(agent => basename($0), keep_alive => 1, timeout => 60);
 	$ua->conn_cache->total_capacity(undef);
 	$ua->env_proxy(1);
+	$ua->default_header(accept_encoding => 'gzip,deflate');
 	$ua->ua($cached_browser);
 
 	# TODO: throttle other geocoders
