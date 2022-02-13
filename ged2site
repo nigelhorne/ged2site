@@ -2573,7 +2573,7 @@ sub print_person
 						}
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
 						if(scalar(@siblings) > 1) {
-							$bio .= i18n('eldest');
+							$bio .= i18n({ person => $person, format => 'eldest' });
 						} else {
 							$bio .= 'older';
 						}
@@ -10841,6 +10841,11 @@ sub i18n
 		$translation = $i18n->{$format};
 		if(ref($translation) eq 'HASH') {
 			if(!defined($person)) {
+				print STDERR "\n";
+				my $i = 0;
+				while((my @call_details = caller($i++))) {
+					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+				}
 				die "BUG: '$format' requires the person argument to determine gender";
 			}
 			$translation = $translation->{$person->sex()};
