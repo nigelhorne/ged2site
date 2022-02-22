@@ -5705,7 +5705,6 @@ sub print_person
 									if($sex eq 'F') {
 										$bio .= 'e';
 									}
-									$bio .= " \N{U+00E0}";
 									$place =~ s/^ in//;
 									$bio .= $place;
 								} else {
@@ -5764,9 +5763,11 @@ sub print_person
 						}
 						$previous = undef;
 					} else {
-						$bio .= ' ' . $person->pronoun();
+						$bio .= ' ' . ucfirst(i18n($person->pronoun()));
 						if($ENV{'LANG'} =~ /^en_US/) {
 							$bio .= ' traveled';
+						} elsif($language eq 'French') {
+							$bio .= " a voyag\N{U+00E9}";
 						} else {
 							$bio .= ' travelled';
 						}
@@ -8719,6 +8720,8 @@ sub place {
 		$place = " $place";
 	} elsif($place =~ /^Isle of /) {
 		$place = " on the $place";
+	} elsif(($language eq 'French') && ($place =~ /,/)) {
+		$place = " \N{U+00E0} $place";
 	} else {
 		$place = " in $place";
 	}
