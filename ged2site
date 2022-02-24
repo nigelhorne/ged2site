@@ -4619,7 +4619,7 @@ sub print_person
 									if($first) {
 										$residencestring .= '(';
 									}
-									$residencestring .= i18n('when ') . (($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
+									$residencestring .= i18n('when ') . i18n(($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
 									if($first) {
 										if($language eq 'French') {
 											$residencestring .= ($printed_sibling ? ' et ' : ' avec ');
