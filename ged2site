@@ -5338,6 +5338,86 @@ sub print_person
 					}
 					if(defined($place)) {
 						$bio .= $place;
+						if($place =~ /\s\d+\s/) {
+							foreach my $child(@children) {
+								my @cr = get_all_residences(person => $child);
+								foreach my $cr(@cr) {
+									if(my $d = $cr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $cp = place({ person => $child, record => $cr }))) {
+											if($cp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('child '), $child->as_string();
+												last;
+											}
+										}
+									}
+								}
+							}
+							# FIXME: handle when living with both parents
+							if($father) {
+								my @fr = get_all_residences(person => $father);
+								foreach my $fr(@fr) {
+									if(my $d = $fr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $fp = place({ person => $father, record => $fr }))) {
+											if($fp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('father '), $father->as_string();
+												last;
+											}
+										}
+									}
+								}
+							}
+							if($mother) {
+								my @mr = get_all_residences(person => $mother);
+								foreach my $mr(@mr) {
+									if(my $d = $mr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $mp = place({ person => $mother, record => $mr }))) {
+											if($mp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('mother '), $mother->as_string();
+												last;
+											}
+										}
+									}
+								}
+							}
+							foreach my $sibling(@siblings) {
+								my @sr = get_all_residences(person => $sibling);
+								foreach my $sr(@sr) {
+									if(my $d = $sr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $sp = place({ person => $sibling, record => $sr }))) {
+											if($sp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+													$sibling->as_string();
+												last;
+											}
+										}
+									}
+								}
+							}
+						}
 					} else {
 						complain({
 							person => $person,
@@ -5854,6 +5934,7 @@ sub print_person
 	}
 
 	if(my $profile_object = $person->tag_record('_MILT')) {
+		# Ancestry does this, FMP stores military records as events
 		# $person->resolve_xref($profile_object->value());
 		if(my $value = $profile_object->get_value()) {
 			$bio .= '.' if(!$end_of_sentence);
@@ -10059,7 +10140,7 @@ sub get_all_occupations
 		} elsif($occupations[0] =~ /^General serv.+dom/) {
 			$occupations[0] = 'Domestic General Server';
 		} elsif($occupations[0] =~ /^(.+) on farm/i) {
-			$occupations[0] = "$1 on a farm";
+			$occupations[0] = ($language eq 'French') ? "$1 en un ferme" : "$1 on a farm";
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
 		} elsif($occupations[0] =~ /police$/i) {
 			$occupations[0] .= ' officer';
