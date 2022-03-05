@@ -4912,7 +4912,7 @@ sub print_person
 									   $event->date() && ($event->date() eq $rdate) &&
 									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
 										$residencestring .= i18n(' when ') .
-											lcfirst($person->pronoun()) .
+											lcfirst(i18n($person->pronoun())) .
 											' was living with ' .
 											lcfirst($person->possessive()) .
 											(($child->sex() eq 'F') ? ' daughter, ' : ' son, ') .
@@ -5549,7 +5549,7 @@ sub print_person
 			if(!defined($type)) {
 				red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
 			} elsif($type eq 'Arrival') {
-				$bio .= ' ' . $person->pronoun() . ' arrived';
+				$bio .= ' ' . i18n($person->pronoun()) . i18n({ person => $person, format => ' arrived' });
 				if(my $p = place({ person => $person, record => $events[0] })) {
 					$bio .= $p;
 				} else {
@@ -10997,6 +10997,7 @@ also::also
 also%s::also%s
 an %s::an %s
 and::and
+arrived::arrived
 at::at
 birthplace::ville natal
 both with %s::both with %s
@@ -11042,12 +11043,14 @@ your::your
 a %s:M:un %s
 a %s:F:une %s
 a day before::la veille
+all with %s::tout avec %s
 also::aussi
 also%s::aussi%s
-all with %s::tout avec %s
 an %s:M:un %s
 an %s:F:une %s
 and::et
+arrived:M:est arrivé
+arrived:F:est arrivée
 at::à
 birthplace::ville natal
 both with %s::tous les deux avec %s
