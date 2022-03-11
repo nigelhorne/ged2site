@@ -566,6 +566,7 @@ if($opts{'m'} || $opts{'w'}) {
 	my $ua = LWP::UserAgent::Throttled->new(agent => basename($0), keep_alive => 1, timeout => 60);
 	$ua->conn_cache->total_capacity(undef);
 	$ua->env_proxy(1);
+	$ua->default_header(accept_encoding => 'gzip,deflate');
 	$ua->ua($cached_browser);
 
 	# TODO: throttle other geocoders
@@ -2578,7 +2579,7 @@ sub print_person
 						}
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
 						if(scalar(@siblings) > 1) {
-							$bio .= i18n('eldest');
+							$bio .= i18n({ person => $person, format => 'eldest' });
 						} else {
 							$bio .= 'older';
 						}
@@ -4126,8 +4127,9 @@ sub print_person
 
 			print "Sanity checking the residences\n" if($opts{'v'});
 			# Create a list of residence strings
-			#
-			# foreach my $residence(@residencelist) {
+
+			my $printed_father_same_place;
+			my $printed_mother_same_place;
 			my $r = Array::Iterator->new({ __array__ => \@residencelist });
 			while(my $residence = $r->get_next()) {
 				my $rdate = $residence->date();
@@ -4422,7 +4424,6 @@ sub print_person
 					  (!$rdate) &&
 					  ($count <= (scalar(@residencelist) - 1)) &&
 					  ($residencecitations{$residence})) {
-						# my $peek = $residencelist[$count + 1];
 						my $peek = $r->peek();
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							push @citationlist, $residencecitations{$peek};
@@ -4440,11 +4441,9 @@ sub print_person
 						$print_year_only = 0;
 					}
 				} else {
-					# my $peek = $residencelist[$count];
 					my $peek = $r->peek();
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						my $nextnotes = notes(record => $peek);
-						# $peek = $residencelist[$count + 1];
 						$peek = $r->peek(2);
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							# FIXME: work with citations by printing them all
@@ -4626,7 +4625,7 @@ sub print_person
 									if($first) {
 										$residencestring .= '(';
 									}
-									$residencestring .= i18n('when ') . (($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
+									$residencestring .= i18n('when ') . i18n(($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
 									if($first) {
 										if($language eq 'French') {
 											$residencestring .= ($printed_sibling ? ' et ' : ' avec ');
@@ -4650,9 +4649,9 @@ sub print_person
 									if($with_mother && $with_father) {
 										$residencestring .= ' parents';
 									} elsif($with_mother) {
-										$residencestring .= ' mother, ' . $mother->given_names();
+										$residencestring .= i18n(' mother, ') . $mother->given_names();
 									} elsif($with_father) {
-										$residencestring .= ' father, ' . $father->given_names();
+										$residencestring .= i18n(' father, ') . $father->given_names();
 									}
 									if($first) {
 										$residencestring .= ')';
@@ -4695,7 +4694,13 @@ sub print_person
 								complain({ person => $person, warning => [ 'Not living with either parent in childhood when aged ', $bdiff->in_units('years') ] });
 							} elsif($father_date) {
 								$residencestring .= ' (the same place as ' .
-									($person->pronoun() eq 'She' ? 'her' : 'his') . ' father ';
+									($person->pronoun() eq 'She' ? 'her' : 'his');
+								if($mother_date && (datecmp($father_date, $mother_date) == 0)) {
+									$residencestring .= ' parents ';
+									$printed_mother_same_place = 1;
+								} else {
+									$residencestring .= ' father ';
+								}
 								if(datecmp($rdate, $father_date) > 0) {
 									$residencestring .= 'had been';
 								} else {
@@ -4704,6 +4709,7 @@ sub print_person
 								$residencestring .= ' living ' .
 									year({ person => $person, string => $father_date }) .
 									')';
+								$printed_father_same_place = 1;
 							} elsif($mother_date) {
 								$residencestring .= ' (the same place as ' .
 									($person->pronoun() eq 'She' ? 'her' : 'his') . ' mother ';
@@ -4715,6 +4721,7 @@ sub print_person
 								$residencestring .= ' living ' .
 									year({ person => $person, string => $mother_date }) .
 									')';
+								$printed_mother_same_place = 1;
 							}
 						}
 						if($spouse && $marriage_dt && (my $rdate_dt = date_to_datetime($rdate))) {
@@ -4757,8 +4764,8 @@ sub print_person
 						my @sorted_locations = sort { $a->{'latitude'} <=> $b->{'latitude'} } @{$all_locations{$year}};
 
 						# $Data::Dumper::Maxdepth = 2;
-						foreach my $l(@sorted_locations) {
-							$count++;
+						my $iterator = Array::Iterator->new({ __array__ => \@sorted_locations });
+						while(my $l = $iterator->get_next()) {
 							# print Data::Dumper->new([$l])->Dump();
 							if(($l->{'person'}->xref() ne $person->xref()) &&
 							   (($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) ||
@@ -4770,7 +4777,7 @@ sub print_person
 								#	high street, 33 high street, high street
 								next unless($p1 =~ /^\s?\d/);
 
-								my $peek = $sorted_locations[$count];
+								my $peek = $iterator->peek();
 								next if($peek && ($peek->{'person'}->xref() eq $l->{'person'}->xref()));
 
 								my $close_relative;
@@ -4911,7 +4918,7 @@ sub print_person
 									   $event->date() && ($event->date() eq $rdate) &&
 									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
 										$residencestring .= i18n(' when ') .
-											lcfirst($person->pronoun()) .
+											lcfirst(i18n($person->pronoun())) .
 											' was living with ' .
 											lcfirst($person->possessive()) .
 											(($child->sex() eq 'F') ? ' daughter, ' : ' son, ') .
@@ -5337,6 +5344,86 @@ sub print_person
 					}
 					if(defined($place)) {
 						$bio .= $place;
+						if($place =~ /\s\d+\s/) {
+							foreach my $child(@children) {
+								my @cr = get_all_residences(person => $child);
+								foreach my $cr(@cr) {
+									if(my $d = $cr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $cp = place({ person => $child, record => $cr }))) {
+											if($cp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('child '), $child->as_string();
+												last;
+											}
+										}
+									}
+								}
+							}
+							# FIXME: handle when living with both parents
+							if($father) {
+								my @fr = get_all_residences(person => $father);
+								foreach my $fr(@fr) {
+									if(my $d = $fr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $fp = place({ person => $father, record => $fr }))) {
+											if($fp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('father '), $father->as_string();
+												last;
+											}
+										}
+									}
+								}
+							}
+							if($mother) {
+								my @mr = get_all_residences(person => $mother);
+								foreach my $mr(@mr) {
+									if(my $d = $mr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $mp = place({ person => $mother, record => $mr }))) {
+											if($mp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('mother '), $mother->as_string();
+												last;
+											}
+										}
+									}
+								}
+							}
+							foreach my $sibling(@siblings) {
+								my @sr = get_all_residences(person => $sibling);
+								foreach my $sr(@sr) {
+									if(my $d = $sr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $sp = place({ person => $sibling, record => $sr }))) {
+											if($sp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+													$sibling->as_string();
+												last;
+											}
+										}
+									}
+								}
+							}
+						}
 					} else {
 						complain({
 							person => $person,
@@ -5468,7 +5555,7 @@ sub print_person
 			if(!defined($type)) {
 				red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
 			} elsif($type eq 'Arrival') {
-				$bio .= ' ' . $person->pronoun() . ' arrived';
+				$bio .= ' ' . i18n($person->pronoun()) . i18n({ person => $person, format => ' arrived' });
 				if(my $p = place({ person => $person, record => $events[0] })) {
 					$bio .= $p;
 				} else {
@@ -5704,7 +5791,6 @@ sub print_person
 									if($sex eq 'F') {
 										$bio .= 'e';
 									}
-									$bio .= " \N{U+00E0}";
 									$place =~ s/^ in//;
 									$bio .= $place;
 								} else {
@@ -5763,9 +5849,11 @@ sub print_person
 						}
 						$previous = undef;
 					} else {
-						$bio .= ' ' . $person->pronoun();
+						$bio .= ' ' . ucfirst(i18n($person->pronoun()));
 						if($ENV{'LANG'} =~ /^en_US/) {
 							$bio .= ' traveled';
+						} elsif($language eq 'French') {
+							$bio .= " a voyag\N{U+00E9}";
 						} else {
 							$bio .= ' travelled';
 						}
@@ -5852,6 +5940,7 @@ sub print_person
 	}
 
 	if(my $profile_object = $person->tag_record('_MILT')) {
+		# Ancestry does this, FMP stores military records as events
 		# $person->resolve_xref($profile_object->value());
 		if(my $value = $profile_object->get_value()) {
 			$bio .= '.' if(!$end_of_sentence);
@@ -8718,6 +8807,8 @@ sub place {
 		$place = " $place";
 	} elsif($place =~ /^Isle of /) {
 		$place = " on the $place";
+	} elsif(($language eq 'French') && ($place =~ /,/)) {
+		$place = " \N{U+00E0} $place";
 	} else {
 		$place = " in $place";
 	}
@@ -10055,7 +10146,7 @@ sub get_all_occupations
 		} elsif($occupations[0] =~ /^General serv.+dom/) {
 			$occupations[0] = 'Domestic General Server';
 		} elsif($occupations[0] =~ /^(.+) on farm/i) {
-			$occupations[0] = "$1 on a farm";
+			$occupations[0] = ($language eq 'French') ? "$1 en un ferme" : "$1 on a farm";
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
 		} elsif($occupations[0] =~ /police$/i) {
 			$occupations[0] .= ' officer';
@@ -10121,6 +10212,11 @@ sub journey
 	my $dod = $departure->date();
 	my $doa = $arrival->date();
 	my $only_have_departure_year;
+
+	# my $i = 0;
+	# while((my @call_details = (caller($i++)))) {
+		# print STDERR "\t", $call_details[1], ':', $call_details[2], ' calling function ', $call_details[3], "\n";
+	# }
 
 	if($doa && ($doa =~ /(\d{3,4})$/)) {
 		$yoa = $1;
@@ -10835,6 +10931,11 @@ sub i18n
 		$translation = $i18n->{$format};
 		if(ref($translation) eq 'HASH') {
 			if(!defined($person)) {
+				print STDERR "\n";
+				my $i = 0;
+				while((my @call_details = caller($i++))) {
+					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+				}
 				die "BUG: '$format' requires the person argument to determine gender";
 			}
 			$translation = $translation->{$person->sex()};
@@ -10902,6 +11003,7 @@ also::also
 also%s::also%s
 an %s::an %s
 and::and
+arrived::arrived
 at::at
 birthplace::ville natal
 both with %s::both with %s
@@ -10911,6 +11013,7 @@ children::children
 died::died
 during %s life::during %s life
 eldest::eldest
+father::father
 following the death of::following the death of
 had::had
 has lived::has lived
@@ -10921,6 +11024,7 @@ is buried::is buried
 is married to::is married to
 later that same year::later that same year
 married::married
+mother::mother
 of::of
 of %d children::of %d children
 on the same day::on the same day
@@ -10945,12 +11049,14 @@ your::your
 a %s:M:un %s
 a %s:F:une %s
 a day before::la veille
+all with %s::tout avec %s
 also::aussi
 also%s::aussi%s
-all with %s::tout avec %s
 an %s:M:un %s
 an %s:F:une %s
 and::et
+arrived:M:est arrivé
+arrived:F:est arrivée
 at::à
 birthplace::ville natal
 both with %s::tous les deux avec %s
@@ -10962,6 +11068,7 @@ died:F:est morte
 during %s life::pendant sa vie
 eldest:M:l'aîne
 eldest:F:l'aînee
+father::père
 following the death of::après le mort de
 had::a eu
 has lived::a habité
@@ -10974,6 +11081,7 @@ is married to:M:est marié à
 is married to:F:est mariée à
 later that same year::plus tard la même année
 married::a marié
+mother::mère
 of::de
 of %d children::de %d enfants
 on the same day::sur la même jour
