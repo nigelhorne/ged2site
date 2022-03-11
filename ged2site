@@ -197,6 +197,8 @@ if(-x '/usr/bin/gedcom') {
 
 my $language = get_language();
 
+print "Language = $language\n" if($opts{'v'});
+
 my @modules = ('NJH::Normalize');
 @needfull = ();
 
@@ -1824,7 +1826,8 @@ sub print_person
 		$surnames->{$surname}->{$title} = $person;
 	}
 
-	my ($birth_dt, $marriage_dt, $death_dt);
+	print "Gathering basic information\n" if($opts{'v'});
+
 	my $birth = $person->get_record('birth');
 
 	my $placeofbirth = get_value({ person => $person, value => 'birth place' });
@@ -1875,6 +1878,7 @@ sub print_person
 		die "BUG: $title is marked as alive yet we have death information";
 	}
 
+	my ($birth_dt, $marriage_dt, $death_dt);
 	$birth_dt = date_to_datetime(date => $dateofbirth);
 
 	if($opts{'w'}) {
@@ -1949,6 +1953,8 @@ sub print_person
 	my @birthcitations;
 	my @deathcitations;
 	if($opts{'c'}) {
+		print "Gathering citations for basic information\n" if($opts{'v'});
+
 		if($birth) {
 			my @s = $birth->source();
 			if($opts{'w'}) {
