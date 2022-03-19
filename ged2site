@@ -2580,6 +2580,11 @@ sub print_person
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
 						if(scalar(@siblings) > 1) {
 							$bio .= i18n({ person => $person, format => 'eldest' });
+							if(($language eq 'French') && ($bio =~ /^\s*Le\s/)) {
+								$bio = ucfirst(i18n({ person => $person, format => 'eldest' }));
+							} else {
+								$bio .= i18n({ person => $person, format => 'eldest' });
+							}
 						} else {
 							$bio .= 'older';
 						}
@@ -8984,10 +8989,10 @@ sub notes
 			}
 			$note =~ s/\r//g;
 			next if($note =~ /^\s*$/);
+			$note =~ s/\s\s+/ /g;
 			if(!$paragraph) {
 				$note =~ s/\n+/; /g;
 			}
-			$note =~ s/\s\s+/ /g;
 			$note =~ s/\s+$//g;
 			$note =~ s/\.$//;
 			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
@@ -9000,6 +9005,9 @@ sub notes
 			if($paragraph) {
 				if($encode) {
 					$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
+					if($paragraph) {
+						$note =~ s/\n+/<\/p><p>/g;
+					}
 				} else {
 					$rc .= "<p>$note.</p>";
 				}
@@ -11066,8 +11074,8 @@ children::enfants
 died:M:est mort
 died:F:est morte
 during %s life::pendant sa vie
-eldest:M:l'aîne
-eldest:F:l'aînee
+eldest:M:l'aîné
+eldest:F:l'aînée
 father::père
 following the death of::après le mort de
 had::a eu
