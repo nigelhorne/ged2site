@@ -1421,7 +1421,7 @@ if($opts{'w'}) {
 					$summary = 'Location is Empty';
 				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
 					$summary = 'Parent\'s Location is Known but Child\'s is not';
-				} elsif($warning =~ /^The census for year \d{4} has been cited,/) {
+				} elsif($warning =~ /^The census for the year \d{4} has been cited,/) {
 					$summary = 'Census exists but no residence added';
 				} elsif($warning =~ /^Residence record for .+ contains no location/) {
 					$summary = 'Residence Record Missing Location';
@@ -6194,6 +6194,7 @@ sub print_person
 				  (scalar(keys(%census_years)) == 0)) {
 					complain({ person => $person, warning => 'Appears in no censuses' });
 				}
+
 				my %unused_censuses = %census_years;
 				foreach my $residence(@residencelist) {
 					if(my $rdate = $residence->date()) {
@@ -6206,7 +6207,7 @@ sub print_person
 				foreach my $year(sort keys %unused_censuses) {
 					complain({
 						person => $person,
-						warning => "The census for year $year has been cited, but its information has not been used as a residence"
+						warning => "The census for the year $year has been cited, but its information has not been used as a residence"
 					});
 				}
 				foreach my $event(@events) {
