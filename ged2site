@@ -1625,6 +1625,12 @@ sub print_person
 	my @siblings = $person->siblings();
 	my $mother = $person->mother();
 	my $father = $person->father();
+	if($father) {
+		$father = Class::Simple::Readonly::Cached->new({ object => $father, cache => {} });
+	}
+	if($mother) {
+		$mother = Class::Simple::Readonly::Cached->new({ object => $mother, cache => {} });
+	}
 	my @spouses = $person->spouse();
 	@spouses = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @spouses;
 
