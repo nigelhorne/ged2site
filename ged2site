@@ -2614,6 +2614,11 @@ sub print_person
 		}
 
 		$bio .= ' of';
+		if(($language eq 'French') && ($father->as_string =~ /^[aehiou]/i)) {
+			$bio .= " d'";
+		} else {
+			$bio .= i18n(' of ');
+		}
 
 		print $csv $bio;
 		$bio =~ s/\s&\s/ &amp; /g;
@@ -2626,13 +2631,13 @@ sub print_person
 
 		if($opts{'l'} || !$is_alive) {
 			if($father) {
-				print $html ' <a href="', make_filename_from_person(person => $father), '">',
+				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
-				print $xml ' &lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;'.
+				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;'.
 					$father->as_string(),
 					'$lt;/a$gt;';
-				print $csv ' <a href="?page=people&entry=', $father->xref(), '">'.
+				print $csv '<a href="?page=people&entry=', $father->xref(), '">'.
 					$father->as_string(),
 					'</a>';
 
@@ -2657,18 +2662,18 @@ sub print_person
 						}
 					}
 				}
-				$fullbio .= ' ' . $father->as_string();
+				$fullbio .= $father->as_string();
 				if($mother) {
-					my $and = i18n(' and');
+					my $and = i18n(' and ');
 					$all->print($and);
 					$fullbio .= $and;
 				}
 			}
 			if($mother) {
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
-					print $html ' <a href="', make_filename_from_person(person => $mother), "\">$m</a>";
-					print $csv ' <a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
-					print $xml ' &lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
+					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
+					print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
+					print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
 				}
 
 				my @occupations = get_all_occupations($mother);
@@ -11094,8 +11099,8 @@ mother::mère
 of::de
 of %d children::de %d enfants
 on the same day::sur la même jour
-on your father's side::sur la côté de votre père
-on your mother's side::sur la côté de votre mère
+on your father's side::sur le côté de votre père
+on your mother's side::sur le côté de votre mère
 she::elle
 the same day as::le même jour comme
 they:M:ils
