@@ -3779,7 +3779,7 @@ sub print_person
 								}
 							}
 						} else {
-							$bio .= ' with an unknown ' . (($sex eq 'M') ? 'mother' : 'father');
+							$bio .= ' with an unknown ' . i18n(($sex eq 'M') ? 'mother' : 'father');
 						}
 						# TODO: make hyperlink to the persons record, unless surviving
 						$bio .= ', ' . $children[0]->given_names();
@@ -7765,20 +7765,16 @@ sub Gedcom::Individual::relationship_up
 			# Direct ancestor
 			my $steps = stepsabove($self, $other, 0);
 			my $title;
-			if($language eq 'French') {
-				$title = ($sex eq 'M') ? "p\N{U+00E8}re" : "m\N{U+00E8}re";
-			} elsif($language eq 'Farsi') {
+
+			if($language eq 'Farsi') {
 				# return ($sex eq 'M') ? 'pedar' : 'mādar';
 				return ($sex eq 'M') ? "\N{U+0631}\N{U+062F}\N{U+067E}" : "\N{U+0631}\N{U+062F}\N{U+0627}\N{U+0645}";
-			} elsif($language eq 'German') {
-				return ($sex eq 'M') ? 'vater' : 'mother';
 			} elsif($language eq 'Spanish') {
 				return ($sex eq 'M') ? 'padre' : 'mother';
-			} elsif($language eq 'Latin') {
-				return ($sex eq 'M') ? 'pater' : 'mater';
 			} else {
-				$title = ($sex eq 'M') ? 'father' : 'mother';
+				$title = i18n(($sex eq 'M') ? 'father' : 'mother');
 			}
+
 			if($steps >= 5) {
 				if($language eq 'Latin') {
 					if($steps == 5) {
@@ -11128,14 +11124,19 @@ with %s::avec %s
 your::votre
 @@ German
 and::und
+father::väter
 is::ist
+mother::mutter
 wife::frau
 with::mit
 @@ Latin
 and::et
+father::pater
 husband::maritus
+mother::mater
 wife::uxor
 @@ Spanish
 he::él
+father::padre
 is::es
 __END__
