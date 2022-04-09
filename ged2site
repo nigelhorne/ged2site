@@ -11016,7 +11016,10 @@ sub between
 
 # Create an array that will allow fast access to each element
 sub cache_array {
-	return map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @_;
+	if(ref($_[0])) {
+		return map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @_;
+	}
+	return @_;
 }
 
 # Must all be in lower case
