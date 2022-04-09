@@ -2005,11 +2005,15 @@ sub print_person
 			my @s = $death->source();
 			if($opts{'w'}) {
 				foreach my $s(@s) {
-					if(!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) {
+					if((!defined(get_source({ gedcom => $ged, person => $person, source => $s }))) &&
+					   (!defined($s->items())) &&
+					   (!defined($s->value()))) {
 						complain({ person => $person, warning => 'Death citation is missing a source' });
 					}
 				}
 			}
+			@s = cache_array(@s);
+			@s = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @s;
 			@s = sort { (get_source({ gedcom => $ged, person => $person, source => $a }) && get_source({ gedcom => $ged, person => $person, source => $b })) ? get_source({ gedcom => $ged, person => $person, source => $a })->title() cmp get_source({ gedcom => $ged, person => $person, source => $b })->title() : 0 } @s;
 			if(scalar(@s)) {
 				foreach my $src(@s) {
@@ -2027,6 +2031,7 @@ sub print_person
 						$citations{$citationcount} = $src;
 					}
 				}
+				@deathcitations = cache_array(@deathcitations);
 			} elsif($opts{'l'} || !is_alive(person => $person)) {
 				if($dateofdeath) {
 					# my $dateismissing = 0;
@@ -11007,6 +11012,11 @@ sub between
 		}
 		return $phrase;
 	}
+}
+
+# Create an array that will allow fast access to each element
+sub cache_array {
+	return map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @_;
 }
 
 # Must all be in lower case
