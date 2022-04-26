@@ -1724,6 +1724,7 @@ sub print_person
 		if(!defined($surname)) {
 			$surname = $2;
 		}
+		utf8::decode($firstname);
 		complain({ person => $person, warning => "Can't parse the name - assuming first name: $firstname, last name: $surname" });
 	}
 
@@ -7594,6 +7595,8 @@ sub Gedcom::Individual::as_string
 		$args{'include_years'} = 1;
 		$rc = 'Unknown person';
 	}
+
+	utf8::decode($rc);
 
 	if($args{'include_years'}) {
 		my $dob = dateofbirth($self);
