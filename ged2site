@@ -2014,7 +2014,6 @@ sub print_person
 				}
 			}
 			@s = cache_array(@s);
-			@s = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @s;
 			@s = sort { (get_source({ gedcom => $ged, person => $person, source => $a }) && get_source({ gedcom => $ged, person => $person, source => $b })) ? get_source({ gedcom => $ged, person => $person, source => $a })->title() cmp get_source({ gedcom => $ged, person => $person, source => $b })->title() : 0 } @s;
 			if(scalar(@s)) {
 				foreach my $src(@s) {
