@@ -3866,10 +3866,12 @@ sub print_person
 							Lingua::Conjunction->separator_phrase(',');
 							Lingua::Conjunction->penultimate(0);
 
-							if($surviving_children == 1) {
-								$bio .= ', and one surviving child';
-							} elsif($surviving_children > 1) {
-								$bio .= ", and $surviving_children surviving children";
+							if(defined($surviving_children)) {
+								if($surviving_children == 1) {
+									$bio .= ', and one surviving child';
+								} elsif($surviving_children > 1) {
+									$bio .= ", and $surviving_children surviving children";
+								}
 							}
 						}
 					}
