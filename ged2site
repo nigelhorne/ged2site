@@ -2284,6 +2284,9 @@ sub print_person
 		}
 		if($burial) {
 			print "Check burial source\n" if($opts{'v'});
+			if($opts{'w'} && defined($cremation)) {
+				complain({ person => $person, warning => 'Person has both burial and cremation records' });
+			}
 			my @s = $burial->source();
 			if(scalar(@s)) {
 				foreach my $src(@s) {
@@ -2316,8 +2319,10 @@ sub print_person
 				} elsif($dateofcremation) {
 					complain({ person => $person, warning => "Cremation date ($dateofcremation) has no citations" });
 				} elsif($placeofburial) {
+					utf8::decode($placeofburial);
 					complain({ person => $person, warning => "Burial place ($placeofburial) has no citations" });
 				} else {
+					utf8::decode($placeofcremation);
 					complain({ person => $person, warning => "Cremation place ($placeofcremation) has no citations" });
 				}
 			}
