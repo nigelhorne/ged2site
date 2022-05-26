@@ -3398,7 +3398,7 @@ sub print_person
 							}
 							$bio .= ' had ';
 						} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
-							$bio .= ' has had ';
+							$bio .= i18n(' has had ');
 						} else {
 							$bio .= $dateofdeath || $dateofburial ? ' had ' : ' has ';
 						}
@@ -11059,6 +11059,7 @@ eldest::eldest
 father::father
 following the death of::following the death of
 had::had
+has had::has had
 has lived::has lived
 he::he
 husband::husband
@@ -11116,6 +11117,7 @@ eldest:F:l'aînée
 father::père
 following the death of::après le mort de
 had::a eu
+has had::a eu
 has lived::a habité
 he::il
 husband::marie
