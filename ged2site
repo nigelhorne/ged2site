@@ -472,11 +472,16 @@ if($opts{'m'} || $opts{'w'}) {
 			driver => 'Redis',
 			namespace => 'gedcom',
 			server => $redis,
+			l1_cache => { driver => 'RawMemory', global => 1, max_size => 1024*1024 },
 			debug => $opts{'v'}
 		);
 	} else {
 		# FIXME: The location of the geo-coding cache should be configurable
-		$gopts->{'cache'} = CHI->new(driver => 'File', root_dir => $cachedir);
+		$gopts->{'cache'} = CHI->new(
+			driver => 'File',
+			root_dir => $cachedir,
+			l1_cache => { driver => 'RawMemory', global => 1, max_size => 1024*1024 }
+		);
 		# $gopts->{'cache'} = CHI->new(
 			# driver => 'Memcached',
 			# namespace => 'gedcom',
