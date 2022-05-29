@@ -399,7 +399,6 @@ sub _append_browser_type {
 	}
 
 	return '';	# Don't return undef or else the caller may use an uninit variable
-
 }
 
 1;
