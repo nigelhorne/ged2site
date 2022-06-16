@@ -54,7 +54,7 @@ my @needfull;
 # Install Pre-requisites
 BEGIN {
 	my @modules = (
-		'Array::Iterator', 'Config::Auto',
+		'Array::Iterator', 'Array::Iterator::BiDirectional', 'Config::Auto',
 		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
 		'Date::Manip', 'Parse::RecDescent', 'Roman',
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
@@ -4164,8 +4164,8 @@ sub print_person
 
 			my $printed_father_same_place;
 			my $printed_mother_same_place;
-			my $r = Array::Iterator->new({ __array__ => \@residencelist });
-			while(my $residence = $r->get_next()) {
+			my $iterator = Array::Iterator::BiDirectional->new({ __array__ => \@residencelist });
+			while(my $residence = $iterator->get_next()) {
 				my $rdate = $residence->date();
 				my $residencestring;
 				my $latitude;
@@ -4458,7 +4458,7 @@ sub print_person
 					  (!$rdate) &&
 					  ($count <= (scalar(@residencelist) - 1)) &&
 					  ($residencecitations{$residence})) {
-						my $peek = $r->peek();
+						my $peek = $iterator->peek();
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							push @citationlist, $residencecitations{$peek};
 						}
@@ -4475,10 +4475,10 @@ sub print_person
 						$print_year_only = 0;
 					}
 				} else {
-					my $peek = $r->peek();
+					my $peek = $iterator->peek();
 					if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 						my $nextnotes = notes(record => $peek);
-						$peek = $r->peek(2);
+						$peek = $iterator->peek(2);
 						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 							# FIXME: work with citations by printing them all
 							if((!$opts{'c'}) && $rdate && ($rdate =~ /^\d{4}$/) && $peek->date() && ($peek->date() =~ /^\d{4}$/)) {
@@ -4727,22 +4727,32 @@ sub print_person
 							} elsif(($mother || $father) && ($bdiff->in_units('years') < 16)) {
 								complain({ person => $person, warning => [ 'Not living with either parent in childhood when aged ', $bdiff->in_units('years') ] });
 							} elsif($father_date) {
-								$residencestring .= ' (the same place as ' .
-									($person->pronoun() eq 'She' ? 'her' : 'his');
-								if($mother_date && (datecmp($father_date, $mother_date) == 0)) {
-									$residencestring .= ' parents ';
-									$printed_mother_same_place = 1;
+								# FIXME: This test never succeeds,
+								#	perhaps Array:Iterator:BiDirectional doesn't work as I expect?
+								if(my $prev_residence = $iterator->look_back()) {
+									die 'Unexpected test pass';
+									my $pdate = $prev_residence->date();
+									if(datecmp($pdate, $father_date) == 0) {
+										die "TODO: $pdate - change text to 'the same place as $pronoun was living with $pronoun father in $pdate'";
+									}
 								} else {
-									$residencestring .= ' father ';
+									$residencestring .= ' (the same place as ' .
+										($person->pronoun() eq 'She' ? 'her' : 'his');
+									if($mother_date && (datecmp($father_date, $mother_date) == 0)) {
+										$residencestring .= ' parents ';
+										$printed_mother_same_place = 1;
+									} else {
+										$residencestring .= ' father ';
+									}
+									if(datecmp($rdate, $father_date) > 0) {
+										$residencestring .= 'had been';
+									} else {
+										$residencestring .= 'was';
+									}
+									$residencestring .= ' living ' .
+										year({ person => $person, string => $father_date }) .
+										')';
 								}
-								if(datecmp($rdate, $father_date) > 0) {
-									$residencestring .= 'had been';
-								} else {
-									$residencestring .= 'was';
-								}
-								$residencestring .= ' living ' .
-									year({ person => $person, string => $father_date }) .
-									')';
 								$printed_father_same_place = 1;
 							} elsif($mother_date) {
 								$residencestring .= ' (the same place as ' .
