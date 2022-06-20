@@ -2723,7 +2723,7 @@ sub print_person
 					$father->given_names(),
 					'&lt;/a&gt;';
 				if($mother) {
-					$all->print(' and');
+					$all->print(i18n(' and'));
 				}
 			}
 			if($mother) {
