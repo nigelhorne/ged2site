@@ -91,8 +91,10 @@ BEGIN {
 	foreach my $module(@modules) {
 		eval "use $module";
 		if($@) {
-			if($module =~ /\s/) {
-				push @needfull, "'$module'";
+			# Install module dependancies
+			if($module =~ /(.+)\s/) {
+				# Specific version not satisfied
+				push @needfull, $1;
 			} else {
 				push @needfull, $module;
 			}
