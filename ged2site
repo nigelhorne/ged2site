@@ -91,7 +91,11 @@ BEGIN {
 	foreach my $module(@modules) {
 		eval "use $module";
 		if($@) {
-			push @needfull, $module;
+			if($module =~ /\s/) {
+				push @needfull, "'$module'";
+			} else {
+				push @needfull, $module;
+			}
 		}
 	}
 	# Fix for this module not being found
