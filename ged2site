@@ -4736,13 +4736,13 @@ sub print_person
 								# FIXME: This test never succeeds,
 								#	perhaps Array:Iterator:BiDirectional doesn't work as I expect?
 								#	https://rt.cpan.org/Ticket/Display.html?id=143344&results=af04c74d05626a62cf0c32f2953f3e4f
-								if(my $prev_residence = $iterator->look_back()) {
-									die 'Unexpected test pass';
-									my $pdate = $prev_residence->date();
-									if(datecmp($pdate, $father_date) == 0) {
-										die "TODO: $pdate - change text to 'the same place as $pronoun was living with $pronoun father in $pdate'";
-									}
-								} else {
+								# if(my $prev_residence = $iterator->look_back()) {
+									# my $pdate = $prev_residence->date();
+									# if(datecmp($pdate, $father_date) == 0) {
+										# die 'TODO: ', $person->as_string(include_years => 1), " change text to 'the same place as $pronoun was living with $pronoun father in $pdate'\n\t$residencestring";
+									# }
+									# die 'Unexpected test pass: ', $person->as_string, " $pdate/$father_date";
+								# } else {
 									$residencestring .= ' (the same place as ' .
 										($person->pronoun() eq 'She' ? 'her' : 'his');
 									if($mother_date && (datecmp($father_date, $mother_date) == 0)) {
@@ -4759,7 +4759,7 @@ sub print_person
 									$residencestring .= ' living ' .
 										year({ person => $person, string => $father_date }) .
 										')';
-								}
+								# }
 								$printed_father_same_place = 1;
 							} elsif($mother_date) {
 								$residencestring .= ' (the same place as ' .
