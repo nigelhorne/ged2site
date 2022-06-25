@@ -7517,6 +7517,21 @@ sub Gedcom::Individual::as_string
 		}
 	} else {
 		$name = $self->name();
+
+		# FIXME: how do I get to the NSFX (e.g. "OBE") value for the person?
+		#	none of these methods works
+		my $nsfx = $self->nsfx();
+		if($nsfx) {
+			die $nsfx;
+		}
+		$nsfx = $self->tag_record('NSFX');
+		if($nsfx) {
+			die $nsfx;
+		}
+		$nsfx = get_value({ person => $self, value => 'nsfx' });
+		if($nsfx) {
+			die $nsfx;
+		}
 	}
 
 	$name =~ s/\///g;
@@ -10199,8 +10214,8 @@ sub get_all_occupations
 			$occupations[0] = "Builder's labourer";
 		} elsif($occupations[0] eq 'Gardener domestic') {
 			$occupations[0] = 'Gardener and Domestic';
-		} elsif($occupations[0] =~ /^General serv.+dom/) {
-			$occupations[0] = 'Domestic General Server';
+		} elsif($occupations[0] =~ /^General serv.+dom/i) {
+			$occupations[0] = 'General Domestic Servent';
 		} elsif($occupations[0] =~ /^(.+) on farm/i) {
 			$occupations[0] = ($language eq 'French') ? "$1 en un ferme" : "$1 on a farm";
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
@@ -10208,6 +10223,8 @@ sub get_all_occupations
 			$occupations[0] .= ' officer';
 		} elsif(($occupations[0] eq 'Nurse') && ($language eq 'French')) {
 			$occupations[0] = ($person->sex() eq 'M') ? 'infirmier' : "infirmi\N{U+00E8}re";
+		} elsif($occupations[0] =~ /teaching/i) {
+			$occupations[0] = ($language eq 'French') ? 'professeur' : 'teacher';
 		} elsif(($occupations[0] !~ /gas works/i) && ($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i)) {
 			# Don't change Bus Driver to Bu's Driver
 			$occupations[0] = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
