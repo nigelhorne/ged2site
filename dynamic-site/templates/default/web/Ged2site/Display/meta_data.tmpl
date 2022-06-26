@@ -21,7 +21,8 @@
 	<body>
 		[% IF info %]
 			<H1>Info</H1>
-			Domain_name: [% info.domain_name() %]
+			Domain_name: [% info.domain_name() %]<br>
+			Browser Type: [% info.browser_type() %]
 		[% END %]
 		[% IF lingua %]
 			<H1>Lingua</H1>
