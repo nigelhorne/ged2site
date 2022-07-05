@@ -10415,7 +10415,15 @@ sub datecmp($$)
 	}
 	if(!ref($right)) {
 		if($right =~ /^bef/i) {
-			print STDERR "$right: Before not handled\n";
+			if($left =~ /^\d+$/) {
+				# For example, comparing 1939 <=> bef 1 Jun 1965
+				if($right =~ /\s(\d+)$/) {
+					if($left != $1) {
+						return $left <=> $1;
+					}
+				}
+			}
+			print STDERR "$left <=> $right: Before not handled\n";
 			my $i = 0;
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
