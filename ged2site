@@ -8629,7 +8629,7 @@ sub year
 		return $string;
 	}
 	if($string =~ /^bef\s(.+)/i) {
-		return i18n({ format => 'before %s', args => $1 }); 
+		return i18n({ format => 'before %s', args => $1 });
 	}
 	if($language eq 'French') {
 		if($string =~ /^[AEIOU]/) {
