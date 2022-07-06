@@ -8628,6 +8628,9 @@ sub year
 	if($params{'nopreposition'}) {
 		return $string;
 	}
+	if($string =~ /^bef\s(.+)/i) {
+		return i18n({ format => 'before %s', args => $1 }); 
+	}
 	if($language eq 'French') {
 		if($string =~ /^[AEIOU]/) {
 			return "l'$string";
