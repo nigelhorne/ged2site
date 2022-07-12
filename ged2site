@@ -11,7 +11,7 @@
 #	above e-mail.
 
 # TODO: Geo::Coder::GeocodeFarm, once github issue 1 has been fixed
-# TODO: Investigate BGS
+# TODO: Investigate BGS and Lingua::EN::Sentence
 # TODO: Finish XML, perhaps use XML::Hash for display?
 # TODO: Can I use a kdTree to determine events or residences close by each other?
 # TODO: add male and female average lifespan to the facts
