@@ -53,13 +53,10 @@ my @needfull;
 
 # Install Pre-requisites
 BEGIN {
-	# I can't get Marpa::R2 version 10 to build on OS/X or Solaris.
-	# It's used by Genealogy::Gedcom::Date, so force version 8
 	my @modules = (
 		'Array::Iterator', 'Array::Iterator::BiDirectional', 'Config::Auto',
 		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
 		'Date::Manip', 'Parse::RecDescent', 'Roman',
-		'JKEGL/Marpa-R2-8.000000.tar.gz',
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
@@ -90,6 +87,13 @@ BEGIN {
 		'Locale::Object::Country',
 		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
+
+	# I can't get Marpa::R2 version 10 to build on OS/X or Solaris.
+	# It's used by Genealogy::Gedcom::Date, so force version 8
+	eval 'use Marpa::R2';
+	if($@) {
+		push @needfull, 'JKEGL/Marpa-R2-8.000000.tar.gz'
+	}
 
 	foreach my $module(@modules) {
 		eval "use $module";
