@@ -10989,7 +10989,8 @@ sub get_language_code
 	return;	# undef
 }
 
-# TODO format containing ':'
+# TODO:	format containing ':'
+# FIXME: German nouns start with a capital letter
 sub i18n
 {
 	my %params;
@@ -11229,6 +11230,7 @@ and::und
 father::vater
 is::ist
 mother::mutter
+sister::schwester
 wife::frau
 with::mit
 @@ Latin
