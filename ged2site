@@ -11121,7 +11121,8 @@ an %s::an %s
 and::and
 arrived::arrived
 at::at
-birthplace::ville natale
+before %s::before %s
+birthplace::birthplace
 both with %s::both with %s
 brother::brother
 check out %s::check out %s
@@ -11177,6 +11178,7 @@ and::et
 arrived:M:est arrivé
 arrived:F:est arrivée
 at::à
+before %s::avant de %s
 birthplace::ville natal
 both with %s::tous les deux avec %s
 brother::frère
@@ -11222,7 +11224,7 @@ was born:M:est né
 was born:F:est née
 was living::habitait
 was married to:M:a été marié à
-was married to:F:a été marié à
+was married to:F:a été mariée à
 when::lorsque
 wife::femme
 with::avec
@@ -11230,6 +11232,7 @@ with %s::avec %s
 your::votre
 @@ German
 and::und
+birthplace::geburtsort
 father::vater
 is::ist
 mother::mutter
