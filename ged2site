@@ -7782,6 +7782,8 @@ sub Gedcom::Individual::relationship {
 		if(($self->mother() eq $other->mother()) || ($self->father() eq $other->father())) {
 			if($language eq 'Latin') {
 				return ($sex eq 'M') ? 'frāter uterīnus' : 'soror uterīna';
+			} elsif($language eq 'German') {
+				return ($sex eq 'M') ? 'Halbbruder' : 'Halbschwester';
 			}
 			return ($sex eq 'M') ? 'half-brother' : 'half-sister';
 		}
