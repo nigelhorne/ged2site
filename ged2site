@@ -2648,7 +2648,6 @@ sub print_person
 			$bio .= 'child';
 		}
 
-		$bio .= ' of';
 		if(($language eq 'French') && ($father->as_string =~ /^[aehiou]/i)) {
 			$bio .= " d'";
 		} else {
