@@ -27,6 +27,7 @@
 # FIXME: with a US state you use 'en' not à
 # TODO: Investigate List::ToHumanString
 # TODO: Can I make use of the Chart module?
+# TODO: dbpedia
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -6352,6 +6353,9 @@ sub print_person
 
 		if(($person->get_value('note')) &&
 		   (my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations }))) {
+			# TODO: add data from dbpedia to the notes
+			#	https://lookup.dbpedia.org/api/search?query=Francis%20Eric%20Irvine%20Bloy&format=JSON
+			#	with hyperlink to https://dbpedia.org/page/Francis_Eric_Bloy
 			print "Handling notes\n" if($opts{'v'});
 			print $html '<h2>Notes</h2>';
 
