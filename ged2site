@@ -10360,7 +10360,7 @@ sub journey
 	}
 
 	if(defined($departure->place())) {
-		$rc .= (($language eq 'French') ? ' de' : ' from') . place({ person => $person, record => $departure, nopreposition => 1 });
+		$rc .= i18n(' from') . place({ person => $person, record => $departure, nopreposition => 1 });
 		if(my $notes = notes(record => $departure)) {
 			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 			$notes =~ s/\.$//;
@@ -11132,6 +11132,7 @@ during %s life::during %s life
 eldest::eldest
 father::father
 following the death of::following the death of
+from::from
 had::had
 has had::has had
 has lived::has lived
@@ -11191,6 +11192,7 @@ eldest:M:l'aîné
 eldest:F:l'aînée
 father::père
 following the death of::après le mort de
+from::de
 had::a eu
 has had::a eu
 has lived::a habité
