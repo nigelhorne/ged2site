@@ -10938,18 +10938,15 @@ sub get_year_from_date($)
 sub get_language
 {
 	if($ENV{'LANGUAGE'}) {
+		my %langs = (
+			'en' => 'English',
+			'fr' => 'French',
+			'fa' => 'Farsi',
+			'la' => 'Latin'
+		);
 		foreach my $language(split/:/, $ENV{'LANGUAGE'}) {
-			if($language eq 'en') {
-				return 'English';
-			}
-			if($language eq 'fr') {
-				return 'French';
-			}
-			if($language eq 'fa') {
-				return 'Farsi';
-			}
-			if($language eq 'la') {
-				return 'Latin';
+			if(my $rc = $langs{$language}) {
+				return $rc;
 			}
 		}
 	}
@@ -11240,6 +11237,7 @@ a %s:M:ein %s
 a %s:F:eine %s
 a %s:N:ein %s
 a day before::einen Tag vorher
+all with %s::alles mit %s
 and::und
 birthplace::geburtsort
 father::vater
