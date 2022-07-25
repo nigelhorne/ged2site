@@ -11236,6 +11236,9 @@ with::avec
 with %s::avec %s
 your::votre
 @@ German
+a %s:M:ein %s
+a %s:F:eine %s
+a %s:N:ein %s
 and::und
 birthplace::geburtsort
 father::vater
