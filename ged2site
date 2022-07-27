@@ -11238,6 +11238,7 @@ a %s:F:eine %s
 a %s:N:ein %s
 a day before::einen Tag vorher
 all with %s::alles mit %s
+also%s::auch%s
 and::und
 birthplace::geburtsort
 father::vater
