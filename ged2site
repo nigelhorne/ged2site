@@ -2616,13 +2616,8 @@ sub print_person
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
 						if(scalar(@siblings) > 1) {
 							$bio .= i18n({ person => $person, format => 'eldest' });
-							if(($language eq 'French') && ($bio =~ /^\s*Le\s/)) {
-								$bio = ucfirst(i18n({ person => $person, format => 'eldest' }));
-							} else {
-								$bio .= i18n({ person => $person, format => 'eldest' });
-							}
 						} else {
-							$bio .= 'older';
+							$bio .= i18n({ person => $person, format => 'older' });
 						}
 					} elsif($language eq 'French') {
 						$bio .= Lingua::FR::Numbers::Ordinate::ordinate($age_index);
@@ -2644,6 +2639,9 @@ sub print_person
 			} else {
 				# $bio .= ' only child of';
 				$bio .= 'child';
+			}
+			if($language eq 'French') {
+				$bio =~ s/^Le a/L'a/;
 			}
 		} else {
 			$bio .= 'child';
@@ -10354,6 +10352,8 @@ sub get_all_occupations
 					$occupations[0] = (($person->sex() eq 'M') ? "Agriculteur $1" : "Agricultrice $1");
 				} elsif($occupations[0] eq 'Farmer') {
 					$occupations[0] = (($person->sex() eq 'M') ? 'Agriculteur' : 'Agricultrice');
+				} elsif($occupations[0] eq 'Teacher') {
+					$occupations[0] = 'Professeur';
 				}
 			}
 			$occupations[0] =~ s/[\(\)]//g;
@@ -11226,6 +11226,7 @@ married::married
 mother::mother
 of::of
 of %d children::of %d children
+older::older
 on the same day::on the same day
 on your father's side::on your father's side
 on your mother's side::on your mother's side
@@ -11268,8 +11269,8 @@ children::enfants
 died:M:est mort
 died:F:est morte
 during %s life::pendant sa vie
-eldest:M:l'aîné
-eldest:F:l'aînée
+eldest:M:aîné
+eldest:F:aînée
 father::père
 following the death of::après le mort de
 from::de
@@ -11288,6 +11289,8 @@ married::a marié
 mother::mère
 of::de
 of %d children::de %d enfants
+older:M:aîné
+older:F:aînée
 on the same day::sur la même jour
 on your father's side::sur le côté de votre père
 on your mother's side::sur le côté de votre mère
