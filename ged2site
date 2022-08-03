@@ -11326,7 +11326,8 @@ and::und
 arrived::kam
 at::in der
 before %s::vor %s
-birthplace::geburtsort
+birthplace::Geburtsort
+both with %s::beide mit %s
 father::vater
 is::ist
 mother::mutter
