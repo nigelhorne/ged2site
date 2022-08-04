@@ -11328,6 +11328,7 @@ at::in der
 before %s::vor %s
 birthplace::Geburtsort
 both with %s::beide mit %s
+brother::Bruder
 father::vater
 is::ist
 mother::mutter
