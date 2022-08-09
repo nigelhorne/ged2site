@@ -11329,6 +11329,8 @@ before %s::vor %s
 birthplace::Geburtsort
 both with %s::beide mit %s
 brother::Bruder
+brothers::Brüder
+check out %s::Schau mal bei %s
 father::Vater
 is::ist
 mother::mutter
