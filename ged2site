@@ -416,11 +416,11 @@ if(defined($language) && ($language eq 'French')) {
 	$lcm->set_lang('en');
 } else {
 	$dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy');
-	Date_Init("DateFormat=International");	# Date::Manip
-}
-
-if(defined($language)) {
-	Date_Init("Language=$language");	# Date::Manip
+	if(defined($language)) {
+		Date_Init("Language=$language");	# Date::Manip
+	} else {
+		Date_Init("DateFormat=International");
+	}
 }
 
 my $dfg = DateTime::Format::Genealogy->new();
