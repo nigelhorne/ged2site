@@ -26,6 +26,7 @@
 # TODO: investigate Locale::Geocode
 # FIXME: with a US state you use 'en' not à
 # TODO: Investigate List::ToHumanString
+# TODO: Investigate Carp::Assert::More
 # TODO: Can I make use of the Chart module?
 # TODO: dbpedia
 
