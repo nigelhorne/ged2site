@@ -275,6 +275,9 @@ if($ENV{BMAP_KEY}) {
 if($ENV{'GEONAMES_USER'}) {
 	push @modules, 'Geo::GeoNames';
 }
+if($ENV{'REDIS_SERVER'}) {
+	push @modules, 'CHI::Driver::Redis';
+}
 if($opts{'w'}) {
 	push @modules, 'Genealogy::ObituaryDailyTimes';
 }
