@@ -275,11 +275,13 @@ if($ENV{BMAP_KEY}) {
 if($ENV{'GEONAMES_USER'}) {
 	push @modules, 'Geo::GeoNames';
 }
-if($ENV{'REDIS_SERVER'}) {
-	push @modules, 'CHI::Driver::Redis';
-}
-if($opts{'w'}) {
-	push @modules, 'Genealogy::ObituaryDailyTimes';
+if($opts{'m'} || $opts{'w'}) {
+	if($ENV{'REDIS_SERVER'}) {
+		push @modules, 'CHI::Driver::Redis';
+	}
+	if($opts{'w'}) {
+		push @modules, 'Genealogy::ObituaryDailyTimes';
+	}
 }
 
 my $libdir1 = File::Spec->catfile($FindBin::Bin, File::Spec->updir(), 'lib');
@@ -11337,6 +11339,7 @@ brothers::Brüder
 check out %s::Schau mal bei %s
 child::Kind
 father::Vater
+following the death of::Nach dem Tod von
 is::ist
 mother::Mutter
 sister::Schwester
