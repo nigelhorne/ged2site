@@ -7856,6 +7856,8 @@ sub Gedcom::Individual::relationship_up
 			} elsif($steps == 2) {
 				if($language eq 'Latin') {
 					return ($sex eq 'M') ? 'avus' : 'avia';
+				} elsif($language eq 'German') {
+					return ($sex eq 'M') ? 'Grossvater' : 'Grossmutter';
 				}
 				return "grand$title";
 			} elsif($steps == 3) {
