@@ -8141,6 +8141,81 @@ sub Gedcom::Individual::relationship_up
 					17 << 24 | 1 => 'fifteen times great-uncle',
 					18 << 24 | 1 => 'sixteen times great-uncle',
 				);
+				my %de_male_relationships = (
+					1 << 24 | 1 => 'brother',
+					1 << 24 | 2 => 'nephew',
+					1 << 24 | 3 => 'great-nephew',
+					1 << 24 | 4 => 'great-great-nephew',
+					2 << 24 | 1 => 'uncle',
+					2 << 24 | 2 => 'Cousin',
+					2 << 24 | 3 => 'first cousin once-removed',
+					2 << 24 | 4 => 'first cousin twice-removed',
+					2 << 24 | 5 => 'first cousin three-times-removed',
+					3 << 24 | 1 => 'great-uncle',
+					3 << 24 | 2 => 'first cousin once-removed',
+					3 << 24 | 3 => 'second cousin',
+					3 << 24 | 4 => 'second cousin once-removed',
+					3 << 24 | 5 => 'second cousin twice-removed',
+					3 << 24 | 6 => 'second cousin three-times-removed',
+					4 << 24 | 1 => 'great-great-uncle',
+					4 << 24 | 2 => 'first cousin twice-removed',
+					4 << 24 | 3 => 'second cousin once-removed',
+					4 << 24 | 4 => 'third cousin',
+					4 << 24 | 5 => 'third cousin once-removed',
+					4 << 24 | 6 => 'third cousin twice-removed',
+					4 << 24 | 7 => 'third cousin three-times-removed',
+					5 << 24 | 1 => 'three times great-uncle',
+					5 << 24 | 2 => 'first cousin three-times-removed',
+					5 << 24 | 3 => 'second cousin twice-removed',
+					5 << 24 | 4 => 'third cousin once-removed',
+					5 << 24 | 5 => 'fourth cousin',
+					5 << 24 | 6 => 'fourth cousin once-removed',
+					5 << 24 | 7 => 'fourth cousin twice-removed',
+					6 << 24 | 1 => 'four times great-uncle',
+					6 << 24 | 2 => 'first cousin four-times-removed',
+					6 << 24 | 3 => 'second cousin three-times-removed',
+					6 << 24 | 4 => 'third cousin twice-removed',
+					6 << 24 | 5 => 'fourth cousin once-removed',
+					6 << 24 | 6 => 'fifth cousin',
+					6 << 24 | 7 => 'fifth cousin once-removed',
+					6 << 24 | 8 => 'fifth cousin twice-removed',
+					7 << 24 | 1 => 'fifth times great-uncle',
+					7 << 24 | 2 => 'first cousin five-times-removed',
+					7 << 24 | 3 => 'second cousin four-times-removed',
+					7 << 24 | 4 => 'third cousin three-times-removed',
+					7 << 24 | 5 => 'fourth cousin twice-removed',
+					7 << 24 | 6 => 'fifth cousin once-removed',
+					7 << 24 | 7 => 'sixth cousin',
+					7 << 24 | 8 => 'sixth cousin once-removed',
+					8 << 24 | 1 => 'six times great-uncle',
+					8 << 24 | 2 => 'first cousin six-times-removed',
+					8 << 24 | 3 => 'second cousin five-times-removed',
+					8 << 24 | 4 => 'third cousin four-times-removed',
+					9 << 24 | 1 => 'seven times great-uncle',
+					9 << 24 | 2 => 'first cousin seven-times-removed',
+					9 << 24 | 3 => 'second cousin six-times-removed',
+					9 << 24 | 4 => 'third cousin five-times-removed',
+					10 << 24 | 1 => 'eight times great-uncle',
+					10 << 24 | 2 => 'first cousin eight-times-removed',
+					10 << 24 | 3 => 'second cousin seven-times-removed',
+					10 << 24 | 4 => 'third cousin six-times-removed',
+					11 << 24 | 1 => 'nine times great-uncle',
+					11 << 24 | 2 => 'first cousin nine-times-removed',
+					11 << 24 | 3 => 'second cousin eight-times-removed',
+					11 << 24 | 4 => 'third cousin seven-times-removed',
+					11 << 24 | 5 => 'fourth cousin six-times-removed',
+					12 << 24 | 1 => 'ten times great-uncle',
+					12 << 24 | 2 => 'first cousin ten-times-removed',
+					12 << 24 | 3 => 'second cousin nine-times-removed',
+					12 << 24 | 4 => 'third cousin eight-times-removed',
+					12 << 24 | 5 => 'fourth cousin seven-times-removed',
+					13 << 24 | 1 => 'eleven times great-uncle',
+					14 << 24 | 1 => 'twelve times great-uncle',
+					15 << 24 | 1 => 'thirteen times great-uncle',
+					16 << 24 | 1 => 'fourteen times great-uncle',
+					17 << 24 | 1 => 'fifteen times great-uncle',
+					18 << 24 | 1 => 'sixteen times great-uncle',
+				);
 				my %en_female_relationships = (
 					1 << 24 | 1 => 'sister',
 					1 << 24 | 2 => 'niece',
@@ -8297,7 +8372,7 @@ sub Gedcom::Individual::relationship_up
 					1 << 24 | 3 => 'great-niece',
 					1 << 24 | 4 => 'great-great-niece',
 					2 << 24 | 1 => 'Tante',
-					2 << 24 | 2 => 'cousin',
+					2 << 24 | 2 => 'Cousine',
 					2 << 24 | 3 => 'first cousin once-removed',
 					2 << 24 | 4 => 'first cousin twice-removed',
 					2 << 24 | 5 => 'first cousin three-times-removed',
@@ -10416,7 +10491,7 @@ sub journey
 			if($dod =~ /^\d/) {
 				$dod = "on $dod";
 			} else {
-				$dod = "during $yod";
+				$dod = i18n("during $yod");
 				$only_have_departure_year = 1;
 			}
 			if($doa =~ /^\d/) {
@@ -10424,7 +10499,7 @@ sub journey
 			} elsif($yoa == $yod) {
 				$doa = i18n('later that same year');
 			} else {
-				$doa = "during $yoa";
+				$doa = i18n("during $yoa");
 			}
 		}
 	}
@@ -11216,6 +11291,7 @@ check out %s::check out %s
 child::child
 children::children
 died::died
+during %d::during %d
 during %s life::during %s life
 eldest::eldest
 father::father
@@ -11276,6 +11352,7 @@ child::enfant
 children::enfants
 died:M:est mort
 died:F:est morte
+during %d::en %d
 during %s life::pendant sa vie
 eldest:M:aîné
 eldest:F:aînée
@@ -11340,6 +11417,8 @@ brother::Bruder
 brothers::Brüder
 check out %s::Schau mal bei %s
 child::Kind
+died::starb
+eldest::älteste
 father::Vater
 following the death of::Nach dem Tod von
 is::ist
