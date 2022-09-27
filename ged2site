@@ -29,6 +29,7 @@
 # TODO: Investigate Carp::Assert::More
 # TODO: Can I make use of the Chart module?
 # TODO: dbpedia
+# TODO: consider Data::Dumper::Names instead of Data::Dumper
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
