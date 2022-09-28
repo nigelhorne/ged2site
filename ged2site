@@ -2427,13 +2427,7 @@ sub print_person
 		if((!$relationship) && scalar(@spouses)) {
 			print "find spousal relationship\n" if($opts{'v'});
 			if($spouses[0] eq $me) {
-				if($language eq 'French') {
-					$relationship = ($sex eq 'F') ? 'femme' : 'mari';
-				} elsif($language eq 'Latin') {
-					$relationship = ($sex eq 'F') ? 'uxor' : 'maritus';
-				} else {
-					$relationship = ($sex eq 'F') ? 'wife' : 'husband';
-				}
+				$relationship = i18n(($sex eq 'F') ? 'wife' : 'husband');
 			} else {
 				foreach my $s(@spouses) {
 					$spouserelationship = $me->relationship($s);
@@ -11432,6 +11426,7 @@ father::Vater
 following the death of::Nach dem Tod von
 has lived in %s::hat in %s gelebt
 he::er
+husband::Mann
 is::ist
 mother::Mutter
 sister::Schwester
