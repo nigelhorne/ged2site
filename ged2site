@@ -11430,6 +11430,7 @@ husband::Mann
 is::ist
 is buried::ist begraben
 mother::Mutter
+she::sie
 sister::Schwester
 wife::Frau
 with::mit
@@ -11445,4 +11446,5 @@ wife::uxor
 he::él
 father::padre
 is::es
+she::ella
 __END__
