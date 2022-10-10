@@ -9706,8 +9706,12 @@ sub complain
 	}
 
 	if(!defined($params{'warning'})) {
-		my @call_details = caller(0);
-		die "What do you want to say on line $call_details[2]?";
+		if(defined($params{'message'})) {
+			$params{'warning'} = $params{'message'};
+		} else {
+			my @call_details = caller(0);
+			die "What do you want to say on line $call_details[2]?";
+		}
 	}
 
 	# Support warning being a ref to an array
@@ -10822,17 +10826,11 @@ sub dateofbirth {
 			$dateofbirth = $d[0];
 		}
 	} elsif(scalar(@d) == 1) {	# TODO: || scalar == 2 && dates are the same, though warn then
-		if($opts{'v'}) {
-			print scalar(@d), "\n";
-			foreach my $i (@d) {
-				print "\t", year({ person => $person, date => $i }), "\n";
-			}
-		}
-		complain({ person => $person, warning => 'TODO: handle more than 2 dates of birth' });
 		$dateofbirth = $d[0];
 	} elsif(scalar(@d)) {
-		complain({ person => $person, warning => 'TODO: handle more than 2 dates of birth' });
-		die 'TODO: handle more than 2 dates of birth';
+		complain({ person => $person, warning => [ 'TODO: handle more than 2 dates of birth: ', conjunction(map { year(date => $_) } @d) ] });
+		# die 'TODO: handle more than 2 dates of birth';
+		return;
 	}
 
 	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birth'))) {
@@ -10921,6 +10919,11 @@ sub parse_date
 				}
 				# FIXME: assumes the months are in English
 				return $1 . ucfirst(lc(substr($2, 0, 3))) . " $3";
+			}
+			if($date =~ /^([A-Z]{3,})\s+(\d+),?\s+([\d\/]+)$/i) {	# U.S. format - Jul 4 instead of 4 Jul
+				complain({ person => $person, warning => "$date changed to $2 $1 $3" });
+				# FIXME: assumes the months are in English
+				return $2 . ucfirst(lc(substr($1, 0, 3))) . " $3";
 			}
 			print "\n";
 			my $i = 0;
