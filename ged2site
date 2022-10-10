@@ -11109,6 +11109,7 @@ sub get_language
 {
 	if($ENV{'LANGUAGE'}) {
 		my %langs = (
+			'br' => 'Breton',
 			'de' => 'German',
 			'en' => 'English',
 			'fr' => 'French',
@@ -11139,6 +11140,9 @@ sub get_language
 		}
 		if($val =~ /^la/) {
 			return 'Latin';
+		}
+		if($val =~ /^br/) {
+			return 'Breton';
 		}
 	}
 	complain("Can't determine the language, falling back to English");
@@ -11342,6 +11346,8 @@ wife::wife
 with::with
 with %s::with %s
 your::your
+@@ Breton
+and::ha
 @@ French
 a %s:M:un %s
 a %s:F:une %s
