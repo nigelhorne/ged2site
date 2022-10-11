@@ -10919,7 +10919,7 @@ sub parse_date
 			if($date =~ /from (.+) to (.+)/i) {
 				return "bet $1 and $2";
 			}
-			if($date =~ /([\d\s]*)([A-Z]{4,})\s+([\d\/]+)$/i) {
+			if($date =~ /^([\d\s]*)([A-Z]{4,})\.?\s+([\d\/]+)$/i) {
 				if(lc($2) eq 'about') {
 					return "Abt $3";
 				}
