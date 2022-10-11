@@ -7867,6 +7867,8 @@ sub Gedcom::Individual::relationship_up
 			} elsif($steps == 4) {
 				if($language eq 'Latin') {
 					return ($sex eq 'M') ? 'abavus' : 'abavia';
+				} elsif($language eq 'German') {
+					return ($sex eq 'M') ? 'Ur-urgrossvater' : 'Urg-urrossmutter';
 				}
 				return "great-great-grand$title";
 			} elsif($steps <= 0) {
@@ -10891,6 +10893,10 @@ sub dateofdeath
 			complain({ person => $person, warning => 'Getting date of death from date of birth' });
 			return dateofbirth(%params);
 		}
+		if($dateofdeath =~ /\s$/) {
+			complain({ person => $person, warning => "Removing trailing spaces from date of death '$dateofdeath'" });
+			$dateofdeath =~ s/\s+$//;
+		}
 		return parse_date({ date => $dateofdeath, type => 'Death', person => $person });
 	}
 }
@@ -10911,17 +10917,33 @@ sub parse_date
 		if(lc($date) eq 'unknown') {
 			return;
 		}
-		if($date =~ /[A-Z]{4,}/i) {
-			my $person = $params{'person'};
-			my $type = $params{'type'};
 
+		my $person = $params{'person'};
+		my $type = $params{'type'};
+		my $after;
+		my $before;
+
+		if($date =~ /^After\s+(.+)/i) {
+			complain({ person => $person, warning => "$type date says 'After' instead of 'Aft'" });
+			$date = $1;
+			$after = 1;
+		} elsif($date =~ /^Before\s+(.+)/i) {
+			complain({ person => $person, warning => "$type date says 'Before' instead of 'Bef'" });
+			$date = $1;
+			$before = 1;
+		}
+		if($date =~ /[A-Z]{4,}/i) {
 			complain({ person => $person, warning => "$type month '$date' should be 3 letters" });
 			if($date =~ /from (.+) to (.+)/i) {
 				return "bet $1 and $2";
 			}
+			if($date =~ /(.*\d{4})\s+(.+)/) {
+				complain({ person => $person, warning => "$type date: removing trailing text '$2'" });
+				$date = $1;
+			}
 			if($date =~ /^([\d\s]*)([A-Z]{4,})\.?\s+([\d\/]+)$/i) {
 				if(lc($2) eq 'about') {
-					return "Abt $3";
+					return "abt $3";
 				}
 				# FIXME: assumes the months are in English
 				return $1 . ucfirst(lc(substr($2, 0, 3))) . " $3";
@@ -10931,12 +10953,16 @@ sub parse_date
 				# FIXME: assumes the months are in English
 				return $2 . ucfirst(lc(substr($1, 0, 3))) . " $3";
 			}
-			print "\n";
 			my $i = 0;
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			}
 			die "BUG: handle '$date'";
+		}
+		if($after) {
+			return "aft $date";
+		} elsif($before) {
+			return "bef $date";
 		}
 		return $date;
 	}
