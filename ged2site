@@ -4398,7 +4398,9 @@ sub print_person
 									}
 									# FIXME:  it would be best to check the full date not just the
 									#	year, once datecmp() works when only the month is known
-									next if(datecmp($cyob, $rdate) >= 0);	# Child was not born yet
+									if($rdate !~ /^Bef/i) {
+										next if(datecmp($cyob, $rdate) >= 0);	# Child was not born yet
+									}
 									next if(($yoe - $cyob) > 10);	# Over 10 years old
 									if(my $cyod = dateofdeath($child)) {
 										next if(datecmp($cyod, $rdate) <= 0);	# Child was dead by this event
@@ -10093,7 +10095,8 @@ sub date_to_datetime
 	}
 
 	if(my $date = $params{'date'}) {
-		if($date !~ /^(bef|abt|aft).?\s/i) {
+		# if($date !~ /^(bef|abt|aft).?\s/i) {
+		if($date !~ /^(bef|abt|aft)/i) {
 			return $dfg->parse_datetime(%params);
 		}
 	}
@@ -11347,6 +11350,8 @@ following the death of::following the death of
 from::from
 had::had
 has had::has had
+has lived::has lived
+has lived at %s::has lived at %s
 has lived in %s::has lived in %s
 he::he
 husband::husband
@@ -11411,6 +11416,8 @@ following the death of::après le mort de
 from::de
 had::a eu
 has had::a eu
+has lived::a habité
+has lived at %s::a habité à %s
 has lived in %s::a habité en %s
 he::il
 husband::marie
