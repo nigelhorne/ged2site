@@ -4426,6 +4426,7 @@ sub print_person
 						}
 					}
 					if(scalar(@residencelist) > 1) {
+						# Add the dates to this residence place, as in "lived in this place on these dates"
 						if($rdate =~ /\s$/) {
 							complain({ person => $person, warning => "Removing trailing spaces from '$rdate'" });
 							$rdate =~ s/\s+$//;
@@ -8771,7 +8772,14 @@ sub year
 		}
 		return "on $string";
 	}
-	if($string =~ /^bef.? (\d{3,4})/i) {
+	if($string =~ /^bef.*\s+(\d{3,4})/i) {
+		if($string !~ /^bef.? (\d{3,4})/i) {
+			if(my $person = $params{'person'}) {
+				complain({ person => $person, warning => "Date '$string' should start with 'Bef'" });
+			} else {
+				complain("Date '$string' should start with 'Bef'");
+			}
+		}
 		if($language eq 'French') {
 			return "avant $1";
 		}
