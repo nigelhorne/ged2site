@@ -3880,12 +3880,14 @@ sub print_person
 									i18n(' with ') .
 									$key;
 							}
-							Lingua::Conjunction->separator_phrase(';');
-							Lingua::Conjunction->penultimate(1);
-							$bio .= ': ' . conjunction(@childnames);
-							# TODO: restore old values
-							Lingua::Conjunction->separator_phrase(',');
-							Lingua::Conjunction->penultimate(0);
+							if(scalar(@childnames)) {
+								Lingua::Conjunction->separator_phrase(';');
+								Lingua::Conjunction->penultimate(1);
+								$bio .= ': ' . conjunction(@childnames);
+								# TODO: restore old values
+								Lingua::Conjunction->separator_phrase(',');
+								Lingua::Conjunction->penultimate(0);
+							}
 
 							if(defined($surviving_children)) {
 								if($surviving_children == 1) {
@@ -5523,15 +5525,16 @@ sub print_person
 			last;
 		}
 		my $date = $event->date();
+		if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
+		   ($date =~ /[\/\-]/) || !date_parser_cached(date => $date)) {
+			$all_events_have_date = 0;
+			last;
+		}
 		if(!date_parser_cached(date => $date)) {
 			complain({
 				person => $person,
 				warning => "Event has an invalid date of $date"
 			});
-			$all_events_have_date = 0;
-			last;
-		}
-		if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) || ($date =~ /[\/\-]/)) {
 			$all_events_have_date = 0;
 			last;
 		}
@@ -7650,7 +7653,7 @@ sub Gedcom::Individual::as_string
 		$rc .= ' (n&eacute;e ' . normalize_name($self->surname()) . ')';
 	}
 
-	if($opts{'w'} && !defined($rc)) {
+	if(!defined($rc)) {
 		complain({ warning => "Can't parse the name of '$name'" });
 		$args{'include_years'} = 1;
 		$rc = 'Unknown person';
@@ -10078,6 +10081,14 @@ sub date_parser_cached
 	if($date =~ /^([A-Z]{3})\s+(\d{1,2}),\s+(\d{3,4})$/i) {
 		complain(warning => "Changing US format date '$date' to Gedcom format '$2 $1 $3'");
 		$date = "$2 $1 $3";
+	}
+	if($date =~ /(.+?\d{3,4})\s(.+)$/) {
+		if(my $person = $params{'person'}) {
+			complain({ person => $person, warning => "'date': removing trailing text" });
+		} else {
+			complain("'date': removing trailing text");
+		}
+		$date = $1;
 	}
 
 	if($all_dates{$date}) {
