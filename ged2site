@@ -3698,7 +3698,7 @@ sub print_person
 						$printed_bracket = 1;
 					}
 					$spouse_number++;
-					if((scalar(@spouses) == 2) && ($spouse_number == 2)) {
+					if(defined($dateofmarriage) && (scalar(@spouses) == 2) && ($spouse_number == 2)) {
 						my $death_of_first_spouse = dateofdeath($spouses[0]);
 						if($death_of_first_spouse && (datecmp($dateofmarriage, $death_of_first_spouse) > 0)) {
 							if($printed_bracket) {
@@ -10552,7 +10552,7 @@ sub journey
 			$rc = "In $year " . lc($rc);
 		}
 	} else {
-		die 'TODO: handle departure only record';
+		die 'TODO: ', $person->as_string(), ': handle departure only record';
 		# $yod = year({ person => $person, record => $departure });
 		# $yoa = year({ person => $person, record => $arrival });
 	}
@@ -10899,12 +10899,72 @@ sub dateofmarriage
 
 	my $person = $params{'person'};
 
-	my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
-	if((!defined($dateofmarriage)) && (my $marriage = $person->get_record('marriage') || $person->get_record('fams marriage'))) {
-		$dateofmarriage = $marriage->date();
+	# my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
+	# if((!defined($dateofmarriage)) && (my $marriage = $person->get_record('marriage') || $person->get_record('fams marriage'))) {
+		# $dateofmarriage = $marriage->date();
+	# }
+
+	# return parse_date({ date => $dateofmarriage, type => 'Marriage', person => $person });
+
+	my @d = get_value({ person => $person, value => 'marriage date' });
+	my $dateofmarriage;
+
+	if(scalar(@d) == 2) {	# TODO: && dates not the same
+		my ($year1, $year2);
+
+		if($d[0] =~ /(\d{3,4})/) {
+			$year1 = $1;
+		}
+		if($d[1] =~ /(\d{3,4})/) {
+			$year2 = $1;
+		}
+		if(defined($year1) && defined($year2)) {
+			if(abs($year1 - $year2) > 30) {
+				complain({ person => $person, warning => 'More than one date of marriage separated by many years' });
+			}
+		}
+
+		# Get the primary date.
+		# TODO: Is there a proper way to do this with the Gedcom module?
+		# FIXME: limited to 2 dates
+		my @b = $person->marriage();
+
+		for my $i(0..1) {
+			foreach my $item(@{$b[$i]->{'items'}}) {
+				if(($item->tag() eq '_PRIM') && ($item->value() eq 'Y')) {
+					$dateofmarriage = $b[$i]->date();
+					last;
+				}
+			}
+		}
+		if(!defined($dateofmarriage)) {
+			complain({ person => $person, warning => 'two dates of marriage, neither of which is marked primary' });
+			$dateofmarriage = $d[0];
+		}
+	} elsif(scalar(@d) == 1) {	# TODO: || scalar == 2 && dates are the same, though warn then
+		$dateofmarriage = $d[0];
+	} elsif(scalar(@d)) {
+		complain({ person => $person, warning => [ 'TODO: handle more than 2 dates of marriage: ', conjunction(map { year(date => $_) } @d) ] });
+		# die 'TODO: handle more than 2 dates of marriage';
+		return;
 	}
 
-	return parse_date({ date => $dateofmarriage, type => 'Marriage', person => $person });
+	if((!defined($dateofmarriage)) && (my $marriage = $person->get_record('marriage'))) {
+		$dateofmarriage = $marriage->date();
+		if(!defined($dateofmarriage)) {
+			if(my $marriage = ($person->get_record('marriage') || $person->get_record('fams marriage'))) {
+				$dateofmarriage = $marriage->date();
+			}
+		}
+	}
+	if(defined($dateofmarriage)) {
+		if($dateofmarriage =~ /\s$/) {
+			complain({ person => $person, warning => "Removing trailing spaces from date of marriage '$dateofmarriage'" });
+			$dateofmarriage =~ s/\s+$//;
+		}
+		return parse_date({ date => $dateofmarriage, type => 'Marriage', person => $person });
+	}
+	return;	# return undef
 }
 
 sub dateofdeath
