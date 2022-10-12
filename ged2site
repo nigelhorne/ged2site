@@ -7122,10 +7122,16 @@ sub print_person
 		$birth_country = 'United States';
 	} elsif($placeofbirth && ($placeofbirth =~ /.+,\s?(.+)$/)) {
 		my $c = $1;
+
+		if($c =~ /\s+$/) {
+			complain({ person => $person, warning => "Removing trailing spaces from place of birth '$c'" });
+			$c =~ s/\s+$//;
+		}
 		if($c =~ /\)$/) {
 			complain({ person => $person, warning => 'Trailing bracket in birth location' });
 			$c =~ s/\)$//;
 		}
+
 		if($c eq 'England') {
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
@@ -8579,6 +8585,15 @@ sub stepsabove
 	my $count = shift;
 
 	return -1 if($count == -1);
+
+	if(!defined($target)) {
+		print STDERR "\n";
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'Usage: stepsabove($person, $target, $count)';
+	}
 
 	if($person->xref() eq $target->xref()) {
 		return $count;
