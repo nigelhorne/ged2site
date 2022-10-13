@@ -10832,7 +10832,7 @@ sub dateofbirth {
 	my @d = get_value({ person => $person, value => 'birth date' });
 	my $dateofbirth;
 
-	if(scalar(@d) == 2) {	# TODO: && dates not the same
+	if((scalar(@d) == 2) && ($d[0] ne $d[1])) {
 		my ($year1, $year2);
 
 		if($d[0] =~ /(\d{3,4})/) {
@@ -10864,9 +10864,17 @@ sub dateofbirth {
 			complain({ person => $person, warning => 'two dates of birth, neither of which is marked primary' });
 			$dateofbirth = $d[0];
 		}
-	} elsif(scalar(@d) == 1) {	# TODO: || scalar == 2 && dates are the same, though warn then
+	} elsif(scalar(@d) == 1) {
 		$dateofbirth = $d[0];
 	} elsif(scalar(@d)) {
+		# More than one date - are they all the same?
+		while(defined($d[1]) && ($d[0] eq $d[1])) {
+			pop @d;
+		}
+		if(scalar(@d) == 1) {
+			complain({ person => $person, warning => "Removed duplicate dates of birth ($d[0])" });
+			return %params;
+		}
 		complain({ person => $person, warning => [ 'TODO: handle more than 2 dates of birth: ', conjunction(map { year(date => $_) } @d) ] });
 		# die 'TODO: handle more than 2 dates of birth';
 		return;
@@ -11574,6 +11582,7 @@ during %s life:F:während ihres Lebens
 eldest::älteste
 father::Vater
 following the death of::Nach dem Tod von
+has had::hatte
 had::hatte
 has lived in %s::hat in %s gelebt
 he::er
