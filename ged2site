@@ -365,6 +365,7 @@ my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
 my %changes;	# If the -x option is given, tracks changes between the previous run and this run
 my $facts;
+my %all_residences;
 # my $pi = atan2(1,1) * 4;
 
 binmode(STDOUT, ':utf8');
@@ -10239,6 +10240,11 @@ sub get_all_residences
 
 	die 'Usage: get_all_residences($person)' unless($person);
 
+	# Cache the records to save repeated expensive lookups
+	if($all_residences{$person->xref()}) {
+		return @{$all_residences{$person->xref()}};
+	}
+
 	my @residences = $person->residence();
 	my @rc;
 	my $index = 0;
@@ -10338,6 +10344,7 @@ sub get_all_residences
 		}
 	}
 
+	$all_residences{$person->xref()} = \@rc;
 	return @rc;
 }
 
@@ -11590,6 +11597,7 @@ husband::Mann
 is::ist
 is buried::ist begraben
 is married to::ist verheiratet
+later that same year::später im gleichen Jahr
 mother::Mutter
 she::sie
 sister::Schwester
