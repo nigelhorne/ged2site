@@ -4983,7 +4983,7 @@ sub print_person
 											lcfirst(i18n($person->pronoun())) .
 											' was living with ' .
 											lcfirst($person->possessive()) .
-											(($child->sex() eq 'F') ? ' daughter, ' : ' son, ') .
+											(i18n(($child->sex() eq 'F') ? ' daughter, ' : ' son, ')) .
 											$child->given_names() .
 											', following the death of ' .
 											(($sex eq 'M') ? 'his wife ' : 'her husband ') .
@@ -8532,7 +8532,7 @@ sub Gedcom::Individual::relationship_down
 		if($person1 eq $other) {
 			# Direct descendant
 			my $steps = stepsabove($other, $self, 0);
-			my $title = ($sex eq 'M') ? 'son' : 'daughter';
+			my $title = i18n(($sex eq 'M') ? 'son' : 'daughter');
 			if($steps >= 5) {
 				$steps -= 2;
 				return "$steps times great-grand$title";
@@ -11450,6 +11450,7 @@ brother::brother
 check out %s::check out %s
 child::child
 children::children
+daughter::daughter
 died::died
 during %s::during %s
 during %s life::during %s life
@@ -11478,6 +11479,7 @@ on your father's side::on your father's side
 on your mother's side::on your mother's side
 she::she
 sister::sister
+son::son
 the same day as::the same day as
 they::they
 times::times
@@ -11514,6 +11516,7 @@ brother::frère
 check out %s::visitez %s
 child::enfant
 children::enfants
+daughter::fille
 died:M:est mort
 died:F:est morte
 during %s::en %s
@@ -11547,6 +11550,7 @@ on your father's side::sur le côté de votre père
 on your mother's side::sur le côté de votre mère
 she::elle
 sister::sœur
+son::fils
 the same day as::le même jour comme
 they:M:ils
 they:F:elles
