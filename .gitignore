@@ -25,3 +25,4 @@ dynamic-site/databases
 dynamic-site/img
 static-site
 local/
+.tidyall.d/
