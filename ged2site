@@ -10868,7 +10868,7 @@ sub dateofbirth {
 			}
 		}
 		if(!defined($dateofbirth)) {
-			complain({ person => $person, warning => 'two dates of birth, neither of which is marked primary' });
+			complain({ person => $person, warning => "Two dates of birth ($d[0]/$d[1]), neither of which is marked primary" });
 			$dateofbirth = $d[0];
 		}
 	} elsif(scalar(@d) == 1) {
@@ -11603,6 +11603,7 @@ is buried::ist begraben
 is married to::ist verheiratet
 later that same year::später im gleichen Jahr
 mother::Mutter
+of %d children::von %d Kindern
 she::sie
 sister::Schwester
 wife::Frau
