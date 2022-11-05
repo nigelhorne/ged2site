@@ -628,6 +628,7 @@ if($opts{'m'} || $opts{'w'}) {
 }
 
 # FIXME: Do this properly
+# TODO: Fr: Le recensement
 my %censusmaps = (
 	'1841 England Census' => '1841 UK Census',
 	'1841 England, Wales & Scotland Census - Findmypast' => '1841 UK Census',
