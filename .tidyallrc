@@ -1,8 +1,0 @@
-; run 'tidyall -a'
-[PerlTidy]
-select = {ged2site,*.pm}
-argv = -noll -it=2
-
-[PerlCritic]
-select = {ged2site,*.pm}
-argv = -severity 3
