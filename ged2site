@@ -9347,6 +9347,7 @@ sub notes
 			}
 		}
 
+		# Scan the notes for locations to include in the map
 		if($freegeocoder) {
 			@matches = $freegeocoder->geocode(scantext => $rc, region => $region);
 		} elsif($textgeocoder && ($rc =~ /[\s,]/)) {
