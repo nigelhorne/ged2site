@@ -5127,6 +5127,14 @@ sub print_person
 	# $bio =~ s/,.$/./;
 
 	if($placeofburial || $dateofburial || $placeofcremation || $dateofcremation) {
+		if(defined($dateofdeath) && (!defined($dateofburial)) && (!defined($dateofcremation))) {
+			complain({ person => $person, warning => "Adding date of burial as 'aft $dateofdeath'" });
+			if($placeofburial) {
+				$dateofburial = "aft $dateofdeath";
+			} else {
+				$dateofcremation = "aft $dateofdeath";
+			}
+		}
 		if((!$dateofdeath) && !$placeofdeath) {
 			$bio .= '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
 			$end_of_sentence = 1;
@@ -8833,11 +8841,17 @@ sub year
 	if($string =~ /^bef\s(.+)/i) {
 		return i18n({ format => 'before %s', args => $1 });
 	}
+	if($string =~ /^aft\s(.+)/i) {
+		return i18n({ format => 'after %s', args => $1 });
+	}
 	if($language eq 'French') {
 		if($string =~ /^[AEIOU]/) {
 			return "l'$string";
 		}
 		return ($string =~ /\d$/) ? "en $string" : "le $string";
+	}
+	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^en_US/)) {
+		$string = ucfirst(lc($string));	# Starts with a month name so it's easily capitalised
 	}
 	return ($string =~ /\d$/) ? "in $string" : "on $string";
 }
@@ -11438,6 +11452,7 @@ __DATA__
 @@ English
 a %s::a %s
 a day before::a day before
+after %s::after %s
 all with %s::all with %s
 also::also
 also%s::also%s
@@ -11503,6 +11518,7 @@ son::mab
 a %s:M:un %s
 a %s:F:une %s
 a day before::la veille
+after %s::après $s
 all with %s::tout avec %s
 also::aussi
 also%s::aussi%s
@@ -11512,7 +11528,7 @@ and::et
 arrived:M:est arrivé
 arrived:F:est arrivée
 at::à
-before %s::avant de %s
+before %s::avant %s
 birthplace::ville natal
 both with %s::tous les deux avec %s
 brother::frère
