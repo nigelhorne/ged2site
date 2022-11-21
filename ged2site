@@ -4678,6 +4678,9 @@ sub print_person
 										$residencestring .= '(';
 									}
 									$residencestring .= i18n('when ') . i18n(($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
+									if($language eq 'French') {
+										$residencestring =~ s/lorsque elle/lorsqu'elle/;
+									}
 									if($first) {
 										if($language eq 'French') {
 											$residencestring .= ($printed_sibling ? ' et ' : ' avec ');
@@ -8842,7 +8845,19 @@ sub year
 		return i18n({ format => 'before %s', args => $1 });
 	}
 	if($string =~ /^aft\s(.+)/i) {
-		return i18n({ format => 'after %s', args => $1 });
+		my $rc = i18n({ format => 'after %s', args => $1 });
+		if(my $d = date_parser_cached(date => $1)) {
+			$d = $dfn->parse_datetime($d->{'canonical'});
+			if($ENV{'LC_TIME'}) {
+				$d->set_locale($ENV{'LC_TIME'});
+			} elsif($ENV{'LC_ALL'}) {
+				$d->set_locale($ENV{'LC_ALL'});
+			} elsif($ENV{'LANG'}) {
+				$d->set_locale($ENV{'LANG'});
+			}
+			return i18n({ format => 'after %s', args => $d->strftime('%x') });
+		}
+		return $rc;
 	}
 	if($language eq 'French') {
 		if($string =~ /^[AEIOU]/) {
@@ -11519,7 +11534,7 @@ son::mab
 a %s:M:un %s
 a %s:F:une %s
 a day before::la veille
-after %s::après %s
+after %s::après le %s
 all with %s::tout avec %s
 also::aussi
 also%s::aussi%s
@@ -11529,7 +11544,7 @@ and::et
 arrived:M:est arrivé
 arrived:F:est arrivée
 at::à
-before %s::avant %s
+before %s::avant le %s
 birthplace::ville natal
 both with %s::tous les deux avec %s
 brother::frère
