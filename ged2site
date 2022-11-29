@@ -11149,6 +11149,7 @@ sub get_location($)
 		$place =~ s/^\N{U+00E0}\s+//;
 	} else {
 		$place =~ s/^at\s+//;
+		$place =~ s/^on\s+//;
 	}
 
 	my @locations = $geocoder->geocode($place);	# Use array to improve caching
@@ -11637,6 +11638,7 @@ is::ist
 is buried::ist begraben
 is married to::ist verheiratet
 later that same year::später im gleichen Jahr
+married::verheiratet
 mother::Mutter
 of %d children::von %d Kindern
 she::sie
