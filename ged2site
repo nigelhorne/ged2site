@@ -454,6 +454,10 @@ if($opts{'G'}) {
 }
 $gp_args{'key'} = $geolocation_key;
 $gp_args{'api_key'} = $geolocation_key;
+my $l = $ENV{'LANG'};
+if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
+	$gp_args{'language'} = lc($1);
+}
 
 my $javascript_key;
 if($opts{'J'}) {
@@ -547,8 +551,8 @@ if($opts{'m'} || $opts{'w'}) {
 			->push({ regex => qr/^[\w\s-]+,\s*[\w\s]+,\s*(UK|United Kingdom|England|Wales)$/i, geocoder => Geo::Coder::Postcodes->new() })
 			->push(Geo::Coder::Ovi->new())
 			# ->push({ regex => qr/(USA|US|United States)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })	# Off-line
-			->push({ limit => 100, geocoder => Geo::Coder::GooglePlaces->new(%gp_args) })
-			->push({ limit => 200, geocoder => Geo::Coder::XYZ->new()});
+			# ->push({ limit => 200, geocoder => Geo::Coder::XYZ->new()});
+			->push({ limit => 100, geocoder => Geo::Coder::GooglePlaces->new(%gp_args) });
 			if(my $client = $ENV{'GMAP_CLIENT'}) {
 				$gp_args{'client'} = $client;
 				$geocoder->push(Geo::Coder::Google->new(%gp_args));
