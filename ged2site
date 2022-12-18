@@ -2799,7 +2799,9 @@ sub print_person
 
 	if($bio) {
 		$html_and_csv->print($bio);
-		print $xml HTML::Entities::encode($bio);
+		my $encoded = HTML::Entities::encode($bio);
+		$encoded =~ s/&euml;/&#235;/g;
+		print $xml HTML::Entities::encode($encoded);
 
 		$fullbio .= $bio;
 	}
@@ -6511,7 +6513,8 @@ sub print_person
 									if($jpegtran) {
 										open($tmp, '|-', "$jpegtran -progressive -outfile '$localfile'");
 									} elsif($jpegoptim) {
-										open($tmp, '|-', "$jpegoptim -q --all-progressive --stdin > '$localfile'");
+										# jpegoptim 1.4.7 wants a filename even with the --stdin option
+										open($tmp, '|-', "$jpegoptim -q --all-progressive --stdin /dev/null > '$localfile'");
 									} else {
 										open($tmp, '>', $localfile);
 									}
@@ -7427,6 +7430,7 @@ sub print_person
 			$issue = HTML::Entities::encode($issue);
 			$issue =~ s/&eacute;/&#233;/g;
 			$issue =~ s/&Atilde;&copy;/&#233;/g;	# ACOM bizarre
+			$issue =~ s/&euml;/&#235;/g;
 			$issue =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
 			print $xml "\n\t\t\t<issue>$issue</issue>";
 		}
