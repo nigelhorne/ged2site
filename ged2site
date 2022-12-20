@@ -11060,6 +11060,7 @@ sub dateofdeath
 		}
 		return parse_date({ date => $dateofdeath, type => 'Death', person => $person });
 	}
+	return;	# return undef
 }
 
 sub parse_date
