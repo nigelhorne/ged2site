@@ -1493,6 +1493,8 @@ if($opts{'w'}) {
 					$summary = 'Check out Obituary Daily Times';
 				} elsif($warning =~ /^Missing house number /) {
 					$summary = 'Missing house number';
+				} elsif($warning =~ /^Adding date of burial as/) {
+					$summary = 'Guessed at date of burial';
 				} else {
 					$summary = $warning;
 				}
@@ -10179,6 +10181,7 @@ sub date_to_datetime
 			return $dfg->parse_datetime(%params);
 		}
 	}
+	return;	# undef
 }
 
 sub add_marker
@@ -11073,6 +11076,9 @@ sub parse_date
 
 	if(my $date = $params{'date'}) {
 		if(lc($date) eq 'unknown') {
+			return;
+		}
+		if(length($date) == 0) {
 			return;
 		}
 
