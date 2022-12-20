@@ -2873,6 +2873,7 @@ sub print_person
 
 	my $start_of_paragraph = 0;
 	my $end_of_sentence = 0;
+	my $printed_and = 0;
 
 	my @childrenunknownparent;
 	my @residences = get_all_residences($person);
@@ -2923,6 +2924,7 @@ sub print_person
 						$bio .= ', was';
 					} else {
 						$bio .= i18n(' and');
+						$printed_and = 1;
 					}
 				}
 				$end_of_sentence = 0;
@@ -3142,6 +3144,7 @@ sub print_person
 				}
 				if(scalar(@spouses) && ($numberofchildren > 0)) {
 					$bio .= i18n(' and');
+					$printed_and = 1;
 				}
 			}
 
@@ -3236,8 +3239,10 @@ sub print_person
 						$bio .= " $pronoun";
 					} elsif(scalar(@person_twins) || $dateofbaptism) {
 						$bio .= i18n(' and');
+						$printed_and = 1;
 					} else {
 						$bio .= ', and';
+						$printed_and = 1;
 					}
 					$bio .= ' was orphaned ';
 					my $orphaned_year = (($myod > $fyod) ? $myod : $fyod);
@@ -3294,9 +3299,7 @@ sub print_person
 			$bio .= " $pronoun" if($end_of_sentence);
 
 			if(scalar(@spouses) == 1) {
-				if((!$end_of_sentence) &&
-				   ($dateofbirth || $dateofdeath) &&
-				   ((scalar(@residences) > 0) || ((!($dateofbaptism)) && !$placeofbaptism))) {
+				if(!$printed_and) {
 					$bio .= i18n(' and');
 				}
 				if($placeofmarriage || $dateofmarriage) {
