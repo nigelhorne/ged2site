@@ -3596,10 +3596,9 @@ sub print_person
 						$bio .= 'e';
 					}
 				} else {
-					$bio .= ' was married';
+					$bio .= i18n('and ') if($numberofchildren > 0);
+					$bio .= 'was married';
 				}
-				$bio .= ' ';
-				$bio .= i18n(' and') if($numberofchildren > 0);
 
 				if(scalar(@spouses) == 2) {
 					if($spouses[0]->xref() eq $spouses[1]->xref()) {
