@@ -227,10 +227,10 @@ if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 	}
 
 	if($opts{'m'} || $opts{'w'}) {
-		push @modules, 'Geo::Coder::Free::Local', 'Geo::Coder::Postcodes';
+		push @modules, 'Geo::Coder::Free::Local', 'Geo::Coder::Postcodes', 'LWP::UserAgent::Cached';
 		if($opts{'w'}) {
 			push @modules,
-				'LWP::UserAgent::Cached', 'Genealogy::ChroniclingAmerica', 'Locale::Country';
+				'Genealogy::ChroniclingAmerica', 'Locale::Country';
 		}
 	}
 }
