@@ -3298,6 +3298,7 @@ sub print_person
 			# FIXME: do all schools
 			$bio .= place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }) .
 				'. ';
+			$printed_and = 0;
 			$end_of_sentence = 1;
 		}
 
@@ -3309,6 +3310,7 @@ sub print_person
 			if(scalar(@spouses) == 1) {
 				if(!$printed_and) {
 					$bio .= i18n(' and');
+					$printed_and = 1;
 				}
 				if($placeofmarriage || $dateofmarriage) {
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
@@ -3493,7 +3495,7 @@ sub print_person
 							}
 						} elsif($numberofchildrenwiththisspouse > 1) {
 							my $childnames = join(', ', map {
-								'<a href="' . make_filename_from_person(person => $_) . '">'.
+								'<a href="' . make_filename_from_person(person => $_) . '">' .
 									$_->given_names() . '</a>'
 							} @childrenofthisspouse);
 							substr($childnames, rindex($childnames, ', '), 2, ' and ');
@@ -3506,7 +3508,7 @@ sub print_person
 							foreach my $child(@childrenofthisspouse) {
 								if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
 									push @childlist,
-										'<a href="?page=people&entry=' . $child->xref() . '">'.
+										'<a href="?page=people&entry=' . $child->xref() . '">' .
 											$child->given_names() . '</a>'
 								} else {
 									$alive_children++;
@@ -3604,7 +3606,7 @@ sub print_person
 						$bio .= 'e';
 					}
 				} else {
-					$bio .= i18n(' and') if($numberofchildren > 0);
+					$bio .= i18n(' and') if((!$printed_and) && ($numberofchildren > 0));
 					$bio .= ' was married';
 				}
 
@@ -7368,7 +7370,7 @@ sub print_person
 		my $xref = $person->xref();
 		my $military_count = 0;
 		foreach my $event(@events) {
-			if(my $type = $event->type()) {
+			if((ref($event) eq 'Gedcom::Record') && (my $type = $event->type())) {
 				if($type eq 'Military service') {
 					if($military_count == 0) {
 						print $xml "\n\t\t<military>";
