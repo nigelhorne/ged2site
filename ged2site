@@ -2738,13 +2738,13 @@ sub print_person
 			}
 		} else {
 			if($father) {
-				print $html ' <a href="', make_filename_from_person(person => $father), '">',
+				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->given_names(),
 					'</a>';
-				print $csv ' <a href="?page=people&entry=', $father->xref(), '">',
+				print $csv '<a href="?page=people&entry=', $father->xref(), '">',
 					$father->given_names(),
 					'</a>';
-				print $xml ' &lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
+				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					$father->given_names(),
 					'&lt;/a&gt;';
 				if($mother) {
@@ -2752,13 +2752,13 @@ sub print_person
 				}
 			}
 			if($mother) {
-				print $html ' <a href="', make_filename_from_person(person => $mother), '">',
+				print $html '<a href="', make_filename_from_person(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
-				print $csv ' <a href="?page=people&entry=', $mother->xref(), '">',
+				print $csv '<a href="?page=people&entry=', $mother->xref(), '">',
 					$mother->given_names(),
 					'</a>';
-				print $xml ' &lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
+				print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
 					$mother->given_names(),
 					'&lt;/a&gt;';
 			}
@@ -2831,10 +2831,18 @@ sub print_person
 			$me->as_string(nee => 1),
 			'&lt;/a&gt;';
 	} elsif($spouserelationship) {
-		if($sex eq 'F') {
-			$all->print(', the wife of');
+		if((!$is_alive) || $opts{'l'}) {
+			if($sex eq 'F') {
+				$all->print(', the wife of');
+			} else {
+				$all->print(', the husband of');
+			}
 		} else {
-			$all->print(', the husband of');
+			if($sex eq 'F') {
+				$all->print('The wife of');
+			} else {
+				$all->print('The husband of');
+			}
 		}
 		my $s = $spouse->as_string({ middle_names => 1, title => 1 });
 		if(!defined($s)) {
@@ -3596,15 +3604,15 @@ sub print_person
 						$bio .= 'e';
 					}
 				} else {
-					$bio .= i18n('and ') if($numberofchildren > 0);
-					$bio .= 'was married';
+					$bio .= i18n(' and') if($numberofchildren > 0);
+					$bio .= ' was married';
 				}
 
 				if(scalar(@spouses) == 2) {
 					if($spouses[0]->xref() eq $spouses[1]->xref()) {
 						complain({ person => $person, warning => [ 'Married twice to ', $spouses[0]->as_string() ] });
 					} else {
-						$bio .= i18n('twice');
+						$bio .= i18n(' twice');
 					}
 				} else {
 					$bio .= scalar(@spouses) . i18n(' times');
@@ -5258,7 +5266,7 @@ sub print_person
 			if(!$diedathome) {
 				$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
 
-				$bio .= "<p>$pronoun" . i18n({ person => $person, format => ' died ' });
+				$bio .= "<p>$pronoun" . i18n({ person => $person, format => ' died' });
 
 				$start_of_paragraph = 0;
 				$end_of_sentence = 0;
