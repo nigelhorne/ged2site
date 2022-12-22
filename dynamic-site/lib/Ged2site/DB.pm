@@ -1,5 +1,11 @@
 package Ged2site::DB;
 
+=head1
+
+Ged2site::DB
+
+=cut
+
 # Author Nigel Horne: njh@bandsman.co.uk
 # Copyright (C) 2015-2022, Nigel Horne
 
@@ -363,6 +369,9 @@ sub selectall_hash {
 	if(!$self->{no_entry}) {
 		$query .= ' ORDER BY entry';
 	}
+	if(!wantarray) {
+		$query .= ' LIMIT 1';
+	}
 	if($self->{'logger'}) {
 		if(defined($query_args[0])) {
 			$self->{'logger'}->debug("selectall_hash $query: ", join(', ', @query_args));
@@ -392,8 +401,9 @@ sub selectall_hash {
 
 		my @rc;
 		while(my $href = $sth->fetchrow_hashref()) {
+			# FIXME: Doesn't store in the cache
+			return $href if(!wantarray);
 			push @rc, $href;
-			last if(!wantarray);
 		}
 		if($c && wantarray) {
 			$c->set($key, \@rc, '1 hour');
