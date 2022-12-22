@@ -2680,10 +2680,10 @@ sub print_person
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
-				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;'.
+				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;' .
 					$father->as_string(),
 					'$lt;/a$gt;';
-				print $csv '<a href="?page=people&entry=', $father->xref(), '">'.
+				print $csv '<a href="?page=people&entry=', $father->xref(), '">' .
 					$father->as_string(),
 					'</a>';
 
@@ -3272,7 +3272,7 @@ sub print_person
 							(($person->pronoun() eq 'She') ? 'her' : 'his') .
 							" mother in $myod and father in $fyod. ";
 					}
-					$bio .= "</p><p>";
+					$bio .= '</p><p>';
 					$end_of_sentence = 1;
 					$start_of_paragraph = 1;
 
@@ -3996,7 +3996,7 @@ sub print_person
 		}
 
 		if($same_occupation_as_father) {
-			$bio .= '. ' if(!$end_of_sentence);
+			$bio .= '.' if(!$end_of_sentence);
 			if($language eq 'French') {
 				$bio .= " Comme son p\N{U+00E8}re, " . lcfirst($pronoun) .
 					(is_alive(person => $person) ? ' est' : " \N{U+00E9}tait") . ' un';
@@ -5713,18 +5713,22 @@ sub print_person
 				$bio .= '. ';
 				$end_of_sentence = 1;
 			} elsif(($type eq 'Military service') || ($type eq 'Military')) {
-				$bio .= '.' if(!$end_of_sentence);
+				if($end_of_sentence) {
+					$bio .= ' ' unless($bio =~ /\s$/);
+				} else {
+					$bio .= '.';
+				}
 				my $date = year(record => $event);
 				if($military_location) {
-					$bio .= ' when ' . lcfirst($pronoun) . (' was serving in the military');
+					$bio .= 'when ' . lcfirst($pronoun) . (' was serving in the military');
 				} elsif($date) {
 					if($date !~ /^from /i) {
-						$bio .= ' ' . ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
+						$bio .= ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
 					} else {
-						$bio .= " $pronoun was serving in the military";
+						$bio .= "$pronoun was serving in the military";
 					}
 				} else {
-					$bio .= " $pronoun served in the military";
+					$bio .= "$pronoun served in the military";
 				}
 				if(my $place = place({ person => $person, record => $event })) {
 					$bio .= $place;
@@ -5777,23 +5781,27 @@ sub print_person
 				print "Event type: $type\n" if($opts{'v'});
 				if($type eq 'Military service') {
 					if(!$mentioned_military) {
-						$bio .= '.' if(!$end_of_sentence);
+						if($end_of_sentence) {
+							$bio .= ' ' unless($bio =~ /\s$/);
+						} else {
+							$bio .= '.';
+						}
 
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^on /) {
-								$bio .= ' ' . ucfirst($date) . ' ';
+								$bio .= ucfirst($date) . ' ';
 							} elsif($date =~ /^in (\d{4})/) {
-								$bio .= " During $1, ";
+								$bio .= "During $1, ";
 							} else {
 								if($date =~ /(.+)\-(.+)/) {
-									$bio .= " Between $1 and $2 ";
+									$bio .= "Between $1 and $2 ";
 								} else {
-									$bio .= ' ' . ucfirst($date) . ' ';
+									$bio .= ucfirst($date) . ' ';
 								}
 							}
 							$bio .= lcfirst($pronoun) . ' was serving in the military';
 						} else {
-							$bio .= " $pronoun served in the military";
+							$bio .= "$pronoun served in the military";
 						}
 
 						if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
@@ -8792,7 +8800,7 @@ sub year
 			# } else {
 				# if(my $locale = ($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'})) {
 					# $locale =~ s/_/-/;
-					# return 'on '.
+					# return 'on ' .
 						# DateTime->from_object(object => $d, locale => $locale)->strftime('%x');
 				# }
 				# return 'on ' . $d->strftime('%x');
