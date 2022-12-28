@@ -58,7 +58,8 @@ my @needfull;
 # Install Pre-requisites
 BEGIN {
 	my @modules = (
-		'Array::Iterator', 'Array::Iterator::BiDirectional', 'Config::Auto',
+		'Array::Iterator', 'Array::Iterator::BiDirectional',
+		'Config::Auto', 'Data::Text',
 		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
 		'Date::Manip', 'Parse::RecDescent', 'Roman',
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
@@ -1862,6 +1863,10 @@ sub print_person
 	my $bio;
 	my $fullbio;
 
+	my $bio_dt = Data::Text->new();
+	my $phrase = Data::Text->new();
+	my @phrases;
+
 	if($is_alive && !$opts{'l'}) {
 		print $xml "\n\t\t<alive>1</alive>";
 		print $csv '1!';
@@ -2502,6 +2507,9 @@ sub print_person
 				format => "$article %s",
 				args => lc(conjunction(@occupations))
 			}));
+			$phrase->set($bio);
+			push @phrases, $phrase;
+			$phrase = Data::Text->new();
 			if(!($father || $mother || $spouserelationship)) {
 				$bio .= ', ';
 				$printed_comma = 1;
@@ -2533,8 +2541,17 @@ sub print_person
 				if(!$printed_comma) {
 					$bio .= ', ';
 				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+				}
+				$phrase = Data::Text->new('twin of ' . $person_twins[0]->given_names());
 				$bio .= 'twin of ' . $person_twins[0]->given_names();
 			} else {
+				if($phrase->length()) {
+					push @phrases, $phrase;
+				}
+				$phrase = Data::Text->new('The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
+					' of ' . $person_twins[0]->given_names());
 				$bio .= 'The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
 					' of ' . $person_twins[0]->given_names();
 			}
@@ -2555,6 +2572,11 @@ sub print_person
 			$bio .= ' and the ';
 		} else {
 			$bio = 'The ';
+		}
+		if($phrase->length()) {
+			$phrase->append(' and the ');
+		} else {
+			$phrase->set('The ');
 		}
 
 		if($birth_dt && ($opts{'l'} || !$is_alive)) {
@@ -2621,51 +2643,67 @@ sub print_person
 				if($all_siblings_have_dob) {
 					if($language eq 'French') {
 						$bio .= 'e ';
+						$phrase->append('e ');
 					}
 					if(scalar(@siblings) && ($age_index == (scalar(@siblings) + 1))) {
 						if($language eq 'French') {
 							$bio .= ($sex eq 'M') ? 'dernier' : "derni\N{U+00E8}re";
+							$phrase->append(($sex eq 'M') ? 'dernier' : "derni\N{U+00E8}re");
 						} else {
 							$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
+							$phrase->append(((scalar(@siblings) > 1) ? 'youngest' : 'younger'));
 						}
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
 						if(scalar(@siblings) > 1) {
 							$bio .= i18n({ person => $person, format => 'eldest' });
+							$phrase->append(i18n({ person => $person, format => 'eldest' }));
 						} else {
 							$bio .= i18n({ person => $person, format => 'older' });
+							$phrase->append(i18n({ person => $person, format => 'older' }));
 						}
 					} elsif($language eq 'French') {
 						$bio .= Lingua::FR::Numbers::Ordinate::ordinate($age_index);
+						$phrase->append(Lingua::FR::Numbers::Ordinate::ordinate($age_index));
 					} else {
 						$bio .= ordinate($age_index);
+						$phrase->append(ordinate($age_index));
 					}
 					if($language eq 'French') {
 						$bio .= ' de ' . (scalar(@siblings) + 1) . ' enfants';
+						$phrase->append(' de ' . (scalar(@siblings) + 1) . ' enfants');
 					} else {
 						$bio .= ' of ' . (scalar(@siblings) + 1) . ' children';
+						$phrase->append(' of ' . (scalar(@siblings) + 1) . ' children');
 					}
 				} else {
 					if($language eq 'French') {
 						$bio .= "'enfant";
+						$phrase->append("'enfant");
 					} else {
 						$bio .= 'child';
+						$phrase->append('child');
 					}
 				}
 			} else {
 				# $bio .= ' only child of';
 				$bio .= 'child';
+				$phrase->append('child');
 			}
 			if($language eq 'French') {
 				$bio =~ s/^Le a/L'a/;
+				$phrase->replace({ 'Le a' => "L'a" });
 			}
 		} else {
 			$bio .= 'child';
+			$phrase->append('child');
 		}
 
 		if(($language eq 'French') && ($father->as_string =~ /^[aehiou]/i)) {
 			$bio .= " d'";
+			$phrase->append(" d'");
 		} else {
 			$bio .= i18n(' of ');
+			$phrase->append(i18n(' of '));
 		}
 
 		print $csv $bio;
@@ -2679,6 +2717,9 @@ sub print_person
 
 		if($opts{'l'} || !$is_alive) {
 			if($father) {
+				$phrase->append('<a href="' . make_filename_from_person(person => $father) . '">' .
+					$father->as_string() .
+					'</a>');
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
@@ -2719,6 +2760,7 @@ sub print_person
 			}
 			if($mother) {
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
+					$phrase->append('<a href="' . make_filename_from_person(person => $mother) . "\">$m</a>");
 					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
 					print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
 					print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
@@ -2740,6 +2782,9 @@ sub print_person
 			}
 		} else {
 			if($father) {
+				$phrase->append('<a href="' . make_filename_from_person(person => $father), '">',
+					$father->given_names() .
+					'</a>');
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->given_names(),
 					'</a>';
@@ -2754,6 +2799,9 @@ sub print_person
 				}
 			}
 			if($mother) {
+				$phrase->append('<a href="' . make_filename_from_person(person => $mother), '">',
+					$mother->given_names() .
+					'</a>');
 				print $html '<a href="', make_filename_from_person(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
@@ -2773,39 +2821,65 @@ sub print_person
 			if($opts{'l'} || $is_alive) {
 				if($relationship) {
 					$bio .= ', ' if(($mother || $father) && !$printed_comma);
+					if($phrase->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
+					}
 					$bio .= "<b>$firstname</b>";
+					$phrase->append("<b>$firstname</b>");
 					if(($dateofbirth || $marriage) && (!($is_alive || $opts{'l'}))) {
 						$bio .= ',';
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
 					} elsif($is_alive) {
 						$bio .= ' is';
+						$phrase->append(' is ');
 					} else {
 						$bio .= ' was';
+						$phrase->append(' was ');
 					}
 				}
 			} else {
 				if($father || $mother || $occupations[0]) {
 					$bio .= ', ' if(!$printed_comma);
 				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				}
 				if($name_components{'surname_1'}) {
 					$bio .= "<b>$firstname " .
 						$name_components{'surname_1'} .
 						'</b>';
+					$phrase->set("<b>$firstname " .
+						$name_components{'surname_1'} .
+						'</b>');
 				} else {
 					$bio .= "<b>$firstname</b>";
+					$phrase->set("<b>$firstname</b>");
 				}
 				if($relationship) {
 					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {
 						$bio .= ',';
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
 					} elsif($opts{'l'} || $is_alive) {
 						$bio .= ' is';
+						$phrase->append(' is');
 					} else {
 						$bio .= ' was';
+						$phrase->append(' was');
 					}
 				}
 			}
 		}
 	} else {
 		$bio .= $pronoun;
+		$phrase->append($pronoun);
 	}
 
 	if($bio) {
@@ -2820,6 +2894,10 @@ sub print_person
 
 	my $haveprintedspousename;
 	if($relationship) {
+		$phrase->append(" the $relationship of " .
+			'<a href="' . make_filename_from_person(person => $me) . '">' .
+			$me->as_string(nee => 1) .
+			'</a>');
 		print $html " the $relationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
@@ -2846,11 +2924,25 @@ sub print_person
 				$all->print('The husband of');
 			}
 		}
+		if($phrase->length()) {
+			push @phrases, $phrase;
+			$phrase = Data::Text->new();
+		}
+		if($sex eq 'F') {
+			$phrase->append('the wife of');
+		} else {
+			$phrase->append('the husband of');
+		}
 		my $s = $spouse->as_string({ middle_names => 1, title => 1 });
 		if(!defined($s)) {
 			complain({ person => $spouse, warning => 'Seems to have no name' });
 			$s = 'your relation';
 		}
+		$phrase->append(' <a href="' . make_filename_from_person(person => $spouse) . '">' .
+			"$s</a> the $spouserelationship of " .
+			'<a href="' . make_filename_from_person(person => $me) . '">' .
+			$me->as_string(nee => 1) .
+			'</a>');
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 			"$s</a> the $spouserelationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
@@ -2872,10 +2964,15 @@ sub print_person
 			print $csv ',';
 			print $xml ',';
 		}
+		if($phrase->length()) {
+			push @phrases, $phrase;
+			$phrase = Data::Text->new();
+		}
 		$haveprintedspousename = 1;
 	}
 
 	if(my $aka = $person->as_string({ use_aka => 1 })) {
+		$phrase->append(" (also known as $aka)");
 		$html_and_csv->print(" (also known as $aka)");
 		$aka =~ s/&eacute;/&#233;/g;
 		print $xml " (also known as $aka)";
@@ -2908,10 +3005,16 @@ sub print_person
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
 				$bio = ',' if($relationship);
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				}
+				$phrase->set(i18n({ person => $person, format => ' was born' }));
 				$bio .= i18n({ person => $person, format => ' was born' });
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
 					$bio .= $p;
+					$phrase->append($p);
 					$places_printed{$p} = 1;
 				} else {
 					complain({ person => $person, warning => 'Date of birth is known, but not place' });
@@ -2927,9 +3030,15 @@ sub print_person
 						must_predate => $death_dt
 					}));
 					$bio .= " $y" if($y);
+					$phrase->append(" $y") if($y);
 				}
 				$bio .= cite(@birthcitations);
 				if($dateofbaptism || $placeofbaptism) {
+					if($phrase->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
+					}
+					$phrase->set('was');
 					if(scalar(@spouses) && ($numberofchildren > 0)) {
 						$bio .= ', was';
 					} else {
@@ -3021,6 +3130,8 @@ sub print_person
 			}
 			if($dateofbaptism || $placeofbaptism) {
 				$bio .= ' ';
+				$phrase->append(' ');
+#########################
 				unless($dateofbirth || $placeofbirth) {
 					if($language eq 'French') {
 						if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
