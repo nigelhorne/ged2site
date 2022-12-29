@@ -3320,28 +3320,35 @@ sub print_person
 				$phrase = Data::Text->new();
 				@phrases = ();
 			}
-#########################
 		} elsif($dateofbaptism || $placeofbaptism) {
 			if($language eq 'French') {
 				if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 					$bio .= " $pronoun y a \N{U+00E9}t\N{U+00E9} ";	# a été
+					$phrase->append(" $pronoun y a \N{U+00E9}t\N{U+00E9} ");	# a été
 				} else {
 					$bio .= " $pronoun a \N{U+00E9}t\N{U+00E9} ";	# a été
+					$phrase->append(" $pronoun a \N{U+00E9}t\N{U+00E9} ");	# a été
 				}
 			} else {
 				$bio .= " $pronoun was ";
+				$phrase->append(" $pronoun was ");
 			}
 
 			if($language eq 'French') {
 				$bio .= "baptis\N{U+00E9}";
+				$phrase->append("baptis\N{U+00E9}");
 				if($sex eq 'F') {
 					$bio .= 'e';
+					$phrase->append('e');
 				}
 			} elsif($ENV{'LANG'} =~ /^en_US/) {
 				$bio .= 'baptized';
+				$phrase->append('baptized');
 			} else {
 				$bio .= 'baptised';
+				$phrase->append('baptised');
 			}
+#########################
 			if($placeofbaptism) {
 				if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 					$bio .= ' there';
