@@ -3131,37 +3131,44 @@ sub print_person
 			if($dateofbaptism || $placeofbaptism) {
 				$bio .= ' ';
 				$phrase->append(' ');
-#########################
 				unless($dateofbirth || $placeofbirth) {
 					if($language eq 'French') {
 						if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 							$bio .= " $pronoun y a \N{U+00E9}t\N{U+00E9} ";	# a été
+							$phrase->append(" $pronoun y a \N{U+00E9}t\N{U+00E9} ");	# a été
 						} else {
-							$bio .= " $pronoun a \N{U+00E9}t\N{U+00E9} ";	# a été
+							$phrase->append(" $pronoun a \N{U+00E9}t\N{U+00E9} ");	# a été
 						}
 					} else {
 						$bio .= 'was ';
+						$phrase->append('was ');
 					}
 				}
 				if($language eq 'French') {
 					$bio .= "a baptis\N{U+00E9}";
+					$phrase->append("a baptis\N{U+00E9}");
 				} elsif($ENV{'LANG'} =~ /^en_US/) {
 					$bio .= 'baptized';
+					$phrase->append('baptized');
 				} else {
 					$bio .= 'baptised';
+					$phrase->append('baptised');
 				}
 				if($placeofbaptism) {
 					if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 						$bio .= ' there' unless($language eq 'French');
+						$phrase->append(' there') unless($language eq 'French');
 						if(my $address = $baptism->address()) {
 							if($address =~ /(.+),\s*$placeofbirth$/) {
 								$address = $1;
 							}
 							$bio .= i18n(' at') . " $address";
+							$phrase->append(i18n(' at') . " $address");
 						}
 					} else {
 						my $p = place({ person => $person, place => $placeofbaptism });
 						$bio .= $p;
+						$phrase->append($p);
 						$places_printed{$p} = 1;
 					}
 				}
@@ -3186,6 +3193,17 @@ sub print_person
 						date => $dateofbaptism,
 						birthdate => $dateofbirth,
 					});
+					$phrase->append(' ' . year({
+						person => $person,
+						date => $dateofbaptism,
+						must_postdate => $birth_dt,
+						must_predate => $death_dt
+					}) . sibling_baptism_string({
+						person => $person,
+						siblings => \@siblings,
+						date => $dateofbaptism,
+						birthdate => $dateofbirth,
+					}));
 					if(!$death_dt) {
 						must_predate({
 							person => $person,
@@ -3246,26 +3264,48 @@ sub print_person
 					my $dob = $t->{'dob'};
 					if($dob == $birth_dt) {
 						$bio .= ' along with ';
+						$phrase->append(' along with ');
 					} elsif($dob == ($birth_dt + $oneday)) {
 						$bio .= i18n(', a day before ');
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
+						$phrase->append(i18n('a day before '));
 					} else {
 						$bio .= ', a day after ';
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
+						$phrase->append(i18n('a day after '));
 					}
 					my $ssex = $sibling->sex();
 					if($language eq 'French') {
 						$bio .= ($ssex eq 'M' ? "son jumeau fr\N{U+00E8}re " : "sa jumelle s\N{U+0153}er ");
+						$phrase->append(($ssex eq 'M' ? "son jumeau fr\N{U+00E8}re " : "sa jumelle s\N{U+0153}er "));
 					} else {
 						$bio .= ($sex eq 'M' ? 'his' : 'her') . ' twin ' .
 							(($ssex eq 'F') ? 'sister ' : 'brother ');
+						$phrase->append(($sex eq 'M' ? 'his' : 'her') . ' twin ' .
+							(($ssex eq 'F') ? 'sister ' : 'brother '));
 					}
 					$bio .= $sibling->given_names();
 					if($dateofbaptism || $placeofbaptism) {
 						$bio .= ',';
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
 					}
 				}
 				if(scalar(@spouses) && ($numberofchildren > 0)) {
 					$bio .= i18n(' and');
 					$printed_and = 1;
+					if($phrase->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
+					}
 				}
 			}
 
@@ -3274,7 +3314,13 @@ sub print_person
 			} else {
 				$bio .= '.';
 				$end_of_sentence = 1;
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+# die $bio_dt->as_string();
+				$phrase = Data::Text->new();
+				@phrases = ();
 			}
+#########################
 		} elsif($dateofbaptism || $placeofbaptism) {
 			if($language eq 'French') {
 				if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
@@ -9868,7 +9914,7 @@ sub sibling_baptism_string
 
 	if($allsamesex) {
 		return ', ' . i18n('the same day as ') . lcfirst($person->possessive()) . ' ' .
-			($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ') .
+			i18n(($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ')) .
 			conjunction(map {
 				if($opts{'l'} || !is_alive($_)) {
 					'<a><href="?page=people&entry=' . $_->xref() . '">' . $_->given_names() . '</a>'
@@ -11667,6 +11713,7 @@ on your father's side::on your father's side
 on your mother's side::on your mother's side
 she::she
 sister::sister
+sisters::sisters
 son::son
 the same day as::the same day as
 they::they
@@ -11740,6 +11787,7 @@ on your father's side::du côté paternel
 on your mother's side::du côté de votre mère
 she::elle
 sister::sœur
+sisters::sœurs
 son::fils
 the same day as::le même jour comme
 they:M:ils
@@ -11798,6 +11846,7 @@ of::von
 of %d children::von %d Kindern
 she::sie
 sister::Schwester
+sisters::Schwestern
 wife::Frau
 with::mit
 @@ Latin
