@@ -3282,7 +3282,7 @@ sub print_person
 					}
 					my $ssex = $sibling->sex();
 					if($language eq 'French') {
-						$bio .= ($ssex eq 'M' ? "son jumeau fr\N{U+00E8}re " : "sa jumelle s\N{U+0153}er ");
+						$bio .= ($ssex eq 'M' ? "son jumeau fr\N{U+00E8}re" : "sa jumelle s\N{U+0153}er");
 						$phrase->append(($ssex eq 'M' ? "son jumeau fr\N{U+00E8}re " : "sa jumelle s\N{U+0153}er "));
 					} else {
 						$bio .= ($sex eq 'M' ? 'his' : 'her') . ' twin ' .
@@ -3291,12 +3291,11 @@ sub print_person
 							(($ssex eq 'F') ? 'sister ' : 'brother '));
 					}
 					$bio .= $sibling->given_names();
+					$phrase->append($sibling->given_names());
 					if($dateofbaptism || $placeofbaptism) {
 						$bio .= ',';
-						if($phrase->length()) {
-							push @phrases, $phrase;
-							$phrase = Data::Text->new();
-						}
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
 					}
 				}
 				if(scalar(@spouses) && ($numberofchildren > 0)) {
@@ -3316,7 +3315,6 @@ sub print_person
 				$end_of_sentence = 1;
 				push @phrases, $phrase;
 				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-# die $bio_dt->as_string();
 				$phrase = Data::Text->new();
 				@phrases = ();
 			}
@@ -3348,12 +3346,13 @@ sub print_person
 				$bio .= 'baptised';
 				$phrase->append('baptised');
 			}
-#########################
 			if($placeofbaptism) {
 				if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 					$bio .= ' there';
+					$phrase->append(' there');
 					if(my $address = $baptism->address()) {
 						$bio .= " at $address";
+						$phrase->append(" at $address");
 					}
 				} else {
 					my $opts = {
@@ -3366,6 +3365,7 @@ sub print_person
 					}
 					my $p = place($opts);
 					$bio .= $p;
+					$phrase->append($p);
 					$places_printed{$p} = 1;
 				}
 			}
@@ -3381,17 +3381,38 @@ sub print_person
 					date => $dateofbaptism,
 					birthdate => $dateofbirth,
 				});
+				$phrase->append(' ' . year({
+					person => $person,
+					date => $dateofbaptism,
+					must_postdate => $birth_dt,
+					must_predate => $death_dt
+				}) . sibling_baptism_string({
+					person => $person,
+					siblings => \@siblings,
+					date => $dateofbaptism,
+					birthdate => $dateofbirth,
+				}));
 			}
 			if(scalar(@spouses)) {
 				if(!scalar(@residences)) {
 					$bio .= ',';
 				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				}
 				$end_of_sentence = 0;
 			} else {
 				$bio .= '.';
 				$end_of_sentence = 1;
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$phrase = Data::Text->new();
+				@phrases = ();
 			}
 		}
+#################### warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 
 		# Is/was this person an orphan?
 		if($mother && $father && $yob) {
