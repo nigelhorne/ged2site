@@ -3448,11 +3448,12 @@ sub print_person
 					}
 					$bio .= ' was orphaned ';
 					$phrase->append(' was orphaned ');
-#################### warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 					my $orphaned_year = (($myod > $fyod) ? $myod : $fyod);
 					if($myod == $fyod) {
-						$bio .= "in $myod by the death of both parents in that year.";
+						$bio .= "in $myod by the death of both parents in that year ";
+						$phrase->append("in $myod by the death of both parents in that year ");
+#################### warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 						$bio .= 'when both of ' .
 							($person->pronoun() eq 'She') ? 'her' : 'his' .
 							" parents died in $myod when " .
@@ -11719,6 +11720,7 @@ before %s::before %s
 birthplace::birthplace
 both with %s::both with %s
 brother::brother
+brothers::brothers
 check out %s::check out %s
 child::child
 children::children
