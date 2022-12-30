@@ -2822,17 +2822,13 @@ sub print_person
 				if($relationship) {
 					$bio .= ', ' if(($mother || $father) && !$printed_comma);
 					if($phrase->length()) {
-						push @phrases, $phrase;
-						$phrase = Data::Text->new();
+						$phrase->append(', ');
 					}
 					$bio .= "<b>$firstname</b>";
 					$phrase->append("<b>$firstname</b>");
 					if(($dateofbirth || $marriage) && (!($is_alive || $opts{'l'}))) {
 						$bio .= ',';
-						if($phrase->length()) {
-							push @phrases, $phrase;
-							$phrase = Data::Text->new();
-						}
+						$phrase->append(',');
 					} elsif($is_alive) {
 						$bio .= ' is';
 						$phrase->append(' is ');
@@ -2846,27 +2842,23 @@ sub print_person
 					$bio .= ', ' if(!$printed_comma);
 				}
 				if($phrase->length()) {
-					push @phrases, $phrase;
-					$phrase = Data::Text->new();
+					$phrase->append(', ');
 				}
 				if($name_components{'surname_1'}) {
 					$bio .= "<b>$firstname " .
 						$name_components{'surname_1'} .
 						'</b>';
-					$phrase->set("<b>$firstname " .
+					$phrase->append("<b>$firstname " .
 						$name_components{'surname_1'} .
 						'</b>');
 				} else {
 					$bio .= "<b>$firstname</b>";
-					$phrase->set("<b>$firstname</b>");
+					$phrase->append("<b>$firstname</b>");
 				}
 				if($relationship) {
 					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {
 						$bio .= ',';
-						if($phrase->length()) {
-							push @phrases, $phrase;
-							$phrase = Data::Text->new();
-						}
+						$phrase->append(',');
 					} elsif($opts{'l'} || $is_alive) {
 						$bio .= ' is';
 						$phrase->append(' is');
@@ -3005,11 +2997,8 @@ sub print_person
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
 				$bio = ',' if($relationship);
-				if($phrase->length()) {
-					push @phrases, $phrase;
-					$phrase = Data::Text->new();
-				}
-				$phrase->set(i18n({ person => $person, format => ' was born' }));
+				$phrase->append(',') if($relationship);
+				$phrase->append(i18n({ person => $person, format => ' was born' }));
 				$bio .= i18n({ person => $person, format => ' was born' });
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
@@ -3452,25 +3441,41 @@ sub print_person
 					if($myod == $fyod) {
 						$bio .= "in $myod by the death of both parents in that year ";
 						$phrase->append("in $myod by the death of both parents in that year ");
-#################### warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 						$bio .= 'when both of ' .
 							($person->pronoun() eq 'She') ? 'her' : 'his' .
 							" parents died in $myod when " .
 							lcfirst($person->pronoun()) .
 							' was ' .  $myod - $yob .  ' years old';
+						$phrase->append('when both of ' .
+							($person->pronoun() eq 'She') ? 'her' : 'his' .
+							" parents died in $myod when " .
+							lcfirst($person->pronoun()) .
+							' was ' .  $myod - $yob .  ' years old');
 					} elsif($myod > $fyod) {
 						$bio .= 'at the age of ' . ($myod - $yob) .
 							i18n(' following the death of ') .
 							(($person->pronoun() eq 'She') ? 'her' : 'his') .
-							" father in $fyod and mother in $myod. ";
+							" father in $fyod and mother in $myod";
+						$phrase->append('at the age of ' . ($myod - $yob) .
+							i18n(' following the death of ') .
+							(($person->pronoun() eq 'She') ? 'her' : 'his') .
+							" father in $fyod and mother in $myod");
 					} else {
 						$bio .= 'at the age of ' . ($fyod - $yob) .
 							i18n(' following the death of ') .
 							(($person->pronoun() eq 'She') ? 'her' : 'his') .
-							" mother in $myod and father in $fyod. ";
+							" mother in $myod and father in $fyod";
+						$phrase->append('at the age of ' . ($fyod - $yob) .
+							i18n(' following the death of ') .
+							(($person->pronoun() eq 'She') ? 'her' : 'his') .
+							" mother in $myod and father in $fyod");
 					}
-					$bio .= '</p><p>';
+					push @phrases, $phrase;
+					$bio->append(conjunction(map { $_->as_string() } @phrases))->append('.<p></p>');
+					$phrase = Data::Text->new();
+					@phrases = ();
+
+					$bio .= '.</p><p>';
 					$end_of_sentence = 1;
 					$start_of_paragraph = 1;
 
@@ -3482,6 +3487,8 @@ sub print_person
 
 		print "bio so far: $bio\n" if($opts{'v'});
 
+################## warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 		my @education = $person->education();
 
 		if(scalar(@education)) {
