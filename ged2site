@@ -3411,8 +3411,6 @@ sub print_person
 				@phrases = ();
 			}
 		}
-#################### warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 
 		# Is/was this person an orphan?
 		if($mother && $father && $yob) {
@@ -3432,14 +3430,26 @@ sub print_person
 				if((($fyod - $yob) < 16) && (($myod - $yob) < 16)) {
 					if($end_of_sentence) {
 						$bio .= " $pronoun";
+						$phrase->append(" $pronoun");
 					} elsif(scalar(@person_twins) || $dateofbaptism) {
 						$bio .= i18n(' and');
 						$printed_and = 1;
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
 					} else {
 						$bio .= ', and';
 						$printed_and = 1;
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
 					}
 					$bio .= ' was orphaned ';
+					$phrase->append(' was orphaned ');
+#################### warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 					my $orphaned_year = (($myod > $fyod) ? $myod : $fyod);
 					if($myod == $fyod) {
 						$bio .= "in $myod by the death of both parents in that year.";
