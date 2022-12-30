@@ -2717,18 +2717,18 @@ sub print_person
 
 		if($opts{'l'} || !$is_alive) {
 			if($father) {
-				$phrase->append('<a href="' . make_filename_from_person(person => $father) . '">' .
-					$father->as_string() .
-					'</a>');
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
-				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;' .
+				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					$father->as_string(),
 					'$lt;/a$gt;';
-				print $csv '<a href="?page=people&entry=', $father->xref(), '">' .
+				print $csv '<a href="?page=people&entry=', $father->xref(), '">',
 					$father->as_string(),
 					'</a>';
+				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
+					$father->as_string() .
+					'</a>');
 
 				if(!$same_occupation_as_father) {
 					my @occupations = get_all_occupations(person => $father);
@@ -2760,10 +2760,10 @@ sub print_person
 			}
 			if($mother) {
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
-					$phrase->append('<a href="' . make_filename_from_person(person => $mother) . "\">$m</a>");
 					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
 					print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
 					print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
+					$phrase->append('<a href="?page=people&entry=' . $mother->xref() . "\">$m</a>");
 				}
 
 				my @occupations = get_all_occupations($mother);
@@ -2782,9 +2782,6 @@ sub print_person
 			}
 		} else {
 			if($father) {
-				$phrase->append('<a href="' . make_filename_from_person(person => $father), '">',
-					$father->given_names() .
-					'</a>');
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->given_names(),
 					'</a>';
@@ -2794,14 +2791,14 @@ sub print_person
 				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					$father->given_names(),
 					'&lt;/a&gt;';
+				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
+					$father->given_names() .
+					'</a>');
 				if($mother) {
 					$all->print(i18n(' and'));
 				}
 			}
 			if($mother) {
-				$phrase->append('<a href="' . make_filename_from_person(person => $mother), '">',
-					$mother->given_names() .
-					'</a>');
 				print $html '<a href="', make_filename_from_person(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
@@ -2811,6 +2808,9 @@ sub print_person
 				print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
 					$mother->given_names(),
 					'&lt;/a&gt;';
+				$phrase->append('<a href="?page=people&entry=' . $mother->xref() . '">' .
+					$mother->given_names() .
+					'</a>');
 			}
 		}
 		$printed_comma = 0;
@@ -2886,10 +2886,6 @@ sub print_person
 
 	my $haveprintedspousename;
 	if($relationship) {
-		$phrase->append(" the $relationship of " .
-			'<a href="' . make_filename_from_person(person => $me) . '">' .
-			$me->as_string(nee => 1) .
-			'</a>');
 		print $html " the $relationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
@@ -2902,6 +2898,10 @@ sub print_person
 			'&lt;a href="?page=people&amp;home=1"&gt;',
 			$me->as_string(nee => 1),
 			'&lt;/a&gt;';
+		$phrase->append(" the $relationship of " .
+			'<a href="?page=people&home=1">' .
+			$me->as_string(nee => 1) .
+			'</a>');
 	} elsif($spouserelationship) {
 		if((!$is_alive) || $opts{'l'}) {
 			if($sex eq 'F') {
@@ -2930,11 +2930,6 @@ sub print_person
 			complain({ person => $spouse, warning => 'Seems to have no name' });
 			$s = 'your relation';
 		}
-		$phrase->append(' <a href="' . make_filename_from_person(person => $spouse) . '">' .
-			"$s</a> the $spouserelationship of " .
-			'<a href="' . make_filename_from_person(person => $me) . '">' .
-			$me->as_string(nee => 1) .
-			'</a>');
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 			"$s</a> the $spouserelationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
@@ -2945,6 +2940,11 @@ sub print_person
 			'<a href="?page=people&home=1">',
 			$me->as_string(nee => 1),
 			'</a>';
+		$phrase->append(' <a href="?page=people&entry=' . $spouse->xref() . '">' .
+			"$s</a> the $spouserelationship of " .
+			'<a href="?page=people&home=1">' .
+			$me->as_string(nee => 1) .
+			'</a>');
 		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
 		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 			"$s&lt;/a&gt; the $spouserelationship of ",
@@ -3471,7 +3471,7 @@ sub print_person
 							" mother in $myod and father in $fyod");
 					}
 					push @phrases, $phrase;
-					$bio->append(conjunction(map { $_->as_string() } @phrases))->append('.<p></p>');
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.<p></p>');
 					$phrase = Data::Text->new();
 					@phrases = ();
 
@@ -3505,7 +3505,7 @@ sub print_person
 			$bio .= place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }) .
 			$phrase->append(place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }));
 			push @phrases, $phrase;
-			$bio->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 			$phrase = Data::Text->new();
 			@phrases = ();
 
@@ -3513,22 +3513,26 @@ sub print_person
 			$end_of_sentence = 1;
 		}
 
-################## warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 		# TODO: children != 0 && spouses == 0
 		if(scalar(@spouses) &&
 		   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
 			$bio .= " $pronoun" if($end_of_sentence);
+			$phrase->append(" $pronoun") if(scalar(@phrases) == 0);
 
 			if(scalar(@spouses) == 1) {
 				if(!$printed_and) {
 					$bio .= i18n(' and');
 					$printed_and = 1;
 				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				}
 				if($placeofmarriage || $dateofmarriage) {
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
 					   !$end_of_sentence) {
 						$bio .= i18n(' also');
+						$phrase->append(i18n(' also'));
 					}
 					my %args = (person => $person);
 					if($spouserelationship) {
@@ -3543,6 +3547,7 @@ sub print_person
 						$args{'format'} = ' was married to ';
 					}
 					$bio .= i18n(\%args);
+					$phrase->append(i18n(\%args));
 
 					if($haveprintedspousename) {
 						$nameparser->parse($spouses[0]->name());
@@ -3550,6 +3555,7 @@ sub print_person
 						my %name_components = $nameparser->components();
 						if(my $n = $name_components{'given_name_1'}) {
 							$bio .= $n;
+							$phrase->append($n);
 						} else {
 							complain({ person => $spouses[0], warning => 'seems to have no first name' });
 						}
@@ -3563,6 +3569,7 @@ sub print_person
 
 						$fullbio .= $bio . $spouses[0]->as_string();
 						$bio = '';
+						$phrase->append($spouses[0]->as_string());
 
 						if($opts{'l'} || !$is_alive) {
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
@@ -3574,6 +3581,9 @@ sub print_person
 							print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								$spouses[0]->as_string(),
 								'&lt;/a&gt;';
+							$phrase->append('<a href="?page=people&entry=' . $spouses[0]->xref() . '">' .
+								$spouses[0]->as_string() .
+								'</a>');
 						} else {
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 								$spouses[0]->given_names(),
@@ -3584,10 +3594,15 @@ sub print_person
 							print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								$spouses[0]->given_names(),
 								'&lt;/a&gt;';
+							$phrase->append('<a href="?page=people&entry=' . $spouses[0]->xref() . '">' .
+								$spouses[0]->given_names() .
+								'</a>');
 						}
 						$haveprintedspousename = 1;
 					}
 				}
+########### warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 				my $parentheses = 0;
 				if($numberofchildren) {
 					if($placeofmarriage || $dateofmarriage) {
