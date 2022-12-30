@@ -227,12 +227,10 @@ if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 		push @modules, 'File::HomeDir';
 	}
 
-	if($opts{'m'} || $opts{'w'}) {
-		push @modules, 'Geo::Coder::Free::Local', 'Geo::Coder::Postcodes', 'LWP::UserAgent::Cached';
-		if($opts{'w'}) {
-			push @modules,
-				'Genealogy::ChroniclingAmerica', 'Locale::Country';
-		}
+	push @modules, 'Geo::Coder::Free::Local', 'Geo::Coder::Postcodes', 'LWP::UserAgent::Cached';
+	if($opts{'w'}) {
+		push @modules,
+			'Genealogy::ChroniclingAmerica', 'Locale::Country';
 	}
 }
 if($opts{'d'} || $opts{'m'}) {
@@ -473,6 +471,24 @@ my $freegeocoder;
 my $browser;
 my $cached_browser;
 
+my $cachedir;
+if(my $e = $ENV{'CACHEDIR'}) {
+	$cachedir = File::Spec->catfile($e, 'lwp-cache');
+} else {
+	# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'lwp');
+	$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp-cache')
+}
+if(!-d $cachedir) {
+	mkdir $cachedir, 0700 || die "$cachedir: $!";
+}
+$cached_browser = LWP::UserAgent::Cached->new(cache_dir => $cachedir,
+	agent => basename($0),
+	keep_alive => 1,
+	timeout => 60,
+);
+$cached_browser->env_proxy(1);
+$cached_browser->conn_cache->total_capacity(undef);
+
 Lingua::Conjunction->separator_phrase(',');
 Lingua::Conjunction->penultimate(0);
 
@@ -578,23 +594,6 @@ if($opts{'m'} || $opts{'w'}) {
 	if(my $key = $ENV{BMAP_KEY}) {
 		$geocoder->push(Geo::Coder::Bing->new(key => $key));
 	}
-
-	if(my $e = $ENV{'CACHEDIR'}) {
-		$cachedir = File::Spec->catfile($e, 'lwp-cache');
-	} else {
-		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'lwp');
-		$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp-cache')
-	}
-	if(!-d $cachedir) {
-		mkdir $cachedir, 0700 || die "$cachedir: $!";
-	}
-	$cached_browser = LWP::UserAgent::Cached->new(cache_dir => $cachedir,
-		agent => basename($0),
-		keep_alive => 1,
-		timeout => 60,
-	);
-	$cached_browser->env_proxy(1);
-	$cached_browser->conn_cache->total_capacity(undef);
 
 	my $ua = LWP::UserAgent::Throttled->new(agent => basename($0), keep_alive => 1, timeout => 60);
 	$ua->conn_cache->total_capacity(undef);
@@ -2575,8 +2574,10 @@ sub print_person
 		}
 		if($phrase->length()) {
 			$phrase->append(' and the ');
-		} else {
+		} elsif(scalar(@phrases) == 0) {
 			$phrase->set('The ');
+		} else {
+			$phrase->set('the ');
 		}
 
 		if($birth_dt && ($opts{'l'} || !$is_alive)) {
@@ -2756,6 +2757,7 @@ sub print_person
 					my $and = i18n(' and ');
 					$all->print($and);
 					$fullbio .= $and;
+					$phrase->append(' and ');
 				}
 			}
 			if($mother) {
@@ -3779,21 +3781,27 @@ sub print_person
 							}
 						}
 					}
-######### warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 				} else {
 					my @spouse_occupations = get_all_occupations($spouses[0]);
 					if($spouse_occupations[0]) {
 						$bio .= ' (' . HTML::Entities::encode(Lingua::EN::Inflect::A(lc($spouse_occupations[0])));
+						$phrase->append(' (' . HTML::Entities::encode(Lingua::EN::Inflect::A(lc($spouse_occupations[0]))));
 						$parentheses = 1;
 					}
 				}
 				if($opts{'l'} || !$is_alive) {
 					if($parentheses) {
 						$bio .= ')';
+						$phrase->append(')');
 					} elsif(($dateofmarriage || $placeofmarriage) && $numberofchildren) {
 						$bio .= ',';
 					}
+					if($phrase->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
+					}
+############## warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
 						if(($language eq 'English') && (defined($placeofbaptism) and ($placeofmarriage eq $placeofbaptism))) {
