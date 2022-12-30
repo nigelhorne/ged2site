@@ -3601,8 +3601,6 @@ sub print_person
 						$haveprintedspousename = 1;
 					}
 				}
-########### warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 				my $parentheses = 0;
 				if($numberofchildren) {
 					if($placeofmarriage || $dateofmarriage) {
@@ -3611,9 +3609,11 @@ sub print_person
 							$parentheses = 1;
 							if($language eq 'English') {
 								$bio .= ' (' . Lingua::EN::Inflect::A(lc($soccupation)) . ' ';
+								$phrase->append(' (' . Lingua::EN::Inflect::A(lc($soccupation)) . ' ');
 							} else {
 								# FIXME - handle feminine versions for women
 								$bio .= ' (un ' . lc($soccupation) . ' ';
+								$phrase->append(' (un ' . lc($soccupation) . ' ');
 							}
 						}
 					}
@@ -3655,71 +3655,94 @@ sub print_person
 						if($placeofmarriage || $dateofmarriage) {
 							if(!$parentheses) {
 								$bio .= ' (';
+								$phrase->append(' (');
 								$parentheses = 1;
 							}
 							if($language eq 'French') {
 								$bio .= "avec qu'" . lcfirst($pronoun);
+								$phrase->append("avec qu'" . lcfirst($pronoun));
 							} else {
 								$bio .= 'with whom ' . lcfirst($pronoun);
+								$phrase->append('with whom ' . lcfirst($pronoun));
 							}
 						}
 						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
 							if(is_alive(person => $person)) {
 								$bio .= ' has';
+								$phrase->append(' has');
 							}
 							$bio .= ' had ';
+							$phrase->append(' had ');
 						} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
 							$bio .= i18n(' has had ');
+							$phrase->append(i18n(' has had '));
 						} else {
 							$bio .= $dateofdeath || $dateofburial ? ' had ' : ' has ';
+							$phrase->append($dateofdeath || $dateofburial ? ' had ' : ' has ');
 						}
 
 						if($numberofchildrenwiththisspouse == 1) {
 							if($all_children_are_alive) {
 								if($language eq 'French') {
 									$bio .= '1 surviving enfant';
+									$phrase->append('1 surviving enfant');
 								} else {
 									$bio .= '1 surviving child';
+									$phrase->append('1 surviving child');
 								}
 							} elsif($language eq 'French') {
 								$bio .= '1 enfant';
+								$phrase->append('1 enfant');
 							} else {
 								$bio .= '1 child';
+								$phrase->append('1 child');
 							}
 							if($placeofmarriage || $dateofmarriage) {
 								$bio .= ',';
+								$phrase->append(',');
 							}
 							$bio .= ' ';
+							$phrase->append(' ');
 						} else {
 							if($all_children_are_alive) {
 								$bio .= "$numberofchildrenwiththisspouse surviving children";
+								$phrase->append("$numberofchildrenwiththisspouse surviving children");
 							} else {
 								$bio .= "$numberofchildrenwiththisspouse children";
+								$phrase->append("$numberofchildrenwiththisspouse children");
 								if($placeofmarriage || $dateofmarriage) {
 									$bio .= ':';
+									$phrase->append(':');
 								}
 								$bio .= ' ';
+								$phrase->append(' ');
 							}
 						}
 						if((!$placeofmarriage) && !$dateofmarriage) {
 							$bio .= i18n({ format => 'with %s', args => $spouse->as_string({ middle_names => 1, title => 1 }) });
+							$phrase->append(i18n({ format => 'with %s', args => $spouse->as_string({ middle_names => 1, title => 1 }) }));
 							my @spouse_occupations = get_all_occupations($spouses[0]);
 							if(my $soccupation = $spouse_occupations[0]) {
 								if($language eq 'English') {
 									$bio .= ' (' . Lingua::EN::Inflect::A(lc($soccupation)) . ')';
+									$phrase->append(' (' . Lingua::EN::Inflect::A(lc($soccupation)) . ')');
 								} else {
 									# FIXME - handle feminine versions for women
 									$bio .= ' (un ' . lc($soccupation) . ')';
+									$phrase->append(' (un ' . lc($soccupation) . ')');
 								}
 							}
 							$bio .= ': ';
 							$haveprintedspousename = 1;
+							$phrase->append(': ');
 						}
 						if($numberofchildrenwiththisspouse == 1) {
 							if(my $first_name = $children[0]->given_names()) {
 								$bio .= $first_name;
+								$phrase->append($first_name);
 							} else {
 								$bio .= 'whose first name is unknown';
+								$phrase->append('whose first name is unknown');
 							}
 						} elsif($numberofchildrenwiththisspouse > 1) {
 							my $childnames = join(', ', map {
@@ -3745,14 +3768,19 @@ sub print_person
 							}
 							if(scalar(@childlist)) {
 								$bio .= conjunction(@childlist);
+								$phrase->append(conjunction(@childlist));
 								if($alive_children == 1) {
 									$bio .= ', along with 1 surviving child';
+									$phrase->append(', along with 1 surviving child');
 								} elsif($alive_children > 1) {
 									$bio .= ", along with $alive_children surviving children";
+									$phrase->append(", along with $alive_children surviving children");
 								}
 							}
 						}
 					}
+######### warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 				} else {
 					my @spouse_occupations = get_all_occupations($spouses[0]);
 					if($spouse_occupations[0]) {
