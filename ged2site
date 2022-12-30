@@ -3487,26 +3487,34 @@ sub print_person
 
 		print "bio so far: $bio\n" if($opts{'v'});
 
-################## warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 		my @education = $person->education();
 
 		if(scalar(@education)) {
 			if($end_of_sentence) {
 				$bio .= " $pronoun";
 			}
+			$phrase->append(" $pronoun");
 			if($language eq 'French') {
 				$bio .= ' a fait ses études à';
+				$phrase->append(' a fait ses études à');
 			} else {
 				$bio .= ' went to';
+				$phrase->append(' went to');
 			}
 			# FIXME: do all schools
 			$bio .= place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }) .
-				'. ';
+			$phrase->append(place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }));
+			push @phrases, $phrase;
+			$bio->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$phrase = Data::Text->new();
+			@phrases = ();
+
 			$printed_and = 0;
 			$end_of_sentence = 1;
 		}
 
+################## warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 		# TODO: children != 0 && spouses == 0
 		if(scalar(@spouses) &&
 		   ((!$spouserelationship) || $placeofmarriage || $dateofmarriage)) {
