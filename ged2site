@@ -4352,10 +4352,14 @@ sub print_person
 		if($same_occupation_as_father) {
 			$bio .= '.' if(!$end_of_sentence);
 
-			push @phrases, $phrase;
-			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-			$phrase = Data::Text->new();
-			@phrases = ();
+			if($phrase->length()) {
+				push @phrases, $phrase;
+			}
+			if(scalar(@phrases)) {
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			}
 
 			if($language eq 'French') {
 				$bio .= " Comme son p\N{U+00E8}re, " . lcfirst($pronoun) .
@@ -4371,7 +4375,7 @@ sub print_person
 			} else {
 				$bio .= ' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
 					(is_alive(person => $person) ? ' is' : ' was');
-				$phrase->append(' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
+				$phrase->set(' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
 					(is_alive(person => $person) ? ' is' : ' was'));
 				$bio .= ' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father));
 				$phrase->append(' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father)));
