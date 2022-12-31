@@ -4068,8 +4068,6 @@ sub print_person
 				# substr($names, rindex($names, ', '), 2, ' and ');
 				$bio = cite(($marriagecitation));
 				$phrase->append(cite(($marriagecitation)));
-# warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 
 				# Determine if all the children are from one marriage, since that's
 				# easier to print.
@@ -4122,14 +4120,24 @@ sub print_person
 							}
 						}
 					}
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new(" $pronoun ");
+					@phrases = ();
+
 					$bio .= ". $pronoun " .
 						($all_children_are_alive ? 'has ' : 'had ');
+					$phrase->append($all_children_are_alive ? 'has ' : 'had ');
 					if($numberofchildren == 1) {
 						if($all_children_are_alive) {
 							$bio .= '1 surviving child';
+							$phrase->append('1 surviving child');
 						} else {
 							$bio .= '1 child';
+							$phrase->append('1 child');
 						}
+# warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 						if($childrenseen >= $numberofchildren) {
 							if($parentofall) {
 								$bio .= ' with ' . $parentofall->as_string();
