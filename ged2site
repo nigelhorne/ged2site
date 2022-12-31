@@ -3800,27 +3800,31 @@ sub print_person
 						push @phrases, $phrase;
 						$phrase = Data::Text->new();
 					}
-############## warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
 						if(($language eq 'English') && (defined($placeofbaptism) and ($placeofmarriage eq $placeofbaptism))) {
 							$bio .= ' there ';
+							$phrase->append(' there');
 
 							if(my $address = $marriage->address()) {
 								if($address eq 'Parish Church') {
 									$bio .= 'at the Parish Church ';
+									$phrase->append('at the Parish Church ');
 								} elsif($address eq 'Registry Office') {
 									$bio .= 'at the Registry Office ';
+									$phrase->append('at the Registry Office ');
 								} else {
 									$bio .= "at $address ";
+									$phrase->append("at $address ");
 								}
 							}
 						} else {
 							$bio .= place({ person => $person, record => $marriage });
 							$bio .= ' ';
+							$phrase->append(place({ person => $person, record => $marriage }))->append(' ');
 						}
 						$bio .= year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt);
+						$phrase->append(year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt));
 					} else {
 						if($placeofmarriage) {
 							my $args = {
@@ -3833,45 +3837,62 @@ sub print_person
 							}
 							my $p = place($args);
 							$bio .= $p;
+							$phrase->append($p);
 							$places_printed{$p} = 1;
 						} elsif(!$haveprintedspousename) {
 							if($numberofchildren && !$end_of_sentence) {
 								$bio .= ". $pronoun";
 							}
+							push @phrases, $phrase;
+							$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+							$phrase = Data::Text->new(" $pronoun");
+							@phrases = ();
+
 							$spouse //= $spouses[0];
 							if(my $s = $spouse->as_string({ middle_names => 1, title => 1 })) {
 								if(is_alive(person => $person) && is_alive(person => $spouse)) {
 									$bio .= i18n({ person => $person, format => ' is married to ' });
+									$phrase->append(i18n({ person => $person, format => ' is married to ' }));
 								} else {
 									$bio .= i18n({ person => $person, format => ' was married to ' });
+									$phrase->append(i18n({ person => $person, format => ' was married to ' }));
 								}
 								$bio .= $s;
+								$phrase->append($s);
 							} else {
 								complain({ person => $spouse, warning => 'Seems to have no name' });
 							}
 							$haveprintedspousename = 1;
 						}
 						$bio .= ' ' . year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
+						$phrase->append(' ')->append(year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt)) if($dateofmarriage);
 					}
 					if($marriagecitation) {
 						$bio .= cite(($marriagecitation));
+						$phrase->append(cite(($marriagecitation)));
 					}
 					if(defined($marriage) && (my $notes = notes(record => $marriage))) {
 						$notes =~ s/\.$//;
 						$bio .= " ($notes)";
+						$phrase->append(" ($notes)");
 					}
 				}
 			} elsif($opts{'l'} || !$is_alive) {
 				if($is_alive) {
 					$bio .= ' has been married';
+					$phrase->append(' has been married');
 				} elsif($language eq 'French') {
 					$bio .= " a \N{U+00E9}t\N{U+00E9} mari\N{U+00E9}";
+					$phrase->append(" a \N{U+00E9}t\N{U+00E9} mari\N{U+00E9}");
 					if($sex eq 'F') {
 						$bio .= 'e';
+						$phrase->append('e');
 					}
 				} else {
 					$bio .= i18n(' and') if((!$printed_and) && ($numberofchildren > 0));
+					$phrase->append(i18n(' and')) if((!$printed_and) && ($numberofchildren > 0));
 					$bio .= ' was married';
+					$phrase->append(' was married');
 				}
 
 				if(scalar(@spouses) == 2) {
@@ -3879,12 +3900,15 @@ sub print_person
 						complain({ person => $person, warning => [ 'Married twice to ', $spouses[0]->as_string() ] });
 					} else {
 						$bio .= i18n(' twice');
+						$phrase->append(i18n(' twice'));
 					}
 				} else {
 					$bio .= scalar(@spouses) . i18n(' times');
+					$phrase->append(scalar(@spouses))->append(i18n(' times'));
 				}
 
 				$bio .= ' - to';
+				$phrase->append(' - to');
 
 				$html_and_csv->print($bio);
 				$bio =~ s/</&lt;/g;
@@ -3973,18 +3997,25 @@ sub print_person
 					print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 						$spouse->as_string(),
 						'&lt;/a&gt;';
+					$phrase->append(' <a href="?page=people&entry=' . $spouse->xref() . '">' .
+						$spouse->as_string() .
+						'</a>');
 
 					my $printed_bracket = 0;
 					if($dateofmarriage && $placeofmarriage) {
 						$bio .= ' (' . year({ string => $dateofmarriage }) .
 							$placeofmarriage;
+						$phrase->append(' (' . year({ string => $dateofmarriage }) .
+							$placeofmarriage);
 						$printed_bracket = 1;
 					} elsif($placeofmarriage) {
 						$placeofmarriage =~ s/^\s+//;
 						$bio .= " ($placeofmarriage";
+						$phrase->append(" ($placeofmarriage");
 						$printed_bracket = 1;
 					} elsif($dateofmarriage) {
 						$bio .= ' (' . year({ string => $dateofmarriage });
+						$phrase->append(' (' . year({ string => $dateofmarriage }));
 						$printed_bracket = 1;
 					}
 					$spouse_number++;
@@ -3993,8 +4024,10 @@ sub print_person
 						if($death_of_first_spouse && (datecmp($dateofmarriage, $death_of_first_spouse) > 0)) {
 							if($printed_bracket) {
 								$bio .= ', ';
+								$phrase->append(', ');
 							} else {
 								$bio .= '(';
+								$phrase->append('(');
 								$printed_bracket = 1;
 							}
 							if($death_of_first_spouse =~ /\s$/) {
@@ -4007,13 +4040,22 @@ sub print_person
 									person => $spouses[0],
 									record => $death_of_first_spouse,
 								});
+							$phrase->append(i18n('following the death of ') .
+								$spouses[0]->given_names() . ' ' .
+								year({
+									person => $spouses[0],
+									record => $death_of_first_spouse,
+								}));
 						}
 					}
 					$bio .= ')' if($printed_bracket);
+					$phrase->append(')') if($printed_bracket);
 					if($spouse_number == (scalar(@spouses) - 1)) {
 						$bio .= ' and';
+						$phrase->append(' and');
 					} elsif($spouse_number < (scalar(@spouses) - 1)) {
 						$bio .= ',';
+						$phrase->append(',');
 					}
 					$bio =~ s/&Atilde;&copy;/&eacute;/g;
 					$html_and_csv->print($bio);
@@ -4025,6 +4067,9 @@ sub print_person
 				}
 				# substr($names, rindex($names, ', '), 2, ' and ');
 				$bio = cite(($marriagecitation));
+				$phrase->append(cite(($marriagecitation)));
+# warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 
 				# Determine if all the children are from one marriage, since that's
 				# easier to print.
