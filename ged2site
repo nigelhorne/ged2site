@@ -3890,9 +3890,12 @@ sub print_person
 					}
 				} else {
 					$bio .= i18n(' and') if((!$printed_and) && ($numberofchildren > 0));
-					$phrase->append(i18n(' and')) if((!$printed_and) && ($numberofchildren > 0));
+					if($phrase->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
+					}
 					$bio .= ' was married';
-					$phrase->append(' was married');
+					$phrase->append('was married');
 				}
 
 				if(scalar(@spouses) == 2) {
@@ -4136,11 +4139,10 @@ sub print_person
 							$bio .= '1 child';
 							$phrase->append('1 child');
 						}
-# warn $bio_dt->as_string() if($bio_dt->length());
-#########################
 						if($childrenseen >= $numberofchildren) {
 							if($parentofall) {
 								$bio .= ' with ' . $parentofall->as_string();
+								$phrase->append(' with ' . $parentofall->as_string());
 							} else {
 								if($opts{'f'}) {
 									die $person->as_string(), ': BUG: parentofall not set when only one child';
@@ -4150,18 +4152,23 @@ sub print_person
 							}
 						} else {
 							$bio .= ' with an unknown ' . i18n(($sex eq 'M') ? 'mother' : 'father');
+							$phrase->append(' with an unknown ' . i18n(($sex eq 'M') ? 'mother' : 'father'));
 						}
 						# TODO: make hyperlink to the persons record, unless surviving
 						$bio .= ', ' . $children[0]->given_names();
+						$phrase->append(', ' . $children[0]->given_names());
 					} else {
 						if($all_children_are_alive) {
 							$bio .= "$numberofchildren surviving children";
+							$phrase->append("$numberofchildren surviving children");
 						} else {
 							$bio .= "$numberofchildren children";
+							$phrase->append("$numberofchildren children");
 						}
 						# FIXME: do hyperlinks - needs to be correct for $csv and $html
 						if($parentofall) {
 							$bio .= ', ';
+							$phrase->append(', ');
 							my $format;
 							if($numberofchildren == 2) {
 								$format = 'both with %s';
@@ -4169,6 +4176,7 @@ sub print_person
 								$format = 'all with %s';
 							}
 							$bio .= i18n(person => $person, format => $format, args => $parentofall->as_string());
+							$phrase->append(i18n(person => $person, format => $format, args => $parentofall->as_string()));
 							# TODO: only add hyperlink to dead children
 							# $childnames = join(', ', map {
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
@@ -4177,6 +4185,7 @@ sub print_person
 							my $decoded = conjunction(map { $_->given_names() } @children);
 							utf8::decode($decoded);
 							$bio .= ": $decoded";
+							$phrase->append(": $decoded");
 						} else {
 							# List children by the same parent together
 							# $childnames = join(', ', map {
@@ -4227,6 +4236,7 @@ sub print_person
 								Lingua::Conjunction->separator_phrase(';');
 								Lingua::Conjunction->penultimate(1);
 								$bio .= ': ' . conjunction(@childnames);
+								$phrase->append(': ' . conjunction(@childnames));
 								# TODO: restore old values
 								Lingua::Conjunction->separator_phrase(',');
 								Lingua::Conjunction->penultimate(0);
@@ -4235,8 +4245,10 @@ sub print_person
 							if(defined($surviving_children)) {
 								if($surviving_children == 1) {
 									$bio .= ', and one surviving child';
+									$phrase->append(', and one surviving child');
 								} elsif($surviving_children > 1) {
 									$bio .= ", and $surviving_children surviving children";
+									$phrase->append(", and $surviving_children surviving children");
 								}
 							}
 						}
@@ -4255,21 +4267,32 @@ sub print_person
 			} elsif(scalar(@residences) == 0) {
 				$bio .= i18n(' and');
 			}
+			if(scalar(@phrases) == 0) {
+				$phrase->append(" $pronoun");
+			} elsif($phrase->length()) {
+				push @phrases, $phrase;
+				$phrase = Data::Text->new();
+			}
 			$bio .= i18n(' had ');
+			$phrase->append(i18n(' had '));
 			if($language eq 'French') {
 				$bio .= (($numberofchildren == 1) ? '1 enfant' : "$numberofchildren enfants");
+				$phrase->append((($numberofchildren == 1) ? '1 enfant' : "$numberofchildren enfants"));
 			} else {
 				$bio .= (($numberofchildren == 1) ? '1 child' : "$numberofchildren children");
+				$phrase->append((($numberofchildren == 1) ? '1 child' : "$numberofchildren children"));
 			}
 			if($numberofchildren == 1) {
 				if(my $first_name = $children[0]->given_names()) {
 					$bio .= ", $first_name";
+					$phrase->append(", $first_name");
 				}
 			} else {
 				# my $childnames = join(', ', map { $_->given_names() } @children);
 				# substr($childnames, rindex($childnames, ', '), 2, ' and ');
 				# $bio .= ", $childnames";
 				$bio .= ', ' . conjunction(map { $_->given_names() } @children);
+				$phrase->append(', ' . conjunction(map { $_->given_names() } @children));
 			}
 			$end_of_sentence = 0;
 		}
@@ -4296,38 +4319,70 @@ sub print_person
 		if(scalar(@childrenunknownparent)) {
 			$bio .= '. ' if(!$end_of_sentence);
 			$bio .= "$pronoun ";
+
+			push @phrases, $phrase;
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$phrase = Data::Text->new("$pronoun ");
+			@phrases = ();
+
 			if(scalar(@children) > scalar(@childrenunknownparent)) {
 				$bio .= i18n('also ');
+				$phrase->append(i18n(' also'));
 			}
 			$bio .= i18n('had ') . scalar(@childrenunknownparent) . ' ';
+			$phrase->append(i18n('had ') . scalar(@childrenunknownparent) . ' ');
 			if(scalar(@childrenunknownparent) == 1) {
 				$bio .= i18n('child, ');
+				$phrase->append(i18n('child, '));
 			} else {
 				$bio .= i18n('children, ');
+				$phrase->append(i18n('children, '));
 			}
 			$bio .= conjunction(map { $_->given_names() } @childrenunknownparent) .
 				', whose ' .
 				(($sex eq 'F') ? 'father' : 'mother') .
 				' is unknown';
+			$phrase->append(conjunction(map { $_->given_names() } @childrenunknownparent) .
+				', whose ' .
+				(($sex eq 'F') ? 'father' : 'mother') .
+				' is unknown');
 			$end_of_sentence = 0;
 		}
 
 		if($same_occupation_as_father) {
 			$bio .= '.' if(!$end_of_sentence);
+
+			push @phrases, $phrase;
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$phrase = Data::Text->new();
+			@phrases = ();
+
 			if($language eq 'French') {
 				$bio .= " Comme son p\N{U+00E8}re, " . lcfirst($pronoun) .
 					(is_alive(person => $person) ? ' est' : " \N{U+00E9}tait") . ' un';
+				$phrase->set(" Comme son p\N{U+00E8}re, " . lcfirst($pronoun) .
+					(is_alive(person => $person) ? ' est' : " \N{U+00E9}tait") . ' un');
 				if($same_occupation_as_father =~ /^[AEIOU]/) {
 					$bio .= 'e';
+					$phrase->append('e');
 				}
 				$bio .= ' ' . lc($same_occupation_as_father);
+				$phrase->append(' ' . lc($same_occupation_as_father));
 			} else {
 				$bio .= ' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
 					(is_alive(person => $person) ? ' is' : ' was');
+				$phrase->append(' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
+					(is_alive(person => $person) ? ' is' : ' was'));
 				$bio .= ' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father));
+				$phrase->apend(' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father)));
 			}
 			$bio .= '. ';
 			$end_of_sentence = 1;
+
+			push @phrases, $phrase;
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$phrase = Data::Text->new();
+			@phrases = ();
 		}
 
 		print "Handling residences\n" if($opts{'v'});
@@ -5370,14 +5425,27 @@ sub print_person
 			# Print out the residence strings with semi-colons between each residence
 			if(scalar(@residencestringarray)) {
 				$bio .= '.' unless($end_of_sentence || $start_of_paragraph);
+
+				if($phrase->length()) {
+					push @phrases, $phrase;
+				}
+				if(scalar(@phrases)) {
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new();
+					@phrases = ();
+				}
+
 				my $first = $residencelist[0];
 				if((scalar(@residencelist) == 1) && (my $rdate = $first->date())) {
 					$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' }));
+					$phrase->set(' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' })));
 				} else {
 					if(!$start_of_paragraph) {
 						$bio .= '</p><p>';
+						$phrase->set('</p><p>');
 					}
 					$bio .= ucfirst(i18n('during %s life', lc($person->possessive())));
+					$phrase->append(ucfirst(i18n('during %s life', lc($person->possessive()))));
 				}
 
 				# print Data::Dumper->new([\@residencestringarray])->Dump();
@@ -5411,6 +5479,7 @@ sub print_person
 				Lingua::Conjunction->separator_phrase(';');
 				Lingua::Conjunction->penultimate(1);
 				$bio .= ', ' . lcfirst($pronoun) . i18n(" $s ") . conjunction(@residencestringarray);
+				$phrase->append(', ' . lcfirst($pronoun) . i18n(" $s ") . conjunction(@residencestringarray));
 				Lingua::Conjunction->separator_phrase(',');
 				Lingua::Conjunction->penultimate(0);
 
@@ -5423,11 +5492,14 @@ sub print_person
 						my $p = lcfirst($pronoun);
 						if($language eq 'French') {
 							$bio .= " c'est o\N{U+00F9} $p est mort";
+							$phrase->append(" c'est o\N{U+00F9} $p est mort");
 							if($sex eq 'F') {
 								$bio .= 'e';
+								$phrase->append('e');
 							}
 						} else {
 							$bio .= " which is where $p died";
+							$phrase->append(" which is where $p died");
 						}
 						if($dateofdeath) {
 							if($dateofdeath =~ /\s$/) {
@@ -5441,8 +5513,10 @@ sub print_person
 								$date =~ s/, (\d{3,4})$//;
 							}
 							$bio .= " $date";
+							$phrase->append(" $date");
 						}
 						$bio .= cite(@deathcitations);
+						$phrase->append(cite(@deathcitations));
 						# Print notes about the death, if any
 						my $notes;
 						if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
@@ -5451,6 +5525,7 @@ sub print_person
 							$notes =~ s/\.$//;
 							$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 							$bio .= " ($notes)";
+							$phrase->append(" ($notes)");
 						}
 						$diedathome = 1;
 					}
@@ -5458,17 +5533,32 @@ sub print_person
 				if(!$military_location) {
 					$bio .= '. ';
 					$end_of_sentence = 1;
+
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new();
+					@phrases = ();
 				}
 			}
 		}
 	} else {
 		print $csv '.!!!';
 		print $xml '.';
+
+		if($phrase->length()) {
+			push @phrases, $phrase;
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$phrase = Data::Text->new();
+			@phrases = ();
+		}
 	}
 
 	# $bio =~ s/,;/;/g;
 	# $bio =~ s/;$//;
 	# $bio =~ s/,.$/./;
+
+############## warn $bio_dt->as_string() if($bio_dt->length());
+#########################
 
 	if($placeofburial || $dateofburial || $placeofcremation || $dateofcremation) {
 		if(defined($dateofdeath) && (!defined($dateofburial)) && (!defined($dateofcremation))) {
