@@ -2833,10 +2833,10 @@ sub print_person
 						$phrase->append(',');
 					} elsif($is_alive) {
 						$bio .= ' is';
-						$phrase->append(' is ');
+						$phrase->append(' is');
 					} else {
 						$bio .= ' was';
-						$phrase->append(' was ');
+						$phrase->append(' was');
 					}
 				}
 			} else {
@@ -5838,23 +5838,30 @@ sub print_person
 					$bio .= i18n(' and');
 					$phrase->append(i18n(' and'));
 				}
-########### warn $bio_dt->as_string() if($bio_dt->length());
-#########################
-
 				if($language eq 'French') {
 					$bio .= " est y enterr\N{U+00E9}";
+					$phrase->append(" est y enterr\N{U+00E9}");
 					if($sex eq 'F') {
 						$bio .= 'e';
+						$phrase->append('e');
 					}
 					$bio .= " \N{U+00E0} " . $burial->address();
+					$phrase->append(" \N{U+00E0} " . $burial->address());
 				} else {
 					$bio .= ' is buried there at ' . $burial->address();
+					$phrase->append(' is buried there at ' . $burial->address());
 				}
 			} elsif(my $b = place($opts)) {
 				if($diedathome) {
 					$bio .= " $pronoun ";
 				} else {
 					$bio .= i18n(' and ');
+				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				} else {
+					$phrase->set(" $pronoun ");
 				}
 
 				utf8::decode($b);
@@ -5863,15 +5870,27 @@ sub print_person
 
 				$bio .= i18n({ person => $person, format => 'is buried' }) .
 					$b;
+				$phrase->append(i18n({ person => $person, format => 'is buried' }))->append($b);
 			}
+
 			if($notes && (length($notes) > 160)) {
 				$bio .= ".</p><p>";
 				$end_of_sentence = 1;
+
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
+				$phrase = Data::Text->new();
+				@phrases = ();
 			} else {
 				$end_of_sentence = 0;
 			}
 		}
 		$bio .= cite(@burialcitations);
+		$phrase->append(cite(@burialcitations));
+
+#################warn $bio_dt->as_string;
+########################
+
 	} elsif(($placeofdeath || $dateofdeath) && !$diedathome) {
 		# TODO - extract marriage banns information
 		# if($person->marriage_bann()) {
