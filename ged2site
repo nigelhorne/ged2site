@@ -5887,10 +5887,6 @@ sub print_person
 		}
 		$bio .= cite(@burialcitations);
 		$phrase->append(cite(@burialcitations));
-
-#################warn $bio_dt->as_string;
-########################
-
 	} elsif(($placeofdeath || $dateofdeath) && !$diedathome) {
 		# TODO - extract marriage banns information
 		# if($person->marriage_bann()) {
@@ -5903,26 +5899,54 @@ sub print_person
 				} else {
 					$bio .= ', qui est';
 				}
+				if(scalar(@phrases) == 0) {
+					$phrase->set(" C'est");
+				} else {
+					if($phrase->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
+					}
+					$phrase->set('qui est');
+				}
 				$bio .= " aussi o\N{U+00F9} " . lcfirst($pronoun);
+				$phrase->append(" aussi o\N{U+00F9} " . lcfirst($pronoun));
 			} else {
 				if($end_of_sentence) {
 					$bio .= ' That';
 				} else {
 					$bio .= ', which';
 				}
+				if(scalar(@phrases) == 0) {
+					$phrase->set(' That');
+				} else {
+					$phrase->append(', which');
+				}
 				$bio .= ' is also where ' . lcfirst($pronoun);
+				$phrase->append(' is also where ' . lcfirst($pronoun));
 			}
 		} else {
 			$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
 			$bio .= "<p>$pronoun";
+
+			if($phrase->length()) {
+				push @phrases, $phrase;
+			}
+			if(scalar(@phrases)) {
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$phrase = Data::Text->new("<p>$pronoun");
+				@phrases = ();
+			}
 		}
 		$bio .= i18n({ person => $person, format => ' died' });
+		$phrase->append(i18n({ person => $person, format => ' died' }));
 
 		if($dateofdeath) {
 			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
 				$bio .= i18n(' on the same day');
+				$phrase->append(i18n(' on the same day'));
 			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
 				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
+				$phrase->append(' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt })));
 			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
 				my $p = $1;
 				if($dateofdeath =~ /\s$/) {
@@ -5931,12 +5955,15 @@ sub print_person
 				}
 				$bio .= " in $p " .
 					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				$phrase->append(" in $p " .
+					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
 			} else {
 				if($dateofdeath =~ /\s$/) {
 					complain({ person => $person, warning => "Removing trailing spaces from date of death '$death'" });
 					$dateofdeath =~ s/\s+$//;
 				}
 				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
+				$phrase->append(' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt })));
 				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
 					my $place = place({ person => $person, record => $death, places_printed => \%places_printed });
 					if(!defined($place)) {
@@ -5944,6 +5971,7 @@ sub print_person
 					}
 					if(defined($place)) {
 						$bio .= $place;
+						$phrase->append($place);
 						if($place =~ /\s\d+\s/) {
 							foreach my $child(@children) {
 								my @cr = get_all_residences(person => $child);
@@ -5958,6 +5986,9 @@ sub print_person
 												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
 													i18n('child '), $child->as_string();
+												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('child '), $child->as_string());
 												last;
 											}
 										}
@@ -5978,6 +6009,9 @@ sub print_person
 												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
 													i18n('father '), $father->as_string();
+												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('father '), $father->as_string());
 												last;
 											}
 										}
@@ -5997,6 +6031,9 @@ sub print_person
 												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
 													i18n('mother '), $mother->as_string();
+												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('mother '), $mother->as_string());
 												last;
 											}
 										}
@@ -6017,6 +6054,10 @@ sub print_person
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
 													(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
 													$sibling->as_string();
+												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+													$sibling->as_string());
 												last;
 											}
 										}
@@ -6034,8 +6075,10 @@ sub print_person
 			}
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
 			$bio .= place({ person => $person, place => $placeofdeath });
+			$phrase->append(place({ person => $person, place => $placeofdeath }));
 		}
 		$bio .= cite(@deathcitations);
+		$phrase->append(cite(@deathcitations));
 
 		# Print notes about the death, if any
 		$end_of_sentence = 0;
@@ -6044,8 +6087,14 @@ sub print_person
 			$notes =~ s/\.$//;
 			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 			$bio .= " ($notes)";
+			$phrase->append(" ($notes)");
 			if(length($notes) > 160) {
 				$bio .= ".</p><p>";
+
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
+				$phrase = Data::Text->new();
+				@phrases = ();
 			}
 		}
 		if($bio =~ /\.$/) {
@@ -6056,6 +6105,15 @@ sub print_person
 	}
 	$bio .= '.' if(!$end_of_sentence);
 	$end_of_sentence = 1;
+
+	if($phrase->length()) {
+		push @phrases, $phrase;
+	}
+	if(scalar(@phrases)) {
+		$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+		$phrase = Data::Text->new();
+		@phrases = ();
+	}
 
 	my $all_events_have_date = 1;
 	foreach my $event(@events) {
@@ -6092,6 +6150,8 @@ sub print_person
 			last;
 		}
 	}
+warn $bio_dt->as_string();
+########################
 	if((scalar(@events) == 2) &&
 	   (ref($events[0]) eq 'Gedcom::Record') &&
 	   (ref($events[1]) eq 'Gedcom::Record') &&
