@@ -2707,7 +2707,6 @@ sub print_person
 			$phrase->append(i18n(' of '));
 		}
 
-		print $csv $bio;
 		$bio =~ s/\s&\s/ &amp; /g;
 		print $html $bio;
 		$bio =~ s/&eacute;/&#233;/g;
@@ -2724,9 +2723,9 @@ sub print_person
 				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					$father->as_string(),
 					'$lt;/a$gt;';
-				print $csv '<a href="?page=people&entry=', $father->xref(), '">',
-					$father->as_string(),
-					'</a>';
+				# print $csv '<a href="?page=people&entry=', $father->xref(), '">',
+					# $father->as_string(),
+					# '</a>';
 				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
 					$father->as_string() .
 					'</a>');
@@ -2763,7 +2762,7 @@ sub print_person
 			if($mother) {
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
 					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
-					print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
+					# print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
 					print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
 					$phrase->append('<a href="?page=people&entry=' . $mother->xref() . "\">$m</a>");
 				}
@@ -2787,9 +2786,9 @@ sub print_person
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->given_names(),
 					'</a>';
-				print $csv '<a href="?page=people&entry=', $father->xref(), '">',
-					$father->given_names(),
-					'</a>';
+				# print $csv '<a href="?page=people&entry=', $father->xref(), '">',
+					# $father->given_names(),
+					# '</a>';
 				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					$father->given_names(),
 					'&lt;/a&gt;';
@@ -2805,9 +2804,9 @@ sub print_person
 				print $html '<a href="', make_filename_from_person(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
-				print $csv '<a href="?page=people&entry=', $mother->xref(), '">',
-					$mother->given_names(),
-					'</a>';
+				# print $csv '<a href="?page=people&entry=', $mother->xref(), '">',
+					# $mother->given_names(),
+					# '</a>';
 				print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
 					$mother->given_names(),
 					'&lt;/a&gt;';
@@ -2878,7 +2877,8 @@ sub print_person
 	}
 
 	if($bio) {
-		$html_and_csv->print($bio);
+		# $html_and_csv->print($bio);
+		print $html $bio;
 		my $encoded = HTML::Entities::encode($bio);
 		$encoded =~ s/&euml;/&#235;/g;
 		print $xml HTML::Entities::encode($encoded);
@@ -2893,10 +2893,10 @@ sub print_person
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>';
-		print $csv " the $relationship of ",
-			'<a href="?page=people&home=1">',
-			$me->as_string(nee => 1),
-			'</a>';
+		# print $csv " the $relationship of ",
+			# '<a href="?page=people&home=1">',
+			# $me->as_string(nee => 1),
+			# '</a>';
 		print $xml " the $relationship of ",
 			'&lt;a href="?page=people&amp;home=1"&gt;',
 			$me->as_string(nee => 1),
@@ -2946,11 +2946,11 @@ sub print_person
 			'<a href="', make_filename_from_person(person => $me), '">',
 			$me->as_string(nee => 1),
 			'</a>';
-		print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
-			"$s</a> the $spouserelationship of ",
-			'<a href="?page=people&home=1">',
-			$me->as_string(nee => 1),
-			'</a>';
+		# print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
+			# "$s</a> the $spouserelationship of ",
+			# '<a href="?page=people&home=1">',
+			# $me->as_string(nee => 1),
+			# '</a>';
 		$phrase->append(' <a href="?page=people&entry=' . $spouse->xref() . '">' .
 			"$s</a> the $spouserelationship of " .
 			'<a href="?page=people&home=1">' .
@@ -2964,7 +2964,7 @@ sub print_person
 			'&lt;/a&gt;';
 		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
 			print $html ',';
-			print $csv ',';
+			# print $csv ',';
 			print $xml ',';
 		}
 		if($phrase->length()) {
@@ -3585,9 +3585,9 @@ sub print_person
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 								$spouses[0]->as_string(),
 								'</a>';
-							print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
-								$spouses[0]->as_string(),
-								'</a>';
+							# print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
+								# $spouses[0]->as_string(),
+								# '</a>';
 							print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								$spouses[0]->as_string(),
 								'&lt;/a&gt;';
@@ -3598,9 +3598,9 @@ sub print_person
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 								$spouses[0]->given_names(),
 								'</a>';
-							print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
-								$spouses[0]->given_names(),
-								'</a>';
+							# print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
+								# $spouses[0]->given_names(),
+								# '</a>';
 							print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								$spouses[0]->given_names(),
 								'&lt;/a&gt;';
@@ -4001,9 +4001,9 @@ sub print_person
 
 					print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 						$spouse->as_string(), '</a>';
-					print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
-						$spouse->as_string(),
-						'</a>';
+					# print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
+						# $spouse->as_string(),
+						# '</a>';
 					print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 						$spouse->as_string(),
 						'&lt;/a&gt;';
@@ -5553,15 +5553,10 @@ sub print_person
 			}
 		}
 	} else {
-		print $csv '.!!!';
+		# print $csv '.!!!';
+		print $csv '.';
 		print $xml '.';
-
-		if($phrase->length()) {
-			push @phrases, $phrase;
-			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-			$phrase = Data::Text->new();
-			@phrases = ();
-		}
+		$phrase->append('XXXXXXXXXXXXXXXXXXXXXX');
 	}
 
 	# $bio =~ s/,;/;/g;
