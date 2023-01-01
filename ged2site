@@ -2923,9 +2923,17 @@ sub print_person
 			$phrase = Data::Text->new();
 		}
 		if($sex eq 'F') {
-			$phrase->append('the wife of');
+			if(scalar(@phrases) == 0) {
+				$phrase->set('The wife of');
+			} else {
+				$phrase->set('the wife of');
+			}
 		} else {
-			$phrase->append('the husband of');
+			if(scalar(@phrases) == 0) {
+				$phrase->set('The husband of');
+			} else {
+				$phrase->set('the husband of');
+			}
 		}
 		my $s = $spouse->as_string({ middle_names => 1, title => 1 });
 		if(!defined($s)) {
@@ -6826,21 +6834,24 @@ sub print_person
 		}
 	}
 
-# warn $bio_dt->as_string();
-########################
-
 	if($language eq 'English') {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			$bio = Lingua::EN::ABC::b2a($bio);
+			$bio_dt->set(Lingua::EN::ABC::b2a($bio_dt->as_string()));
 		} elsif($ENV{'LANG'} =~ /^en_CA/) {
 			$bio = Lingua::EN::ABC::b2c($bio);
+			$bio_dt->set(Lingua::EN::ABC::b2c($bio_dt->as_string()));
 		} else {
 			$bio = Lingua::EN::ABC::a2b($bio);
+			$bio_dt->set(Lingua::EN::ABC::a2b($bio_dt->as_string()));
 		}
 	}
 
 	print $html $bio;
 	$fullbio .= $bio;
+
+############### warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
+########################
 
 	if($opts{'l'} || !$is_alive) {
 		print $csv $bio;
