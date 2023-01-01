@@ -3534,7 +3534,7 @@ sub print_person
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
 					   !$end_of_sentence) {
 						$bio .= i18n(' also');
-						$phrase->append(i18n(' also'));
+						$phrase->set(i18n('also'));
 					}
 					my %args = (person => $person);
 					if($spouserelationship) {
@@ -3571,7 +3571,6 @@ sub print_person
 
 						$fullbio .= $bio . $spouses[0]->as_string();
 						$bio = '';
-						$phrase->append($spouses[0]->as_string());
 
 						if($opts{'l'} || !$is_alive) {
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
@@ -3852,10 +3851,10 @@ sub print_person
 							if(my $s = $spouse->as_string({ middle_names => 1, title => 1 })) {
 								if(is_alive(person => $person) && is_alive(person => $spouse)) {
 									$bio .= i18n({ person => $person, format => ' is married to ' });
-									$phrase->append(i18n({ person => $person, format => ' is married to ' }));
+									$phrase->append(i18n({ person => $person, format => 'is married to ' }));
 								} else {
 									$bio .= i18n({ person => $person, format => ' was married to ' });
-									$phrase->append(i18n({ person => $person, format => ' was married to ' }));
+									$phrase->append(i18n({ person => $person, format => 'was married to ' }));
 								}
 								$bio .= $s;
 								$phrase->append($s);
@@ -6327,7 +6326,7 @@ sub print_person
 				}
 				if(scalar(@phrases)) {
 					push @phrases, $phrase;
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
 					$phrase = Data::Text->new();
 					@phrases = ();
 				}
@@ -6638,9 +6637,6 @@ sub print_person
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 					$phrase = Data::Text->new();
 					@phrases = ();
-warn $bio_dt->as_string();
-########################
-
 				} elsif($type eq 'Departure') {
 					if(!defined($event->place())) {
 						complain({ person => $person, warning => 'Departure record without destination' });
@@ -6657,64 +6653,101 @@ warn $bio_dt->as_string();
 					if($previous) {
 						if($prev_type eq 'Arrival') {
 							$bio .= journey({ person => $person, arrival => $event, departure => $previous });
+							$phrase->append(journey({ person => $person, arrival => $event, departure => $previous }));
 						}
 						$previous = undef;
 					} else {
 						$bio .= ' ' . ucfirst(i18n($person->pronoun()));
+						$phrase->append(' ' . ucfirst(i18n($person->pronoun())));
 						if($ENV{'LANG'} =~ /^en_US/) {
 							$bio .= ' traveled';
+							$phrase->append(' traveled');
 						} elsif($language eq 'French') {
 							$bio .= " a voyag\N{U+00E9}";
+							$phrase->append(" a voyag\N{U+00E9}");
 						} else {
 							$bio .= ' travelled';
+							$phrase->append(' travelled');
 						}
 						my $place = place({ person => $person, record => $event });
 						$place =~ s/^\sin/ from/;
 						if($event->date()) {
 							$bio .= "$place " .
 								year({ person => $person, record => $event });
+							$phrase->append("$place " .
+								year({ person => $person, record => $event }));
 						} else {
 							$bio .= $place;
+							$phrase->append($place);
 						}
 					}
 					if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 						$notes = lcfirst($notes);
 						$bio .= " ($notes)";
+						$phrase->append(" ($notes)");
 					}
 					$bio .= '.';
 					$end_of_sentence = 1;
+
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new();
+					@phrases = ();
 				} elsif($type eq 'Story') {
 					if(my $notes = notes(record => $event)) {
 						if(!$end_of_sentence) {
 							$bio .= '. ';
 						}
+
+						push @phrases, $phrase;
+						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+						$phrase = Data::Text->new();
+						@phrases = ();
+
 						$notes =~ s/\.$//;
 						# TODO:  Do this if the notes doesn't include a date
 						# if(my $date = year(record => $event)) {
 							# $bio .= ' ' . ucfirst($notes) . " $date. ";
 						# } else {
 							$bio .= ' ' . ucfirst($notes) . '. ';
+							$bio_dt->append( ' ' . ucfirst($notes) . '. ');
 						# }
 						$end_of_sentence = 1;
 					}
 				} elsif($type eq 'Court') {
 					$bio .= '. ' if(!$end_of_sentence);
 					$bio .= $firstname // $pronoun;
+
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new($firstname // $pronoun);
+					@phrases = ();
+
 					if($language eq 'French') {
 						$bio .= " a \N{U+00E9}t\N{U+00E9} au tribunal";
+						$phrase->append(" a \N{U+00E9}t\N{U+00E9} au tribunal");
 					} else {
-						$bio .= " was in court";
+						$bio .= ' appeared in court';
+						$phrase->append(' appeared in court');
 					}
 					if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
 						$bio .= $place;
+						$phrase->append($place);
 					}
 					if(my $date = year(record => $event)) {
 						$bio .= " $date";
+						$phrase->append(" $date");
 					}
 					if(my $notes = notes(record => $event)) {
 						$notes = lcfirst($notes);
 						$notes =~ s/\.$//;
 						$bio .= " ($notes).";
+
+						push @phrases, $phrase;
+						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append(" ($notes).");
+						$phrase = Data::Text->new();
+						@phrases = ();
+
 						$end_of_sentence = 1;
 					}
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
@@ -6740,6 +6773,24 @@ warn $bio_dt->as_string();
 								$bio .= " ($notes)";
 							}
 						}
+						if($phrase->length()) {
+							$notes = lcfirst($notes);
+							if($date) {
+								$phrase->append(" ($date, $notes)");
+							} else {
+								$phrase->append(" ($notes)");
+							}
+						} else {
+							if($date) {
+								$phrase->set(' ' . ucfirst($notes) . " $date");
+							} else {
+								$phrase->set(' ' . ucfirst($notes));
+							}
+						}
+						push @phrases, $phrase;
+						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+						$phrase = Data::Text->new();
+						@phrases = ();
 					}
 				}
 			}
@@ -6747,6 +6798,14 @@ warn $bio_dt->as_string();
 		if($bio) {
 			$bio .= '.' if(!$end_of_sentence);
 			$end_of_sentence = 1;
+		}
+		if($phrase->length()) {
+			push @phrases, $phrase;
+		}
+		if(scalar(@phrases)) {
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$phrase = Data::Text->new();
+			@phrases = ();
 		}
 	}
 
@@ -6758,8 +6817,17 @@ warn $bio_dt->as_string();
 			$value =~ s/[\s\.]+$//;
 			$bio .= " $pronoun served in the military ($value).";
 			$end_of_sentence = 1;
+
+			push @phrases, $phrase;
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$phrase = Data::Text->new();
+			@phrases = ();
+			$bio_dt->append(" $pronoun served in the military ($value).");
 		}
 	}
+
+# warn $bio_dt->as_string();
+########################
 
 	if($language eq 'English') {
 		if($ENV{'LANG'} =~ /^en_US/) {
