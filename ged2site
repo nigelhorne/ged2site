@@ -3805,8 +3805,7 @@ sub print_person
 						$bio .= ',';
 					}
 					if($phrase->length()) {
-						push @phrases, $phrase;
-						$phrase = Data::Text->new();
+						$phrase->append(',');
 					}
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
@@ -4181,7 +4180,7 @@ sub print_person
 								$phrase->append(', ');
 								$format = 'both with %s';
 							} else {
-								$format = 'with %s';
+								$format = ' with %s';
 							}
 							$bio .= i18n(person => $person, format => $format, args => $parentofall->as_string());
 							$phrase->append(i18n(person => $person, format => $format, args => $parentofall->as_string()));
@@ -6851,11 +6850,12 @@ sub print_person
 	print $html $bio;
 	$fullbio .= $bio;
 
-############## warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
+# warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
 ########################
 
 	if($opts{'l'} || !$is_alive) {
-		print $csv $bio;
+		# print $csv $bio;
+		print $csv $bio_dt->as_string();
 		$bio =~ s/&/&amp;/g;
 		$bio =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
 		$bio =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
