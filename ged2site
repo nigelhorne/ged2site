@@ -2444,7 +2444,7 @@ sub print_person
 		$relationship = $me->relationship($person);
 		if((!$relationship) && scalar(@spouses)) {
 			print "find spousal relationship\n" if($opts{'v'});
-			if($spouses[0] eq $me) {
+			if($spouses[0]->xref() eq $me->xref()) {
 				$relationship = i18n(($sex eq 'F') ? 'wife' : 'husband');
 			} else {
 				foreach my $s(@spouses) {
@@ -2757,7 +2757,7 @@ sub print_person
 					my $and = i18n(' and ');
 					$all->print($and);
 					$fullbio .= $and;
-					$phrase->append(' and ');
+					$phrase->append($and);
 				}
 			}
 			if($mother) {
@@ -2797,7 +2797,8 @@ sub print_person
 					$father->given_names() .
 					'</a>');
 				if($mother) {
-					$all->print(i18n(' and'));
+					$all->print(i18n(' and '));
+					$phrase->append(i18n(' and '));
 				}
 			}
 			if($mother) {
@@ -6850,7 +6851,7 @@ sub print_person
 	print $html $bio;
 	$fullbio .= $bio;
 
-######### warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
+############## warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
 ########################
 
 	if($opts{'l'} || !$is_alive) {
@@ -8611,18 +8612,18 @@ sub Gedcom::Individual::relationship {
 	my $self = shift;
 	my $other = shift;
 
-	die $self->as_string() if($other eq $self);
+	return if($other->xref() eq $self->xref());
 
 	if($self->mother() && $other->mother() && $self->father() && $other->father()) {
 		my $sex = $other->sex() || get_value({ person => $other, value => 'sex' });
-		if(($self->mother() eq $other->mother()) && ($self->father() eq $other->father())) {
+		if(($self->mother()->xref() eq $other->mother()->xref()) && ($self->father()->xref() eq $other->father()->xref())) {
 			if($language eq 'Farsi') {
 				# return ($sex eq 'M') ? 'barādar' : 'khāhar';
 				return ($sex eq 'M') ? "\N{U+0631}\N{U+062F}\N{U+0637}\N{U+0631}\N{U+0638}" : "khāhar\N{U+0631}\N{U+0647}\N{U+0627}\N{U+0648}\N{U+062E}";
 			}
 			return i18n(($sex eq 'M') ? 'brother' : 'sister');
 		}
-		if(($self->mother() eq $other->mother()) || ($self->father() eq $other->father())) {
+		if(($self->mother()->xref() eq $other->mother()->xref()) || ($self->father()->xref() eq $other->father()->xref())) {
 			if($language eq 'Latin') {
 				return ($sex eq 'M') ? 'frāter uterīnus' : 'soror uterīna';
 			} elsif($language eq 'German') {
@@ -8630,6 +8631,10 @@ sub Gedcom::Individual::relationship {
 			}
 			return ($sex eq 'M') ? 'half-brother' : 'half-sister';
 		}
+	}
+	if($me && ($me->xref() eq $other->xref()) && ($me->xref() eq $self->spouse()->xref())) {
+		my $sex = $other->sex() || get_value({ person => $other, value => 'sex' });
+		die $sex;
 	}
 
 	return $self->relationship_down($other) || $self->relationship_up($other);
