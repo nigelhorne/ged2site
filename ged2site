@@ -4174,13 +4174,13 @@ sub print_person
 						}
 						# FIXME: do hyperlinks - needs to be correct for $csv and $html
 						if($parentofall) {
-							$bio .= ', ';
-							$phrase->append(', ');
 							my $format;
 							if($numberofchildren == 2) {
+								$bio .= ', ';
+								$phrase->append(', ');
 								$format = 'both with %s';
 							} else {
-								$format = 'all with %s';
+								$format = 'with %s';
 							}
 							$bio .= i18n(person => $person, format => $format, args => $parentofall->as_string());
 							$phrase->append(i18n(person => $person, format => $format, args => $parentofall->as_string()));
@@ -6850,7 +6850,7 @@ sub print_person
 	print $html $bio;
 	$fullbio .= $bio;
 
-############### warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
+######### warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
 ########################
 
 	if($opts{'l'} || !$is_alive) {
