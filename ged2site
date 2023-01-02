@@ -2507,8 +2507,6 @@ sub print_person
 				args => lc(conjunction(@occupations))
 			}));
 			$phrase->set($bio);
-			push @phrases, $phrase;
-			$phrase = Data::Text->new();
 			if(!($father || $mother || $spouserelationship)) {
 				$bio .= ', ';
 				$printed_comma = 1;
@@ -2561,9 +2559,11 @@ sub print_person
 	print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
 
 	my $print_sibling_count = 0;
-	my $html_and_csv = File::Print::Many->new([$csv, $html]);
+	# my $html_and_csv = File::Print::Many->new([$csv, $html]);
+	my $html_and_csv = File::Print::Many->new([$html]);
 	# my $html_and_xml = File::Print::Many->new([$xml, $html]);
-	my $all = File::Print::Many->new([$xml, $html, $csv]);
+	# my $all = File::Print::Many->new([$xml, $html, $csv]);
+	my $all = File::Print::Many->new([$html]);
 
 	if(($father || $mother) &&
 	   ((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() eq $me->xref()))) {
@@ -2710,7 +2710,7 @@ sub print_person
 		$bio =~ s/\s&\s/ &amp; /g;
 		print $html $bio;
 		$bio =~ s/&eacute;/&#233;/g;
-		print $xml $bio;
+		# print $xml $bio;
 
 		$fullbio = $bio;
 		$bio = undef;
@@ -2720,9 +2720,9 @@ sub print_person
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->as_string(),
 					'</a>';
-				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
-					$father->as_string(),
-					'$lt;/a$gt;';
+				# print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
+					# $father->as_string(),
+					# '$lt;/a$gt;';
 				# print $csv '<a href="?page=people&entry=', $father->xref(), '">',
 					# $father->as_string(),
 					# '</a>';
@@ -2746,8 +2746,10 @@ sub print_person
 						}
 						if($language eq 'French') {
 							$all->print(" (un $occupation)");
+							$phrase->append(" (un $occupation)");
 						} else {
 							$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
+							$phrase->append(' (' . Lingua::EN::Inflect::A(lc($occupation)) . ')');
 						}
 					}
 				}
@@ -2763,7 +2765,7 @@ sub print_person
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
 					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
 					# print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
-					print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
+					# print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
 					$phrase->append('<a href="?page=people&entry=' . $mother->xref() . "\">$m</a>");
 				}
 
@@ -2771,6 +2773,7 @@ sub print_person
 				# TODO: print all occupations
 				if($occupations[0]) {
 					$all->print(' (', Lingua::EN::Inflect::A(lc($occupations[0])), ')');
+					$phrase->append(' (' . Lingua::EN::Inflect::A(lc($occupations[0])) . ')');
 				}
 				$fullbio .= ' ' . $mother->as_string();
 				if($opts{'w'} && $birth_dt && (my $mdod = dateofdeath($mother))) {
@@ -2789,9 +2792,9 @@ sub print_person
 				# print $csv '<a href="?page=people&entry=', $father->xref(), '">',
 					# $father->given_names(),
 					# '</a>';
-				print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
-					$father->given_names(),
-					'&lt;/a&gt;';
+				# print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
+					# $father->given_names(),
+					# '&lt;/a&gt;';
 				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
 					$father->given_names() .
 					'</a>');
@@ -2807,9 +2810,9 @@ sub print_person
 				# print $csv '<a href="?page=people&entry=', $mother->xref(), '">',
 					# $mother->given_names(),
 					# '</a>';
-				print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
-					$mother->given_names(),
-					'&lt;/a&gt;';
+				# print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
+					# $mother->given_names(),
+					# '&lt;/a&gt;';
 				$phrase->append('<a href="?page=people&entry=' . $mother->xref() . '">' .
 					$mother->given_names() .
 					'</a>');
@@ -2879,9 +2882,9 @@ sub print_person
 	if($bio) {
 		# $html_and_csv->print($bio);
 		print $html $bio;
-		my $encoded = HTML::Entities::encode($bio);
-		$encoded =~ s/&euml;/&#235;/g;
-		print $xml HTML::Entities::encode($encoded);
+		# my $encoded = HTML::Entities::encode($bio);
+		# $encoded =~ s/&euml;/&#235;/g;
+		# print $xml HTML::Entities::encode($encoded);
 
 		$fullbio .= $bio;
 	}
@@ -2897,10 +2900,10 @@ sub print_person
 			# '<a href="?page=people&home=1">',
 			# $me->as_string(nee => 1),
 			# '</a>';
-		print $xml " the $relationship of ",
-			'&lt;a href="?page=people&amp;home=1"&gt;',
-			$me->as_string(nee => 1),
-			'&lt;/a&gt;';
+		# print $xml " the $relationship of ",
+			# '&lt;a href="?page=people&amp;home=1"&gt;',
+			# $me->as_string(nee => 1),
+			# '&lt;/a&gt;';
 		$phrase->append(" the $relationship of " .
 			'<a href="?page=people&home=1">' .
 			$me->as_string(nee => 1) .
@@ -2956,16 +2959,16 @@ sub print_person
 			'<a href="?page=people&home=1">' .
 			$me->as_string(nee => 1) .
 			'</a>');
-		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
-		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
-			"$s&lt;/a&gt; the $spouserelationship of ",
-			'&lt;a href="?page=people&amp;home=1"&gt;',
-			$me->as_string(nee => 1),
-			'&lt;/a&gt;';
+		# $s =~ s/\xc3\xab/&#235;/g;	# eumlaut
+		# print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
+			# "$s&lt;/a&gt; the $spouserelationship of ",
+			# '&lt;a href="?page=people&amp;home=1"&gt;',
+			# $me->as_string(nee => 1),
+			# '&lt;/a&gt;';
 		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
 			print $html ',';
 			# print $csv ',';
-			print $xml ',';
+			# print $xml ',';
 		}
 		if($phrase->length()) {
 			push @phrases, $phrase;
@@ -2976,9 +2979,10 @@ sub print_person
 
 	if(my $aka = $person->as_string({ use_aka => 1 })) {
 		$phrase->append(" (also known as $aka)");
-		$html_and_csv->print(" (also known as $aka)");
-		$aka =~ s/&eacute;/&#233;/g;
-		print $xml " (also known as $aka)";
+		# $html_and_csv->print(" (also known as $aka)");
+		print $html " (also known as $aka)";
+		# $aka =~ s/&eacute;/&#233;/g;
+		# print $xml " (also known as $aka)";
 	}
 
 	my $start_of_paragraph = 0;
@@ -3571,12 +3575,13 @@ sub print_person
 							complain({ person => $spouses[0], warning => 'seems to have no first name' });
 						}
 					} else {
-						$html_and_csv->print($bio);
-						$bio =~ s/&/&amp;/g;
-						$bio =~ s/</&lt;/g;
-						$bio =~ s/>/&gt;/g;
-						$bio =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
-						print $xml $bio;
+						# $html_and_csv->print($bio);
+						print $html $bio;
+						# $bio =~ s/&/&amp;/g;
+						# $bio =~ s/</&lt;/g;
+						# $bio =~ s/>/&gt;/g;
+						# $bio =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
+						# print $xml $bio;
 
 						$fullbio .= $bio . $spouses[0]->as_string();
 						$bio = '';
@@ -3588,9 +3593,9 @@ sub print_person
 							# print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
 								# $spouses[0]->as_string(),
 								# '</a>';
-							print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
-								$spouses[0]->as_string(),
-								'&lt;/a&gt;';
+							# print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
+								# $spouses[0]->as_string(),
+								# '&lt;/a&gt;';
 							$phrase->append('<a href="?page=people&entry=' . $spouses[0]->xref() . '">' .
 								$spouses[0]->as_string() .
 								'</a>');
@@ -3601,9 +3606,9 @@ sub print_person
 							# print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
 								# $spouses[0]->given_names(),
 								# '</a>';
-							print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
-								$spouses[0]->given_names(),
-								'&lt;/a&gt;';
+							# print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
+								# $spouses[0]->given_names(),
+								# '&lt;/a&gt;';
 							$phrase->append('<a href="?page=people&entry=' . $spouses[0]->xref() . '">' .
 								$spouses[0]->given_names() .
 								'</a>');
@@ -3803,15 +3808,13 @@ sub print_person
 						$phrase->append(')');
 					} elsif(($dateofmarriage || $placeofmarriage) && $numberofchildren) {
 						$bio .= ',';
-					}
-					if($phrase->length()) {
 						$phrase->append(',');
 					}
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
 						if(($language eq 'English') && (defined($placeofbaptism) and ($placeofmarriage eq $placeofbaptism))) {
 							$bio .= ' there ';
-							$phrase->append(' there');
+							$phrase->append(' there ');
 
 							if(my $address = $marriage->address()) {
 								if($address eq 'Parish Church') {
@@ -3920,11 +3923,12 @@ sub print_person
 				$bio .= ' - to';
 				$phrase->append(' - to');
 
-				$html_and_csv->print($bio);
-				$bio =~ s/</&lt;/g;
-				$bio =~ s/>/&gt;/g;
-				$bio =~ s/&/&amp;/g;
-				print $xml $bio;
+				# $html_and_csv->print($bio);
+				print $html $bio;
+				# $bio =~ s/</&lt;/g;
+				# $bio =~ s/>/&gt;/g;
+				# $bio =~ s/&/&amp;/g;
+				# print $xml $bio;
 
 				$fullbio .= $bio;
 				$bio = '';
@@ -4004,9 +4008,9 @@ sub print_person
 					# print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
 						# $spouse->as_string(),
 						# '</a>';
-					print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
-						$spouse->as_string(),
-						'&lt;/a&gt;';
+					# print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
+						# $spouse->as_string(),
+						# '&lt;/a&gt;';
 					$phrase->append(' <a href="?page=people&entry=' . $spouse->xref() . '">' .
 						$spouse->as_string() .
 						'</a>');
@@ -4068,9 +4072,10 @@ sub print_person
 						$phrase->append(',');
 					}
 					$bio =~ s/&Atilde;&copy;/&eacute;/g;
-					$html_and_csv->print($bio);
-					$bio =~ s/&eacute;/&#233;/g;
-					print $xml $bio;
+					# $html_and_csv->print($bio);
+					print $html $bio;
+					# $bio =~ s/&eacute;/&#233;/g;
+					# print $xml $bio;
 
 					$fullbio .= $bio;
 					$bio = '';
@@ -5555,7 +5560,7 @@ sub print_person
 	} else {
 		# print $csv '.!!!';
 		print $csv '.';
-		print $xml '.';
+		# print $xml '.';
 		$phrase->append('XXXXXXXXXXXXXXXXXXXXXX');
 	}
 
@@ -6850,23 +6855,25 @@ sub print_person
 
 	if($opts{'l'} || !$is_alive) {
 		# print $csv $bio;
-		print $csv $bio_dt->as_string();
-		$bio =~ s/&/&amp;/g;
-		$bio =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
-		$bio =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
-		$bio =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
-		$bio =~ s/&amp;pound;/&#163;/g;
-		$bio =~ s/&amp;#39;/'/g;
-		$bio =~ s/&amp;#/&#/g;
-		$bio =~ s/</&lt;/g;
-		$bio =~ s/>/&gt;/g;
-		$bio =~ s/&amp;eacute;/&#233;/g;
-		$bio =~ s/\xc3\xa9/&#233;/g;	# eacute
-		$bio =~ s/\xc3\xb1/&#241;/g;	# ntilde
-		$bio =~ s/ñ/&#241;/g;
-		$bio =~ s/\xc3\xab/&#235;/g;	# eumlaut
-		$bio =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
-		print $xml $bio;
+		my $s = $bio_dt->as_string();
+		print $csv $s;
+		# $s = HTML::Entities::encode($s);
+		$s =~ s/&/&amp;/g;
+		$s =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
+		$s =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
+		$s =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
+		$s =~ s/&amp;pound;/&#163;/g;
+		$s =~ s/&amp;#39;/'/g;
+		$s =~ s/&amp;#/&#/g;
+		$s =~ s/</&lt;/g;
+		$s =~ s/>/&gt;/g;
+		$s =~ s/&amp;eacute;/&#233;/g;
+		$s =~ s/\xc3\xa9/&#233;/g;	# eacute
+		$s =~ s/\xc3\xb1/&#241;/g;	# ntilde
+		$s =~ s/ñ/&#241;/g;
+		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
+		$s =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
+		print $xml $s;
 	}
 	print $csv '!';
 	print $xml "\n\t\t\t</en>\n\t\t</bio>";
