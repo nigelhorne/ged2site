@@ -5714,10 +5714,14 @@ sub print_person
 			$bio .= '. ';
 			$end_of_sentence = 1;
 
-			push @phrases, $phrase;
-			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-			$phrase = Data::Text->new();
-			@phrases = ();
+			if($phrase->length()) {
+				push @phrases, $phrase;
+			}
+			if(scalar(@phrases)) {
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			}
 		} else {	# $dateofdeath || $placeofdeath
 			if((!$placeofburial) && !$diedathome) {
 				$bio .= '. ' if(!$end_of_sentence);
@@ -12299,7 +12303,7 @@ sub between
 
 # Create an array that will allow fast access to each element
 sub cache_array {
-	if(ref($_[0])) {
+	if(ref($_[0]) && ref($_[0] eq 'ARRAY')) {
 		return map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @_;
 	}
 	return @_;
