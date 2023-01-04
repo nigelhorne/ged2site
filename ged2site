@@ -6881,10 +6881,13 @@ sub print_person
 		$s =~ s/</&lt;/g;
 		$s =~ s/>/&gt;/g;
 		$s =~ s/&amp;eacute;/&#233;/g;
+		$s =~ s/&amp;quot;/&quot;/g;
 		$s =~ s/\xc3\xa9/&#233;/g;	# eacute
+		$s =~ s/é/&#233;/g;
 		$s =~ s/\xc3\xb1/&#241;/g;	# ntilde
 		$s =~ s/ñ/&#241;/g;
 		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
+		$s =~ s/ë/&#235;/g;
 		$s =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
 		print $xml $s;
 	}
