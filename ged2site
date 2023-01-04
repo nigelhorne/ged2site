@@ -3012,8 +3012,11 @@ sub print_person
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
 				$bio = ',' if($relationship);
-				$phrase->append(',') if($relationship);
-				$phrase->append(i18n({ person => $person, format => ' was born' }));
+				if($relationship) {
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				}
+				$phrase->append(i18n({ person => $person, format => 'was born' }));
 				$bio .= i18n({ person => $person, format => ' was born' });
 				if($placeofbirth) {
 					my $p = place({ person => $person, place => $placeofbirth });
@@ -3539,7 +3542,7 @@ sub print_person
 					$bio .= i18n(' and');
 					$printed_and = 1;
 				}
-				if($phrase->length()) {
+				if($phrase->length() && (scalar(@phrases) > 0)) {
 					push @phrases, $phrase;
 					$phrase = Data::Text->new();
 				}
@@ -3547,7 +3550,7 @@ sub print_person
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
 					   !$end_of_sentence) {
 						$bio .= i18n(' also');
-						$phrase->set(i18n('also'));
+						$phrase->append(i18n('also'));
 					}
 					my %args = (person => $person);
 					if($spouserelationship) {
@@ -5940,9 +5943,10 @@ sub print_person
 			}
 			if(scalar(@phrases)) {
 				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-				$phrase = Data::Text->new("<p>$pronoun");
+				$phrase = Data::Text->new();
 				@phrases = ();
 			}
+			$phrase->append("<p>$pronoun");
 		}
 		$bio .= i18n({ person => $person, format => ' died' });
 		$phrase->append(i18n({ person => $person, format => ' died' }));
@@ -6282,7 +6286,7 @@ sub print_person
 					$notes = lcfirst($notes);
 					$notes =~ s/\.$//;
 					$bio .= " ($notes)";
-					$bio->append(" ($notes)");
+					$phrase->append(" ($notes)");
 				}
 				$bio .= '. ';
 				$end_of_sentence = 1;
