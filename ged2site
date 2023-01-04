@@ -6730,10 +6730,14 @@ sub print_person
 					$bio .= '. ' if(!$end_of_sentence);
 					$bio .= $firstname // $pronoun;
 
-					push @phrases, $phrase;
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-					$phrase = Data::Text->new($firstname // $pronoun);
-					@phrases = ();
+					if($phrase->length()) {
+						push @phrases, $phrase;
+					}
+					if(scalar(@phrases)) {
+						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+						$phrase = Data::Text->new($firstname // $pronoun);
+						@phrases = ();
+					}
 
 					if($language eq 'French') {
 						$bio .= " a \N{U+00E9}t\N{U+00E9} au tribunal";
