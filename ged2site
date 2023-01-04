@@ -5708,7 +5708,7 @@ sub print_person
 			} else {
 				$bio .= " $pronoun is buried" .
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
-				$phrase->append(" $pronoun is buried",
+				$phrase->append(" $pronoun is buried" .
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage }));
 			}
 			$bio .= '. ';
