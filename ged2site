@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2022, Nigel Horne
+# Copyright (C) 2015-2023, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -60,7 +60,7 @@ BEGIN {
 	my @modules = (
 		'Array::Iterator', 'Array::Iterator::BiDirectional',
 		'Config::Auto', 'Data::Text',
-		'File::Basename', 'File::Copy', 'File::Temp', 'File::Print::Many',
+		'File::Basename', 'File::Copy', 'File::Temp',
 		'Date::Manip', 'Parse::RecDescent', 'Roman',
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
@@ -2559,11 +2559,6 @@ sub print_person
 	print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
 
 	my $print_sibling_count = 0;
-	# my $html_and_csv = File::Print::Many->new([$csv, $html]);
-	my $html_and_csv = File::Print::Many->new([$html]);
-	# my $html_and_xml = File::Print::Many->new([$xml, $html]);
-	# my $all = File::Print::Many->new([$xml, $html, $csv]);
-	my $all = File::Print::Many->new([$html]);
 
 	if(($father || $mother) &&
 	   ((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() eq $me->xref()))) {
@@ -2745,10 +2740,10 @@ sub print_person
 							}
 						}
 						if($language eq 'French') {
-							$all->print(" (un $occupation)");
+							print $html " (un $occupation)";
 							$phrase->append(" (un $occupation)");
 						} else {
-							$all->print(' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')');
+							print $html ' (', HTML::Entities::encode(Lingua::EN::Inflect::A(lc($occupation))), ')';
 							$phrase->append(' (' . Lingua::EN::Inflect::A(lc($occupation)) . ')');
 						}
 					}
@@ -2756,7 +2751,7 @@ sub print_person
 				$fullbio .= $father->as_string();
 				if($mother) {
 					my $and = i18n(' and ');
-					$all->print($and);
+					print $html $and;
 					$fullbio .= $and;
 					$phrase->append($and);
 				}
@@ -2772,7 +2767,7 @@ sub print_person
 				my @occupations = get_all_occupations($mother);
 				# TODO: print all occupations
 				if($occupations[0]) {
-					$all->print(' (', Lingua::EN::Inflect::A(lc($occupations[0])), ')');
+					print $html ' (', Lingua::EN::Inflect::A(lc($occupations[0])), ')';
 					$phrase->append(' (' . Lingua::EN::Inflect::A(lc($occupations[0])) . ')');
 				}
 				$fullbio .= ' ' . $mother->as_string();
@@ -2799,7 +2794,7 @@ sub print_person
 					$father->given_names() .
 					'</a>');
 				if($mother) {
-					$all->print(i18n(' and '));
+					print $html i18n(' and ');
 					$phrase->append(i18n(' and '));
 				}
 			}
@@ -2880,7 +2875,6 @@ sub print_person
 	}
 
 	if($bio) {
-		# $html_and_csv->print($bio);
 		print $html $bio;
 		# my $encoded = HTML::Entities::encode($bio);
 		# $encoded =~ s/&euml;/&#235;/g;
@@ -2911,15 +2905,15 @@ sub print_person
 	} elsif($spouserelationship) {
 		if((!$is_alive) || $opts{'l'}) {
 			if($sex eq 'F') {
-				$all->print(', the wife of');
+				print $html ', the wife of';
 			} else {
-				$all->print(', the husband of');
+				print $html ', the husband of';
 			}
 		} else {
 			if($sex eq 'F') {
-				$all->print('The wife of');
+				print $html 'The wife of';
 			} else {
-				$all->print('The husband of');
+				print $html 'The husband of';
 			}
 		}
 		if($phrase->length()) {
@@ -2979,7 +2973,6 @@ sub print_person
 
 	if(my $aka = $person->as_string({ use_aka => 1 })) {
 		$phrase->append(" (also known as $aka)");
-		# $html_and_csv->print(" (also known as $aka)");
 		print $html " (also known as $aka)";
 		# $aka =~ s/&eacute;/&#233;/g;
 		# print $xml " (also known as $aka)";
@@ -3578,7 +3571,6 @@ sub print_person
 							complain({ person => $spouses[0], warning => 'seems to have no first name' });
 						}
 					} else {
-						# $html_and_csv->print($bio);
 						print $html $bio;
 						# $bio =~ s/&/&amp;/g;
 						# $bio =~ s/</&lt;/g;
@@ -3926,7 +3918,6 @@ sub print_person
 				$bio .= ' - to';
 				$phrase->append(' - to');
 
-				# $html_and_csv->print($bio);
 				print $html $bio;
 				# $bio =~ s/</&lt;/g;
 				# $bio =~ s/>/&gt;/g;
@@ -4075,7 +4066,6 @@ sub print_person
 						$phrase->append(',');
 					}
 					$bio =~ s/&Atilde;&copy;/&eacute;/g;
-					# $html_and_csv->print($bio);
 					print $html $bio;
 					# $bio =~ s/&eacute;/&#233;/g;
 					# print $xml $bio;
