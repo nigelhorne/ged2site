@@ -5229,7 +5229,6 @@ sub print_person
 						my $gis = GIS::Distance->new('MathTrig');
 						my $p2 = place({ record => $residence, nopreposition => 1 });
 						my @people_near_p2;
-						my $count = 0;
 						my $p3;	# previous place
 
 						my @sorted_locations = sort { $a->{'latitude'} <=> $b->{'latitude'} } @{$all_locations{$year}};
