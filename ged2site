@@ -9304,7 +9304,7 @@ sub Gedcom::Individual::relationship_up
 						$fr_female_relationships{($steps1 << 24) | $steps2};
 				} elsif(defined($language) && ($language eq 'German')) {
 					$rc = ($sex eq 'M') ?
-						$fr_male_relationships{($steps1 << 24) | $steps2} :
+						$de_male_relationships{($steps1 << 24) | $steps2} :
 						$de_female_relationships{($steps1 << 24) | $steps2};
 				} else {
 					$rc = ($sex eq 'M') ?
