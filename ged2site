@@ -11742,12 +11742,15 @@ sub dateofbirth {
 		while(defined($d[1]) && ($d[0] eq $d[1])) {
 			pop @d;
 		}
+		while(defined($d[1]) && (date_to_datetime($d[0])->ymd() eq date_to_datetime($d[1])->ymd())) {
+			pop @d;
+		}
 		if(scalar(@d) == 1) {
 			complain({ person => $person, warning => "Removed duplicate dates of birth ($d[0])" });
 			return %params;
 		}
 		complain({ person => $person, warning => [ 'TODO: handle more than 2 dates of birth: ', conjunction(map { year(date => $_) } @d) ] });
-		# die 'TODO: handle more than 2 dates of birth';
+		# die "TODO: handle more than 2 dates of birth ($d[0]/$d[1])";
 		return;
 	}
 
