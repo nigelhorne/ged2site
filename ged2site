@@ -11747,7 +11747,7 @@ sub dateofbirth {
 		}
 		if(scalar(@d) == 1) {
 			complain({ person => $person, warning => "Removed duplicate dates of birth ($d[0])" });
-			return %params;
+			return parse_date({ date => $d[0], type => 'Birth', person => $person });
 		}
 		complain({ person => $person, warning => [ 'TODO: handle more than 2 dates of birth: ', conjunction(map { year(date => $_) } @d) ] });
 		# die "TODO: handle more than 2 dates of birth ($d[0]/$d[1])";
@@ -11755,6 +11755,9 @@ sub dateofbirth {
 	}
 
 	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birth'))) {
+		$dateofbirth = $birth->date();
+	}
+	if((!defined($dateofbirth)) && (my $birth = $person->get_record('birt'))) {
 		$dateofbirth = $birth->date();
 	}
 	if(defined($dateofbirth)) {
