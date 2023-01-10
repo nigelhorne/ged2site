@@ -5585,18 +5585,18 @@ sub print_person
 			}
 			if($dateofburial) {
 				$end_of_sentence = 0;
-				$bio .= " $pronoun ";
-				$phrase->set(" $pronoun ");
+				$bio .= $pronoun;
+				if((scalar(@phrases) == 0) && ($phrase->length() == 0)) {
+					$phrase->set($pronoun);
+				}
 				if($language eq 'French') {
-					$bio .= "est enterr\N{U+00E9}";
-					$phrase->append("est enterr\N{U+00E9}");
+					$phrase->append(" est enterr\N{U+00E9}");
 					if($sex eq 'F') {
-						$bio .= 'e';
 						$phrase->append('e');
 					}
 				} else {
-					$bio .= ($type eq 'burial') ? i18n({ person => $person, format => 'was buried' }) : 'was cremated';
-					$phrase->append(($type eq 'burial') ? i18n({ person => $person, format => 'was buried' }) : 'was cremated');
+					$bio .= ($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : 'was cremated';
+					$phrase->append(($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : ' was cremated');
 				}
 				$bio .= year({ person => $person, date => $dateofburial });
 				$phrase->append(year({ person => $person, date => $dateofburial }));
@@ -6758,6 +6758,23 @@ sub print_person
 						@phrases = ();
 
 						$end_of_sentence = 1;
+					}
+				} elsif($type eq 'Employment') {
+					if(my $notes = notes(record => $event)) {
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
+						$notes =~ s/\.$//;
+						if(my $date = year(record => $event)) {
+							$phrase->set(ucfirst($date) . ' ' . lcfirst($pronoun) . ' was working');
+						} else {
+							$phrase->set(ucfirst($pronoun) . ' worked');
+						}
+						$phrase->append(" at $notes" . place(person => $person, record => $event));
+						push @phrases, $phrase;
+						$bio .= $phrase->as_string();
+						$phrase = Data::Text->new();
 					}
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 				} elsif(($type !~ /Census/) &&
