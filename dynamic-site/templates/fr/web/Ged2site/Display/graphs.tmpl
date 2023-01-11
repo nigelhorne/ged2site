@@ -7,11 +7,11 @@
 		[% ELSIF graph == 'birthmonth' %]
 			[% SET title = 'Mois de Naissance' %]
 		[% ELSIF graph == 'marriagemonth' %]
-			[% SET title = 'Month of Marriage' %]
+			[% SET title = 'Mois de Marriage' %]
 		[% ELSIF graph == 'deathmonth' %]
-			[% SET title = 'Month of Death' %]
+			[% SET title = 'Mois de Death' %]
 		[% ELSIF graph == 'ageatmarriage' %]
-			[% SET title = 'Moyen &Acirc;age &aacute; Premi&egrave;e Mariage' %]
+			[% SET title = 'Moyen &Acirc;ge &aacute; Premi&egrave;re Mariage' %]
 		[% ELSIF graph == 'infantdeaths' %]
 			[% SET title = 'Infant Deaths' %]
 		[% ELSIF graph == 'firstborn' %]
@@ -19,9 +19,9 @@
 		[% ELSIF graph == 'sex' %]
 			[% SET title = 'Sex of people born in each year' %]
 		[% ELSIF graph == 'ageatfirstchild' %]
-			[% SET title = 'Age of Parents at Birth of First Child' %]
+			[% SET title = '&Acirc;ge de Parents at Birth of First Child' %]
 		[% ELSIF graph == 'ageatlastchild' %]
-			[% SET title = 'Age of Parents at Birth of Last Child' %]
+			[% SET title = '&Acirc;ge de Parents at Birth of Last Child' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSIF graph == 'distcount' %]
@@ -37,7 +37,7 @@
 			[% SET title = 'First Name Popularity' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
-			[% SET title = 'Choose a graph' %]
+			[% SET title = 'Choisisez un graph' %]
 		[% END %]
 		<title>[% title %]</title>
 		[% IF twitter %]
@@ -48,7 +48,7 @@
 			<meta http-equiv="Content-Language" content="English">
 		-->
 		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A ged2site webpage">
-		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2023 Nigel Horne">
 		<style type="text/css">
 			/* Two columns */
 			.column {
@@ -64,7 +64,7 @@
 			}
 		</style>
 		[% IF datapoints.M %]
-			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+			<script src="//cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
 			window.onload = function () {
@@ -77,7 +77,7 @@
 					axisY: {
 						[% IF graph == 'ageatdeath' %]
 							includeZero: false,
-							title: 'Age at Death',
+							title: '&Acirc;ge at Death',
 						[% ELSIF graph == 'percentagedying' %]
 							title: 'Percentage',
 						[% END %]
@@ -148,7 +148,7 @@
 					axisY: {
 						[% IF graph == 'ageatdeath' %]
 							includeZero: false,
-							title: 'Age at Death',
+							title: '&Acirc;ge at Death',
 						[% END %]
 						gridThickness: 0
 					},
@@ -213,7 +213,7 @@
 			}
 			</script>
 		[% ELSIF datapoints %]
-			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+			<script src="//cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
 			window.onload = function () {
@@ -275,7 +275,7 @@
 			}
 			</script>
 		[% ELSIF mdatapoints && fdatapoints %]
-			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+			<script src="//cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
 			window.onload = function () {
@@ -480,21 +480,21 @@
 			</div>
 		[% ELSE %]
 			<div id="container">
-				<h2>Choose a Graph</h2>
+				<h2>Choisissez un Graph</h2>
 				<br>
 				<ul id="nav">
 					<li><a href="?page=graphs&amp;graph=birthmonth">Mois de naissance</a></li>
-					<li><a href="?page=graphs&amp;graph=marriagemonth">Month of marriage</a></li>
-					<li><a href="?page=graphs&amp;graph=deathmonth">Month of death</a></li>
+					<li><a href="?page=graphs&amp;graph=marriagemonth">Mois de marriage</a></li>
+					<li><a href="?page=graphs&amp;graph=deathmonth">Mois de death</a></li>
 					<li><a href="?page=graphs&amp;graph=infantdeaths">Infant deaths</a></li>
-					<li><a href="?page=graphs&amp;graph=ageatmarriage">Moyen &Acirc;age &aacute; Premi&egrave;e Mariage</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatmarriage">Moyen &Acirc;ge &aacute; Premi&egrave;re Mariage</a></li>
 					<li><a href="?page=graphs&amp;graph=ageatdeath">Average age at death</a></li>
-					<li><a href="?page=graphs&amp;graph=firstborn">Months of marriage before first child</a></li>
+					<li><a href="?page=graphs&amp;graph=firstborn">Mois de marriage before first child</a></li>
 					<li><a href="?page=graphs&amp;graph=sex">Sex of people born in each year</a></li>
 					<li><a href="?page=graphs&amp;graph=dist">Average distance between birth and death</a></li>
 					<li><a href="?page=graphs&amp;graph=distcount">Distance count</a></li>
-					<li><a href="?page=graphs&amp;graph=ageatfirstchild">Age of parents at birth of first child</a></li>
-					<li><a href="?page=graphs&amp;graph=ageatlastchild">Age of parents at birth of last child</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatfirstchild">&Acirc;ge of parents at birth of first child</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatlastchild">&Acirc;ge de parents at birth of last child</a></li>
 					<li><a href="?page=graphs&amp;graph=familysizetime">How family size changes over time</a></li>
 					<li><a href="?page=graphs&amp;graph=motherchildren">Nombre des enfants par femmes</a></li>
 					<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
@@ -505,7 +505,7 @@
 
 		<p align="right">
 			<i>
-			Cette site web a &eacute;t&eacute; cr&eacute;&eacute; par <a href="https://github.com/nigelhorne/ged2site">ged2site</a>.
+			Cette site web a &eacute;t&eacute; cr&eacute;&eacute; par <a href="//github.com/nigelhorne/ged2site">ged2site</a>.
 			[% IF updated %]
 				[% USE date %]
 				Derni&egrave;re modification le [% date.format(time = updated, format = '%d %b %Y', locale = lingua.language_code_alpha2) %]
