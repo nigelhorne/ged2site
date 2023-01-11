@@ -5560,565 +5560,6 @@ sub print_person
 	# $bio =~ s/;$//;
 	# $bio =~ s/,.$/./;
 
-	if($placeofburial || $dateofburial || $placeofcremation || $dateofcremation) {
-		if(defined($dateofdeath) && (!defined($dateofburial)) && (!defined($dateofcremation))) {
-			complain({ person => $person, warning => "Adding date of burial as 'aft $dateofdeath'" });
-			if($placeofburial) {
-				$dateofburial = "aft $dateofdeath";
-			} else {
-				$dateofcremation = "aft $dateofdeath";
-			}
-		}
-		if((!$dateofdeath) && !$placeofdeath) {
-			$bio .= '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
-			if($phrase->length()) {
-				push @phrases, $phrase;
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-				$phrase = Data::Text->new();
-				@phrases = ();
-			}
-			$end_of_sentence = 1;
-
-			my $type = 'burial';
-			if($placeofcremation || $dateofcremation) {
-				$type = 'cremation';
-			}
-			if($dateofburial) {
-				$end_of_sentence = 0;
-				$bio .= $pronoun;
-				if((scalar(@phrases) == 0) && ($phrase->length() == 0)) {
-					$phrase->set($pronoun);
-				}
-				if($language eq 'French') {
-					$phrase->append(" est enterr\N{U+00E9}");
-					if($sex eq 'F') {
-						$phrase->append('e');
-					}
-				} else {
-					$bio .= ($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : 'was cremated';
-					$phrase->append(($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : ' was cremated');
-				}
-				$bio .= year({ person => $person, date => $dateofburial });
-				$phrase->append(year({ person => $person, date => $dateofburial }));
-				if(my $city = ($placeofburial // $placeofcremation)) {
-					if($placeofbirth && ($city eq $placeofbirth)) {
-						if(my $address = $burial->address()) {
-							$bio .= " at $address";
-							$phrase->append(" at $address");
-						}
-						$bio .= ' in ' .
-							lcfirst($person->possessive()) .
-							' home town of ';
-						$phrase->append(' in ' .
-							lcfirst($person->possessive()) .
-							' home town of ');
-						if($city =~ /^(.+?),/) {
-							$bio .= $1;
-							$phrase->append($1);
-						} else {
-							my $opts = {
-								person => $person,
-								there => $placeofdeath,
-								places_printed => \%places_printed,
-								must_postdate => $birth_dt
-							};
-							if($type eq 'burial') {
-								$opts->{'place'} = $placeofburial;
-								if(my $address = $burial->address()) {
-									$opts->{'address'} = $address;
-								}
-							} else {
-								$opts->{'place'} = $placeofcremation;
-								if(my $address = $cremation->address()) {
-									$opts->{'address'} = $address;
-								}
-							}
-							$bio .= place($opts);
-							$phrase->append(place($opts));
-						}
-					} else {
-						$bio .= place({
-							person => $person,
-							place => $placeofburial // $placeofcremation,
-							there => $placeofdeath,
-							places_printed => \%places_printed,
-							must_postdate => $birth_dt
-						});
-						$phrase->append(place({
-							person => $person,
-							place => $placeofburial // $placeofcremation,
-							there => $placeofdeath,
-							places_printed => \%places_printed,
-							must_postdate => $birth_dt
-						}));
-					}
-				}
-				my $record;
-				if($type eq 'burial') {
-					$bio .= ' ' . year({ person => $person, date => $dateofburial });
-					$phrase->append(' ' . year({ person => $person, date => $dateofburial }));
-					$record = $burial;
-				} else {
-					$bio .= ' ' . year({ person => $person, date => $dateofcremation });
-					$phrase->append(' ' . year({ person => $person, date => $dateofcremation }));
-					$record = $cremation;
-				}
-				if(my $n = notes({ record => $record, paragraph => 0 })) {
-					$n =~ s/\.$//;
-					$n =~ tr/\r//;
-					$bio .= " ($n)";
-					$phrase->append(" ($n)");
-				}
-			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
-				$bio .= " $pronoun ";
-				$bio .= i18n({ person => $person, format => 'was buried' });
-				$phrase->append(" $pronoun ")->append(i18n({ person => $person, format => 'was buried' }));
-				if(my $address = $burial->address()) {
-					if($language eq 'French') {
-						$bio .= " \N{U+00E0} $address";
-						$phrase->append(" \N{U+00E0} $address");
-					} else {
-						$bio .= " at $address";
-						$phrase->append(" at $address");
-					}
-				}
-				$bio .= ' in ' . lcfirst($person->possessive()) .
-					' home town of ';
-				$phrase->append(' in ' . lcfirst($person->possessive()) .
-					' home town of ');
-				my $city = $placeofburial;
-				if($city =~ /^(.+?),/) {
-					$bio .= $1;
-					$phrase->append($1);
-				} else {
-					$bio .= place({ person => $person, place => $placeofburial });
-					$phrase->append( place({ person => $person, place => $placeofburial }));
-				}
-			} else {
-				$bio .= " $pronoun is buried" .
-					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
-				$phrase->append(" $pronoun is buried" .
-					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage }));
-			}
-			$bio .= '. ';
-			$end_of_sentence = 1;
-
-			if($phrase->length()) {
-				push @phrases, $phrase;
-			}
-			if(scalar(@phrases)) {
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-				$phrase = Data::Text->new();
-				@phrases = ();
-			}
-		} else {	# $dateofdeath || $placeofdeath
-			if((!$placeofburial) && !$diedathome) {
-				$bio .= '. ' if(!$end_of_sentence);
-				$end_of_sentence = 1;
-			}
-			if($phrase->length()) {
-				push @phrases, $phrase;
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-				$phrase = Data::Text->new();
-				@phrases = ();
-			}
-			my $notes;
-			if(!$diedathome) {
-				$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
-				if($phrase->length()) {
-					push @phrases, $phrase;
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-					$phrase = Data::Text->new();
-					@phrases = ();
-				}
-
-				$bio .= "<p>$pronoun" . i18n({ person => $person, format => ' died' });
-				$phrase->set("<p>$pronoun" . i18n({ person => $person, format => ' died' }));
-
-				$start_of_paragraph = 0;
-				$end_of_sentence = 0;
-
-				if($dateofdeath) {
-					$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
-					$phrase->append(' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt })));
-				}
-				if($placeofdeath && (my $p = place({ person => $person, record => $death, places_printed => \%places_printed }))) {
-					$bio .= $p;
-					$phrase->append($p);
-					$places_printed{$p} = 1;
-				}
-				$bio .= cite(@deathcitations);
-				$phrase->append(cite(@deathcitations));
-				# Print notes about the death, if any
-				if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
-					$notes =~ tr/\r//;
-					$notes =~ tr/\n/ /;
-					$notes =~ s/\.$//;
-					$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
-					$bio .= " ($notes)";
-					$phrase->append(" ($notes)");
-				}
-				$end_of_sentence = 0;
-			}
-			my $opts = {
-				person => $person,
-				place => $placeofburial,
-				there => $placeofdeath,
-				places_printed => \%places_printed,
-				must_postdate => $birth_dt,
-			};
-			my $address;
-			if($address = get_value({ person => $person, value => 'burial address' })) {
-				$opts->{'address'} = $address;
-			}
-
-			if($dateofburial) {
-				if($diedathome) {
-					$bio .= $pronoun;
-					$phrase->append("$pronoun ");
-				} else {
-					$bio .= i18n(' and');
-					if($phrase->length()) {
-						push @phrases, $phrase;
-						$phrase = Data::Text->new();
-					}
-				}
-				if(($language eq 'French') && $placeofburial &&
-				  defined($placeofdeath) && ($placeofburial eq $placeofdeath) && (!$address) && !$death->address()) {
-					$bio .= ' y';
-					$phrase->append(' y');
-				}
-				$bio .= i18n({ person => $person, format => ' was buried' });
-				$phrase->append(i18n({ person => $person, format => 'was buried' }));
-				if($placeofburial) {
-					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && !$death->address()) {
-						$bio .= ' there';
-						$phrase->append(' there');
-						if($address) {
-							if($language eq 'French') {
-								$bio .= " \N{U+00E0} $address";
-								$phrase->append(" \N{U+00E0} $address");
-							} else {
-								$bio .= " at $address";
-								$phrase->append(" at $address");
-							}
-						}
-					} else {
-						$bio .= place($opts);
-						$phrase->append(place($opts));
-					}
-				}
-				my $must_postdate;
-				if($death_dt) {
-					$must_postdate = $death_dt;
-				} elsif(!defined($dateofdeath)) {
-					complain({
-						person => $person,
-						warning => 'Date of burial is known but not of death, suggest adding "Abt. YEAR"'
-					});
-				} elsif($dateofdeath =~ /^(Abt|ca?)\.?\s*(.+)/i) {
-					my $d = $2;
-					if($d !~ /^\d/) {
-						$must_postdate = date_to_datetime("1 $d");
-					} else {
-						$must_postdate = date_to_datetime($d);
-					}
-				}
-				$bio .= ' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate });
-				$phrase->append(' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate }));
-				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
-					$b =~ s/\.$//;
-					$b =~ tr/\r//;
-					$bio .= " ($b)";
-					$phrase->append(" ($b)");
-				}
-			} elsif($placeofdeath && $placeofburial && ($placeofburial eq $placeofdeath) &&
-			   $burial->address() && !$death->address()) {
-				if($end_of_sentence) {
-					$bio .= $pronoun;
-					$phrase->append($pronoun);
-				} else {
-					$bio .= i18n(' and');
-					$phrase->append(i18n(' and'));
-				}
-				if($language eq 'French') {
-					$bio .= " est y enterr\N{U+00E9}";
-					$phrase->append(" est y enterr\N{U+00E9}");
-					if($sex eq 'F') {
-						$bio .= 'e';
-						$phrase->append('e');
-					}
-					$bio .= " \N{U+00E0} " . $burial->address();
-					$phrase->append(" \N{U+00E0} " . $burial->address());
-				} else {
-					$bio .= ' is buried there at ' . $burial->address();
-					$phrase->append(' is buried there at ' . $burial->address());
-				}
-			} elsif(my $b = place($opts)) {
-				if($diedathome) {
-					$bio .= " $pronoun ";
-				} else {
-					$bio .= i18n(' and ');
-				}
-				if($phrase->length()) {
-					push @phrases, $phrase;
-					$phrase = Data::Text->new();
-				} else {
-					$phrase->set(" $pronoun ");
-				}
-
-				utf8::decode($b);
-				$b = HTML::Entities::encode($b);
-				$b =~ s/&eacute;/&#233;/g;
-
-				$bio .= i18n({ person => $person, format => 'is buried' }) .
-					$b;
-				$phrase->append(i18n({ person => $person, format => 'is buried' }))->append($b);
-			}
-
-			if($notes && (length($notes) > 160)) {
-				$bio .= ".</p><p>";
-				$end_of_sentence = 1;
-
-				push @phrases, $phrase;
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
-				$phrase = Data::Text->new();
-				@phrases = ();
-			} else {
-				$end_of_sentence = 0;
-			}
-		}
-		$bio .= cite(@burialcitations);
-		$phrase->append(cite(@burialcitations));
-	} elsif(($placeofdeath || $dateofdeath) && !$diedathome) {
-		# TODO - extract marriage banns information
-		# if($person->marriage_bann()) {
-			# die 'foo';
-		# }
-		if($placeofdeath && (scalar(@spouses) <= 1) && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-			if($language eq 'French') {
-				if($end_of_sentence) {
-					$bio .= " C'est";
-				} else {
-					$bio .= ', qui est';
-				}
-				if(scalar(@phrases) == 0) {
-					$phrase->set(" C'est");
-				} else {
-					if($phrase->length()) {
-						push @phrases, $phrase;
-						$phrase = Data::Text->new();
-					}
-					$phrase->set('qui est');
-				}
-				$bio .= " aussi o\N{U+00F9} " . lcfirst($pronoun);
-				$phrase->append(" aussi o\N{U+00F9} " . lcfirst($pronoun));
-			} else {
-				if($end_of_sentence) {
-					$bio .= ' That';
-				} else {
-					$bio .= ', which';
-				}
-				if(scalar(@phrases) == 0) {
-					$phrase->set(' That');
-				} else {
-					$phrase->append(', which');
-				}
-				$bio .= ' is also where ' . lcfirst($pronoun);
-				$phrase->append(' is also where ' . lcfirst($pronoun));
-			}
-		} else {
-			$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
-			$bio .= "<p>$pronoun";
-
-			if($phrase->length()) {
-				push @phrases, $phrase;
-			}
-			if(scalar(@phrases)) {
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-				$phrase = Data::Text->new();
-				@phrases = ();
-			}
-			$phrase->append("<p>$pronoun");
-		}
-		$bio .= i18n({ person => $person, format => ' died' });
-		$phrase->append(i18n({ person => $person, format => ' died' }));
-
-		if($dateofdeath) {
-			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
-				$bio .= i18n(' on the same day');
-				$phrase->append(i18n(' on the same day'));
-			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
-				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
-				$phrase->append(' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt })));
-			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
-				my $p = $1;
-				if($dateofdeath =~ /\s$/) {
-					complain({ person => $person, warning => 'Removing trailing spaces from date of death' });
-					$dateofdeath =~ s/\s+$//;
-				}
-				$bio .= " in $p " .
-					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
-				$phrase->append(" in $p " .
-					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
-			} else {
-				if($dateofdeath =~ /\s$/) {
-					complain({ person => $person, warning => "Removing trailing spaces from date of death '$death'" });
-					$dateofdeath =~ s/\s+$//;
-				}
-				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
-				$phrase->append(' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt })));
-				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
-					my $place = place({ person => $person, record => $death, places_printed => \%places_printed });
-					if(!defined($place)) {
-						$place = place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
-					}
-					if(defined($place)) {
-						$bio .= $place;
-						$phrase->append($place);
-						if($place =~ /\s\d+\s/) {
-							foreach my $child(@children) {
-								my @cr = get_all_residences(person => $child);
-								foreach my $cr(@cr) {
-									if(my $d = $cr->date()) {
-										next if($d ne $dateofdeath);
-
-										# Compare only if full addresses to prevent
-										# false positives when only a city is known
-										if(($place =~ /^\s\d/) && (my $cp = place({ person => $child, record => $cr }))) {
-											if($cp eq $place) {
-												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('child '), $child->as_string();
-												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('child '), $child->as_string());
-												last;
-											}
-										}
-									}
-								}
-							}
-							# FIXME: handle when living with both parents
-							if($father) {
-								my @fr = get_all_residences(person => $father);
-								foreach my $fr(@fr) {
-									if(my $d = $fr->date()) {
-										next if($d ne $dateofdeath);
-
-										# Compare only if full addresses to prevent
-										# false positives when only a city is known
-										if(($place =~ /^\s\d/) && (my $fp = place({ person => $father, record => $fr }))) {
-											if($fp eq $place) {
-												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('father '), $father->as_string();
-												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('father '), $father->as_string());
-												last;
-											}
-										}
-									}
-								}
-							}
-							if($mother) {
-								my @mr = get_all_residences(person => $mother);
-								foreach my $mr(@mr) {
-									if(my $d = $mr->date()) {
-										next if($d ne $dateofdeath);
-
-										# Compare only if full addresses to prevent
-										# false positives when only a city is known
-										if(($place =~ /^\s\d/) && (my $mp = place({ person => $mother, record => $mr }))) {
-											if($mp eq $place) {
-												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('mother '), $mother->as_string();
-												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('mother '), $mother->as_string());
-												last;
-											}
-										}
-									}
-								}
-							}
-							foreach my $sibling(@siblings) {
-								my @sr = get_all_residences(person => $sibling);
-								foreach my $sr(@sr) {
-									if(my $d = $sr->date()) {
-										next if($d ne $dateofdeath);
-
-										# Compare only if full addresses to prevent
-										# false positives when only a city is known
-										if(($place =~ /^\s\d/) && (my $sp = place({ person => $sibling, record => $sr }))) {
-											if($sp eq $place) {
-												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
-													$sibling->as_string();
-												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
-													$sibling->as_string());
-												last;
-											}
-										}
-									}
-								}
-							}
-						}
-					} else {
-						complain({
-							person => $person,
-							warning => "Place of death ($placeofdeath) can't be parsed"
-						});
-					}
-				}
-			}
-		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
-			$bio .= place({ person => $person, place => $placeofdeath });
-			$phrase->append(place({ person => $person, place => $placeofdeath }));
-		}
-		$bio .= cite(@deathcitations);
-		$phrase->append(cite(@deathcitations));
-
-		# Print notes about the death, if any
-		$end_of_sentence = 0;
-		if(defined($death) && (my $notes = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
-			$notes =~ tr/\r//;
-			$notes =~ s/\.$//;
-			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
-			$bio .= " ($notes)";
-			$phrase->append(" ($notes)");
-			if(length($notes) > 160) {
-				$bio .= ".</p><p>";
-
-				push @phrases, $phrase;
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
-				$phrase = Data::Text->new();
-				@phrases = ();
-			}
-		}
-		if($bio =~ /\.$/) {
-			$end_of_sentence = 1;
-		} else {
-			$end_of_sentence = 0;
-		}
-	}
-	$bio .= '.' if(!$end_of_sentence);
-	$end_of_sentence = 1;
-
-	if($phrase->length()) {
-		push @phrases, $phrase;
-	}
-	if(scalar(@phrases)) {
-		$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-		$phrase = Data::Text->new();
-		@phrases = ();
-	}
-
 	my $all_events_have_date = 1;
 	foreach my $event(@events) {
 		if((ref($event) ne 'Gedcom::Record') || !$event->date()) {
@@ -6761,20 +6202,28 @@ sub print_person
 					}
 				} elsif($type eq 'Employment') {
 					if(my $notes = notes(record => $event)) {
-						if($phrase->length()) {
-							push @phrases, $phrase;
-							$phrase = Data::Text->new();
-						}
 						$notes =~ s/\.$//;
-						if(my $date = year(record => $event)) {
-							$phrase->set(ucfirst($date) . ' ' . lcfirst($pronoun) . ' was working');
+						if($phrase->length()) {
+							if(my $date = year(record => $event)) {
+								$phrase->append(" $date " . lcfirst($pronoun) . ' was working');
+							} else {
+								$phrase->append(" $pronoun worked");
+							}
 						} else {
-							$phrase->set(ucfirst($pronoun) . ' worked');
+							if(my $date = year(record => $event)) {
+								$phrase->set(' ' . ucfirst($date) . ' ' . lcfirst($pronoun) . ' was working');
+							} else {
+								$phrase->set(" $pronoun worked");
+							}
 						}
-						$phrase->append(" at $notes" . place(person => $person, record => $event));
+						$phrase->append(" at $notes");
+						if(my $place = place(person => $person, record => $event)) {
+							$phrase->append($place);
+						}
 						push @phrases, $phrase;
-						$bio .= $phrase->as_string();
+						$bio .= ' ' . $phrase->as_string();
 						$phrase = Data::Text->new();
+						$end_of_sentence = 0;
 					}
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 				} elsif(($type !~ /Census/) &&
@@ -6850,6 +6299,565 @@ sub print_person
 			@phrases = ();
 			$bio_dt->append(" $pronoun served in the military ($value).");
 		}
+	}
+
+
+	if($placeofburial || $dateofburial || $placeofcremation || $dateofcremation) {
+		if(defined($dateofdeath) && (!defined($dateofburial)) && (!defined($dateofcremation))) {
+			complain({ person => $person, warning => "Adding date of burial as 'aft $dateofdeath'" });
+			if($placeofburial) {
+				$dateofburial = "aft $dateofdeath";
+			} else {
+				$dateofcremation = "aft $dateofdeath";
+			}
+		}
+		if((!$dateofdeath) && !$placeofdeath) {
+			$bio .= '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
+			if($phrase->length()) {
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			}
+			$end_of_sentence = 1;
+
+			my $type = 'burial';
+			if($placeofcremation || $dateofcremation) {
+				$type = 'cremation';
+			}
+			if($dateofburial) {
+				$end_of_sentence = 0;
+				$bio .= $pronoun;
+				if((scalar(@phrases) == 0) && ($phrase->length() == 0)) {
+					$phrase->set($pronoun);
+				}
+				if($language eq 'French') {
+					$phrase->append(" est enterr\N{U+00E9}");
+					if($sex eq 'F') {
+						$phrase->append('e');
+					}
+				} else {
+					$bio .= ($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : 'was cremated';
+					$phrase->append(($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : ' was cremated');
+				}
+				$bio .= year({ person => $person, date => $dateofburial });
+				$phrase->append(year({ person => $person, date => $dateofburial }));
+				if(my $city = ($placeofburial // $placeofcremation)) {
+					if($placeofbirth && ($city eq $placeofbirth)) {
+						if(my $address = $burial->address()) {
+							$bio .= " at $address";
+							$phrase->append(" at $address");
+						}
+						$bio .= ' in ' .
+							lcfirst($person->possessive()) .
+							' home town of ';
+						$phrase->append(' in ' .
+							lcfirst($person->possessive()) .
+							' home town of ');
+						if($city =~ /^(.+?),/) {
+							$bio .= $1;
+							$phrase->append($1);
+						} else {
+							my $opts = {
+								person => $person,
+								there => $placeofdeath,
+								places_printed => \%places_printed,
+								must_postdate => $birth_dt
+							};
+							if($type eq 'burial') {
+								$opts->{'place'} = $placeofburial;
+								if(my $address = $burial->address()) {
+									$opts->{'address'} = $address;
+								}
+							} else {
+								$opts->{'place'} = $placeofcremation;
+								if(my $address = $cremation->address()) {
+									$opts->{'address'} = $address;
+								}
+							}
+							$bio .= place($opts);
+							$phrase->append(place($opts));
+						}
+					} else {
+						$bio .= place({
+							person => $person,
+							place => $placeofburial // $placeofcremation,
+							there => $placeofdeath,
+							places_printed => \%places_printed,
+							must_postdate => $birth_dt
+						});
+						$phrase->append(place({
+							person => $person,
+							place => $placeofburial // $placeofcremation,
+							there => $placeofdeath,
+							places_printed => \%places_printed,
+							must_postdate => $birth_dt
+						}));
+					}
+				}
+				my $record;
+				if($type eq 'burial') {
+					$bio .= ' ' . year({ person => $person, date => $dateofburial });
+					$phrase->append(' ' . year({ person => $person, date => $dateofburial }));
+					$record = $burial;
+				} else {
+					$bio .= ' ' . year({ person => $person, date => $dateofcremation });
+					$phrase->append(' ' . year({ person => $person, date => $dateofcremation }));
+					$record = $cremation;
+				}
+				if(my $n = notes({ record => $record, paragraph => 0 })) {
+					$n =~ s/\.$//;
+					$n =~ tr/\r//;
+					$bio .= " ($n)";
+					$phrase->append(" ($n)");
+				}
+			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
+				$bio .= " $pronoun ";
+				$bio .= i18n({ person => $person, format => 'was buried' });
+				$phrase->append(" $pronoun ")->append(i18n({ person => $person, format => 'was buried' }));
+				if(my $address = $burial->address()) {
+					if($language eq 'French') {
+						$bio .= " \N{U+00E0} $address";
+						$phrase->append(" \N{U+00E0} $address");
+					} else {
+						$bio .= " at $address";
+						$phrase->append(" at $address");
+					}
+				}
+				$bio .= ' in ' . lcfirst($person->possessive()) .
+					' home town of ';
+				$phrase->append(' in ' . lcfirst($person->possessive()) .
+					' home town of ');
+				my $city = $placeofburial;
+				if($city =~ /^(.+?),/) {
+					$bio .= $1;
+					$phrase->append($1);
+				} else {
+					$bio .= place({ person => $person, place => $placeofburial });
+					$phrase->append( place({ person => $person, place => $placeofburial }));
+				}
+			} else {
+				$bio .= " $pronoun is buried" .
+					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
+				$phrase->append(" $pronoun is buried" .
+					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage }));
+			}
+			$bio .= '. ';
+			$end_of_sentence = 1;
+
+			if($phrase->length()) {
+				push @phrases, $phrase;
+			}
+			if(scalar(@phrases)) {
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			}
+		} else {	# $dateofdeath || $placeofdeath
+			if((!$placeofburial) && !$diedathome) {
+				$bio .= '. ' if(!$end_of_sentence);
+				$end_of_sentence = 1;
+			}
+			if($phrase->length()) {
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			}
+			my $notes;
+			if(!$diedathome) {
+				$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new();
+					@phrases = ();
+				}
+
+				$bio .= "<p>$pronoun" . i18n({ person => $person, format => ' died' });
+				$phrase->set("<p>$pronoun" . i18n({ person => $person, format => ' died' }));
+
+				$start_of_paragraph = 0;
+				$end_of_sentence = 0;
+
+				if($dateofdeath) {
+					$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
+					$phrase->append(' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt })));
+				}
+				if($placeofdeath && (my $p = place({ person => $person, record => $death, places_printed => \%places_printed }))) {
+					$bio .= $p;
+					$phrase->append($p);
+					$places_printed{$p} = 1;
+				}
+				$bio .= cite(@deathcitations);
+				$phrase->append(cite(@deathcitations));
+				# Print notes about the death, if any
+				if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
+					$notes =~ tr/\r//;
+					$notes =~ tr/\n/ /;
+					$notes =~ s/\.$//;
+					$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+					$bio .= " ($notes)";
+					$phrase->append(" ($notes)");
+				}
+				$end_of_sentence = 0;
+			}
+			my $opts = {
+				person => $person,
+				place => $placeofburial,
+				there => $placeofdeath,
+				places_printed => \%places_printed,
+				must_postdate => $birth_dt,
+			};
+			my $address;
+			if($address = get_value({ person => $person, value => 'burial address' })) {
+				$opts->{'address'} = $address;
+			}
+
+			if($dateofburial) {
+				if($diedathome) {
+					$bio .= $pronoun;
+					$phrase->append("$pronoun ");
+				} else {
+					$bio .= i18n(' and');
+					if($phrase->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
+					}
+				}
+				if(($language eq 'French') && $placeofburial &&
+				  defined($placeofdeath) && ($placeofburial eq $placeofdeath) && (!$address) && !$death->address()) {
+					$bio .= ' y';
+					$phrase->append(' y');
+				}
+				$bio .= i18n({ person => $person, format => ' was buried' });
+				$phrase->append(i18n({ person => $person, format => 'was buried' }));
+				if($placeofburial) {
+					if(defined($placeofdeath) && ($placeofburial eq $placeofdeath) && !$death->address()) {
+						$bio .= ' there';
+						$phrase->append(' there');
+						if($address) {
+							if($language eq 'French') {
+								$bio .= " \N{U+00E0} $address";
+								$phrase->append(" \N{U+00E0} $address");
+							} else {
+								$bio .= " at $address";
+								$phrase->append(" at $address");
+							}
+						}
+					} else {
+						$bio .= place($opts);
+						$phrase->append(place($opts));
+					}
+				}
+				my $must_postdate;
+				if($death_dt) {
+					$must_postdate = $death_dt;
+				} elsif(!defined($dateofdeath)) {
+					complain({
+						person => $person,
+						warning => 'Date of burial is known but not of death, suggest adding "Abt. YEAR"'
+					});
+				} elsif($dateofdeath =~ /^(Abt|ca?)\.?\s*(.+)/i) {
+					my $d = $2;
+					if($d !~ /^\d/) {
+						$must_postdate = date_to_datetime("1 $d");
+					} else {
+						$must_postdate = date_to_datetime($d);
+					}
+				}
+				$bio .= ' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate });
+				$phrase->append(' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate }));
+				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
+					$b =~ s/\.$//;
+					$b =~ tr/\r//;
+					$bio .= " ($b)";
+					$phrase->append(" ($b)");
+				}
+			} elsif($placeofdeath && $placeofburial && ($placeofburial eq $placeofdeath) &&
+			   $burial->address() && !$death->address()) {
+				if($end_of_sentence) {
+					$bio .= $pronoun;
+					$phrase->append($pronoun);
+				} else {
+					$bio .= i18n(' and');
+					$phrase->append(i18n(' and'));
+				}
+				if($language eq 'French') {
+					$bio .= " est y enterr\N{U+00E9}";
+					$phrase->append(" est y enterr\N{U+00E9}");
+					if($sex eq 'F') {
+						$bio .= 'e';
+						$phrase->append('e');
+					}
+					$bio .= " \N{U+00E0} " . $burial->address();
+					$phrase->append(" \N{U+00E0} " . $burial->address());
+				} else {
+					$bio .= ' is buried there at ' . $burial->address();
+					$phrase->append(' is buried there at ' . $burial->address());
+				}
+			} elsif(my $b = place($opts)) {
+				if($diedathome) {
+					$bio .= " $pronoun ";
+				} else {
+					$bio .= i18n(' and ');
+				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				} else {
+					$phrase->set(" $pronoun ");
+				}
+
+				utf8::decode($b);
+				$b = HTML::Entities::encode($b);
+				$b =~ s/&eacute;/&#233;/g;
+
+				$bio .= i18n({ person => $person, format => 'is buried' }) .
+					$b;
+				$phrase->append(i18n({ person => $person, format => 'is buried' }))->append($b);
+			}
+
+			if($notes && (length($notes) > 160)) {
+				$bio .= ".</p><p>";
+				$end_of_sentence = 1;
+
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			} else {
+				$end_of_sentence = 0;
+			}
+		}
+		$bio .= cite(@burialcitations);
+		$phrase->append(cite(@burialcitations));
+	} elsif(($placeofdeath || $dateofdeath) && !$diedathome) {
+		# TODO - extract marriage banns information
+		# if($person->marriage_bann()) {
+			# die 'foo';
+		# }
+		if($placeofdeath && (scalar(@spouses) <= 1) && $placeofmarriage && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
+			if($language eq 'French') {
+				if($end_of_sentence) {
+					$bio .= " C'est";
+				} else {
+					$bio .= ', qui est';
+				}
+				if(scalar(@phrases) == 0) {
+					$phrase->set(" C'est");
+				} else {
+					if($phrase->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
+					}
+					$phrase->set('qui est');
+				}
+				$bio .= " aussi o\N{U+00F9} " . lcfirst($pronoun);
+				$phrase->append(" aussi o\N{U+00F9} " . lcfirst($pronoun));
+			} else {
+				if($end_of_sentence) {
+					$bio .= ' That';
+				} else {
+					$bio .= ', which';
+				}
+				if(scalar(@phrases) == 0) {
+					$phrase->set(' That');
+				} else {
+					$phrase->append(', which');
+				}
+				$bio .= ' is also where ' . lcfirst($pronoun);
+				$phrase->append(' is also where ' . lcfirst($pronoun));
+			}
+		} else {
+			$bio .= '.' if((!$end_of_sentence) && !$start_of_paragraph);
+			$bio .= "<p>$pronoun";
+
+			if($phrase->length()) {
+				push @phrases, $phrase;
+			}
+			if(scalar(@phrases)) {
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			}
+			$phrase->append("<p>$pronoun");
+		}
+		$bio .= i18n({ person => $person, format => ' died' });
+		$phrase->append(i18n({ person => $person, format => ' died' }));
+
+		if($dateofdeath) {
+			if($dateofbirth && ($dateofdeath eq $dateofbirth)) {
+				$bio .= i18n(' on the same day');
+				$phrase->append(i18n(' on the same day'));
+			} elsif($placeofdeath && $placeofmarriage && (scalar(@spouses) == 1) && ($placeofdeath eq $placeofmarriage) && !$printed_residence) {
+				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
+				$phrase->append(' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt })));
+			} elsif($placeofbirth && $placeofdeath && ($placeofdeath eq $placeofbirth) && ($placeofdeath =~ /^(.+?),.*/) && !$printed_residence) {
+				my $p = $1;
+				if($dateofdeath =~ /\s$/) {
+					complain({ person => $person, warning => 'Removing trailing spaces from date of death' });
+					$dateofdeath =~ s/\s+$//;
+				}
+				$bio .= " in $p " .
+					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt });
+				$phrase->append(" in $p " .
+					year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
+			} else {
+				if($dateofdeath =~ /\s$/) {
+					complain({ person => $person, warning => "Removing trailing spaces from date of death '$death'" });
+					$dateofdeath =~ s/\s+$//;
+				}
+				$bio .= ' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt }));
+				$phrase->append(' ' . between(year({ person => $person, date => $dateofdeath, must_postdate => $birth_dt })));
+				if($placeofdeath && ((scalar(@spouses) > 1) || (!$placeofmarriage) || ($placeofdeath ne $placeofmarriage) || $printed_residence)) {
+					my $place = place({ person => $person, record => $death, places_printed => \%places_printed });
+					if(!defined($place)) {
+						$place = place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
+					}
+					if(defined($place)) {
+						$bio .= $place;
+						$phrase->append($place);
+						if($place =~ /\s\d+\s/) {
+							foreach my $child(@children) {
+								my @cr = get_all_residences(person => $child);
+								foreach my $cr(@cr) {
+									if(my $d = $cr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $cp = place({ person => $child, record => $cr }))) {
+											if($cp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('child '), $child->as_string();
+												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('child '), $child->as_string());
+												last;
+											}
+										}
+									}
+								}
+							}
+							# FIXME: handle when living with both parents
+							if($father) {
+								my @fr = get_all_residences(person => $father);
+								foreach my $fr(@fr) {
+									if(my $d = $fr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $fp = place({ person => $father, record => $fr }))) {
+											if($fp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('father '), $father->as_string();
+												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('father '), $father->as_string());
+												last;
+											}
+										}
+									}
+								}
+							}
+							if($mother) {
+								my @mr = get_all_residences(person => $mother);
+								foreach my $mr(@mr) {
+									if(my $d = $mr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $mp = place({ person => $mother, record => $mr }))) {
+											if($mp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('mother '), $mother->as_string();
+												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													i18n('mother '), $mother->as_string());
+												last;
+											}
+										}
+									}
+								}
+							}
+							foreach my $sibling(@siblings) {
+								my @sr = get_all_residences(person => $sibling);
+								foreach my $sr(@sr) {
+									if(my $d = $sr->date()) {
+										next if($d ne $dateofdeath);
+
+										# Compare only if full addresses to prevent
+										# false positives when only a city is known
+										if(($place =~ /^\s\d/) && (my $sp = place({ person => $sibling, record => $sr }))) {
+											if($sp eq $place) {
+												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+													$sibling->as_string();
+												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
+													(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
+													$sibling->as_string());
+												last;
+											}
+										}
+									}
+								}
+							}
+						}
+					} else {
+						complain({
+							person => $person,
+							warning => "Place of death ($placeofdeath) can't be parsed"
+						});
+					}
+				}
+			}
+		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
+			$bio .= place({ person => $person, place => $placeofdeath });
+			$phrase->append(place({ person => $person, place => $placeofdeath }));
+		}
+		$bio .= cite(@deathcitations);
+		$phrase->append(cite(@deathcitations));
+
+		# Print notes about the death, if any
+		$end_of_sentence = 0;
+		if(defined($death) && (my $notes = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
+			$notes =~ tr/\r//;
+			$notes =~ s/\.$//;
+			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+			$bio .= " ($notes)";
+			$phrase->append(" ($notes)");
+			if(length($notes) > 160) {
+				$bio .= ".</p><p>";
+
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			}
+		}
+		if($bio =~ /\.$/) {
+			$end_of_sentence = 1;
+		} else {
+			$end_of_sentence = 0;
+		}
+	}
+	$bio .= '.' if(!$end_of_sentence);
+
+	if($phrase->length()) {
+		push @phrases, $phrase;
+	}
+	if(scalar(@phrases)) {
+		$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+		$phrase = Data::Text->new();
+		@phrases = ();
 	}
 
 	if($language eq 'English') {
