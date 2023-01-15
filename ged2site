@@ -10480,7 +10480,7 @@ sub places_are_the_same
 	my $person = $params{'person'};
 	if($person) {
 		validate_place({ person => $person, place => $place1 });
-		validate_place({ person => $person, place => $place2 }) unless($place1 eq $place2);
+		validate_place({ person => $person, place => $place2 }) unless(lc($place1) eq lc($place2));
 	}
 
 	if($place1 =~ /(.+?)\s*United States$/i) {
