@@ -11596,11 +11596,15 @@ sub chronicling_america
 		die $person->as_string(), ': BUG: state "', $chronicling_params->{'state'}, '" too short';
 	}
 
+	print Data::Dumper->new([$chronicling_params])->Dump() if($opts{'v'});
+
 	if(my $loc = Genealogy::ChroniclingAmerica->new($chronicling_params)) {
 		while(my $url = $loc->get_next_entry()) {
 			complain({ person => $person, warning => ucfirst(i18n('check out %s', $url)) });
 		}
 	}
+
+	print "Leaving chronicling_america\n" if($opts{'v'});
 }
 
 sub obituaries
@@ -11619,10 +11623,14 @@ sub obituaries
 		die 'BUG: no arguments given';
 	}
 
+	print Data::Dumper->new([\%params])->Dump() if($opts{'v'});
+
 	my $yob = delete $params{'yob'};
 	my $yod = delete $params{'yod'};
 	my $person = delete $params{'person'};
 	my @obituaries = $obituaries->search(\%params);
+
+	print scalar(@obituaries), " obituaries found\n" if($opts{'v'});
 
 	if(scalar(@obituaries)) {
 		foreach my $obituary(@obituaries) {
