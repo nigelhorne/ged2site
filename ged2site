@@ -11623,6 +11623,7 @@ sub obituaries
 		die 'BUG: no arguments given';
 	}
 
+	$Data::Dumper::Maxdepth = 2;
 	print Data::Dumper->new([\%params])->Dump() if($opts{'v'});
 
 	my $yob = delete $params{'yob'};
