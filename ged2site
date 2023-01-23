@@ -4278,6 +4278,10 @@ sub print_person
 				push @phrases, $phrase;
 				$phrase = Data::Text->new();
 			}
+			if(is_alive(person => $person)) {
+				$bio .= ' has';
+				$phrase->append(' has');
+			}
 			$bio .= i18n(' had ');
 			$phrase->append(i18n(' had '));
 			if($language eq 'French') {
