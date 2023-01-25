@@ -280,7 +280,7 @@ if($opts{'m'} || $opts{'w'}) {
 		push @modules, 'CHI::Driver::Redis';
 	}
 	if($opts{'w'}) {
-		push @modules, 'Genealogy::ObituaryDailyTimes';
+		push @modules, 'Genealogy::ObituaryDailyTimes', 'Genealogy::Wills';
 	}
 }
 
@@ -859,12 +859,14 @@ my $ca_fr = Locale::CA->new(lang => 'fr');
 my $us = Locale::US->new();
 my $dtl = DateTime::Locale->load($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'});
 my $obituaries;
+my $wills;
 
 if($opts{'w'}) {
 	if(!defined($ENV{'CLICOLOR'})) {
 		$opts{'W'} = 1;
 	}
 	$obituaries = Genealogy::ObituaryDailyTimes->new();
+	$wills = Genealogy::Wills->new();
 } else {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
@@ -1491,6 +1493,8 @@ if($opts{'w'}) {
 				} elsif(($warning =~ /^Check out https:\/\/mlarchives.rootsweb.com\/listindexes\/emails?listname=gen-obit/) ||
 					($warning =~ /^Check out https:\/\/www.freelists.org\/post\/obitdailytimes\/Obituary-Daily-Times-v/)) {
 					$summary = 'Check out Obituary Daily Times';
+				} elsif($warning =~ /^Check out .*mrawson/) {
+					$summary = 'Check out Kent Wills Transcription';
 				} elsif($warning =~ /^Missing house number /) {
 					$summary = 'Missing house number';
 				} elsif($warning =~ /^Adding date of burial as/) {
@@ -1985,6 +1989,7 @@ sub print_person
 						chronicling_america($person, \%chronicling_params);
 					}
 				}
+				obituaries({ person => $person, first => $firstname, last => $lastname, yob => $yob, yod => $yod, age => $yod - $yob });
 				my $sex = get_value({ person => $person, value => 'sex' });
 				if(defined($sex) && ($sex eq 'F') && (my $husband = $person->husband())) {
 					my $married_name = ucfirst(lc($husband->surname()));
@@ -1992,6 +1997,11 @@ sub print_person
 						complain({ person => $person, warning => 'Maiden name same as married name' });
 					}
 					obituaries({ person => $person, first => $firstname, last => $married_name, yob => $yob, yod => $yod, age => $yod - $yob });
+				}
+
+				# The wills database currently only contains Kent
+				if($placeofdeath =~ /Kent, England/) {
+					wills({ person => $person, first => $firstname, last => $lastname, year => $yod });
 				}
 			}
 		}
@@ -11665,6 +11675,36 @@ sub obituaries
 	return @obituaries;
 }
 
+sub wills
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} else {
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'BUG: no arguments given';
+	}
+
+	$Data::Dumper::Maxdepth = 2;
+	print Data::Dumper->new([\%params])->Dump() if($opts{'v'});
+
+	my $person = delete $params{'person'};
+	my @wills = $wills->search(\%params);
+
+	print scalar(@wills), " wills found\n" if($opts{'v'});
+
+	foreach my $will(@wills) {
+		complain({ person => $person, warning => ucfirst(i18n('check out %s', $will->{'url'})) });
+	}
+
+	return @wills;
+}
 
 sub HTML::GoogleMaps::V3::_text_to_point {
     my ( $self,$point_text ) = @_;
