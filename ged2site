@@ -1930,9 +1930,6 @@ sub print_person
 		die "BUG: $title is marked as alive yet we have death information";
 	}
 
-	my ($birth_dt, $marriage_dt, $death_dt);
-	$birth_dt = date_to_datetime(date => $dateofbirth);
-
 	if($opts{'w'}) {
 		my $name = $person->name();
 		$name =~ s/\///g;
@@ -1994,7 +1991,7 @@ sub print_person
 					if($married_name eq $lastname) {
 						complain({ person => $person, warning => 'Maiden name same as married name' });
 					}
-					obituaries({ person => $person, first => $firstname, last => $married_name, yob => $yob, yod => $yod });
+					obituaries({ person => $person, first => $firstname, last => $married_name, yob => $yob, yod => $yod, age => $yod - $yob });
 				}
 			}
 		}
@@ -2193,6 +2190,7 @@ sub print_person
 		die "BUG: $title is marked as alive yet we have burial information";
 	}
 
+	my $birth_dt = date_to_datetime(date => $dateofbirth);
 	# Don't match date ranges
 	if($dateofbirth && ($dateofbirth !~ /\d{4}.+\d{4}/) && $birth_dt) {
 		if(defined($facts->{'first_birth'})) {
@@ -2224,6 +2222,8 @@ sub print_person
 	}
 
 	my $dateofmarriage = get_value({ person => $person, value => 'marriage date' });
+	my ($marriage_dt, $death_dt);
+
 	if((!$dateofmarriage) && $marriage) {
 		$dateofmarriage = $marriage->date();
 	}
