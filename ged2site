@@ -6849,7 +6849,7 @@ sub print_person
 			$bio .= " ($notes)";
 			$phrase->append(" ($notes)");
 			if(length($notes) > 160) {
-				$bio .= ".</p><p>";
+				$bio .= '.</p><p>';
 
 				push @phrases, $phrase;
 				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
@@ -6857,7 +6857,7 @@ sub print_person
 				@phrases = ();
 			}
 		}
-		if($bio =~ /\.$/) {
+		if($bio =~ /\."?$/) {
 			$end_of_sentence = 1;
 		} else {
 			$end_of_sentence = 0;
@@ -10192,7 +10192,7 @@ sub notes
 				} else {
 					$rc .= $note;
 				}
-				$rc .= '.' if($note !~ /(\.|<\/p>)$/);
+				$rc .= '.' if($note !~ /(\."?|<\/p>)$/);
 			}
 		} else {
 			complain('Notes field is empty');
@@ -12572,7 +12572,9 @@ of %d children::von %d Kindern
 she::sie
 sister::Schwester
 sisters::Schwestern
+the head of household::der Haushaltsvorstand
 the same day as::die gleichen Tag als
+they::Sie
 wife::Frau
 with::mit
 @@ Latin
