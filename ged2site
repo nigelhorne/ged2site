@@ -75,6 +75,7 @@ BEGIN {
 		'HTML::Entities', 'Image::Info', 'JSON',
 		'List::Util',
 		'LWP::Simple::WithCache', 'MIME::Base64',
+		'LWP::UserAgent::Cached',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
@@ -227,7 +228,7 @@ if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 		push @modules, 'File::HomeDir';
 	}
 
-	push @modules, 'Geo::Coder::Free::Local', 'Geo::Coder::Postcodes', 'LWP::UserAgent::Cached';
+	push @modules, 'Geo::Coder::Free::Local', 'Geo::Coder::Postcodes';
 	if($opts{'w'}) {
 		push @modules,
 			'Genealogy::ChroniclingAmerica', 'Locale::Country';
@@ -5183,7 +5184,7 @@ sub print_person
 										$residencestring .= ' parents ';
 										$printed_mother_same_place = 1;
 									} else {
-										$residencestring .= ' father ';
+										$residencestring .= i18n(' father ');
 									}
 									if(datecmp($rdate, $father_date) > 0) {
 										$residencestring .= 'had been';
@@ -5197,7 +5198,7 @@ sub print_person
 								$printed_father_same_place = 1;
 							} elsif($mother_date) {
 								$residencestring .= ' (the same place as ' .
-									($person->pronoun() eq 'She' ? 'her' : 'his') . ' mother ';
+									($person->pronoun() eq 'She' ? 'her' : 'his') . i18n(' mother ');
 								if(datecmp($rdate, $mother_date) > 0) {
 									$residencestring .= 'had been';
 								} else {
