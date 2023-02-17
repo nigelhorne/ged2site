@@ -3055,6 +3055,10 @@ sub print_person
 					} else {
 						$bio .= i18n(' and');
 						$printed_and = 1;
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
 					}
 				}
 				$end_of_sentence = 0;
@@ -3554,21 +3558,21 @@ sub print_person
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
 					   !$end_of_sentence) {
 						$bio .= i18n(' also');
-						$phrase->append(i18n('also'));
+						$phrase->append(i18n('also '));
 					}
 					my %args = (person => $person);
 					if($spouserelationship) {
-						$args{'format'} = ' married ';
+						$args{'format'} = 'married ';
 					} elsif(is_alive(person => $person) && is_alive(person => $spouses[0])) {
 						if($placeofmarriage || $dateofmarriage) {
-							$args{'format'} = ' married ';
+							$args{'format'} = 'married ';
 						} else {
-							$args{'format'} = ' is married to ';
+							$args{'format'} = 'is married to ';
 						}
 					} else {
-						$args{'format'} = ' was married to ';
+						$args{'format'} = 'was married to ';
 					}
-					$bio .= i18n(\%args);
+					$bio .= ' ' . i18n(\%args);
 					$phrase->append(i18n(\%args));
 
 					if($haveprintedspousename) {
@@ -6871,7 +6875,7 @@ sub print_person
 	}
 	if(scalar(@phrases)) {
 		$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-		$phrase = Data::Text->new();
+		$phrase = undef;
 		@phrases = ();
 	}
 
@@ -8188,19 +8192,35 @@ sub print_person
 		}
 		print $csv '!';
 		if(scalar(@residencelist)) {
-			foreach my $residence(@residencelist) {
-				print $xml "\n\t\t\t<residence>";
+			print $xml "\n\t\t\t<residence>";
+			# Print the residence list to the XML file.
+			# If the residence doesn't change place from one record to the next, only print the date
+			my $new_place = 1;
+			my $iterator = Array::Iterator->new({ __array__ => \@residencelist });
+			while(my $residence = $iterator->get_next()) {
+				print $xml "\n\t\t\t<residence>" if($new_place);
+
 				if(my $rdate = $residence->date()) {
 					print $xml "\n\t\t\t\t<date>$rdate</date>";
 				}
-				if(my $rplace = place({ person => $person, record => $residence, nopreposition => 1, encode => 0 })) {
+
+				if($new_place && (my $rplace = place({ person => $person, record => $residence, nopreposition => 1, encode => 0 }))) {
 					$rplace =~ s/^\s+//;
 					$rplace =~ s/\xc3\xb1/&#241;/g;	# ntilde
 					$rplace =~ s/ñ/&#241;/g;
 					$rplace =~ s/\s&\s/ &amp; /g;
+
 					print $xml "\n\t\t\t\t<location>$rplace</location>";
 				}
-				print $xml "\n\t\t\t</residence>";
+
+				my $peek = $iterator->peek();
+				if(defined($peek) && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+					$new_place = 0;
+				} else {
+					$new_place = 1;
+				}
+
+				print $xml "\n\t\t\t</residence>" if($new_place);
 			}
 		}
 
