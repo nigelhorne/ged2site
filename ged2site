@@ -1990,7 +1990,9 @@ sub print_person
 						chronicling_america($person, \%chronicling_params);
 					}
 				}
-				obituaries({ person => $person, first => $firstname, last => $lastname, yob => $yob, yod => $yod, age => $yod - $yob });
+				if(defined($yob)) {
+					obituaries({ person => $person, first => $firstname, last => $lastname, yob => $yob, yod => $yod, age => $yod - $yob });
+				}
 				my $sex = get_value({ person => $person, value => 'sex' });
 				if(defined($sex) && ($sex eq 'F') && (my $husband = $person->husband())) {
 					my $married_name = ucfirst(lc($husband->surname()));
