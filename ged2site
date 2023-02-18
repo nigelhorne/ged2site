@@ -3021,6 +3021,8 @@ sub print_person
 				if($relationship) {
 					push @phrases, $phrase;
 					$phrase = Data::Text->new();
+				} else {
+					$phrase->append(' ');
 				}
 				$phrase->append(i18n({ person => $person, format => 'was born' }));
 				$bio .= i18n({ person => $person, format => ' was born' });
@@ -3051,7 +3053,6 @@ sub print_person
 						push @phrases, $phrase;
 						$phrase = Data::Text->new();
 					}
-					$phrase->set('was');
 					if(scalar(@spouses) && ($numberofchildren > 0)) {
 						$bio .= ', was';
 					} else {
@@ -3059,7 +3060,7 @@ sub print_person
 						$printed_and = 1;
 						if($phrase->length()) {
 							push @phrases, $phrase;
-							$phrase = Data::Text->new();
+							$phrase = Data::Text->new('was');
 						}
 					}
 				}
@@ -3147,7 +3148,7 @@ sub print_person
 			}
 			if($dateofbaptism || $placeofbaptism) {
 				$bio .= ' ';
-				$phrase->append(' ');
+				$phrase->append(' ') if($phrase->length());
 				unless($dateofbirth || $placeofbirth) {
 					if($language eq 'French') {
 						if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
@@ -3464,7 +3465,7 @@ sub print_person
 						}
 					}
 					$bio .= ' was orphaned ';
-					$phrase->append(' was orphaned ');
+					$phrase->append('was orphaned ');
 					my $orphaned_year = (($myod > $fyod) ? $myod : $fyod);
 					if($myod == $fyod) {
 						$bio .= "in $myod by the death of both parents in that year ";
@@ -3521,7 +3522,18 @@ sub print_person
 			if($end_of_sentence) {
 				$bio .= " $pronoun";
 			}
-			$phrase->append(" $pronoun");
+
+			if($phrase->length()) {
+				push @phrases, $phrase;
+			}
+			if(scalar(@phrases)) {
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+				@phrases = ();
+				$phrase = Data::Text->new($pronoun);
+			} else {
+				$phrase->set($pronoun);
+			}
+
 			if($language eq 'French') {
 				$bio .= ' a fait ses études à';
 				$phrase->append(' a fait ses études à');
@@ -3696,10 +3708,10 @@ sub print_person
 						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
 							if(is_alive(person => $person)) {
 								$bio .= ' has';
-								$phrase->append(' has');
+								$phrase->append('has ');
 							}
 							$bio .= ' had ';
-							$phrase->append(' had ');
+							$phrase->append('had ');
 						} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
 							$bio .= i18n(' has had ');
 							$phrase->append(i18n(' has had '));
@@ -3933,7 +3945,7 @@ sub print_person
 				}
 
 				$bio .= ' - to';
-				$phrase->append(' - to');
+				$phrase->append(' - to ');
 
 				print $html $bio;
 				# $bio =~ s/</&lt;/g;
@@ -4022,7 +4034,7 @@ sub print_person
 					# print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 						# $spouse->as_string(),
 						# '&lt;/a&gt;';
-					$phrase->append(' <a href="?page=people&entry=' . $spouse->xref() . '">' .
+					$phrase->append('<a href="?page=people&entry=' . $spouse->xref() . '">' .
 						$spouse->as_string() .
 						'</a>');
 
@@ -4076,11 +4088,13 @@ sub print_person
 					$bio .= ')' if($printed_bracket);
 					$phrase->append(')') if($printed_bracket);
 					if($spouse_number == (scalar(@spouses) - 1)) {
-						$bio .= ' and';
-						$phrase->append(' and');
+						$bio .= i18n(' and');
 					} elsif($spouse_number < (scalar(@spouses) - 1)) {
 						$bio .= ',';
-						$phrase->append(',');
+					}
+					if($phrase->rtrim()->length()) {
+						push @phrases, $phrase;
+						$phrase = Data::Text->new();
 					}
 					$bio =~ s/&Atilde;&copy;/&eacute;/g;
 					print $html $bio;
@@ -4145,9 +4159,11 @@ sub print_person
 							}
 						}
 					}
-					push @phrases, $phrase;
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-					$phrase = Data::Text->new(" $pronoun ");
+					if($phrase->length()) {
+						push @phrases, $phrase;
+					}
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+					$phrase = Data::Text->new("$pronoun ");
 					@phrases = ();
 
 					$bio .= ". $pronoun " .
@@ -4290,17 +4306,17 @@ sub print_person
 				$bio .= i18n(' and');
 			}
 			if(scalar(@phrases) == 0) {
-				$phrase->append(" $pronoun");
+				$phrase->append(" $pronoun ");
 			} elsif($phrase->length()) {
 				push @phrases, $phrase;
 				$phrase = Data::Text->new();
 			}
 			if(is_alive(person => $person)) {
 				$bio .= ' has';
-				$phrase->append(' has');
+				$phrase->append('has ');
 			}
 			$bio .= i18n(' had ');
-			$phrase->append(i18n(' had '));
+			$phrase->append(i18n('had '));
 			if($language eq 'French') {
 				$bio .= (($numberofchildren == 1) ? '1 enfant' : "$numberofchildren enfants");
 				$phrase->append((($numberofchildren == 1) ? '1 enfant' : "$numberofchildren enfants"));
@@ -4353,7 +4369,7 @@ sub print_person
 
 			if(scalar(@children) > scalar(@childrenunknownparent)) {
 				$bio .= i18n('also ');
-				$phrase->append(i18n(' also'));
+				$phrase->append(i18n('also '));
 			}
 			$bio .= i18n('had ') . scalar(@childrenunknownparent) . ' ';
 			$phrase->append(i18n('had ') . scalar(@childrenunknownparent) . ' ');
@@ -5101,9 +5117,8 @@ sub print_person
 								if($bdiff->in_units('years') >= 30) {
 									$residencestring .= ' ';
 									if($first) {
-										$residencestring .= '(';
+										$residencestring .= '(' . i18n('when ') . i18n(($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
 									}
-									$residencestring .= i18n('when ') . i18n(($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
 									if($language eq 'French') {
 										$residencestring =~ s/lorsque elle/lorsqu'elle/;
 									}
@@ -5122,7 +5137,7 @@ sub print_person
 												($sex eq 'M' ? 'his' : 'her');
 										}
 									} else {
-										$residencestring =~ s/,$//;
+										$residencestring =~ s/,\s*$//;
 										$residencestring .= i18n(' and');
 									}
 									$printed_sibling = 1;
@@ -5137,8 +5152,6 @@ sub print_person
 									if($first) {
 										$residencestring .= ')';
 										$first = 0;
-									} else {
-										$residencestring .= ' ';
 									}
 								}
 							} elsif(($same_road_as_mother || $same_road_as_father) && !$printed_sibling) {
@@ -11129,6 +11142,8 @@ sub add_marker
 sub cite
 {
 	# my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	return '' unless($opts{'c'});
 
 	my %params;
 
