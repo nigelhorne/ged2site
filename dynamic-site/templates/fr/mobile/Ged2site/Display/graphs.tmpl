@@ -2,7 +2,7 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
-		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2023 Nigel Horne">
 		[% IF graph == 'ageatdeath' %]
 			[% SET title = 'Adult Life Span' %]
 		[% ELSIF graph == 'birthmonth' %]
@@ -26,7 +26,7 @@
 		[% ELSIF graph == 'percentagedying' %]
 			[% SET title = 'Percentage of people alive who died' %]
 		[% ELSIF graph == 'dist' %]
-			[% SET title = 'Average distance between places of birth and death' %]
+			[% SET title = 'Moyen distance entre les lieux du n&eacute;ssance et mort' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
@@ -193,9 +193,9 @@
 				These differences could cause anomolies.
 			</p>
 		[% ELSE %]
-			<h2>Choose a Graph</h2>
+			<h2>Choissisez un carte</h2>
 			<center>
-				<a href="?page=graphs&graph=ageatdeath" class="myButton">Average age at death</a><br><br>
+				<a href="?page=graphs&graph=ageatdeath" class="myButton">Le moyen &acirc;ge &agrave; la mort</a><br><br>
 				<a href="?page=graphs&graph=birthmonth" class="myButton">Month of Birth</a><br><br>
 				<a href="?page=graphs&graph=marriagemonth" class="myButton">Month of Marriage</a><br><br>
 				<a href="?page=graphs&graph=deathmonth" class="myButton">Month of Death</a><br><br>
@@ -203,7 +203,7 @@
 				<li><a href="?page=graphs&amp;graph=ageatmarriage">Moyen &Acirc;ge &aacute; Premi&egrave;e Mariage</a></li>
 				<a href="?page=graphs&graph=firstborn" class="myButton">Months of marriage before first child</a><br><br>
 				<a href="?page=graphs&graph=sex" class="myButton">Sex of people born in each year</a><br><br>
-				<a href="?page=graphs&graph=dist" class="myButton">Average distance between birth and death</a><br><br>
+				<a href="?page=graphs&graph=dist" class="myButton">Moyen distance entre les lieux du n&eacute;ssance et mort</a><br><br>
 				<a href="?page=graphs&amp;graph=percentagedying" class="myButton">Percentage of the people dying</a><br><br>
 				<a href="?page=graphs&graph=ageatfirstchild" class="myButton">Age of Parents at birth of first child</a><br><br>
 				<a href="?page=graphs&graph=ageatlastchild" class="myButton">Age of Parents at birth of last child</a><br><br>
