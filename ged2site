@@ -11404,7 +11404,7 @@ sub get_all_occupations
 		} elsif(($occupations[0] !~ /gas works/i) && ($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i)) {
 			# Don't change Bus Driver to Bu's Driver
 			$occupations[0] = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
-		} elsif($occupations[0] =~ /Manager (.*)/i) {
+		} elsif(($occupations[0] =~ /Manager (.*)/i) && ($occupations[0] !~ /^Manager of /i)) {
 			$occupations[0] = "$1 Manager";
 		}
 
