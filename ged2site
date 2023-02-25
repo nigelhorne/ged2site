@@ -6444,6 +6444,11 @@ sub print_person
 					$n =~ tr/\r//;
 					$bio .= " ($n)";
 					$phrase->append(" ($n)");
+
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new();
+					@phrases = ();
 				}
 			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
 				$bio .= " $pronoun ";
