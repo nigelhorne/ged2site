@@ -5561,6 +5561,14 @@ sub print_person
 						}
 						$bio .= cite(@deathcitations);
 						$phrase->append(cite(@deathcitations));
+
+						# Cause of death
+						if(my $cause = $person->cause()) {
+							$cause = lc($cause);
+							$bio .= " ($cause)";
+							$phrase->append(" ($cause)");
+						}
+
 						# Print notes about the death, if any
 						my $notes;
 						if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
@@ -6532,6 +6540,14 @@ sub print_person
 				}
 				$bio .= cite(@deathcitations);
 				$phrase->append(cite(@deathcitations));
+
+				# Cause of death
+				if(my $cause = $person->cause()) {
+					$cause = lc($cause);
+					$bio .= " ($cause)";
+					$phrase->append(" ($cause)");
+				}
+
 				# Print notes about the death, if any
 				if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
 					$notes =~ tr/\r//;
@@ -6541,6 +6557,7 @@ sub print_person
 					$bio .= " ($notes)";
 					$phrase->append(" ($notes)");
 				}
+
 				$end_of_sentence = 0;
 			}
 			my $opts = {
@@ -6867,8 +6884,14 @@ sub print_person
 		$bio .= cite(@deathcitations);
 		$phrase->append(cite(@deathcitations));
 
+		# Cause of death
+		if(my $cause = $person->cause()) {
+			$cause = lc($cause);
+			$bio .= " ($cause)";
+			$phrase->append(" ($cause)");
+		}
+
 		# Print notes about the death, if any
-		$end_of_sentence = 0;
 		if(defined($death) && (my $notes = notes({ person => $person, record => $death, paragraph => 0, note_locations => \@note_locations }))) {
 			$notes =~ tr/\r//;
 			$notes =~ s/\.$//;
@@ -12431,6 +12454,44 @@ sub cache_array {
 		return map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @_;
 	}
 	return @_;
+}
+
+# Print notes about the death, if any
+sub add_death_notes
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	}
+
+	my $person = $params{'person'};
+	my $death = $params{'record'};	# death record
+	my $phrase = $params{'phrase'};
+
+	return unless($death);
+
+	die 'BUG: add_death_notes, argument missing' unless(defined($person) && defined($phrase));
+
+	# Cause of death
+	if(my $cause = $person->cause()) {
+		$cause = lc($cause);
+		$phrase->append(" ($cause)");
+	}
+	if(my $notes = notes({ person => $person, record => $death, paragraph => 0 })) {
+		# FIXME: If the notes are so long they go over
+		#	a page split into more than one page
+		#	properly rather than don't print, as now
+		if((!$opts{'B'}) || (length($notes) < 4000)) {
+			$notes =~ tr/\r//;
+			$notes =~ tr/\n/ /;
+			$notes =~ s/\.$//;
+			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
+			$phrase->append(" ($notes)");
+		}
+	}
 }
 
 # Must all be in lower case
