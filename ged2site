@@ -3913,7 +3913,7 @@ sub print_person
 						$phrase->append(" ($notes)");
 					}
 				}
-			} elsif($opts{'l'} || !$is_alive) {
+			} elsif($opts{'l'} || !$is_alive) {	# scalar(@spouses) > 1
 				if($is_alive) {
 					$bio .= ' has been married';
 					$phrase->append(' has been married');
@@ -3984,6 +3984,45 @@ sub print_person
 					} @spouses;
 					# Already cached
 					# @spouses = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @spouses;
+				} elsif(scalar(@spouses) == 2) {
+					# Married twice, even if we only know the years we can still sort
+					my $date1 = dateofmarriage($spouses[0]);
+					if(!defined($date1)) {
+						if(my $mar = $spouses[0]->get_record('fams marriage')) {
+							$date1 = $mar->date();
+							if(!defined($date1)) {
+								if($mar = $spouses[0]->get_record('marriage')) {
+									$date1 = $mar->date();
+								}
+							}
+						}
+					}
+					my $date2 = dateofmarriage($spouses[1]);
+					if(!defined($date2)) {
+						if(my $mar = $spouses[1]->get_record('fams marriage')) {
+							$date2 = $mar->date();
+							if(!defined($date2)) {
+								if($mar = $spouses[1]->get_record('marriage')) {
+									$date2 = $mar->date();
+								}
+							}
+						}
+					}
+
+					if($date1 && $date2 && ($date1 ne $date2)) {
+						if($date1 =~ /.+(\d{4})$/) {
+							my $year1 = $1;
+							if($date2 =~ /.+(\d{4})$/) {
+								my $year2 = $1;
+								if($year2 < $year1) {
+									# swap the spouses into marriage date order
+									my $tmp = $spouses[0];
+									$spouses[0] = $spouses[1];
+									$spouses[1] = $tmp;
+								}
+							}
+						}
+					}
 				}
 
 				my $spouse_number = 0;
