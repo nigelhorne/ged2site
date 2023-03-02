@@ -6690,7 +6690,7 @@ sub print_person
 						($person->pronoun() eq 'She' ? 'her' : 'his') .
 						" funeral at$place");
 				}
-				if(my $b = notes({ person => $person, record => $burial // $cremation, paragraph => 0, note_locations => \@note_locations })) {
+				if(my $b = notes({ person => $person, record => $burial // $cremation // $funeral, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ s/\.$//;
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
@@ -10273,7 +10273,14 @@ sub notes
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $record = $params{'record'};
-	die 'Usage: notes(record => $record)' unless($record);
+	if(!$record) {
+		print STDERR "\n";
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'Usage: notes(record => $record)';
+	}
 
 	my $person = $params{'person'};
 	my $paragraph = $params{'paragraph'};
