@@ -2289,6 +2289,8 @@ sub print_person
 		}
 	}
 
+	# This is used to create the places to display with the '-m' option.
+	# It's a hash of text (the text to be displayed) to objects
 	my %place_records;
 
 	if($placeofbirth) {
@@ -4946,7 +4948,7 @@ sub print_person
 						}
 					}
 				}
-				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence }))) {
+				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence, note_locations => \@note_locations }))) {
 					$notes =~ s/\.$//;
 					$notes = lcfirst($notes);
 					$residencestring .= " ($notes)";
@@ -6101,7 +6103,7 @@ sub print_person
 									$bio .= $year;
 								}
 								$phrase->set(' ' . ucfirst($year));
-								if(my $notes = notes(record => $event)) {
+								if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 									$notes = lcfirst($notes);
 									$bio .= " ($notes)";
 									$phrase->append(" ($notes)");
@@ -6147,7 +6149,7 @@ sub print_person
 								}
 								$bio .= " $year";
 								$phrase->append(" $year");
-								if(my $notes = notes(record => $event)) {
+								if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 									$notes = lcfirst($notes);
 									$bio .= " ($notes)";
 									$phrase->append(" ($notes)");
@@ -6228,7 +6230,7 @@ sub print_person
 					$phrase = Data::Text->new();
 					@phrases = ();
 				} elsif($type eq 'Story') {
-					if(my $notes = notes(record => $event)) {
+					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						if(!$end_of_sentence) {
 							$bio .= '. ';
 						}
@@ -6276,7 +6278,7 @@ sub print_person
 						$bio .= " $date";
 						$phrase->append(" $date");
 					}
-					if(my $notes = notes(record => $event)) {
+					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes = lcfirst($notes);
 						$notes =~ s/\.$//;
 						$bio .= " ($notes).";
@@ -6289,7 +6291,7 @@ sub print_person
 						$end_of_sentence = 1;
 					}
 				} elsif($type eq 'Employment') {
-					if(my $notes = notes(record => $event)) {
+					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes =~ s/\.$//;
 						if($phrase->length()) {
 							if(my $date = year(record => $event)) {
@@ -6391,10 +6393,16 @@ sub print_person
 		}
 	}
 
-	if($funeral && (!defined($dateofburial)) && (!defined($dateofcremation))) {
-		complain({ person => $person, 'Taking details of burial from funeral record' });
-		$dateofburial = $funeral->date();
-		$placeofburial = $funeral->place();
+	if($placeofburial) {
+		$place_records{'Buried ' . year({ person => $person, record => $funeral })} = $burial;
+	}
+	if($funeral) {
+		$place_records{'Funeral ' . year({ person => $person, record => $funeral })} = $funeral;
+		if((!defined($dateofburial)) && (!defined($dateofcremation))) {
+			complain({ person => $person, 'Taking details of burial from funeral record' });
+			$dateofburial = $funeral->date();
+			$placeofburial = $funeral->place();
+		}
 	}
 
 	if($placeofburial || $dateofburial || $placeofcremation || $dateofcremation) {
@@ -6500,7 +6508,7 @@ sub print_person
 					$phrase->append(' ' . year({ person => $person, date => $dateofcremation }));
 					$record = $cremation;
 				}
-				if(my $n = notes({ record => $record, paragraph => 0 })) {
+				if(my $n = notes({ record => $record, paragraph => 0, note_locations => \@note_locations })) {
 					$n =~ s/\.$//;
 					$n =~ tr/\r//;
 					$bio .= " ($n)";
@@ -6679,8 +6687,8 @@ sub print_person
 				$phrase->append(' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate }));
 				if($funeral && (datecmp($dateofburial, $funeral->date()) == 0) && (my $place = place({ person => $person, record => $funeral, nopreposition => 1 }))) {
 					$phrase->append(' following ' .
-																($person->pronoun() eq 'She' ? 'her' : 'his') .
-																" funeral at$place");
+						($person->pronoun() eq 'She' ? 'her' : 'his') .
+						" funeral at$place");
 				}
 				if(my $b = notes({ person => $person, record => $burial // $cremation, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ s/\.$//;
@@ -7840,6 +7848,7 @@ sub print_person
 		}
 	}
 
+	# Create a Google map of the interesting places in this person's lifetime
 	my @place_events = keys %place_records;
 	if($opts{'m'} && ($opts{'l'} || !$is_alive) && (scalar(@place_events) || scalar(@note_locations))) {
 		print "Create map\n" if($opts{'v'});
