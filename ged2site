@@ -6438,7 +6438,7 @@ sub print_person
 				$bio .= year({ person => $person, date => $dateofburial });
 				$phrase->append(year({ person => $person, date => $dateofburial }));
 				if(my $city = ($placeofburial // $placeofcremation)) {
-					if($placeofbirth && ($city eq $placeofbirth)) {
+					if($placeofbirth && places_are_the_same(first => $city, second => $placeofbirth)) {
 						if(my $address = $burial->address()) {
 							$bio .= " at $address";
 							$phrase->append(" at $address");
@@ -6511,7 +6511,7 @@ sub print_person
 					$phrase = Data::Text->new();
 					@phrases = ();
 				}
-			} elsif($placeofbirth && ($placeofburial eq $placeofbirth)) {
+			} elsif($placeofbirth && places_are_the_same(first => $placeofburial, second => $placeofbirth)) {
 				$bio .= " $pronoun ";
 				$bio .= i18n({ person => $person, format => 'was buried' });
 				$phrase->append(" $pronoun ")->append(i18n({ person => $person, format => 'was buried' }));
@@ -6677,7 +6677,12 @@ sub print_person
 				}
 				$bio .= ' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate });
 				$phrase->append(' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate }));
-				if(my $b = notes({ person => $person, record => $burial, paragraph => 0, note_locations => \@note_locations })) {
+				if($funeral && (datecmp($dateofburial, $funeral->date()) == 0) && (my $place = place({ person => $person, record => $funeral, nopreposition => 1 }))) {
+					$phrase->append(' following ' .
+																($person->pronoun() eq 'She' ? 'her' : 'his') .
+																" funeral at$place");
+				}
+				if(my $b = notes({ person => $person, record => $burial // $cremation, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ s/\.$//;
 					$b =~ tr/\r//;
 					$bio .= " ($b)";
@@ -10604,6 +10609,10 @@ sub places_are_the_same
 
 	die 'first is not optional' unless $record1;
 	die 'second is not optional' unless $record2;
+
+	if((!ref($record1)) && (!ref($record2))) {
+		return $record1 eq $record2;
+	}
 
 	my $place1 = $record1->place();
 	return 0 unless(defined($place1));
