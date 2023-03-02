@@ -5678,6 +5678,9 @@ sub print_person
 			last;
 		}
 	}
+
+	my $funeral;
+
 	if((scalar(@events) == 2) &&
 	   (ref($events[0]) eq 'Gedcom::Record') &&
 	   (ref($events[1]) eq 'Gedcom::Record') &&
@@ -5898,6 +5901,8 @@ sub print_person
 				} else {
 					$end_of_sentence = 0;
 				}
+			} elsif($type eq 'Funeral') {
+				$funeral = $event;
 			# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 			} elsif(($type !~ /Census/) &&
 				($type ne 'Race') &&
@@ -6308,6 +6313,8 @@ sub print_person
 						$phrase = Data::Text->new();
 						$end_of_sentence = 0;
 					}
+				} elsif($type eq 'Funeral') {
+					$funeral = $event;
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 				} elsif(($type !~ /Census/) &&
 					($type ne 'Register UK 1939') &&
@@ -6384,6 +6391,11 @@ sub print_person
 		}
 	}
 
+	if($funeral && (!defined($dateofburial)) && (!defined($dateofcremation))) {
+		complain({ person => $person, 'Taking details of burial from funeral record' });
+		$dateofburial = $funeral->date();
+		$placeofburial = $funeral->place();
+	}
 
 	if($placeofburial || $dateofburial || $placeofcremation || $dateofcremation) {
 		if(defined($dateofdeath) && (!defined($dateofburial)) && (!defined($dateofcremation))) {
@@ -9603,6 +9615,8 @@ sub stepsabove
 	return -1;
 }
 
+# Returns a human readable string from a date variable, handles data verification
+# and locales
 sub year
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
