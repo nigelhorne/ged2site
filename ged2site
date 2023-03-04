@@ -5725,7 +5725,7 @@ sub print_person
 				} else {
 					$motion = 'departed';
 				}
-				$bio .= "During $year1 " . lcfirst($pronoun) . " $motion" .
+				$bio .= "During $year1 " . lcfirst($pronoun) . i18n(" $motion") .
 					place({ person => $person, record => $events[0] }) .
 					"$date1 and" .
 					place({ person => $person, record => $events[1], nopreposition => 1 }) .
@@ -5769,7 +5769,12 @@ sub print_person
 				red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
 			} elsif($type eq 'Arrival') {
 				$bio .= ' ' . i18n($person->pronoun()) . i18n({ person => $person, format => ' arrived' });
-				$phrase->append(' ' . i18n($person->pronoun()) . i18n({ person => $person, format => ' arrived' }));
+				if((scalar(@phrases) == 0) && ($phrase->length() == 0)) {
+					$phrase->set($pronoun);
+				} else {
+					$phrase->append(lcfirst($pronoun));
+				}
+				$phrase->append(i18n({ person => $person, format => ' arrived' }));
 				if(my $p = place({ person => $person, record => $events[0] })) {
 					$bio .= $p;
 					$phrase->append($p);
@@ -12761,6 +12766,7 @@ the head of household::der Haushaltsvorstand
 the same day as::die gleichen Tag als
 times::fache
 they::Sie
+to::nach
 wife::Frau
 with::mit
 @@ Latin
