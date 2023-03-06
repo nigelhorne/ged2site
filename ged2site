@@ -6398,7 +6398,7 @@ sub print_person
 		}
 	}
 
-	if($placeofburial) {
+	if($placeofburial && $dateofburial) {
 		$place_records{'Buried ' . year({ person => $person, record => $burial })} = $burial;
 	}
 	if($funeral) {
