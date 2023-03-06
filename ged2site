@@ -6399,7 +6399,7 @@ sub print_person
 	}
 
 	if($placeofburial) {
-		$place_records{'Buried ' . year({ person => $person, record => $funeral })} = $burial;
+		$place_records{'Buried ' . year({ person => $person, record => $burial })} = $burial;
 	}
 	if($funeral) {
 		$place_records{'Funeral ' . year({ person => $person, record => $funeral })} = $funeral;
