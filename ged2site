@@ -2006,7 +2006,7 @@ sub print_person
 				}
 
 				# The wills database currently only contains Kent
-				if($placeofdeath =~ /Kent, England/) {
+				if($yod && ($placeofdeath =~ /Kent, England/)) {
 					wills({ person => $person, first => $firstname, last => $lastname, year => $yod });
 				}
 			}
