@@ -11613,19 +11613,24 @@ sub journey
 			$dod =~ s/\s?\d{3,4}//;
 			if($dod =~ /^\d/) {
 				$dod = "on $dod";
-			} else {
+			} elsif(length($dod)) {
 				$dod = i18n({ format => 'during %s', args => $dod });
+			} else {
+				$dod = i18n({ format => 'during %s', args => $yod });
 				$only_have_departure_year = 1;
 			}
 			if($doa =~ /^\d/) {
 				$doa = "on $doa";
 			} elsif($yoa == $yod) {
 				$doa = i18n('later that same year');
-			} else {
+			} elsif(length($doa)) {
 				$doa = i18n({ format => 'during %s', args => $doa });
+			} else {
+				$doa = i18n({ format => 'during %s', args => $yoa });
 			}
 		}
 	}
+
 	my $rc = ucfirst(i18n($person->pronoun()));
 	if($yoa || $yod) {
 		my $year = $yoa // $yod;
@@ -12504,6 +12509,14 @@ sub i18n
 				} elsif(ref($params{'args'})) {
 					$translation = sprintf($translation, $params{'args'}->as_string());
 				} else {
+					if(length($params{'args'}) == 0) {
+						print STDERR "\n";
+						my $i = 0;
+						while((my @call_details = caller($i++))) {
+							print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+						}
+						die "BUG: '$format' requires non-empty argument";
+					}
 					$translation = sprintf($translation, $params{'args'});
 				}
 			}
