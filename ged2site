@@ -1992,16 +1992,17 @@ sub print_person
 						chronicling_america($person, \%chronicling_params);
 					}
 				}
-				if(defined($yob)) {
+				if(defined($yob) && defined($yod)) {
 					obituaries({ person => $person, first => $firstname, last => $lastname, yob => $yob, yod => $yod, age => $yod - $yob });
-				}
-				my $sex = get_value({ person => $person, value => 'sex' });
-				if(defined($sex) && ($sex eq 'F') && (my $husband = $person->husband())) {
-					my $married_name = ucfirst(lc($husband->surname()));
-					if($married_name eq $lastname) {
-						complain({ person => $person, warning => 'Maiden name same as married name' });
+
+					my $sex = get_value({ person => $person, value => 'sex' });
+					if(defined($sex) && ($sex eq 'F') && (my $husband = $person->husband())) {
+						my $married_name = ucfirst(lc($husband->surname()));
+						if($married_name eq $lastname) {
+							complain({ person => $person, warning => 'Maiden name same as married name' });
+						}
+						obituaries({ person => $person, first => $firstname, last => $married_name, yob => $yob, yod => $yod, age => $yod - $yob });
 					}
-					obituaries({ person => $person, first => $firstname, last => $married_name, yob => $yob, yod => $yod, age => $yod - $yob });
 				}
 
 				# The wills database currently only contains Kent
@@ -9957,7 +9958,8 @@ sub place {
 			if($place =~ /^(.+?),.+,/) {
 				if($params{'nopreposition'}) {
 					return " $address, $1";
-				} elsif($language eq 'French') {
+				}
+				if($language eq 'French') {
 					return " \N{U+00E0} $address, $1";
 				}
 				return " at $address, $1";
@@ -10078,6 +10080,12 @@ sub place {
 			if($place =~ /(.+),(.+?),(.+?),(.+?),(.+?)$/) {
 				if($places_printed->{" in$3,$4,$5"}) {
 					$places_printed->{"at $1,$2,$3"} = 1;
+					if($params{'nopreposition'}) {
+						return "$1,$2,$3";
+					}
+					if($language eq 'French') {
+						return " \N{U+00E0} $1,$2,$3";
+					}
 					return " at $1,$2,$3";
 				}
 			}
@@ -10085,10 +10093,22 @@ sub place {
 				$places_printed->{" in$2,$3,$4"} = 1;
 			}
 		}
+		if($language eq 'French') {
+			return " \N{U+00E0} $place";
+		}
+		if($params{'nopreposition'}) {
+			return " $place";
+		}
 		return " at $place";
 	}
 
 	if($place eq 'USA') {
+		if($language eq 'French') {
+			if($params{'nopreposition'}) {
+				return ' États-Unis';
+			}
+			return ' aux États-Unis';
+		}
 		if($params{'nopreposition'}) {
 			return ' USA';
 		}
