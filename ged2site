@@ -3540,8 +3540,8 @@ sub print_person
 			}
 
 			if($language eq 'French') {
-				$bio .= ' a fait ses études à';
-				$phrase->append(' a fait ses études à');
+				$bio .= " a fait ses \N{U+00E9}tudes \N{U+00E0}";
+				$phrase->append(" a fait ses \N{U+00E9}tudes \N{U+00E0}");
 			} else {
 				$bio .= ' went to';
 				$phrase->append(' went to');
@@ -11675,7 +11675,9 @@ sub journey
 	}
 
 	if(defined($dod) && !$only_have_departure_year) {
-		return "$rc, departing $dod";
+		if($language eq 'French') {
+			return "$rc, partant $dod";
+		}
 	}
 
 	return "$rc, arriving $doa";
