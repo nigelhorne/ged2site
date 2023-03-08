@@ -3547,12 +3547,15 @@ sub print_person
 				$phrase->append(' went to');
 			}
 			# FIXME: do all schools
-			$bio .= place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }) .
+			$bio .= place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 });
 			$phrase->append(place({ person => $person, record => $education[0], places_printed => \%places_printed, nopreposition => 1 }));
 			push @phrases, $phrase;
-			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 			$phrase = Data::Text->new();
-			@phrases = ();
+
+			if($numberofchildren) {
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				@phrases = ();
+			}
 
 			$printed_and = 0;
 			$end_of_sentence = 1;
