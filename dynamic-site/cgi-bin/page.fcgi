@@ -138,6 +138,7 @@ sub sig_handler {
 			$buffercache->purge();
 		}
 		CHI->stats->flush();
+		Log::WarnDie->dispatcher(undef);
 		exit(0);
 	}
 }
