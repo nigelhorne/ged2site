@@ -79,7 +79,7 @@ BEGIN {
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
-		'Class::Simple::Cached', 'Class::Simple::Readonly::Cached',
+		'Class::Simple::Cached',
 		'HTML::GoogleMaps::V3 0.13',
 		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
@@ -191,7 +191,6 @@ use autodie qw(:all);
 # use Lingua::EN::AddressParse;
 # use Memoize;
 use Class::Simple::Cached 0.03;
-use Class::Simple::Readonly::Cached 0.02;
 use POSIX;
 
 sub get_location($);
