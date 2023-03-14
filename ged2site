@@ -79,7 +79,7 @@ BEGIN {
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
-		'Class::Simple::Cached',
+		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached',
 		'HTML::GoogleMaps::V3 0.13',
 		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
@@ -190,7 +190,6 @@ use autodie qw(:all);
 
 # use Lingua::EN::AddressParse;
 # use Memoize;
-use Class::Simple::Cached 0.03;
 use POSIX;
 
 sub get_location($);
@@ -1668,13 +1667,13 @@ sub print_person
 	my $mother = $person->mother();
 	my $father = $person->father();
 	if($father) {
-		$father = Class::Simple::Readonly::Cached->new({ object => $father, cache => {} });
+		$father = Class::Simple::Readonly::Cached->new({ object => $father, cache => {}, quiet => 1 });
 	}
 	if($mother) {
-		$mother = Class::Simple::Readonly::Cached->new({ object => $mother, cache => {} });
+		$mother = Class::Simple::Readonly::Cached->new({ object => $mother, cache => {}, quiet => 1 });
 	}
 	my @spouses = $person->spouse();
-	@spouses = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @spouses;
+	@spouses = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {}, quiet => 1 }) } @spouses;
 
 	# TODO: Properly chart which spouse a child comes from
 	if($opts{'w'}) {
