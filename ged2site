@@ -7846,7 +7846,10 @@ sub print_person
 		} elsif(defined($dot)) {
 			complain(warning => "$dot: $!");
 		}
+	} else {	# alive
+		print $csv '!!!';
 	}
+
 	print $csv '!';
 
 	foreach my $residence(@residencelist) {
@@ -8309,16 +8312,16 @@ sub print_person
 		}
 		print $csv '!';
 		if(scalar(@residencelist)) {
-			print $xml "\n\t\t\t<residence>";
+			print $xml "\n\t\t\t<residences>";
 			# Print the residence list to the XML file.
 			# If the residence doesn't change place from one record to the next, only print the date
 			my $new_place = 1;
 			my $iterator = Array::Iterator->new({ __array__ => \@residencelist });
 			while(my $residence = $iterator->get_next()) {
-				print $xml "\n\t\t\t<residence>" if($new_place);
+				print $xml "\n\t\t\t\t<residence>" if($new_place);
 
 				if(my $rdate = $residence->date()) {
-					print $xml "\n\t\t\t\t<date>$rdate</date>";
+					print $xml "\n\t\t\t\t\t<date>$rdate</date>";
 				}
 
 				if($new_place && (my $rplace = place({ person => $person, record => $residence, nopreposition => 1, encode => 0 }))) {
@@ -8327,7 +8330,7 @@ sub print_person
 					$rplace =~ s/ñ/&#241;/g;
 					$rplace =~ s/\s&\s/ &amp; /g;
 
-					print $xml "\n\t\t\t\t<location>$rplace</location>";
+					print $xml "\n\t\t\t\t\t<location>$rplace</location>";
 				}
 
 				my $peek = $iterator->peek();
@@ -8337,8 +8340,9 @@ sub print_person
 					$new_place = 1;
 				}
 
-				print $xml "\n\t\t\t</residence>" if($new_place);
+				print $xml "\n\t\t\t\t</residence>" if($new_place);
 			}
+			print $xml "\n\t\t\t</residences>";
 		}
 
 		print $xml "\n\t\t</locations>";
