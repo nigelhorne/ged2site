@@ -1502,6 +1502,7 @@ if($opts{'w'}) {
 					$summary = 'Guessed at date of burial';
 				} else {
 					$summary = $warning;
+					$summary =~ s/\"//g;
 				}
 				print $csv "$index!",
 					$person->xref(), '!',
