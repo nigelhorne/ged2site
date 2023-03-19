@@ -7019,8 +7019,8 @@ sub print_person
 		# print $csv $bio;
 		my $s = $bio_dt->as_string();
 		utf8::decode($s);
-		$s = HTML::Entities::encode($s);
 		print $csv $s;
+		$s = HTML::Entities::encode($s);
 		$s =~ s/&/&amp;/g;
 		$s =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
 		$s =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
