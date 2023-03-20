@@ -7018,9 +7018,16 @@ sub print_person
 	if($opts{'l'} || !$is_alive) {
 		# print $csv $bio;
 		my $s = $bio_dt->as_string();
+		my $copy = $s;
+		$copy =~ s/\xc3\xa9/&eacute;/g;
+		$copy =~ s/\xc3\xb1/&ntilde;/g;
+		$copy =~ s/\xc3\xab/&eumlaut;/g;
+		$copy =~ s/\xc2\xa9/&copy;/g;
+		$copy =~ s/&Acirc;&copy;/&copy;/g;
+		$copy =~ s/é/&eacute;/g;
+		utf8::decode($copy);
+		print $csv $copy;
 		utf8::decode($s);
-		$s =~ s/&Acirc;&copy;/&copy;/g;
-		print $csv $s;
 		$s = HTML::Entities::encode($s);
 		$s =~ s/&/&amp;/g;
 		$s =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
@@ -7225,11 +7232,13 @@ sub print_person
 					$h =~ s/&quot;&gt;/">/g;
 					$h =~ s/&lt;\/a&gt;/<\/a>/gi;
 				}
+				$h =~ s/&Acirc;&copy;/&copy;/g;
 				print $html "<li>$h</li>";
 				print $csv '----' if($index > 1);
 				print $csv $h;
 				$c =~ s/&/&amp;/g;
 				$c =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
+				$c =~ s/&amp;copy;/&#169;/g;
 				$c =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
 				$c =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
 				print $xml "\n\t\t\t<citation>$c</citation>";
