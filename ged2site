@@ -8418,6 +8418,7 @@ sub print_person
 
 	print $csv "$birth_country!$death_country!";
 
+	# Print out all of the warnings from this entry
 	if($person->{'warnings'}) {
 		print "Create warnings\n" if($opts{'v'});
 		my $ufinder = URI::Find::Schemeless->new(sub {
@@ -8432,7 +8433,17 @@ sub print_person
 			}
 			return $orig_uri;
 		});
-		my @issues = map { my $s = HTML::Entities::decode($_); if($s =~ /<a href="/i) { $s } else { $ufinder->find(\$s); "<p>$s</p>" } } @{$person->{'warnings'}};
+		my @issues = map {
+			my $s = HTML::Entities::decode($_);
+			$s =~ s/\xc3\xa9/&eacute;/g;
+			$s =~ s/é/&eacute;/g;
+			if($s =~ /<a href="/i) {
+				$s
+			} else {
+				$ufinder->find(\$s); "<p>$s</p>"
+			}
+		} @{$person->{'warnings'}};
+
 		print $html '<h2>Known Issues</h2>';
 		print $csv @issues;
 		print $xml "\n\t\t<issues>";
