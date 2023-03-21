@@ -195,6 +195,7 @@ use autodie qw(:all);
 # use Lingua::EN::AddressParse;
 # use Memoize;
 use POSIX;
+use Array::Iterator::BiDirectional;
 
 sub get_location($);
 
@@ -5973,7 +5974,7 @@ sub print_person
 
 						if($phrase->length()) {
 							push @phrases, $phrase;
-							$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+							$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
 							$phrase = Data::Text->new();
 							@phrases = ();
 						}
@@ -5985,14 +5986,12 @@ sub print_person
 							} elsif($date =~ /^in (\d{4})/) {
 								$bio .= "During $1, ";
 								$phrase->set("During $1, ");
+							} elsif($date =~ /(.+)\-(.+)/) {
+								$bio .= "Between $1 and $2 ";
+								$phrase->set("Between $1 and $2 ");
 							} else {
-								if($date =~ /(.+)\-(.+)/) {
-									$bio .= "Between $1 and $2 ";
-									$phrase->set("Between $1 and $2 ");
-								} else {
-									$bio .= ucfirst($date) . ' ';
-									$phrase->set(ucfirst($date) . ' ');
-								}
+								$bio .= ucfirst($date) . ' ';
+								$phrase->set(ucfirst($date) . ' ');
 							}
 							$bio .= lcfirst($pronoun) . ' was serving in the military';
 							$phrase->append(lcfirst($pronoun) . ' was serving in the military');
