@@ -3025,7 +3025,7 @@ sub print_person
 				if($relationship) {
 					push @phrases, $phrase;
 					$phrase = Data::Text->new();
-				} else {
+				} elsif($phrase->length()) {
 					$phrase->append(' ');
 				}
 				$phrase->append(i18n({ person => $person, format => 'was born' }));
@@ -3452,7 +3452,7 @@ sub print_person
 				if((($fyod - $yob) < 16) && (($myod - $yob) < 16)) {
 					if($end_of_sentence) {
 						$bio .= " $pronoun";
-						$phrase->append(" $pronoun");
+						$phrase->append(" $pronoun ");
 					} elsif(scalar(@person_twins) || $dateofbaptism) {
 						$bio .= i18n(' and');
 						$printed_and = 1;
@@ -3576,6 +3576,7 @@ sub print_person
 					$phrase = Data::Text->new();
 				}
 				if($placeofmarriage || $dateofmarriage) {
+					$phrase->append(' ') if(scalar(@phrases) == 0);
 					if($placeofbaptism && $placeofmarriage && ($placeofmarriage eq $placeofbaptism) &&
 					   !$end_of_sentence) {
 						$bio .= i18n(' also');
@@ -3884,19 +3885,21 @@ sub print_person
 							if($numberofchildren && !$end_of_sentence) {
 								$bio .= ". $pronoun";
 							}
-							push @phrases, $phrase;
-							$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-							$phrase = Data::Text->new(" $pronoun");
-							@phrases = ();
+							if($numberofchildren) {
+								push @phrases, $phrase;
+								$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+								$phrase = Data::Text->new($pronoun);
+								@phrases = ();
+							}
 
 							$spouse //= $spouses[0];
 							if(my $s = $spouse->as_string({ middle_names => 1, title => 1 })) {
 								if(is_alive(person => $person) && is_alive(person => $spouse)) {
 									$bio .= i18n({ person => $person, format => ' is married to ' });
-									$phrase->append(i18n({ person => $person, format => 'is married to ' }));
+									$phrase->append(i18n({ person => $person, format => ' is married to ' }));
 								} else {
 									$bio .= i18n({ person => $person, format => ' was married to ' });
-									$phrase->append(i18n({ person => $person, format => 'was married to ' }));
+									$phrase->append(i18n({ person => $person, format => ' was married to ' }));
 								}
 								$bio .= $s;
 								$phrase->append($s);
