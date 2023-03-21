@@ -58,8 +58,7 @@ my @needfull;
 # Install Pre-requisites
 BEGIN {
 	my @modules = (
-		'Array::Iterator', 'Array::Iterator::BiDirectional',
-		'Config::Auto', 'Data::Text',
+		'Array::Iterator', 'Config::Auto', 'Data::Text',
 		'File::Basename', 'File::Copy', 'File::Temp',
 		'Date::Manip', 'Parse::RecDescent', 'Roman',
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
@@ -94,11 +93,15 @@ BEGIN {
 		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
 
-	# I can't get Marpa::R2 version 10 to build on OS/X or Solaris.
+	# I can't get Marpa::R2 versions 10 and 12 to build on OS/X or Solaris.
 	# It's used by Genealogy::Gedcom::Date, so force version 8
 	eval 'use Marpa::R2';
 	if($@) {
-		push @needfull, 'JKEGL/Marpa-R2-8.000000.tar.gz'
+		if(($^O eq 'solaris') || ($^O eq 'darwin')) {
+			push @needfull, 'JKEGL/Marpa-R2-8.000000.tar.gz'
+		} else {
+			push @needfull, 'Marpa::R2';
+		}
 	}
 
 	foreach my $module(@modules) {
@@ -141,6 +144,7 @@ BEGIN {
 	if(scalar(@needfull)) {
 		my $list = join(' ', @needfull);
 		print "Installing $list\n";
+		$ENV{'PERL_MM_USE_DEFAULT'} = 1;
 		# system("cpan -i $list");
 		system('perl -MCPAN -e \'CPAN::Shell->install("' . join('", "', @needfull) . '")\'');
 	}
@@ -322,7 +326,10 @@ foreach my $module(@modules) {
 	}
 }
 if(scalar(@needfull)) {
-	# system('cpan -i ' . join(' ', @needfull));
+	my $list = join(' ', @needfull);
+	print "Installing $list\n";
+	# system("cpan -i $list");
+	$ENV{'PERL_MM_USE_DEFAULT'} = 1;
 	system('perl -MCPAN -e \'CPAN::Shell->install("' . join('", "', @needfull) . '")\'');
 }
 
