@@ -238,8 +238,12 @@ if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 			'Genealogy::ChroniclingAmerica', 'Locale::Country';
 	}
 }
-if($opts{'d'} || $opts{'m'}) {
-	push @modules, 'HTTP::Cache::Transparent';
+if($opts{'d'}) {
+	push @modules, 'Weather::Meteo';
+
+	if($opts{'m'}) {
+		push @modules, 'HTTP::Cache::Transparent';
+	}
 }
 if($opts{'m'} || $opts{'w'}) {
 	push @modules, 'LWP::UserAgent::Throttled';
@@ -878,6 +882,12 @@ if($opts{'w'}) {
 	$wills = Genealogy::Wills->new();
 } else {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
+}
+
+my $meteo;
+
+if($opts{'d'}) {
+	$meteo = Weather::Meteo->new(ua => $cached_browser);
 }
 
 my $key = delete $opts{'g'};	# Ensure it's not stored in the XML file
@@ -6659,6 +6669,10 @@ sub print_person
 						$phrase = Data::Text->new();
 					}
 				}
+				my $type = 'burial';
+				if($placeofcremation || $dateofcremation) {
+					$type = 'cremation';
+				}
 				if(($language eq 'French') && $placeofburial &&
 				  defined($placeofdeath) && ($placeofburial eq $placeofdeath) && (!$address) && !$death->address()) {
 					$bio .= ' y';
@@ -6700,12 +6714,44 @@ sub print_person
 						$must_postdate = date_to_datetime($d);
 					}
 				}
-				$bio .= ' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate });
-				$phrase->append(' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate }));
+				my $record;
+				if($type eq 'burial') {
+					$bio .= ' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate });
+					$phrase->append(' ' . year({ person => $person, date => $dateofburial, must_postdate => $must_postdate }));
+					$record = $burial;
+				} else {
+					$bio .= ' ' . year({ person => $person, date => $dateofcremation, must_postdate => $must_postdate });
+					$phrase->append(' ' . year({ person => $person, date => $dateofcremation, must_postdate => $must_postdate }));
+					$record = $cremation;
+				}
 				if($funeral && (datecmp($dateofburial, $funeral->date()) == 0) && (my $place = place({ person => $person, record => $funeral, nopreposition => 1 }))) {
+					if(my $d = $dfg->parse_datetime(date => $record->date())) {
+						my $date = $d->strftime('%F');
+						my $location = get_location($funeral->place());
+						my $weather = $meteo->weather($location, $date);
+
+						my $temperature = $weather->{'daily'}->{'temperature_2m_max'}[0];
+						my $wmo = $weather->{'daily'}->{'weathercode'}[0];
+
+						if($wmo == 3) {
+							if($temperature < 0) {
+								$phrase->append(' (a cold and overcast day)');
+								$bio .= ' (a cold and overcast day)';
+							} else {
+								$phrase->append(' (an overcast day)');
+								$bio .= ' (an overcast day)';
+							}
+						} elsif($temperature < 0) {
+							$phrase->append(' (a cold day)');
+							$bio .= ' (a cold day)';
+						}
+					}
 					$phrase->append(' following ' .
 						($person->pronoun() eq 'She' ? 'her' : 'his') .
 						" funeral at$place");
+					$bio .= ' following ' .
+						($person->pronoun() eq 'She' ? 'her' : 'his') .
+						" funeral at$place";
 				}
 				if(my $b = notes({ person => $person, record => $burial // $cremation // $funeral, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ s/\.$//;
@@ -12297,7 +12343,9 @@ sub get_location($)
 		if(defined($location->{geometry}{location}{lat}) && defined($location->{geometry}{location}{lng})) {
 			my $rc = Class::Simple->new();
 			$rc->long($location->{geometry}{location}{lng});
+			$rc->longitude($location->{geometry}{location}{lng});
 			$rc->lat($location->{geometry}{location}{lat});
+			$rc->latitude($location->{geometry}{location}{lat});
 			return $rc;
 		}
 		dump_geocoder_log();
