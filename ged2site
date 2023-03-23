@@ -4430,7 +4430,7 @@ sub print_person
 			$bio .= "$pronoun ";
 
 			push @phrases, $phrase;
-			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
 			$phrase = Data::Text->new("$pronoun ");
 			@phrases = ();
 
@@ -6447,7 +6447,7 @@ sub print_person
 			$bio .= '.' if((!$end_of_sentence) && (scalar(@spouses) || $numberofchildren));
 			if($phrase->length()) {
 				push @phrases, $phrase;
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
 				$phrase = Data::Text->new();
 				@phrases = ();
 			}
@@ -6549,7 +6549,7 @@ sub print_person
 					@phrases = ();
 				}
 			} elsif($placeofbirth && places_are_the_same(first => $placeofburial, second => $placeofbirth)) {
-				$bio .= " $pronoun ";
+				$bio .= "$pronoun ";
 				$bio .= i18n({ person => $person, format => 'was buried' });
 				$phrase->append(" $pronoun ")->append(i18n({ person => $person, format => 'was buried' }));
 				if(my $address = $burial->address()) {
@@ -6576,7 +6576,7 @@ sub print_person
 			} else {
 				$bio .= " $pronoun is buried" .
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
-				$phrase->append(" $pronoun is buried" .
+				$phrase->append("$pronoun is buried" .
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage }));
 			}
 			$bio .= '. ';
@@ -6663,7 +6663,7 @@ sub print_person
 			if($dateofburial) {
 				if($diedathome) {
 					$bio .= $pronoun;
-					$phrase->append("$pronoun ");
+					$phrase->append(" $pronoun ");
 				} else {
 					$bio .= i18n(' and');
 					if($phrase->length()) {
