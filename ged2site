@@ -5892,18 +5892,20 @@ sub print_person
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
 					$phrase = Data::Text->new();
 					@phrases = ();
+				} else {
+					$phrase->append(' ');
 				}
 				my $date = year(record => $event);
 				if($military_location) {
 					$bio .= 'when ' . lcfirst($pronoun) . (' was serving in the military');
 					$phrase->append('when ' . lcfirst($pronoun) . (' was serving in the military'));
 				} elsif($date) {
-					if($date !~ /^from /i) {
-						$bio .= ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
-						$phrase->append(ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military');
-					} else {
+					if($date =~ /^from /i) {
 						$bio .= "$pronoun was serving in the military";
 						$phrase->append("$pronoun was serving in the military");
+					} else {
+						$bio .= ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
+						$phrase->append(ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military');
 					}
 				} else {
 					$bio .= "$pronoun served in the military";
@@ -5984,7 +5986,7 @@ sub print_person
 
 						if($phrase->length()) {
 							push @phrases, $phrase;
-							$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+							$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 							$phrase = Data::Text->new();
 							@phrases = ();
 						}
@@ -5992,22 +5994,22 @@ sub print_person
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^on /) {
 								$bio .= ucfirst($date) . ' ';
-								$phrase->set(ucfirst($date) . ' ');
+								$phrase->set(' ' . ucfirst($date) . ' ');
 							} elsif($date =~ /^in (\d{4})/) {
 								$bio .= "During $1, ";
-								$phrase->set("During $1, ");
+								$phrase->set(" During $1, ");
 							} elsif($date =~ /(.+)\-(.+)/) {
 								$bio .= "Between $1 and $2 ";
-								$phrase->set("Between $1 and $2 ");
+								$phrase->set(" Between $1 and $2 ");
 							} else {
 								$bio .= ucfirst($date) . ' ';
-								$phrase->set(ucfirst($date) . ' ');
+								$phrase->set(' ' . ucfirst($date) . ' ');
 							}
 							$bio .= lcfirst($pronoun) . ' was serving in the military';
 							$phrase->append(lcfirst($pronoun) . ' was serving in the military');
 						} else {
 							$bio .= "$pronoun served in the military";
-							$phrase->set("$pronoun served in the military");
+							$phrase->set(" $pronoun served in the military");
 						}
 
 						if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
