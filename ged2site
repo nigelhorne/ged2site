@@ -12223,9 +12223,10 @@ sub dateofdeath
 		}
 		return parse_date({ date => $dateofdeath, type => 'Death', person => $person });
 	}
-	return;	# return undef
+	return;	# undef
 }
 
+# Dig the date out of a field and return in a valid gedcom format
 sub parse_date
 {
 	my %params;
@@ -12246,10 +12247,11 @@ sub parse_date
 			return;
 		}
 
-		my $person = $params{'person'};
 		my $type = $params{'type'};
+		my $person = $params{'person'};
 		my $after;
 		my $before;
+		my $about;
 
 		if($date =~ /^After\s+(.+)/i) {
 			complain({ person => $person, warning => "$type date says 'After' instead of 'Aft'" });
@@ -12259,6 +12261,15 @@ sub parse_date
 			complain({ person => $person, warning => "$type date says 'Before' instead of 'Bef'" });
 			$date = $1;
 			$before = 1;
+		} elsif($date =~ /^aft\s(.+)/i) {
+			$date = $1;
+			$after = 1;
+		} elsif($date =~ /^bef\s(.+)/i) {
+			$date = $1;
+			$before = 1;
+		} elsif($date =~ /^abt\s(.+)/i) {
+			$date = $1;
+			$about = 1;
 		}
 		if($date =~ /[A-Z]{4,}/i) {
 			complain({ person => $person, warning => "$type month '$date' should be 3 letters" });
@@ -12286,6 +12297,9 @@ sub parse_date
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			}
 			die "BUG: handle '$date' on ", $person->as_string();
+		}
+		if($about) {
+			$date = "abt $date";
 		}
 		if($after) {
 			return "aft $date";
