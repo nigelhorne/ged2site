@@ -18,7 +18,7 @@ jobs:
         os:
           - name: freebsd
             version: '13.0'
-            pkginstall: pkg install -y p5-LWP-UserAgent-Cached p5-CHI p5-autodie p5-Date-Manip p5-Data-Section p5-Sort-Key-DateTime p5-GIS-Distance p5-Marpa p5-Lingua-EN-Numbers-Ordinate p5-JSON p5-Net-OAuth p5-LWP-Protocol-https
+            pkginstall: pkg install -y p5-LWP-UserAgent-Cached p5-CHI p5-autodie p5-Date-Manip p5-Data-Section p5-Sort-Key-DateTime p5-GIS-Distance p5-Marpa p5-Lingua-EN-Numbers-Ordinate p5-JSON p5-Net-OAuth p5-LWP-Protocol-https p5-CPAN-DistnameInfo
           - name: openbsd
             version: '7.1'
             pkginstall: pkg_add p5-CHI p5-LWP-Protocol-https
@@ -37,7 +37,7 @@ jobs:
             sudo hostname example.com
             sudo ${{ matrix.os.pkginstall }}
             yes | sudo cpan -i App::cpanminus
-            sudo cpanm --skip-satisfied -iqn Array::Iterator Config::Auto Data::Text File::Basename File::Copy File::Temp Date::Manip Parse::RecDescent Roman FindBin Gedcom Genealogy::Gedcom::Date Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare Genealogy::Gedcom::Date Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Lingua::EN::ABC Lingua::String Geo::Parser::Text GIS::Distance HTML::Entities Image::Info JSON List::Util LWP::Simple::WithCache MIME::Base64 LWP::UserAgent::Cached DateTime DateTime::Duration DateTime::Format::Genealogy DateTime::Format::Natural Class::Simple::Readonly::Cached Class::Simple::Cached HTML::GoogleMaps::V3 Sort::Key::DateTime Text::Names Text::Names::GB Term::ANSIColor URI URI::Find::Schemeless Locale::AU Locale::CA Locale::US XML::Dumper XML::Twig CHI Class::Simple Lingua::Conjunction Getopt::Std Lingua::EN::NameCase Lingua::EN::NameParse Lingua::EN::Inflect Locale::Object::Country Unicode::Diacritic::Strip URI::Find::Schemeless Marpa::R2 B::Lint warnings::unused
+            sudo cpanm --skip-satisfied -iqn Array::Iterator Config::Auto Data::Text File::Basename File::Copy File::Temp Date::Manip Parse::RecDescent Roman FindBin Gedcom Genealogy::Gedcom::Date Date::Parse Geo::Coder::List Geo::Coder::Free IPC::System::Simple Geo::Coder::Ovi String::Compare Genealogy::Gedcom::Date Geo::Coder::RandMcnally Geo::Coder::US::Census Geo::Coder::OSM Geo::Coder::XYZ Geo::Coder::CA Lingua::EN::ABC Lingua::String Geo::Parser::Text GIS::Distance HTML::Entities Image::Info JSON List::Util LWP::Simple::WithCache MIME::Base64 LWP::UserAgent::Cached DateTime DateTime::Duration DateTime::Format::Genealogy DateTime::Format::Natural Class::Simple::Readonly::Cached Class::Simple::Cached HTML::GoogleMaps::V3 Sort::Key::DateTime Text::Names Text::Names::GB Term::ANSIColor URI URI::Find::Schemeless Locale::AU Locale::CA Locale::US XML::Dumper XML::Twig CHI Class::Simple Lingua::Conjunction Getopt::Std Lingua::EN::NameCase Lingua::EN::NameParse Lingua::EN::Inflect Locale::Object::Country Unicode::Diacritic::Strip URI::Find::Schemeless Marpa::R2 B::Lint warnings::unused Lingua::EN::Numbers::Ordinate CPAN::DistnameInfo CHI
             sudo cpanm --skip-satisfied -iqn LWP::UserAgent::Cached Data::Serializer
             sudo cpanm -iqn F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz
             sudo chown -R runner:runner .
