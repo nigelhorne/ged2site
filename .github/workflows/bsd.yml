@@ -21,7 +21,7 @@ jobs:
             pkginstall: pkg install -y p5-LWP-UserAgent-Cached p5-CHI p5-autodie p5-Date-Manip p5-Data-Section p5-Sort-Key-DateTime p5-GIS-Distance p5-Marpa p5-Lingua-EN-Numbers-Ordinate p5-JSON p5-Net-OAuth p5-LWP-Protocol-https p5-CPAN-DistnameInfo
           - name: openbsd
             version: '7.1'
-            pkginstall: pkg_add p5-CHI p5-LWP-Protocol-https
+            pkginstall: pkg_add p5-LWP-Protocol-https
 
     steps:
       - uses: actions/checkout@main
