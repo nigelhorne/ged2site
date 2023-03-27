@@ -89,6 +89,7 @@ use Ged2site::Display::meta_data;
 use Ged2site::DB::people;
 if($@) {
 	$logger->error($@);
+	Log::WarnDie->dispatcher(undef);
 	die $@;
 }
 use Ged2site::DB::censuses;
