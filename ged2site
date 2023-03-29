@@ -11697,10 +11697,10 @@ sub journey
 			$dod =~ s/\s?\d{3,4}//;
 			if($dod =~ /^\d/) {
 				$dod = "on $dod";
-			} elsif(length($dod)) {
+			} elsif(length($dod) && ($dod !~ /^abt\.?$/)) {
 				$dod = i18n({ format => 'during %s', args => $dod });
 			} else {
-				$dod = i18n({ format => 'during %s', args => $yod });
+				# $dod = i18n({ format => 'during %s', args => $yod });
 				$only_have_departure_year = 1;
 			}
 			if($doa =~ /^\d/) {
