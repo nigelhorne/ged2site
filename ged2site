@@ -9575,7 +9575,7 @@ sub Gedcom::Individual::relationship_up
 					my $mymother = $self->mother();
 					if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
 						if($me && ($self eq $me)) {
-							$rc .= i18n(" on your father's side");
+							$rc .= i18n(" on the father's side");
 						} else {
 							$rc .= ' on ' .
 								lcfirst($self->possessive()) .
@@ -9583,7 +9583,7 @@ sub Gedcom::Individual::relationship_up
 						}
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
 						if($me && ($self eq $me)) {
-							$rc .= i18n(" on your mother's side");
+							$rc .= i18n(" on the mother's side");
 						} else {
 							$rc .= ' on ' .
 								lcfirst($self->possessive()) .
@@ -12758,8 +12758,8 @@ of::of
 of %d children::of %d children
 older::older
 on the same day::on the same day
-on your father's side::on your father's side
-on your mother's side::on your mother's side
+on the father's side::on the father's side
+on the mother's side::on the mother's side
 she::she
 sister::sister
 sisters::sisters
@@ -12832,8 +12832,8 @@ of %d children::de %d enfants
 older:M:aîné
 older:F:aînée
 on the same day::sur la même jour
-on your father's side::du côté paternel
-on your mother's side::du côté de votre mère
+on the father's side::du côté paternel
+on the mother's side::du côté de la mère
 she::elle
 sister::sœur
 sisters::sœurs
@@ -12893,7 +12893,7 @@ married::verheiratet
 mother::Mutter
 of::von
 of %d children::von %d Kindern
-on your father's side::Auf der Seite deines Vaters
+on the father's side::Auf der Seite deines Vaters
 she::sie
 sister::Schwester
 sisters::Schwestern
