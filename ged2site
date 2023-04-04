@@ -11766,6 +11766,7 @@ sub journey
 		if($language eq 'French') {
 			return "$rc, partant $dod";
 		}
+		return "$rc, departing $dod";
 	}
 
 	return "$rc, arriving $doa";
