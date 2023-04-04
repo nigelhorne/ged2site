@@ -11752,7 +11752,7 @@ sub journey
 	if(defined($arrival->place())) {
 		$rc .= (($language eq 'French') ? " \N{U+00E0}" : ' to') . place({ person => $person, record => $arrival, nopreposition => 1 });
 		if(my $notes = notes(record => $arrival)) {
-			if($notes !~ qr/$dnotes/i) {
+			if((!defined($dnotes)) || ($notes !~ qr/$dnotes/i)) {
 				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 				$notes =~ s/\.$//;
 				$rc .= " ($notes)";
