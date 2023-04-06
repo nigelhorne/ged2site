@@ -9923,13 +9923,9 @@ sub year
 		return "before $1";
 	}
 	if($string =~ /^aft.? (\d{3,4})/i) {
-		if($language eq 'French') {
-			return "apr\N{U+00E8}s $1";
-		}
-		return "after $1";
+		return i18n({ format => 'after %s', args => $1 });
 	}
 
-	$string = ucfirst(lc($string));
 	if($params{'nopreposition'}) {
 		return $string;
 	}
@@ -12615,16 +12611,17 @@ sub i18n
 					$translation = sprintf($translation, @{$params{'args'}});
 				} elsif(ref($params{'args'})) {
 					$translation = sprintf($translation, $params{'args'}->as_string());
-				} else {
-					if(length($params{'args'}) == 0) {
-						print STDERR "\n";
-						my $i = 0;
-						while((my @call_details = caller($i++))) {
-							print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
-						}
-						die "BUG: '$format' requires non-empty argument";
+				} elsif(length($params{'args'}) == 0) {
+					print STDERR "\n";
+					my $i = 0;
+					while((my @call_details = caller($i++))) {
+						print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 					}
-					$translation = sprintf($translation, $params{'args'});
+					die "BUG: '$format' requires non-empty argument";
+				} else {
+					my $arg = $params{'args'};
+					utf8::encode($arg);
+					$translation = sprintf($translation, $arg);
 				}
 			}
 			utf8::decode($translation);
