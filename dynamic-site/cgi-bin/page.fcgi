@@ -462,6 +462,7 @@ sub doit
 				print "I don't know what you want me to display.\n";
 			}
 		} elsif($error =~ /Can\'t locate .* in \@INC/) {
+			$logger->error($error);
 			print "Status: 500 Internal Server Error\n",
 				"Content-type: text/plain\n",
 				"Pragma: no-cache\n\n";
