@@ -10029,6 +10029,9 @@ sub place {
 		} elsif($address =~ /\sLane$/) {
 			$on_road = 1;
 		}
+		if($address =~ / Church, /) {
+			$on_road = 0;
+		}
 	}
 
 	my $there = $params{'there'};
