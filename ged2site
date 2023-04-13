@@ -6726,27 +6726,10 @@ sub print_person
 					$phrase->append(' ' . year({ person => $person, date => $dateofcremation, must_postdate => $must_postdate }));
 					$record = $cremation;
 				}
-				if($funeral && (datecmp($dateofburial, $funeral->date()) == 0) && (my $place = place({ person => $person, record => $funeral, nopreposition => 1 }))) {
-					if(my $d = $dfg->parse_datetime(date => $record->date())) {
-						my $date = $d->strftime('%F');
-						my $location = get_location($funeral->place());
-						my $weather = $meteo->weather($location, $date);
-
-						my $temperature = $weather->{'daily'}->{'temperature_2m_max'}[0];
-						my $wmo = $weather->{'daily'}->{'weathercode'}[0];
-
-						if($wmo == 3) {
-							if($temperature < 0) {
-								$phrase->append(' (a cold and overcast day)');
-								$bio .= ' (a cold and overcast day)';
-							} else {
-								$phrase->append(' (an overcast day)');
-								$bio .= ' (an overcast day)';
-							}
-						} elsif($temperature < 0) {
-							$phrase->append(' (a cold day)');
-							$bio .= ' (a cold day)';
-						}
+				if($funeral && (datecmp($funeral->date(), $record->date()) == 0) && (my $place = place({ person => $person, record => $funeral, nopreposition => 1 }))) {
+					if(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
+						$phrase->append(" ($weather)");
+						$bio .= " ($weather)";
 					}
 					$phrase->append(' following ' .
 						($person->pronoun() eq 'She' ? 'her' : 'his') .
@@ -6754,6 +6737,11 @@ sub print_person
 					$bio .= ' following ' .
 						($person->pronoun() eq 'She' ? 'her' : 'his') .
 						" funeral at$place";
+				} elsif($place = place({ person => $person, record => $record, nopreposition => 1 })) {
+					if(my $weather = weather({ person => $person, record => $record, meteo => $meteo })) {
+						$phrase->append(" ($weather)");
+						$bio .= " ($weather)";
+					}
 				}
 				if(my $b = notes({ person => $person, record => $burial // $cremation // $funeral, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ s/\.$//;
@@ -12713,6 +12701,45 @@ sub add_death_notes
 			$notes =~ s/\.$//;
 			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 			$phrase->append(" ($notes)");
+		}
+	}
+}
+
+# Get the weather for the day
+sub weather
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	}
+
+	my $person = $params{'person'};
+	my $record = $params{'record'};	# death record
+	my $meteo = $params{'meteo'};
+
+	if(my $d = $dfg->parse_datetime(date => $record->date())) {
+		my $date = $d->strftime('%F');
+		my $location = get_location($record->place());
+		my $weather = $meteo->weather($location, $date);
+
+		my $temperature = $weather->{'daily'}->{'temperature_2m_max'}[0];
+		my $wmo = $weather->{'daily'}->{'weathercode'}[0];
+
+		if($wmo == 3) {
+			if($temperature <= 3) {
+				return 'a cold and overcast day';
+			} else {
+				return 'an overcast day';
+			}
+		} elsif($wmo == 2) {
+			return 'a partly cloudy day';
+		} elsif($temperature < 0) {
+			return 'a cold day';
+		} else {
+			die "TODO: parse weather (wmo == $wmo, temperature = $temperature)";
 		}
 	}
 }
