@@ -12729,7 +12729,12 @@ sub weather
 		die 'Usage: weather(person, record, meteo)';
 	}
 
-	if((my $d = $dfg->parse_datetime(date => $record->date())) &&
+	my $date = $record->date();
+
+	return unless($date);
+	return if($date !~ /^\d/);
+
+	if((my $d = $dfg->parse_datetime(date => $date)) &&
 	   (my $location = get_location($record->place()))) {
 		my $date = $d->strftime('%F');
 		my $weather = $meteo->weather($location, $date);
