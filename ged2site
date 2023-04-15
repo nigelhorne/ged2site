@@ -12720,6 +12720,15 @@ sub weather
 	my $record = $params{'record'};	# death record
 	my $meteo = $params{'meteo'};
 
+	if(!$record) {
+		print STDERR "\n";
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'Usage: weather(person, record, meteo)';
+	}
+
 	if((my $d = $dfg->parse_datetime(date => $record->date())) &&
 	   (my $location = get_location($record->place()))) {
 		my $date = $d->strftime('%F');
