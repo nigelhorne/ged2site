@@ -12720,10 +12720,12 @@ sub weather
 	my $record = $params{'record'};	# death record
 	my $meteo = $params{'meteo'};
 
-	if(my $d = $dfg->parse_datetime(date => $record->date())) {
+	if((my $d = $dfg->parse_datetime(date => $record->date())) &&
+	   (my $location = get_location($record->place()))) {
 		my $date = $d->strftime('%F');
-		my $location = get_location($record->place());
 		my $weather = $meteo->weather($location, $date);
+
+		return unless(defined($weather));
 
 		my $temperature = $weather->{'daily'}->{'temperature_2m_max'}[0];
 		my $wmo = $weather->{'daily'}->{'weathercode'}[0];
@@ -12731,11 +12733,15 @@ sub weather
 		if($wmo == 3) {
 			if($temperature <= 3) {
 				return 'a cold and overcast day';
-			} else {
-				return 'an overcast day';
 			}
+			return 'an overcast day';
 		} elsif($wmo == 2) {
 			return 'a partly cloudy day';
+		} elsif($wmo == 51) {
+			if($temperature >= 22) {
+				return 'a warm but drizzly day';
+			}
+			return 'a drizzly day';
 		} elsif($temperature < 0) {
 			return 'a cold day';
 		} else {
