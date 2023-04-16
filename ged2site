@@ -12756,10 +12756,12 @@ sub weather
 				return 'a warm but drizzly day';
 			}
 			return 'a drizzly day';
+		} elsif($wmo == 61) {
+			return 'a day with light rain';
 		} elsif($temperature < 0) {
 			return 'a cold day';
 		} else {
-			die "TODO: parse weather (wmo == $wmo, temperature = $temperature)";
+			die "TODO: parse weather (wmo = $wmo, temperature = $temperature)";
 		}
 	}
 }
