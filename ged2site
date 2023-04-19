@@ -3615,6 +3615,12 @@ sub print_person
 					$bio .= ' ' . i18n(\%args);
 					$phrase->append(i18n(\%args));
 
+					if(my $srelationship = $person->relationship($spouses[0])) {
+						$phrase->append(($person->pronoun() eq 'She') ? 'her ' : 'his ')
+							->append($srelationship)->append(' ');
+						$bio .= (($person->pronoun() eq 'She') ? 'her ' : 'his ') .
+							"$srelationship ";
+					}
 					if($haveprintedspousename) {
 						$nameparser->parse($spouses[0]->name());
 
