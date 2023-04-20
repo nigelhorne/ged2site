@@ -226,7 +226,7 @@ my @modules = ('NJH::Normalize');
 @needfull = ();
 
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
-	push @modules, 'File::Spec';
+	push @modules, 'File::Spec', 'XML::Hash';
 
 	if(!$ENV{'CACHEDIR'}) {
 		push @modules, 'File::HomeDir';
@@ -1904,6 +1904,8 @@ sub print_person
 
 	print "Gathering basic information\n" if($opts{'v'});
 
+	print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
+
 	my $birth = $person->get_record('birth');
 
 	my $placeofbirth = get_value({ person => $person, value => 'birth place' });
@@ -1961,6 +1963,30 @@ sub print_person
 		my %name_components = $nameparser->components();
 		my $firstname = $name_components{'given_name_1'} // $name_components{'initials_1'};
 		if($firstname && (my $lastname = $name_components{'surname_1'})) {
+			# Lookup entry in dbpedia.
+			# TODO: Look up maiden name and married name(s)
+			if(my $resp = $cached_browser->get("http://lookup.dbpedia.org/api/search?query=$firstname%20$lastname")) {
+				my $xmlparser = XML::Hash->new();
+				my $dbpedia = $xmlparser->fromXMLStringtoHash($resp->decoded_content());
+				if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
+					foreach my $result(@{$arrayofresults->{'Result'}}) {
+						if(my $description = $result->{'Description'}) {
+							if($result->{'Label'}->{'text'} eq "$firstname $lastname") {
+								if(my $text = $description->{'text'}) {
+									# FIXME: add citation
+									print $csv "$text<br>";
+									print $html "$text<br>";
+									print $xml "$text\n\t\t\t\t";
+									last;
+								}
+							}
+							# $Data::Dumper::Maxdepth = 0;
+							# print Data::Dumper->new([\$result])->Dump() if($text eq "$firstname $lastname");
+						}
+					}
+				}
+			}
+
 			my %chronicling_params = ( ua => $cached_browser );
 			if($dateofbirth && ($dateofbirth =~ /(\d{4})$/)) {
 				if($1 <= 1789) {
@@ -2590,8 +2616,6 @@ sub print_person
 			$printed_comma = 0;
 		}
 	}
-
-	print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
 
 	my $print_sibling_count = 0;
 
