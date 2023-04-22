@@ -1965,27 +1965,29 @@ sub print_person
 		if($firstname && (my $lastname = $name_components{'surname_1'})) {
 			# Lookup entry in dbpedia.
 			# TODO: Look up maiden name and married name(s)
-			if(my $resp = $cached_browser->get("http://lookup.dbpedia.org/api/search?query=$firstname%20$lastname")) {
-				my $xmlparser = XML::Hash->new();
-				my $dbpedia = $xmlparser->fromXMLStringtoHash($resp->decoded_content());
-				if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
-					foreach my $result(@{$arrayofresults->{'Result'}}) {
-						if(my $description = $result->{'Description'}) {
-							if($result->{'Label'}->{'text'} eq "$firstname $lastname") {
-								if(my $text = $description->{'text'}) {
-									# FIXME: add citation
-									print $csv "$text<br>";
-									print $html "$text<br>";
-									print $xml "$text\n\t\t\t\t";
-									last;
-								}
-							}
-							# $Data::Dumper::Maxdepth = 0;
-							# print Data::Dumper->new([\$result])->Dump() if($text eq "$firstname $lastname");
-						}
-					}
-				}
-			}
+			# Experimental code with false positives at the moment
+			# if(my $resp = $cached_browser->get("http://lookup.dbpedia.org/api/search?query=$firstname%20$lastname")) {
+				# my $xmlparser = XML::Hash->new();
+				# my $dbpedia = $xmlparser->fromXMLStringtoHash($resp->decoded_content());
+				# if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
+					# foreach my $result(@{$arrayofresults->{'Result'}}) {
+						# if(($result->{'Label'}->{'text'} eq "$firstname $lastname") &&
+						   # (my $description = $result->{'Description'})) {
+							# if(my $t = $description->{'text'}) {
+								# if($t =~ qr/$firstname $lastname/) {
+									# # FIXME: add citation
+									# print $csv "$t<br>";
+									# print $html "$t<br>";
+									# print $xml "$t\n\t\t\t\t";
+									# # $Data::Dumper::Maxdepth = 0;
+									# # print Data::Dumper->new([\$result])->Dump() if($t eq "$firstname $lastname");
+									# last;
+								# }
+							# }
+						# }
+					# }
+				# }
+			# }
 
 			my %chronicling_params = ( ua => $cached_browser );
 			if($dateofbirth && ($dateofbirth =~ /(\d{4})$/)) {
