@@ -239,7 +239,7 @@ if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 	}
 }
 if($opts{'d'}) {
-	push @modules, 'Weather::Meteo';
+	push @modules, 'Weather::Meteo', 'DateTime::Format::Text';
 
 	if($opts{'m'}) {
 		push @modules, 'HTTP::Cache::Transparent';
@@ -1977,9 +1977,18 @@ sub print_person
 								# if($t =~ qr/$firstname $lastname/) {
 									# if($t =~ /\(born (\d{4})\)/) {
 										# if($yod && ($1 > $yod)) {
-											# # False positive
 											# # Died after the dbpedia person was born
 											# next;
+										# }
+									# }
+									# if(my $dt = DateTime::Format::Text->parse_datetime($t)) {
+										# if($birth_dt && ($dt < $birth_dt)) {
+											# $dt = $dt->delta_days($birth_dt);
+											# if(($dt->{'days'} / 356) > 10) {
+												# # Born more than 10 years after
+												# # the dbpedia event
+												# next;
+											# }
 										# }
 									# }
 									# # FIXME: add citation
