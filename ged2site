@@ -1975,9 +1975,9 @@ sub print_person
 						   # (my $description = $result->{'Description'})) {
 							# if(my $t = $description->{'text'}) {
 								# if($t =~ qr/$firstname $lastname/) {
-									# if($t =~ /\(born (\d{4})\)/) {
-										# if($yod && ($1 > $yod)) {
-											# # Died after the dbpedia person was born
+									# if(defined($yod) && ($t =~ /\(born (\d{4})\)/)) {
+										# if($yod < $1) {
+											# # Died before the dbpedia person was born
 											# next;
 										# }
 									# }
@@ -1989,6 +1989,12 @@ sub print_person
 												# # the dbpedia event
 												# next;
 											# }
+										# }
+									# }
+									# if(defined($yob) && ($t =~ /\((\d{4})\x{2013}(\d{4})\)/)) {
+										# if($yob > $2) {
+											# # Born after the dbpedia person died
+											# next;
 										# }
 									# }
 									# # FIXME: add citation
