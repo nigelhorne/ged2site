@@ -257,7 +257,7 @@ if($opts{'F'}) {
 	my $magick;
 	if($^O eq 'linux') {
 		# Debian lacks ImageMagick-7
-		$magick = 'Image::Magick 6.9.12-1';
+		$magick = 'Image::Magick 6.9.12-2';
 	} else {
 		$magick = 'Image::Magick';
 	}
