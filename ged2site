@@ -12411,6 +12411,7 @@ sub get_location($)
 		}
 		dump_geocoder_log();
 
+		$Data::Dumper::Maxdepth = 0;
 		print Data::Dumper->new([\$location])->Dump();
 		print Data::Dumper->new([\@locations])->Dump();
 		complain({ warning => "Probable bug in Geo::Coder::List with '$place'" });
