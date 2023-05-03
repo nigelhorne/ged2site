@@ -1975,25 +1975,38 @@ sub print_person
 						   # (my $description = $result->{'Description'})) {
 							# if(my $t = $description->{'text'}) {
 								# if($t =~ qr/$firstname $lastname/) {
-									# if(defined($yod) && ($t =~ /\(born (\d{4})\)/)) {
-										# if($yod < $1) {
+									# if($t =~ /\(born\s.+?\s(\d{4})\)/) {
+										# my $b = $1;
+										# if(defined($yod) && ($yod < $b)) {
 											# # Died before the dbpedia person was born
+											# next;
+										# }
+										# if(defined($yob) && ($yob != $b)) {
+											# # Born different year from the dbpedia person was born
 											# next;
 										# }
 									# }
 									# if(my $dt = DateTime::Format::Text->parse_datetime($t)) {
 										# if($birth_dt && ($dt < $birth_dt)) {
 											# $dt = $dt->delta_days($birth_dt);
-											# if(($dt->{'days'} / 356) > 10) {
-												# # Born more than 10 years after
+											# if(($dt->{'days'} / 356) > 2) {
+												# # Born more than 2 years after
 												# # the dbpedia event
 												# next;
 											# }
+										# # } elsif(defined($yob) && ($yob != $dt->year())) {
+											# # next;
 										# }
 									# }
-									# if(defined($yob) && ($t =~ /\((\d{4})\x{2013}(\d{4})\)/)) {
-										# if($yob > $2) {
-											# # Born after the dbpedia person died
+									# if($t =~ /\((\d{4})\x{2013}(\d{4})\)/) {
+										# my $b = $1;
+										# my $d = $2;
+										# if(defined($yod) && ($yod < $b)) {
+											# # Died before the dbpedia person was born
+											# next;
+										# }
+										# if(defined($yob) && ($yob != $b)) {
+											# # Born different year from the dbpedia person was born
 											# next;
 										# }
 									# }
