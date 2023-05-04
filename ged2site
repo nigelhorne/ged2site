@@ -1975,7 +1975,7 @@ sub print_person
 						   # (my $description = $result->{'Description'})) {
 							# if(my $t = $description->{'text'}) {
 								# if($t =~ qr/$firstname $lastname/) {
-									# if($t =~ /\(born\s.+?\s(\d{4})\)/) {
+									# if($t =~ /\(born\s.*?(\d{4})\)/) {
 										# my $b = $1;
 										# if(defined($yod) && ($yod < $b)) {
 											# # Died before the dbpedia person was born
@@ -1983,6 +1983,13 @@ sub print_person
 										# }
 										# if(defined($yob) && ($yob != $b)) {
 											# # Born different year from the dbpedia person was born
+											# next;
+										# }
+									# }
+									# if($t =~ /\(died\s.*?(\d{4})\)/) {
+										# my $d = $1;
+										# if(defined($yob) && ($yob > $d)) {
+											# # Born after dbpedia person died
 											# next;
 										# }
 									# }
