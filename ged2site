@@ -1967,76 +1967,79 @@ sub print_person
 			# TODO: Look up maiden name and married name(s)
 			# Experimental code with false positives at the moment
 			# if(my $resp = $cached_browser->get("http://lookup.dbpedia.org/api/search?query=$firstname%20$lastname")) {
-				# my $xmlparser = XML::Hash->new();
-				# my $dbpedia = $xmlparser->fromXMLStringtoHash($resp->decoded_content());
-				# if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
-					# foreach my $result(@{$arrayofresults->{'Result'}}) {
-						# if(($result->{'Label'}->{'text'} eq "$firstname $lastname") &&
-						   # (my $description = $result->{'Description'})) {
-							# if(my $t = $description->{'text'}) {
-								# if($t =~ qr/$firstname $lastname/) {
-									# if($t =~ /\(born\s.*?(\d{4})\)/) {
-										# my $b = $1;
-										# if(defined($yod) && ($yod < $b)) {
-											# # Died before the dbpedia person was born
-											# next;
-										# }
-										# if(defined($yob) && ($yob != $b)) {
-											# # Born different year from the dbpedia person was born
-											# next;
-										# }
-									# }
-									# if($t =~ /\(died\s.*?(\d{4})\)/) {
-										# my $d = $1;
-										# if(defined($yob) && ($yob > $d)) {
-											# # Born after dbpedia person died
-											# next;
-										# }
-									# }
-									# if(my $dt = DateTime::Format::Text->parse_datetime($t)) {
-										# if($birth_dt && ($dt < $birth_dt)) {
-											# $dt = $dt->delta_days($birth_dt);
-											# if(($dt->{'days'} / 356) > 2) {
-												# # Born more than 2 years after
-												# # the dbpedia event
+				# if($resp->is_success()) {
+					# my $dbpedia = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content());
+					# if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
+						# foreach my $result(@{$arrayofresults->{'Result'}}) {
+							# if(($result->{'Label'}->{'text'} eq "$firstname $lastname") &&
+							   # (my $description = $result->{'Description'})) {
+								# if(my $t = $description->{'text'}) {
+									# if($t =~ qr/$firstname $lastname/) {
+										# if($t =~ /\(born\s.*?(\d{4})\)/) {
+											# my $b = $1;
+											# if(defined($yod) && ($yod < $b)) {
+												# # Died before the dbpedia person was born
 												# next;
 											# }
-										# # } elsif(defined($yob) && ($yob != $dt->year())) {
-											# # next;
+											# if(defined($yob) && ($yob != $b)) {
+												# # Born different year from the dbpedia person was born
+												# next;
+											# }
 										# }
+										# if($t =~ /\(died\s.*?(\d{4})\)/) {
+											# my $d = $1;
+											# if(defined($yob) && ($yob > $d)) {
+												# # Born after dbpedia person died
+												# next;
+											# }
+										# }
+										# if(my $dt = DateTime::Format::Text->parse_datetime($t)) {
+											# if($birth_dt && ($dt < $birth_dt)) {
+												# $dt = $dt->delta_days($birth_dt);
+												# if(($dt->{'days'} / 356) > 2) {
+													# # Born more than 2 years after
+													# # the dbpedia event
+													# next;
+												# }
+											# # } elsif(defined($yob) && ($yob != $dt->year())) {
+												# # next;
+											# }
+										# }
+										# if($t =~ /\((\d{4})\x{2013}(\d{4})\)/) {
+											# my $b = $1;
+											# my $d = $2;
+											# if(defined($yod) && ($yod < $b)) {
+												# # Died before the dbpedia person was born
+												# next;
+											# }
+											# if(defined($yob) && ($yob != $b)) {
+												# # Born different year from the dbpedia person was born
+												# next;
+											# }
+										# }
+										# my @dts = DateTime::Format::Text->parse_datetime($t);
+										# if(scalar(@dts) == 2) {
+											# if(defined($yob) && (($yob != $dts[0]->year()) || ($yob > $dts[1]->year()))) {
+												# next;
+											# }
+											# if(defined($yod) && ($yod < $dts[0]->year())) {
+												# next;
+											# }
+										# }
+										# # FIXME: add citation
+										# print $csv "$t<br>";
+										# print $html "$t<br>";
+										# print $xml "$t\n\t\t\t\t";
+										# # $Data::Dumper::Maxdepth = 0;
+										# # print Data::Dumper->new([\$result])->Dump() if($t eq "$firstname $lastname");
+										# last;
 									# }
-									# if($t =~ /\((\d{4})\x{2013}(\d{4})\)/) {
-										# my $b = $1;
-										# my $d = $2;
-										# if(defined($yod) && ($yod < $b)) {
-											# # Died before the dbpedia person was born
-											# next;
-										# }
-										# if(defined($yob) && ($yob != $b)) {
-											# # Born different year from the dbpedia person was born
-											# next;
-										# }
-									# }
-									# my @dts = DateTime::Format::Text->parse_datetime($t);
-									# if(scalar(@dts) == 2) {
-										# if(defined($yob) && (($yob != $dts[0]->year()) || ($yob > $dts[1]->year()))) {
-											# next;
-										# }
-										# if(defined($yod) && ($yod < $dts[0]->year())) {
-											# next;
-										# }
-									# }
-									# # FIXME: add citation
-									# print $csv "$t<br>";
-									# print $html "$t<br>";
-									# print $xml "$t\n\t\t\t\t";
-									# # $Data::Dumper::Maxdepth = 0;
-									# # print Data::Dumper->new([\$result])->Dump() if($t eq "$firstname $lastname");
-									# last;
 								# }
 							# }
 						# }
 					# }
+				# } else {
+					# complain({ person => $person, warning => "dbpedia: $firstname $lastname failed: " . $resp->status_line() });
 				# }
 			# }
 
