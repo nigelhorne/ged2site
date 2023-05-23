@@ -13026,6 +13026,7 @@ brother::Bruder
 brothers::Brüder
 check out %s::Schau mal bei %s
 child::Kind
+daughter::Tochter
 died::starb
 during %s life:M:während seines Lebens
 during %s life:F:während ihres Lebens
@@ -13049,6 +13050,7 @@ on the father's side::Auf der Seite deines Vaters
 she::sie
 sister::Schwester
 sisters::Schwestern
+son::Sohn
 the head of household::der Haushaltsvorstand
 the same day as::die gleichen Tag als
 times::fache
