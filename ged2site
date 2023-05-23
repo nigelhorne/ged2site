@@ -1966,15 +1966,15 @@ sub print_person
 			# Lookup entry in dbpedia.
 			# TODO: Look up maiden name and married name(s)
 			# Experimental code with false positives at the moment
-			# if(my $resp = $cached_browser->get("http://lookup.dbpedia.org/api/search?query=$firstname%20$lastname")) {
+			# if(my $resp = $cached_browser->get("https://lookup.dbpedia.org/api/search?query=$firstname%20$lastname")) {
 				# if($resp->is_success()) {
 					# my $dbpedia = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content());
 					# if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
 						# foreach my $result(@{$arrayofresults->{'Result'}}) {
-							# if(($result->{'Label'}->{'text'} eq "$firstname $lastname") &&
+							# if(($result->{'Label'}->{'text'} =~ /$firstname([a-z\s]+)$lastname/i) &&
 							   # (my $description = $result->{'Description'})) {
 								# if(my $t = $description->{'text'}) {
-									# if($t =~ qr/$firstname $lastname/) {
+									# if($t =~ /$firstname([a-z\s]+)$lastname/i) {
 										# if($t =~ /\(born\s.*?(\d{4})\)/) {
 											# my $b = $1;
 											# if(defined($yod) && ($yod < $b)) {
