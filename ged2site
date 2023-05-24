@@ -2030,6 +2030,29 @@ sub print_person
 												# next;
 											# }
 										# }
+										# } elsif(defined($yob)) {
+											# # Try to guess other info
+											# my @categories = @{$result->{'Categories'}->{'Category'}};
+											# foreach my $category(@categories) {
+												# my $uri = $category->{'URI'}->{'text'};
+												# if(defined($yod) && ($uri =~ /Living_people$/)) {
+													# # dbpedia person is alive, ours is not
+													# next RESULT;
+												# }
+												# if(defined($yob) && ($uri =~ /Category:(\d{4})_births$/)) {
+													# my $b = $1;
+													# if(defined($yod) && ($yod < $b)) {
+														# # Died before the dbpedia person was born
+														# next RESULT;
+													# }
+													# if(defined($yob) && ($yob != $b)) {
+														# # Born different year from the dbpedia person was born
+														# next RESULT;
+													# }
+												# }
+												# warn ">>>>>>>>>> $uri";
+											# }
+										# }
 										# # FIXME: add citation
 										# print $csv "$t<br>";
 										# print $html "$t<br>";
