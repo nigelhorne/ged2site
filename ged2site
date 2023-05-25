@@ -12875,7 +12875,7 @@ sub weather
 				return 'a cold and overcast day';
 			}
 			return 'an overcast day';
-		} elsif(($wmo == 51) || ($wmo == 53)) {
+		} elsif(($wmo == 51) || ($wmo == 53) || ($wmo == 55)) {
 			if($temperature >= 22) {
 				return 'a warm but drizzly day';
 			}
