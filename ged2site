@@ -1971,7 +1971,8 @@ sub print_person
 					# my $dbpedia = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content());
 					# if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
 						# foreach my $result(@{$arrayofresults->{'Result'}}) {
-							# if(($result->{'Label'}->{'text'} =~ /$firstname([a-z\s]+)$lastname/i) &&
+							# if($result->{'Label'}->{'text'} &&
+							   # ($result->{'Label'}->{'text'} =~ /$firstname([a-z\s]+)$lastname/i) &&
 							   # (my $description = $result->{'Description'})) {
 								# if(my $t = $description->{'text'}) {
 									# if($t =~ /$firstname([a-z\s]+)$lastname/i) {
