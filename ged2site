@@ -5163,7 +5163,7 @@ sub print_person
 										if(($place =~ /^\s\d/ && (my $ssp = place({ person => $ss, record => $ssr, nopreposition => 1 })))) {
 											if($ssp eq $place) {
 												if($first) {
-													$residencestring .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
+													$residencestring .= i18n(' when ') . i18n(lc($person->pronoun())) .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
 														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
 														$ss->as_string();
@@ -5639,6 +5639,7 @@ sub print_person
 						$residencestring =~ s/(.+), (his|her) /$1 and $2 /;
 					}
 					push @residencestringarray, $residencestring;
+					$residencestring =~ s/\sand$//;
 					$printed_residence = 1;
 				}
 			}
