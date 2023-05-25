@@ -6775,6 +6775,10 @@ sub print_person
 				$opts->{'address'} = $address;
 			}
 
+			my $type = 'burial';
+			if($placeofcremation || $dateofcremation) {
+				$type = 'cremation';
+			}
 			if($dateofburial) {
 				if($diedathome) {
 					$bio .= $pronoun;
@@ -6785,10 +6789,6 @@ sub print_person
 						push @phrases, $phrase;
 						$phrase = Data::Text->new();
 					}
-				}
-				my $type = 'burial';
-				if($placeofcremation || $dateofcremation) {
-					$type = 'cremation';
 				}
 				if(($language eq 'French') && $placeofburial &&
 				  defined($placeofdeath) && ($placeofburial eq $placeofdeath) && (!$address) && !$death->address()) {
@@ -6903,9 +6903,61 @@ sub print_person
 				$b = HTML::Entities::encode($b);
 				$b =~ s/&eacute;/&#233;/g;
 
-				$bio .= i18n({ person => $person, format => 'is buried' }) .
-					$b;
-				$phrase->append(i18n({ person => $person, format => 'is buried' }))->append($b);
+				my $weather;
+				if($type eq 'burial') {
+					if($dateofburial) {
+						$bio .= i18n({ person => $person, format => 'was buried' });
+						$phrase->append(i18n({ person => $person, format => 'was buried' }));
+					} else {
+						$bio .= i18n({ person => $person, format => 'is buried' });
+						$phrase->append(i18n({ person => $person, format => 'is buried' }));
+					}
+					if($b eq ' there') {
+						if($b = $burial->address()) {
+							$bio .= i18n(' at ')->append($b);
+							$phrase->append(i18n(' at '))->append($b);
+						}
+						$bio .= ' ';
+						$phrase->append(' ');
+					} else {
+						$bio .= "$b ";
+						$phrase->append("$b ");
+					}
+					if($dateofburial) {
+						$bio .= ' ' . year({ person => $person, date => $dateofburial });
+						$phrase->append(' ' . year({ person => $person, date => $dateofburial }));
+					}
+					$weather = weather({ person => $person, record => $burial, meteo => $meteo });
+				} else {
+					$bio .= "was cremated$b";
+					$phrase->append("was cremated$b");
+					if($b eq ' there') {
+						if($b = $cremation->address()) {
+							$bio .= i18n(' at ')->append($b);
+							$phrase->append(i18n(' at '))->append($b);
+						}
+					}
+					if($b eq ' there') {
+						if($b = $cremation->address()) {
+							$bio .= i18n(' at ')->append($b);
+							$phrase->append(i18n(' at '))->append($b);
+						}
+						$bio .= ' ';
+						$phrase->append(' ');
+					} else {
+						$bio .= "$b ";
+						$phrase->append("$b ");
+					}
+					if($dateofcremation) {
+						$bio .= ' ' . year({ person => $person, date => $dateofcremation });
+						$phrase->append(' ' . year({ person => $person, date => $dateofcremation }));
+					}
+					$weather = weather({ person => $person, record => $cremation, meteo => $meteo });
+				}
+				if(defined($weather)) {
+					$bio .= " ($weather)";
+					$phrase->append(" ($weather)");
+				}
 			}
 
 			if($notes && (length($notes) > 160)) {
@@ -12864,14 +12916,14 @@ sub weather
 			if($temperature <= 16) {
 				return 'a mild and sunny day';
 			}
-			if($temperature <= 3) {
+			if($temperature <= 5) {
 				return 'a cold and sunny day';
 			}
 			return 'a warm, sunny day';
 		} elsif($wmo == 2) {
 			return 'a partly cloudy day';
 		} elsif($wmo == 3) {
-			if($temperature <= 3) {
+			if($temperature <= 5) {
 				return 'a cold and overcast day';
 			}
 			return 'an overcast day';
@@ -12882,7 +12934,12 @@ sub weather
 			return 'a drizzly day';
 		} elsif($wmo == 61) {
 			return 'a day with light rain';
-		} elsif($temperature < 0) {
+		} elsif($wmo == 73) {
+			if($temperature <= 5) {
+				return 'a cold day with snow';
+			}
+			return 'a day with snow';
+		} elsif($temperature < 5) {
 			return 'a cold day';
 		} else {
 			die "TODO: parse weather (wmo = $wmo, temperature = $temperature)";
