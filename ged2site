@@ -11666,7 +11666,9 @@ sub get_all_occupations
 		} elsif(($occupations[0] !~ /gas works/i) && ($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i)) {
 			# Don't change Bus Driver to Bu's Driver
 			$occupations[0] = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
-		} elsif(($occupations[0] =~ /Manager (.*)/i) && ($occupations[0] !~ /^Manager of /i)) {
+		} elsif(($occupations[0] =~ /Manager (.*)/i) &&
+			($occupations[0] !~ /^Manager of /i) &&
+			($occupations[0] !~ /Manager & /i)) {
 			$occupations[0] = "$1 Manager";
 		}
 
@@ -12853,9 +12855,12 @@ sub dbpedia
 	}
 
 	my $person = $params{'person'};
-	my $birth_dt = $params{'birth_dt'};
-	my $yob = $birth_dt->year();
 	my $yod = $params{'yod'};
+	my $birth_dt = $params{'birth_dt'};
+	my $yob;
+	if(defined($birth_dt)) {
+		$yob = $birth_dt->year();
+	}
 
 	my $name = $person->name();
 	$name =~ s/\///g;
