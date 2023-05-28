@@ -5695,20 +5695,23 @@ sub print_person
 			last;
 		}
 	}
-	if($all_events_have_date && (scalar(@events) > 0)) {
+
+	# Sort the events by date
+	if(all_records_have_date({ person => $person, records => \@events }) && (scalar(@events) > 0)) {
 		@events = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @events;
 	}
+
 	# Let's remove things that aren't relevant that may
 	# allow optimisations in the English
-	while(scalar(@events) > 2) {
-		my $e = $events[scalar(@events) - 1];
-		# TODO: add more
-		if(ref($e) && ($e->type() eq 'Register UK 1939')) {
-			pop @events;
-		} else {
-			last;
-		}
-	}
+	# while(scalar(@events) > 2) {
+		# my $e = $events[scalar(@events) - 1];
+		# # TODO: add more
+		# if(ref($e) && ($e->type() eq 'Register UK 1939')) {
+			# pop @events;
+		# } else {
+			# last;
+		# }
+	# }
 
 	my $funeral;
 
@@ -8663,6 +8666,33 @@ sub print_person
 	}
 
 	print "Done\n" if($opts{'v'});
+}
+
+sub all_records_have_date
+{
+	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my @records = @{$args{'records'}};
+	my $person = $args{'person'};
+
+	foreach my $record(@records) {
+		if((ref($record) ne 'Gedcom::Record') || !$record->date()) {
+			return 0;
+		}
+		my $date = $record->date();
+		if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
+		   ($date =~ /[\/\-]/) || !date_parser_cached(date => $date)) {
+			return 0;
+		}
+		if(!date_parser_cached(date => $date)) {
+			complain({
+				person => $person,
+				warning => "Record has an invalid date of $date"
+			});
+			return 0;
+		}
+	}
+	return 1;
 }
 
 sub Gedcom::Individual::as_string
