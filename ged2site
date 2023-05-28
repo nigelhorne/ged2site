@@ -12914,6 +12914,15 @@ sub dbpedia
 			my $dbpedia = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content());
 			if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
 				RESULT: foreach my $result(@{$arrayofresults->{'Result'}}) {
+					if($result->{'Classes'}->{'Class'} &&
+					   (ref($result->{'Classes'}->{'Class'}) eq 'ARRAY')) {
+						my @classes = @{$result->{'Classes'}->{'Class'}};
+						foreach my $class(@classes) {
+							if($class->{'Label'}->{'text'} eq 'Place') {
+								next RESULT;
+							}
+						}
+					}
 					if($result->{'Label'}->{'text'} &&
 					   ($result->{'Label'}->{'text'} =~ /$firstname([a-z\s]+)$surname/i) &&
 					   (my $description = $result->{'Description'})) {
