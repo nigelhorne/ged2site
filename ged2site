@@ -8676,19 +8676,22 @@ sub all_records_have_date
 	my $person = $args{'person'};
 
 	foreach my $record(@records) {
-		if((ref($record) ne 'Gedcom::Record') || !$record->date()) {
+		if((!ref($record)) || (ref($record) ne 'Gedcom::Record') || !$record->date()) {
 			return 0;
 		}
-		my $date = $record->date();
-		if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
-		   ($date =~ /[\/\-]/) || !date_parser_cached(date => $date)) {
-			return 0;
-		}
-		if(!date_parser_cached(date => $date)) {
-			complain({
-				person => $person,
-				warning => "Record has an invalid date of $date"
-			});
+		if(my $date = $record->date()) {
+			if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
+			   ($date =~ /[\/\-]/) || !date_parser_cached(date => $date)) {
+				return 0;
+			}
+			if(!date_parser_cached(date => $date)) {
+				complain({
+					person => $person,
+					warning => "Record has an invalid date of $date"
+				});
+				return 0;
+			}
+		} else {
 			return 0;
 		}
 	}
@@ -12394,9 +12397,18 @@ sub parse_date
 # Given a place return its latitude and longitude
 sub get_location($)
 {
+	return unless(defined($geocoder));
+
 	my $place = shift;
 
-	return unless(defined($geocoder));
+	if(!defined($place)) {
+		print "\n";
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'BUG: place argument not given';
+	}
 
 	print "get_location: $place\n" if($opts{'v'});
 
