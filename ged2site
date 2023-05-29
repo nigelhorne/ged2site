@@ -11874,17 +11874,20 @@ sub datecmp($$)
 	if(!ref($left)) {
 		if($left =~ /^(Abt|ca?)\s+(.+)/i) {
 			$left = $2;
+		} elsif($left =~ /^[a-z\/]+\s+(.+)/i) {
+			# e.g. "Oct/Nov/Dec 1950"
+			$left = $1;
 		}
+
 		if($left !~ /^\d{3,4}$/) {
 			my @l = $dfg->parse_datetime($left);
 			my $rc = $l[1] || $l[0];
 			if(!defined($rc)) {
-				print STDERR "Date parse failure: ($left):\n";
 				my $i = 0;
 				while((my @call_details = caller($i++))) {
 					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 				}
-				return 0;
+				die "Date parse failure: ($left)";
 			}
 			$left = $rc;
 		}
@@ -12900,6 +12903,14 @@ sub dbpedia
 	my $birth_dt = $params{'birth_dt'};
 	my $yob;
 	if(defined($birth_dt)) {
+		if(!ref($birth_dt)) {
+			print STDERR "\n";
+			my $i = 0;
+			while((my @call_details = caller($i++))) {
+				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+			}
+			die "birth_dt ($birth_dt) is not a ref";
+		}
 		$yob = $birth_dt->year();
 	}
 
