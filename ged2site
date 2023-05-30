@@ -12871,6 +12871,8 @@ sub weather
 			return 'a drizzly day';
 		} elsif($wmo == 61) {
 			return 'a day with light rain';
+		} elsif($wmo == 63) {
+			return 'a rainy day';
 		} elsif($wmo == 73) {
 			if($temperature <= 5) {
 				return 'a cold day with snow';
