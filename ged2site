@@ -2711,22 +2711,22 @@ sub print_person
 						$bio .= "'enfant";
 						$phrase->append("'enfant");
 					} else {
-						$bio .= 'child';
-						$phrase->append('child');
+						$bio .= i18n('child');
+						$phrase->append(i18n('child'));
 					}
 				}
 			} else {
 				# $bio .= ' only child of';
-				$bio .= 'child';
-				$phrase->append('child');
+				$bio .= i18n('child');
+				$phrase->append(i18n('child'));
 			}
 			if($language eq 'French') {
 				$bio =~ s/^Le a/L'a/;
 				$phrase->replace({ 'Le a' => "L'a" });
 			}
 		} else {
-			$bio .= 'child';
-			$phrase->append('child');
+			$bio .= i18n('child');
+			$phrase->append(i18n('child'));
 		}
 
 		if(($language eq 'French') && ($father->as_string =~ /^[aehiou]/i)) {
