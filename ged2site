@@ -7123,6 +7123,7 @@ sub print_person
 		$copy =~ s/\xc2\xa9/&copy;/g;
 		$copy =~ s/&Acirc;&copy;/&copy;/g;
 		$copy =~ s/é/&eacute;/g;
+		$copy =~ s/ & / &amp; /g;	# Occupations often have '&'
 		utf8::decode($copy);
 		print $csv $copy;
 		utf8::decode($s);
