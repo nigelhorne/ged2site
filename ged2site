@@ -3958,13 +3958,17 @@ sub print_person
 
 				my $all_marriages_have_date = 1;
 				foreach my $spouse(@spouses) {
-					my $date = get_value({ person => $spouse, value => 'marriage date' });
-					if(!defined($date)) {
-						if(my $marriage = ($spouse->get_record('marriage') || $spouse->get_record('fams marriage'))) {
-							$date = $marriage->date();
-						}
-					}
-					if(!date_to_datetime($date)) {
+					# my $date = get_value({ person => $spouse, value => 'marriage date' });
+					# if(!defined($date)) {
+						# if(my $marriage = ($spouse->get_record('marriage') || $spouse->get_record('fams marriage'))) {
+							# $date = $marriage->date();
+						# }
+					# }
+					# if(!date_to_datetime($date)) {
+						# $all_marriages_have_date = 0;
+						# last;
+					# }
+					if(!date_to_datetime(dateofmarriage($spouse))) {
 						$all_marriages_have_date = 0;
 						last;
 					}
@@ -6297,18 +6301,13 @@ sub print_person
 				} elsif($type eq 'Employment') {
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes =~ s/\.$//;
-						if($phrase->length()) {
-							if(my $date = year(record => $event)) {
-								$phrase->append(" $date " . lcfirst($pronoun) . ' was working');
-							} else {
-								$phrase->append(" $pronoun worked");
+						if(my $date = year(record => $event)) {
+							if(scalar(@phrases) == 0) {
+								$date = ucfirst($date);
 							}
+							$phrase->append("$date " . lcfirst($pronoun) . ' was working');
 						} else {
-							if(my $date = year(record => $event)) {
-								$phrase->set(' ' . ucfirst($date) . ' ' . lcfirst($pronoun) . ' was working');
-							} else {
-								$phrase->set(" $pronoun worked");
-							}
+							$phrase->set("$pronoun worked");
 						}
 						$phrase->append(" at $notes");
 						if(my $place = place(person => $person, record => $event)) {
