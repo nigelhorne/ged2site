@@ -2553,23 +2553,8 @@ sub print_person
 
 	my @person_twins;
 	if($birth_dt && ($opts{'l'} || !$is_alive)) {
-		foreach my $s(@siblings) {
-			if(my $dob = dateofbirth($s)) {
-				if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
-					my $d;
-					eval {
-						$d = $date_parser->parse(date => $dob);
-					};
-					if($d && ($d = $d->[0])) {
-						$d = $dfn->parse_datetime($d->{'canonical'});
-						if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
-							push @person_twins, $s;
-							$twins{$person->xref()} = $s->xref();
-						}
-					}
-				}
-			}
-		}
+		@person_twins = twins({ dob => $dateofbirth, birth_dt => $birth_dt, siblings => \@siblings });
+
 		if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
 			if(scalar(@occupations)) {
 				if(!$printed_comma) {
@@ -2585,9 +2570,9 @@ sub print_person
 					push @phrases, $phrase;
 				}
 				$phrase = Data::Text->new('The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
-					' of ' . $person_twins[0]->given_names());
+					' of ' . $person_twins[0]->{'sibling'}->given_names());
 				$bio .= 'The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
-					' of ' . $person_twins[0]->given_names();
+					' of ' . $person_twins[0]->{'sibling'}->given_names();
 			}
 			$printed_comma = 0;
 		}
@@ -3278,26 +3263,8 @@ sub print_person
 					}
 				}
 			} elsif($birth_dt) {
-				my @person_twins;
-				foreach my $s(@siblings) {
-					if(my $dob = dateofbirth($s)) {
-						if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
-							my $d;
-							eval {
-								$d = $date_parser->parse(date => $dob);
-							};
-							if($d && ($d = $d->[0])) {
-								$d = $dfn->parse_datetime($d->{'canonical'});
-								if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
-									push @person_twins, { sibling => $s, dob => $d };
-									if($opts{'l'} || !$is_alive) {
-										$twins{$person->xref()} = $s->xref();
-									}
-								}
-							}
-						}
-					}
-				}
+				my @person_twins = twins({ dob => $dateofbirth, birth_dt => $birth_dt, siblings => \@siblings });
+
 				if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
 					my $t = $person_twins[0];
 					my $sibling = $t->{'sibling'};
@@ -12882,6 +12849,43 @@ sub weather
 	}
 }
 
+# Given an array of siblings and my date of birth, return an array of which of them are my twins
+# Allow for a twin being born a day before or after this person
+sub twins
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	}
+
+	my $dob = $params{'dob'};
+	my $birth_dt = $params{'birth_dt'};
+	my @siblings = @{$params{'siblings'}};
+	my @twins;
+
+	foreach my $s(@siblings) {
+		if(my $dob = dateofbirth($s)) {
+			if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
+				my $d;
+				eval {
+					$d = $date_parser->parse(date => $dob);
+				};
+				if($d && ($d = $d->[0])) {
+					$d = $dfn->parse_datetime($d->{'canonical'});
+					if(($d == $birth_dt) || ($d == ($birth_dt - $oneday)) || ($d == ($birth_dt + $oneday))) {
+						push @twins, { sibling => $s, dob => $d };
+					}
+				}
+			}
+		}
+	}
+
+	return @twins;
+}
+
 # Lookup entry in dbpedia.
 # TODO: Look up maiden name and married name(s)
 # TODO: use DateTime::Format::Text to find embedded dates
@@ -13013,10 +13017,14 @@ sub dbpedia
 											next;
 										}
 									}
-								} elsif(defined($yob) && $result->{'Categories'}->{'Category'} &&
-									(ref($result->{'Categories'}->{'Category'}) eq 'ARRAY')) {
+								} elsif($result->{'Categories'}->{'Category'}) {
 									# Try to guess other info
-									my @categories = @{$result->{'Categories'}->{'Category'}};
+									my @categories;
+									if(ref($result->{'Categories'}->{'Category'}) eq 'ARRAY') {
+										@categories = @{$result->{'Categories'}->{'Category'}};
+									} else {
+										@categories = ( $result->{'Categories'}->{'Category'} );
+									}
 									foreach my $category(@categories) {
 										my $uri = $category->{'URI'}->{'text'};
 										if(defined($yod) && ($uri =~ /Living_people$/)) {
@@ -13034,6 +13042,9 @@ sub dbpedia
 												next RESULT;
 											}
 										}
+										if($uri =~ /Category:Teaching_hospitals/) {
+											next RESULT;
+										}
 										warn ">>>>>>>>>> $uri";
 									}
 								}
@@ -13050,6 +13061,7 @@ sub dbpedia
 		}
 	}
 }
+
 # Must all be in lower case
 __DATA__
 @@ English
