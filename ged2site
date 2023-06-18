@@ -4672,6 +4672,11 @@ sub print_person
 
 				print __LINE__, ": count = $count\n" if($opts{'v'});
 
+				if(defined($rdate) && ($rdate =~ /^\s*(.+\d\d)\s*\-\s*(.+\d\d)\s*$/)) {
+					complain({ person => $person, warning => "Changing date '$rdate' to 'bet $1 and $2'" });
+					$rdate = "bet $1 and $2";
+				}
+
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
 					if($birth && $dateofbirth && $rdate && ($rdate eq $dateofbirth) &&
 					   places_are_the_same({ person => $person, first => $birth, second => $residence})) {
@@ -4966,7 +4971,11 @@ sub print_person
 						}
 					}
 					if(scalar(@citationlist)) {
-						$residencestring =~ s/,$//;
+						if(!defined($residencestring) && (my $p = place({ person => $person, record => $residence, places_printed => \%places_printed }))) {
+							$residencestring = $p;
+						} else {
+							$residencestring =~ s/,$//;
+						}
 						$residencestring .= cite(@citationlist);
 					}
 				}
@@ -7944,7 +7953,7 @@ sub print_person
 
 		# Sort put all events at a place on the same pointer
 		# TODO: then sort in date order
-		foreach my $event(sort { place({ record => $place_records{$a}, nopreposition => 1 }) cmp place({ record => $place_records{$b}, nopreposition => 1 }) } @place_events ) {
+		foreach my $event(sort { place({ person => $person, record => $place_records{$a}, nopreposition => 1 }) cmp place({ person => $person, record => $place_records{$b}, nopreposition => 1 }) } @place_events ) {
 			my $record = $place_records{$event};
 			my $place = place({ record => $record, nopreposition => 1 });
 			if(defined($place) && ($place =~ /,.+,/)) {
@@ -10027,6 +10036,10 @@ sub place {
 							complain({ person => $params{'person'}, warning => "Location for the event between $1 is empty" });
 						} else {
 							complain({ person => $params{'person'}, warning => 'Location for "' . lcfirst($params{'record'}->type()) . "\" on $date is empty" });
+							my $i = 0;
+							while((my @call_details = caller($i++))) {
+								print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+							}
 						}
 					} else {
 						complain({ person => $params{'person'}, warning => 'Location is empty' });
@@ -11887,7 +11900,14 @@ sub datecmp($$)
 			# die join('<=>', @_);
 		# }
 		my @r = $dfg->parse_datetime($right);
-		die $right if(!defined($r[0]));
+		if(!defined($r[0])) {
+			# TODO: throw an error that we can catch
+			my $i = 0;
+			while((my @call_details = caller($i++))) {
+				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+			}
+			die $right;
+		}
 		$right = $r[0];
 	}
 	if((!ref($left)) && ref($right)) {
@@ -12268,7 +12288,11 @@ sub dateofdeath
 			complain({ person => $person, warning => "Removing trailing spaces from date of death '$dateofdeath'" });
 			$dateofdeath =~ s/\s+$//;
 		}
-		return parse_date({ date => $dateofdeath, type => 'Death', person => $person });
+		if($dateofdeath =~ /\d+\/\d+\/\d+/) {
+			complain({ person => $person, warning => "Invalid date format for date of death '$dateofdeath'" });
+		} else {
+			return parse_date({ date => $dateofdeath, type => 'Death', person => $person });
+		}
 	}
 	return;	# undef
 }
