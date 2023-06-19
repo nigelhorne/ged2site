@@ -4036,16 +4036,7 @@ sub print_person
 				my $spouse_number = 0;
 				my $previousplace;
 				foreach my $spouse(@spouses) {
-					my $dateofmarriage = get_value({ person => $spouse, value => 'marriage date' });
-					if(!defined($dateofmarriage)) {
-						if(my $marriage = ($spouse->get_record('marriage') || $spouse->get_record('fams marriage'))) {
-							$dateofmarriage = $marriage->date();
-						}
-					}
-					if($dateofmarriage && ($dateofmarriage =~ /\s$/)) {
-						complain({ person => $person, warning => 'Removing trailing spaces from date of marriage' });
-						$dateofmarriage =~ s/\s+$//;
-					}
+					my $dateofmarriage = dateofmarriage({ person => $spouse });
 					my $placeofmarriage = get_value({ person => $spouse, value => 'marriage place' });
 					if(!defined($placeofmarriage)) {
 						if(my $marriage = $spouse->get_record('marriage') || $spouse->get_record('fams marriage')) {
@@ -8069,13 +8060,15 @@ sub print_person
 			my ($head, $map_div) = $map->onload_render();
 			$head =~ s/\n\n*/\n/g;
 			$head =~ s/http:/https:/;
+			utf8::encode($head);
 			# if($opts{'M'}) {
 				# # Don't include the key in the webpage.
 				# $head =~ s/\?key=\w+?"/"/;
 			# }
-			print $html "$head<h2>Map</h2>$map_div\n";
+			print $html HTML::Entities::encode($head), '<h2>Map</h2>', HTML::Entities::encode($map_div), "\n";
+			print $xml "\n\t\t<map>\n\t\t\t<head>", MIME::Base64::encode_base64url($head),
+				"</head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>";
 			print $csv MIME::Base64::encode_base64url($head), '!', MIME::Base64::encode_base64url($map_div), '!';
-			print $xml "\n\t\t<map>\n\t\t\t<head>", MIME::Base64::encode_base64url($head), "</head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>";
 		} else {
 			print $csv '!!';
 		}
@@ -10136,7 +10129,7 @@ sub place {
 	}
 	$place =~ s/\xc3\xa9/é/g;
 
-	if($place =~ /(.+?)\s*United States$/i) {
+	if(($place =~ /(.+?)\s*United States$/i) || ($place =~ /(.+?)\s*United States of America$/i)) {
 		$place = "$1 USA";
 		$rc->en($place);
 	} elsif($place =~ /States\s.*$/) {
