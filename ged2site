@@ -737,6 +737,8 @@ my %censusmaps = (
 
 	'US Census 1940 - Findmypast' => '1940 US Census',
 	'1940 United States Federal Census' => '1940 US Census',
+
+	'1950 United States Federal Census' => '1950 US Census',
 );
 
 # sub realdie
@@ -3756,8 +3758,12 @@ sub print_person
 							}
 						}
 						if((!$placeofmarriage) && !$dateofmarriage) {
-							$bio .= i18n({ format => 'with %s', args => $spouse->as_string({ middle_names => 1, title => 1 }) });
-							$phrase->append(i18n({ format => 'with %s', args => $spouse->as_string({ middle_names => 1, title => 1 }) }));
+							if(length(my $spouse_name = $spouse->as_string({ middle_names => 1, title => 1 }))) {
+								$bio .= i18n({ format => 'with %s', args => $spouse_name });
+								$phrase->append(i18n({ format => 'with %s', args => $spouse_name }));
+							} else {
+								complain({ person => $person, warning => "Can't determine spouse name from record" });
+							}
 							my @spouse_occupations = get_all_occupations($spouses[0]);
 							if(my $soccupation = $spouse_occupations[0]) {
 								if($language eq 'English') {
@@ -4376,8 +4382,17 @@ sub print_person
 				# my $childnames = join(', ', map { $_->given_names() } @children);
 				# substr($childnames, rindex($childnames, ', '), 2, ' and ');
 				# $bio .= ", $childnames";
-				$bio .= ', ' . conjunction(map { $_->given_names() } @children);
-				$phrase->append(', ' . conjunction(map { $_->given_names() } @children));
+				my $all_children_have_names = 1;
+				foreach my $child(@children) {
+					if(length($child->given_names() == 0)) {
+						$all_children_have_names = 0;
+						last;
+					}
+				}
+				if($all_children_have_names) {
+					$bio .= ', ' . conjunction(map { $_->given_names() } @children);
+					$phrase->append(', ' . conjunction(map { $_->given_names() } @children));
+				}
 			}
 			$end_of_sentence = 0;
 		}
@@ -4881,7 +4896,7 @@ sub print_person
 									# FIXME: both parents could be dead
 									complain({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
 								}	# TODO: else warn if both parents locations are different
-							} elsif($numberofchildren && ($rdate !~ /^bet\s/i)) {
+							} elsif($numberofchildren && ($rdate !~ /^bet\s/i) && ($rdate !~ /\d{4}, \d{4}/)) {
 								# Look if a young child isn't with this parent
 								foreach my $child(@children) {
 									my $cyob = dateofbirth($child);
@@ -4899,15 +4914,7 @@ sub print_person
 										next if(datecmp($cyod, $rdate) <= 0);	# Child was dead by this event
 									}
 
-									my $missing_child = 1;
-									foreach my $event(get_all_residences($child)) {
-										my $edate = $event->date();
-										if($edate && ($edate !~ /^bet\s/i) && (datecmp($edate, $rdate) >= 0)) {
-											$missing_child = 0;
-											last;
-										}
-									}
-									if($missing_child) {
+									if(!person_in_residence_record({ person => $child, date => $rdate })) {
 										if($firstname) {
 											complain({ person => $child, warning => "Parent $firstname is listed in the residence for $rdate, but this child is not" });
 										} else {
@@ -5835,10 +5842,14 @@ sub print_person
 				$phrase = Data::Text->new();
 				@phrases = ();
 
-				if($ENV{'LANG'} =~ /^en_US/) {
-					$place_records{'Traveled to'} = $event;
+				if($event->address()) {
+					if($ENV{'LANG'} =~ /^en_US/) {
+						$place_records{'Traveled to'} = $event;
+					} else {
+						$place_records{'Travelled to'} = $event;
+					}
 				} else {
-					$place_records{'Travelled to'} = $event;
+					complain({ person => $person, warning => 'Date is known but not location in arrival record' });
 				}
 			} elsif($type eq 'Departure') {
 				$phrase->set(' ' . $person->pronoun());
@@ -6174,6 +6185,9 @@ sub print_person
 							}
 						} else {
 							complain({ person => $person, warning => "Can't determine $type date" });
+
+							$bio .= "arrived$place";
+							$phrase->append("arrived$place");
 						}
 					} else {
 						complain({ person => $person, warning => "Can't determine $type location" });
@@ -6186,10 +6200,12 @@ sub print_person
 					$bio .= '.';
 					$end_of_sentence = 1;
 
-					push @phrases, $phrase;
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-					$phrase = Data::Text->new();
-					@phrases = ();
+					if(defined($phrase) && ($phrase->length() > 0)) {
+						push @phrases, $phrase;
+						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+						$phrase = Data::Text->new();
+						@phrases = ();
+					}
 				} elsif($type eq 'Departure') {
 					if(!defined($event->place())) {
 						complain({ person => $person, warning => 'Departure record without destination' });
@@ -6336,7 +6352,7 @@ sub print_person
 					($type ne 'Hospitalisation')) {
 					red_warning({ person => $person, warning => "Unknown event type: $type" });
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
-						$notes =~ s/\.$//;
+						$notes =~ s/[\s\.]+$//;
 						my $date = year(record => $event);
 						if($end_of_sentence) {
 							if($date) {
@@ -6351,6 +6367,7 @@ sub print_person
 							} else {
 								$bio .= " ($notes)";
 							}
+							$end_of_sentence = 0;
 						}
 						if($phrase->length()) {
 							$notes = lcfirst($notes);
@@ -6397,10 +6414,14 @@ sub print_person
 			$bio .= " $pronoun served in the military ($value).";
 			$end_of_sentence = 1;
 
-			push @phrases, $phrase;
-			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-			$phrase = Data::Text->new();
-			@phrases = ();
+			if($phrase->length()) {
+				push @phrases, $phrase;
+				$phrase = Data::Text->new();
+			}
+			if(scalar(@phrases)) {
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+				@phrases = ();
+			}
 			$bio_dt->append(" $pronoun served in the military ($value).");
 		}
 	}
@@ -7951,6 +7972,14 @@ sub print_person
 		my $current_place;
 		my $annotation;
 
+		if($opts{'w'}) {
+			while(my($key, $value) = each %place_records) {
+				if(!defined(place({ person => $person, record => $value, nopreposition => 1 }))) {
+					die "BUG: $key record has no location";
+				}
+			}
+		}
+
 		# Sort put all events at a place on the same pointer
 		# TODO: then sort in date order
 		foreach my $event(sort { place({ person => $person, record => $place_records{$a}, nopreposition => 1 }) cmp place({ person => $person, record => $place_records{$b}, nopreposition => 1 }) } @place_events ) {
@@ -8650,7 +8679,7 @@ sub all_records_have_date
 		}
 		if(my $date = $record->date()) {
 			if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
-			   ($date =~ /[\/\-]/) || !date_parser_cached(date => $date)) {
+			   ($date =~ /[\/\-]/) || ($date =~ / to /) || !date_parser_cached(date => $date)) {
 				return 0;
 			}
 			if(!date_parser_cached(date => $date)) {
@@ -10036,10 +10065,6 @@ sub place {
 							complain({ person => $params{'person'}, warning => "Location for the event between $1 is empty" });
 						} else {
 							complain({ person => $params{'person'}, warning => 'Location for "' . lcfirst($params{'record'}->type()) . "\" on $date is empty" });
-							my $i = 0;
-							while((my @call_details = caller($i++))) {
-								print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
-							}
 						}
 					} else {
 						complain({ person => $params{'person'}, warning => 'Location is empty' });
@@ -10114,7 +10139,7 @@ sub place {
 	if($place =~ /(.+?)\s*United States$/i) {
 		$place = "$1 USA";
 		$rc->en($place);
-	} elsif($place =~ /States\s*$/) {
+	} elsif($place =~ /States\s.*$/) {
 		complain({ person => $params{'person'}, warning => "Unexpected text at the end of the place '$place'" });
 	} elsif($place =~ /(.*)(^|,\s*)(.+),\s*Canada$/i) {
 		my $town = $1;
@@ -11319,7 +11344,6 @@ sub date_parser_cached
 }
 
 # Try hard to convert a Gedcom date to a DateTime object.
-# If a date range is given, return a two element array in array context, or undef in scalar context
 sub date_to_datetime
 {
 	my %params;
@@ -11845,14 +11869,35 @@ sub datecmp($$)
 		return 0;
 	}
 	if(!ref($left)) {
+		if($left =~ /^bef/i) {
+			if($right =~ /^\d+$/) {
+				# For example, comparing bef 1 Jun 1965 <=> 1939
+				if($left =~ /\s(\d+)$/) {
+					return $1 <=> $right;
+				}
+			}
+			print STDERR "$left <=> $right: Before not handled\n";
+			my $i = 0;
+			while((my @call_details = caller($i++))) {
+				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+			}
+			return 0;
+		}
 		if($left =~ /^(Abt|ca?)\s+(.+)/i) {
 			$left = $2;
-		} elsif($left =~ /^[a-z\/]+\s+(.+)/i) {
+		} elsif(($left =~ /^[a-z\/]+\s+(.+)/i) && ($left =~ /\//)) {
 			# e.g. "Oct/Nov/Dec 1950"
 			$left = $1;
 		}
 
 		if($left !~ /^\d{3,4}$/) {
+			if($left !~ /[a-z]/i) {
+				my $i = 0;
+				while((my @call_details = caller($i++))) {
+					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+				}
+				die "Date parse failure: ($left)";
+			}
 			my @l = $dfg->parse_datetime($left);
 			my $rc = $l[1] || $l[0];
 			if(!defined($rc)) {
@@ -11870,9 +11915,7 @@ sub datecmp($$)
 			if($left =~ /^\d+$/) {
 				# For example, comparing 1939 <=> bef 1 Jun 1965
 				if($right =~ /\s(\d+)$/) {
-					if($left != $1) {
-						return $left <=> $1;
-					}
+					return $left <=> $1;
 				}
 			}
 			print STDERR "$left <=> $right: Before not handled\n";
@@ -12288,9 +12331,13 @@ sub dateofdeath
 			complain({ person => $person, warning => "Removing trailing spaces from date of death '$dateofdeath'" });
 			$dateofdeath =~ s/\s+$//;
 		}
-		if($dateofdeath =~ /\d+\/\d+\/\d+/) {
+		if($dateofdeath =~ /\d+[\/\-]\d+[\/\-]\d+/) {
 			complain({ person => $person, warning => "Invalid date format for date of death '$dateofdeath'" });
 		} else {
+			if(($dateofdeath =~ /^[a-z]/) && ($dateofdeath !~ /^(bef|abt|aft|bet)/i)) {
+				complain({ person => $person, warning => "Capitalizing month in date of death '$dateofdeath'" });
+				$dateofdeath = ucfirst($dateofdeath);
+			}
 			return parse_date({ date => $dateofdeath, type => 'Death', person => $person });
 		}
 	}
@@ -12338,7 +12385,7 @@ sub parse_date
 		} elsif($date =~ /^bef\s(.+)/i) {
 			$date = $1;
 			$before = 1;
-		} elsif($date =~ /^abt\s(.+)/i) {
+		} elsif($date =~ /^abt\s+(.+)/i) {
 			$date = $1;
 			$about = 1;
 		}
@@ -12909,6 +12956,29 @@ sub twins
 	return @twins;
 }
 
+sub person_in_residence_record
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	}
+
+	my $person = $params{'person'};
+	my $date = $params{'date'};
+
+	foreach my $event(get_all_residences($person)) {
+		my $edate = $event->date();
+		if($edate && ($edate !~ /^bet\s/i) && ($edate !~ /[,\-]/) && (datecmp($edate, $date) == 0)) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 # Lookup entry in dbpedia.
 # TODO: Look up maiden name and married name(s)
 # TODO: use DateTime::Format::Text to find embedded dates
@@ -12957,7 +13027,7 @@ sub dbpedia
 	}
 
 	print "https://lookup.dbpedia.org/api/search?query=$firstname%20$surname\n" if($opts{'v'});
-	if(my $resp = $cached_browser->get("https://lookup.dbpedia.org/api/search?query=$firstname%20$surname")) {
+	if(($firstname ne '?') && (my $resp = $cached_browser->get("https://lookup.dbpedia.org/api/search?query=$firstname%20$surname"))) {
 		if($resp->is_success()) {
 			my $dbpedia = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content());
 			if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
