@@ -1524,10 +1524,11 @@ if($opts{'w'}) {
 					$summary = $warning;
 					$summary =~ s/\"//g;
 				}
+				my $name = $person->as_string(include_years => 1);
+				$name =~ tr/"/'/;
 				print $csv "$index!",
-					$person->xref(), '!',
-					$person->as_string(include_years => 1),
-					"!$summary!",
+					$person->xref(),
+					"!$name!$summary!",
 					HTML::Entities::encode($warning),
 					"\n";
 				$seen_warnings{$warning} = $index;
@@ -7313,6 +7314,7 @@ sub print_person
 					$census_years{$1} = $title;
 				}
 
+				$c =~ s/\R//g;	# Remove line breaks from the citations
 				my $h = $c;
 				if($h =~ s/&lt;a href=&quot;http/<a href="http/gi) {
 					$h =~ s/&quot;&gt;/">/g;
