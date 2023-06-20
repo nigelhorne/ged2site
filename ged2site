@@ -473,7 +473,8 @@ if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 	$gp_args{'language'} = lc($1);
 }
 
-my $javascript_key;
+my $javascript_key;	# e.g. Google Maps API key set to application
+			# restriction = 'websites'.  Add your site there.
 if($opts{'J'}) {
 	$javascript_key = $opts{'J'};
 } elsif($config && $config->{'google_maps_javascript_key'}) {
@@ -696,6 +697,12 @@ my %censusmaps = (
 	'1911 Census of Canada' => '1911 Canadian Census',
 	'1916 Canada Census of Manitoba, Saskatchewan, and Alberta' => '1916 Canadian Census',
 	'1921 Census of Canada' => '1921 Canadian Census',
+
+	'1790 United States Federal Census' => '1790 US Census',
+
+	'1800 United States Federal Census' => '1800 US Census',
+
+	'1820 United States Federal Census' => '1820 US Census',
 
 	'1850 United States Federal Census' => '1850 US Census',
 	'US Census 1850 - Findmypast' => '1850 US Census',
@@ -8056,6 +8063,11 @@ sub print_person
 			add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
 		}
 		if(defined($map)) {
+			# Create the values for the map_head and map_body
+			#	fields in people.csv.
+			# If you're using Google Maps to present the maps
+			#	this is where your API key is used, which
+			#	will have gone into $javascript_key
 			print "Create map HTML\n" if($opts{'v'});
 			# Can't put $head into the head since it's far too
 			# late now!

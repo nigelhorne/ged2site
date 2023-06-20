@@ -66,7 +66,7 @@ The options to ged2site are:
 | -l   | include living people |
 | -L n | Limit to n records |
 | -m   | Generate a Google map on each page showing events |
-| -J   | Google Maps JavaScript API key (used to display the map) |
+| -J   | Google Maps JavaScript API key (used to display the map). Set the key's application restriction to website |
 | -G   | Google Maps geolocation API key (used to populate the map) |
 | -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcom](//github.com/nigelhorne/gedcom)* |
 | -W   | don't colorize warning output |
