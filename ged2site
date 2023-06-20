@@ -158,6 +158,8 @@ BEGIN {
 		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
 			if($warning =~ /^Use of uninitialized value/) {
 				die $warning;
+			} elsif($warning =~ /isn't numeric in numeric eq /i) {
+				die $warning;
 			}
 			warn $warning;
 		}
@@ -1272,19 +1274,17 @@ if(scalar(%changes)) {
 
 	close($log);
 	copy('changes.psv', 'dynamic-site/databases/changes.psv');
+
+print "Creating twins index\n";
+
+open($csv, '>', 'dynamic-site/databases/twins.csv');
+print $csv "entry!twin\n";
+
+foreach my $twin(sort keys(%twins)) {
+	print $csv "$twin!$twins{$twin}\n";
 }
-
-if(scalar(%twins)) {
-	print "Creating twins index\n";
-
-	open($csv, '>', 'dynamic-site/databases/twins.csv');
-	print $csv "entry!twin\n";
-
-	foreach my $twin(sort keys(%twins)) {
-		print $csv "$twin!$twins{$twin}\n";
-	}
-	close $csv;
 }
+close $csv;
 
 print "Creating surname index\n";
 open(my $html, '>', 'static-site/surnames.html');
@@ -4376,7 +4376,7 @@ sub print_person
 				# $bio .= ", $childnames";
 				my $all_children_have_names = 1;
 				foreach my $child(@children) {
-					if(length($child->given_names() == 0)) {
+					if(length($child->given_names()) == 0) {
 						$all_children_have_names = 0;
 						last;
 					}
