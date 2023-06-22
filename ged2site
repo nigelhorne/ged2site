@@ -156,9 +156,8 @@ BEGIN {
 		   ($warning !~ /Subroutine ua redefined at/) &&
 		   ($warning !~ /Subroutine HTML::GoogleMaps::V3::_text_to_point redefined at/) &&
 		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
-			if($warning =~ /^Use of uninitialized value/) {
-				die $warning;
-			} elsif($warning =~ /isn't numeric in numeric eq /i) {
+			if(($warning =~ /^Use of uninitialized value/) ||
+			   ($warning =~ /isn't numeric in numeric eq /i)) {
 				die $warning;
 			}
 			warn $warning;
@@ -12920,6 +12919,17 @@ sub weather
 			return 'a day with snow';
 		} elsif($temperature < 5) {
 			return 'a cold day';
+		} elsif($wmo <= 1) {
+			if($temperature >= 21) {
+				return 'a warm and sunny day';
+			}
+			if($temperature >= 30) {
+				return 'a hot and sunny day';
+			}
+			if($temperature <= 5) {
+				return 'a hot but sunny day';
+			}
+			return 'a sunny day';
 		} else {
 			die "TODO: parse weather (wmo = $wmo, temperature = $temperature)";
 		}
