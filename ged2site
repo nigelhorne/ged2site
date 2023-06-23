@@ -264,7 +264,7 @@ if($opts{'F'}) {
 	}
 	push @modules, $magick, 'Image::Magick::Thumbnail';
 }
-if($language) {
+if(defined($language) && ($language ne 'English')) {
 	push @modules, 'Locale::Country::Multilingual';
 	if($language ne 'English') {
 		push @modules, 'Locale::Places';
@@ -418,7 +418,7 @@ if(my $data = Data::Section::Simple::get_data_section($language)) {
 }
 
 my $lcm;
-if($language) {
+if($language && ($language ne 'English')) {
 	$lcm = Class::Simple::Readonly::Cached->new(object => Locale::Country::Multilingual->new(),
 		cache => CHI->new(driver => 'RawMemory', datastore => {}));
 }
@@ -434,13 +434,18 @@ if(defined($language) && ($language eq 'French')) {
 	((defined($ENV{'LC_ALL'}) && ($ENV{'LC_ALL'} =~ /^en_US/)))) {
 	$dfn = DateTime::Format::Natural->new();
 	Date_Init("DateFormat=US");	# Date::Manip
-	$lcm->set_lang('en');
+	if(defined($lcm)) {
+		$lcm->set_lang('en');
+	}
 } else {
 	$dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy');
 	if(defined($language)) {
 		Date_Init("Language=$language");	# Date::Manip
 	} else {
 		Date_Init("DateFormat=International");
+	}
+	if($lcm) {
+		$lcm->set_lang(get_language_code() // 'en');
 	}
 }
 
@@ -10390,6 +10395,7 @@ sub place {
 				$town =~ s/Swansea$/Abertawe/;
 				$rc->cy("$town, Cymru");
 			} elsif(my $code = $lcm->country2code($c, 'LOCALE_CODE_ALPHA_2', 'en')) {
+				# Translate the name of the country into the current locale
 				$c = $lcm->code2country($code, $lang);
 				if($c ne 'United States') {
 					utf8::decode($c);
