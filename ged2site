@@ -2577,8 +2577,8 @@ sub print_person
 				if($phrase->length()) {
 					push @phrases, $phrase;
 				}
-				$phrase = Data::Text->new('twin of ' . $person_twins[0]->given_names());
-				$bio .= 'twin of ' . $person_twins[0]->given_names();
+				$phrase = Data::Text->new('twin of ' . $person_twins[0]->{'sibling'}->given_names());
+				$bio .= 'twin of ' . $person_twins[0]->{'sibling'}->given_names();
 			} else {
 				if($phrase->length()) {
 					push @phrases, $phrase;
@@ -11897,7 +11897,7 @@ sub datecmp($$)
 		}
 		if($left =~ /^(Abt|ca?)\s+(.+)/i) {
 			$left = $2;
-		} elsif(($left =~ /^[a-z\/]+\s+(.+)/i) && ($left =~ /\//)) {
+		} elsif(($left =~ /\//) && ($left =~ /^[a-z\/]+\s+(.+)/i)) {
 			# e.g. "Oct/Nov/Dec 1950"
 			$left = $1;
 		}
