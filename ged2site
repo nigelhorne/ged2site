@@ -13042,7 +13042,8 @@ sub dbpedia
 	} else {
 		$firstname = 'NULL';
 	}
-	my $surname = $name_components{'surname_1'};
+	# my $surname = $name_components{'surname_1'};
+	my $surname = ucfirst(lc($person->surname()));
 	if($surname) {
 		$surname =~ s/\'/\\\'/g;
 	} else {
