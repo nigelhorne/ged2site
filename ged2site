@@ -12206,7 +12206,7 @@ sub dateofbirth {
 		while(defined($d[1]) && ($d[0] eq $d[1])) {
 			pop @d;
 		}
-		while(defined($d[1]) && (date_to_datetime($d[0])->ymd() eq date_to_datetime($d[1])->ymd())) {
+		while(defined($d[1]) && ($d[0] !~ /^abt/i) && (date_to_datetime($d[0])->ymd() eq date_to_datetime($d[1])->ymd())) {
 			pop @d;
 		}
 		if(scalar(@d) == 1) {
