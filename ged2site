@@ -13004,7 +13004,6 @@ sub person_in_residence_record
 
 # Lookup entry in dbpedia.
 # TODO: Look up maiden name and married name(s)
-# TODO: use DateTime::Format::Text to find embedded dates
 # Experimental code with false positives at the moment
 sub dbpedia
 {
@@ -13062,6 +13061,7 @@ sub dbpedia
 						foreach my $class(@classes) {
 							if(($class->{'Label'}->{'text'} eq 'Place') ||
 							   ($class->{'Label'}->{'text'} eq 'School') ||
+							   ($class->{'Label'}->{'text'} eq 'Work') ||
 							   ($class->{'Label'}->{'text'} eq 'Artwork')) {
 								next RESULT;
 							}
