@@ -293,6 +293,9 @@ if($opts{'m'} || $opts{'w'}) {
 		push @modules, 'Genealogy::ObituaryDailyTimes', 'Genealogy::Wills';
 	}
 }
+if($opts{'v'}) {
+	push @modules, 'Log::Any::Adapter';
+}
 
 my $libdir1 = File::Spec->catfile($FindBin::Bin, File::Spec->updir(), 'lib');
 if(-d $libdir1) {
@@ -397,6 +400,13 @@ my %location_mappings = (
 my $nameparser = Lingua::EN::NameParse->new(extended_titles => 1);
 my $ged = Gedcom->new(gedcom_file => $ARGV[0], read_only => 1);
 $ged = Class::Simple::Cached->new(object => $ged, cache => CHI->new(driver => 'RawMemory', datastore => {}));
+
+my $script_name = basename($0);
+my $logger;
+if($opts{'v'}) {
+	Log::Any::Adapter->set('Stdout', log_level => 'trace');
+	$logger = Log::Any->get_logger(category => $script_name);
+}
 
 my $places;
 if(defined($language) && ($language ne 'English')) {
@@ -893,8 +903,13 @@ if($opts{'w'}) {
 	if(!defined($ENV{'CLICOLOR'})) {
 		$opts{'W'} = 1;
 	}
-	$obituaries = Genealogy::ObituaryDailyTimes->new();
-	$wills = Genealogy::Wills->new();
+	if($logger) {
+		$obituaries = Genealogy::ObituaryDailyTimes->new(logger => $logger);
+		$wills = Genealogy::Wills->new(logger => $logger);
+	} else {
+		$obituaries = Genealogy::ObituaryDailyTimes->new();
+		$wills = Genealogy::Wills->new();
+	}
 } else {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
@@ -12024,11 +12039,14 @@ sub obituaries
 	}
 
 	$Data::Dumper::Maxdepth = 2;
-	print Data::Dumper->new([\%params])->Dump() if($opts{'v'});
+	print "obituaries:\n\t", Data::Dumper->new([\%params])->Dump() if($opts{'v'});
 
 	my $yob = delete $params{'yob'};
 	my $yod = delete $params{'yod'};
 	my $person = delete $params{'person'};
+	if($logger) {
+		$params{'logger'} = $logger;
+	}
 	my @obituaries = $obituaries->search(\%params);
 
 	print scalar(@obituaries), " obituaries found\n" if($opts{'v'});
