@@ -9892,6 +9892,12 @@ sub year
 		}
 		return $params{'circa'} . " $rc";
 	}
+
+	if($string =~ /^\s*(.+\d\d)\s*\-\s*(.+\d\d)\s*$/) {
+		complain({ person => $params{'person'}, warning => "Changing date '$string' to 'bet $1 and $2'" });
+		$string = "bet $1 and $2";
+	}
+
 	if(($string =~ /^bet (.+) and (.+)/i) ||
 	   ($string =~ /^Fro?m (.+) to (.+)/i)) {
 		my $from = year({ %params, string => $1 });
@@ -12480,22 +12486,20 @@ sub get_location($)
 	if(ref($place) eq 'Lingua::String') {
 		$place = $place->en();
 		print "English translation: $place\n" if($opts{'v'});
-	} elsif($lcm) {
-		if($place =~ /(.+),\s*(.+)$/) {
-			if($2 ne 'England') {
-				my $c = $2;
-				utf8::encode($c);
-				if(($language eq 'French') && ($c eq 'Angleterre')) {
-					$place = "$1, England";
-				} elsif(my $code = $lcm->country2code($c, 'LOCALE_CODE_ALPHA_2', get_language_code())) {
-					$c = $lcm->code2country($code, 'en');
-					if($c eq 'United States') {
-						$c = 'USA';
-					}
-					$place = "$1, $c";
+	} elsif($lcm && ($place =~ /(.+),\s*(.+)$/)) {
+		if($2 ne 'England') {
+			my $c = $2;
+			utf8::encode($c);
+			if(($language eq 'French') && ($c eq 'Angleterre')) {
+				$place = "$1, England";
+			} elsif(my $code = $lcm->country2code($c, 'LOCALE_CODE_ALPHA_2', get_language_code())) {
+				$c = $lcm->code2country($code, 'en');
+				if($c eq 'United States') {
+					$c = 'USA';
 				}
-				print "English translation: $place\n" if($opts{'v'});
+				$place = "$1, $c";
 			}
+			print "English translation: $place\n" if($opts{'v'});
 		}
 	}
 
