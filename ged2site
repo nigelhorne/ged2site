@@ -4420,6 +4420,7 @@ sub print_person
 			}
 			if($numberofchildren == 1) {
 				if(my $first_name = $children[0]->given_names()) {
+					$first_name =~ s/\.$//;
 					$bio .= ", $first_name";
 					$phrase->append(", $first_name");
 				}
