@@ -160,6 +160,9 @@ BEGIN {
 			   ($warning =~ /isn't numeric in numeric eq /i)) {
 				die $warning;
 			}
+			if($warning =~ /: attempt to add consecutive punctuation/) {
+				die $warning;
+			}
 			warn $warning;
 		}
 	};
@@ -3995,8 +3998,8 @@ sub print_person
 						$phrase->append(i18n(' twice'));
 					}
 				} else {
-					$bio .= scalar(@spouses) . i18n(' times');
-					$phrase->append(scalar(@spouses))->append(i18n(' times'));
+					$bio .= ' ' . scalar(@spouses) . i18n(' times');
+					$phrase->append(' ' . scalar(@spouses))->append(i18n(' times'));
 				}
 
 				$bio .= ' - to';
@@ -4178,8 +4181,10 @@ sub print_person
 					$phrase->append(')') if($printed_bracket);
 					if($spouse_number == (scalar(@spouses) - 1)) {
 						$bio .= i18n(' and');
+						$phrase->append(i18n(' and'));
 					} elsif($spouse_number < (scalar(@spouses) - 1)) {
 						$bio .= ',';
+						$phrase->append(',');
 					}
 					if($phrase->rtrim()->length()) {
 						push @phrases, $phrase;
