@@ -379,6 +379,7 @@ my %all_locations;
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
+my %surname_date;	# Maps surnames to quarter century
 my %changes;	# If the -x option is given, tracks changes between the previous run and this run
 my $facts;
 my %all_residences;
@@ -1400,7 +1401,7 @@ if($key) {
 	}
 }
 
-if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
+if(open($csv, '>', 'dynamic-site/databases/name_date.csv')) {
 	# Ready for HTML::TagCloud
 	print $csv "entry!name!count!sex!people\n";
 	$index = 1;
@@ -1411,6 +1412,21 @@ if(open($csv, '>', 'dynamic-site/databases/names.csv')) {
 			my $sex = Text::Names::guessGender($firstname) || Text::Names::GB::guessGender($firstname) || '?';
 			my $people = join('--', @{$name_date{$date}{$firstname}});
 			print $csv "$date!$firstname!$count!$sex!$people\n";
+		}
+	}
+	close $csv;
+}
+
+if(open($csv, '>', 'dynamic-site/databases/surname_date.csv')) {
+	# Ready for HTML::TagCloud
+	print $csv "entry!name!count!people\n";
+	$index = 1;
+
+	foreach my $date(sort keys %surname_date) {
+		foreach my $surname(sort keys %{$surname_date{$date}}) {
+			my $count = scalar(@{$surname_date{$date}{$surname}});
+			my $people = join('--', @{$surname_date{$date}{$surname}});
+			print $csv "$date!$surname!$count!$people\n";
 		}
 	}
 	close $csv;
@@ -1828,9 +1844,15 @@ sub print_person
 		}
 	}
 
-	# Ensure last name isn't used if the first name isn't known
-	if($yob && $firstname && $person->given_names()) {
-		push @{$name_date{floor($yob / 25)}{$firstname}}, $person->xref();
+	if($yob) {
+		my $bucket = floor($yob / 25);
+		# Ensure last name isn't used if the first name isn't known
+		if($firstname && $person->given_names()) {
+			push @{$name_date{$bucket}{$firstname}}, $person->xref();
+		}
+		if($surname) {
+			push @{$surname_date{$bucket}{$surname}}, $person->xref();
+		}
 	}
 
 	my $is_alive = is_alive(person => $person);
@@ -13041,7 +13063,8 @@ sub dbpedia
 	my $yod = $params{'yod'};
 	my $birth_dt = $params{'birth_dt'};
 	my $yob;
-	if(defined($birth_dt)) {
+
+	if(defined($birth_dt) && $birth_dt) {
 		if(!ref($birth_dt)) {
 			print STDERR "\n";
 			my $i = 0;

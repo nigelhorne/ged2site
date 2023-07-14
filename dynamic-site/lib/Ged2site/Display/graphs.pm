@@ -40,7 +40,8 @@ our $mapper = {
 	'familysizetime' => \&_familysizetime,
 	'motherchildren' => \&_motherchildren,
 	'percentagedying' => \&_percentagedying,
-	'namecloud' => \&_namecloud,
+	'name_date' => \&_name_date,
+	'surname_date' => \&_surname_date,
 };
 
 sub html {
@@ -50,7 +51,7 @@ sub html {
 	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'graphs',
-		'graph' => qr/^[a-z]+$/,
+		'graph' => qr/^[a-z_]+$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
 	};
@@ -1089,19 +1090,35 @@ sub _percentagedyingbysex
 	return { datapoints => $datapoints };
 }
 
-sub _namecloud
+# Show popularity of firstnames by quarter of a century
+sub _name_date
 {
 	my $self = shift;
 	my $args = shift;
 
-	my %counts;
+	return { name_date => create_cloud($args->{'name_date'}), $args->{'people'}->updated() } ;
+}
 
-	my $names = $args->{'names'};
+# Show popularity of surnames by quarter of a century
+sub _surname_date
+{
+	my $self = shift;
+	my $args = shift;
+
+	return { surname_date => create_cloud($args->{'surname_date'}), $args->{'people'}->updated() } ;
+}
+
+sub create_cloud
+{
+	my $db = shift;	# Which database to bring in
 
 	my @rc;
 
+	# The buckets each contain 25 years' worth of data.
+	# The key (entry) is the yob / 25, so 60 = 1500, 80 = 2000, so this
+	#	loop displays the years 1500 to 2000
 	for(my $bucket = 60; $bucket <= 80; $bucket++) {
-		my @all = $names->selectall_hash({ entry => $bucket });
+		my @all = $db->selectall_hash({ entry => $bucket });
 
 		# use Data::Dumper;
 		# print Data::Dumper->new([\$all])->Dump();
@@ -1119,7 +1136,7 @@ sub _namecloud
 		push @rc, { year => $bucket, data => $cloud->html_and_css(50) };
 	}
 
-	return { clouds => \@rc };
+	return \@rc;
 }
 
 sub _date_to_datetime

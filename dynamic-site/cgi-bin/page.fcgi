@@ -96,7 +96,8 @@ use Ged2site::DB::censuses;
 use Ged2site::DB::surnames;
 use Ged2site::DB::history;
 use Ged2site::DB::todo;
-use Ged2site::DB::names;
+use Ged2site::DB::name_date;
+use Ged2site::DB::surname_date;
 use Ged2site::DB::twins;
 use Ged2site::DB::military;
 use Ged2site::DB::locations;
@@ -115,7 +116,8 @@ my $history = Ged2site::DB::history->new();
 my $todo = Ged2site::DB::todo->new();
 # TODO: why are these arguments needed?
 my $locations = Ged2site::DB::locations->new(directory => $database_dir, logger => $logger);
-my $names = Ged2site::DB::names->new();
+my $name_date = Ged2site::DB::name_date->new();
+my $surname_date = Ged2site::DB::surname_date->new();
 my $twins = Ged2site::DB::twins->new();
 my $military = Ged2site::DB::military->new();
 
@@ -167,7 +169,8 @@ while($handling_request = ($request->Accept() >= 0)) {
 		$logger = Log::Any->get_logger(category => $script_name);
 		Log::WarnDie->dispatcher($logger);
 		$people->set_logger($logger);
-		$names->set_logger($logger);
+		$name_date->set_logger($logger);
+		$surname_date->set_logger($logger);
 		$info->set_logger($logger);
 		# $Config::Auto::Debug = 1;
 
@@ -439,7 +442,8 @@ sub doit
 			surnames => $surnames,
 			history => $history,
 			todo => $todo,
-			names => $names,
+			name_date => $name_date,
+			surname_date => $surname_date,
 			twins => $twins,
 			military => $military,
 			cachedir => $cachedir,

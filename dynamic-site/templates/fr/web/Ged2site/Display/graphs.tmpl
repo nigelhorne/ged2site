@@ -32,9 +32,12 @@
 			[% SET title = 'Nombre des enfants par femmes' %]
 		[% ELSIF graph == 'percentagedying' %]
 			[% SET title = 'Percentage of people alive who died' %]
-		[% ELSIF graph == 'namecloud' %]
+		[% ELSIF graph == 'name_date' %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'First Name Popularity' %]
+		[% ELSIF graph == 'surname_date' %]
+			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+			[% SET title = 'Surname Popularity' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'Choisisez un graph' %]
@@ -355,7 +358,7 @@
 	</head>
 
 	<body>
-		[% UNLESS clouds %]
+		[% UNLESS name_date || surname_date %]
 			<center>
 				[ <a href="?page=home">Accueil</a> ] |
 				[ <a href="?page=censuses">Index des Recensements</a> |
@@ -453,7 +456,7 @@
 				are assuming to be missing a death record.
 				These differences could cause anomolies.
 			</p>
-		[% ELSIF clouds %]
+		[% ELSIF name_date %]
 			<div id="header_container">
 				<center>
 					<h1>First Name Popularity</h1>
@@ -473,7 +476,32 @@
 					[ <a href="?page=emmigrants">Emigrants</a> ] |
 					[ <a href="/visjs.html">Timeline</a> ]
 				</center>
-				[% FOREACH year IN clouds %]
+				[% FOREACH year IN name_date %]
+					<h2>[% year.year * 25 %]</h2>
+					[% year.data %]
+				[% END %]
+			</div>
+		[% ELSIF surname_date %]
+			<div id="header_container">
+				<center>
+					<h1>Surname Popularity</h1>
+				</center>
+			</div>
+			<div id="container">
+				<center>
+					[ <a href="?page=people&amp;home=1">Accueil</a> ] |
+					[ <a href="?page=censuses">Census Index</a> ] |
+					[ <a href="?page=surnames">Surname Index</a> ] |
+					[ <a href="?page=history">Family History</a> ] |
+					[ <a href="?page=todo">To Do</a> ] |
+					[ <a href="?page=calendar">Calendar</a> ] |
+					[% IF graph %]
+						[ <a href="?page=graphs">Analytics</a> ] |
+					[% END %]
+					[ <a href="?page=emmigrants">Emigrants</a> ] |
+					[ <a href="/visjs.html">Timeline</a> ]
+				</center>
+				[% FOREACH year IN surname_date %]
 					<h2>[% year.year * 25 %]</h2>
 					[% year.data %]
 				[% END %]
@@ -498,7 +526,8 @@
 					<li><a href="?page=graphs&amp;graph=familysizetime">How family size changes over time</a></li>
 					<li><a href="?page=graphs&amp;graph=motherchildren">Nombre des enfants par femmes</a></li>
 					<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
-					<li><a href="?page=graphs&amp;graph=namecloud">First Name Popularity</a></li>
+					<li><a href="?page=graphs&amp;graph=name_date">First Name Popularity</a></li>
+					<li><a href="?page=graphs&amp;graph=surname_date">Surname Popularity</a></li>
 				</ul>
 			</div>
 		[% END %]

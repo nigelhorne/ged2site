@@ -14,7 +14,7 @@ sub html {
 		'page' => 'surnames',
 		'surname' => qr/[A-Z\s]+/i,
 		'lang' => qr/^[A-Z][A-Z]/i,
-		'lint_content' => qr/^\d$/,
+		'lint_content' => qr/^\d$/
 	};
 	my %params = %{$self->{_info}->params({ allow => $allowed })};
 

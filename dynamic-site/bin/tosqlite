@@ -3,7 +3,8 @@ set -e
 cd ../databases && rm -f *.sql
 csv2sqlite -o sep_char='!' surnames.csv surnames.sql
 [ -r censuses.csv ] && csv2sqlite -o sep_char='!' censuses.csv censuses.sql
-csv2sqlite -o sep_char='!' names.csv names.sql
+csv2sqlite -o sep_char='!' name_date.csv name_date.sql
+csv2sqlite -o sep_char='!' surname_date.csv surname_date.sql
 csv2sqlite -o sep_char='!' -o allow_loose_quotes=1 people.csv people.sql
 [ -r todo.csv ] && csv2sqlite -o sep_char='!' todo.csv todo.sql
 csv2sqlite -o sep_char='!' history.csv history.sql
