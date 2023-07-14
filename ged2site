@@ -3760,7 +3760,7 @@ sub print_person
 								$phrase->append('has ');
 							}
 							$bio .= ' had ';
-							$phrase->append('had ');
+							$phrase->append(' had ');
 						} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
 							$bio .= i18n(' has had ');
 							$phrase->append(i18n(' has had '));
