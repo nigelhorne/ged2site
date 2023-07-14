@@ -1096,7 +1096,7 @@ sub _name_date
 	my $self = shift;
 	my $args = shift;
 
-	return { name_date => create_cloud($args->{'name_date'}), updated => $args->{'people'}->updated() } ;
+	return { name_date => create_cloud($args->{'name_date'}) };
 }
 
 # Show popularity of surnames by quarter of a century
@@ -1105,7 +1105,7 @@ sub _surname_date
 	my $self = shift;
 	my $args = shift;
 
-	return { surname_date => create_cloud($args->{'surname_date'}), updated => $args->{'people'}->updated() } ;
+	return { surname_date => create_cloud($args->{'surname_date'}) };
 }
 
 sub create_cloud
