@@ -5818,8 +5818,8 @@ sub print_person
 				$event = $e;
 			} else {
 				red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
-				$bio .= ' ' . ucfirst($event) . '.';
-				$bio_dt->append(' ' . ucfirst($event) . '.');
+				$bio .= ' ' . ucfirst($event) . '. ';
+				$bio_dt->append(' ' . ucfirst($event) . '. ');
 			}
 		}
 		if(ref($event) eq 'Gedcom::Record') {
@@ -5827,7 +5827,7 @@ sub print_person
 			if(!defined($type)) {
 				red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
 			} elsif($type eq 'Arrival') {
-				$bio .= ' ' . i18n($person->pronoun()) . i18n({ person => $person, format => ' arrived' });
+				$bio .= i18n($person->pronoun()) . i18n({ person => $person, format => ' arrived' });
 				if((scalar(@phrases) == 0) && ($phrase->length() == 0)) {
 					$phrase->set($pronoun);
 				} else {
@@ -5892,9 +5892,9 @@ sub print_person
 					complain({ person => $person, warning => 'Date is known but not location in arrival record' });
 				}
 			} elsif($type eq 'Departure') {
-				$phrase->set(' ' . $person->pronoun());
+				$phrase->set($pronoun);
 
-				$bio .= ' ' . $person->pronoun();
+				$bio .= $pronoun;
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$bio .= ' traveled';
 					$phrase->append(' traveled');
