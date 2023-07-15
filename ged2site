@@ -4121,11 +4121,11 @@ sub print_person
 						}
 					} elsif(!$dateofmarriage) {
 						# FIXME: possibly not married, so above it shouldn't have said "married x times"
-						$name .= ' (possibly not married to';
+						$name .= ' (possibly not married to ';
 						if($spouse->sex() eq 'M') {
-							$name .= ' him)';
+							$name .= 'him)';
 						} else {
-							$name .= ' her)';
+							$name .= 'her)';
 						}
 						push @names, $name;
 						next;
@@ -8310,6 +8310,10 @@ sub print_person
 		if($c =~ /\)$/) {
 			complain({ person => $person, warning => 'Trailing bracket in birth location' });
 			$c =~ s/\)$//;
+		}
+
+		if(length($c) > 3) {
+			$c = sortoutcase($c);
 		}
 
 		if($c eq 'England') {
