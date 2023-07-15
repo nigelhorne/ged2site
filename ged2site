@@ -163,6 +163,7 @@ BEGIN {
 			if($warning =~ /: attempt to add consecutive punctuation/) {
 				die $warning;
 			}
+			utf8::decode($warning);
 			warn $warning;
 		}
 	};
@@ -1652,17 +1653,21 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 		}
 		my $person = $e->{'person'};
 		my $string = $person->as_string();
-		$string =~ s/'/\&apos;/g;
+		# $string =~ s/'/\&apos;/g;
+		$string = HTML::Entities::encode($person->as_string());
 		print $fout '<li>', @{$dtl->month_format_wide()}[$date->month() - 1], ' ',
 			$date->day(), ': <a href="',
 			make_filename_from_person(person => $person), '">',
-			$person->as_string(), '</a>: ', $e->{'event'}, '</li>';
+			"$string</a>: ",
+			$e->{'event'},
+			'</li>';
 		print $csv "$index!$year!",
 			$date->month(), '!',
 			$date->day(), '!',
 			$person->xref(), '!',
 			"$string!",
-			$e->{'event'}, "\n";
+			$e->{'event'},
+			"\n";
 		$index++;
 	}
 	close $csv;
