@@ -4004,7 +4004,6 @@ sub print_person
 				}
 
 				$bio .= ' - to';
-				$phrase->append(' - to ');
 
 				print $html $bio;
 				# $bio =~ s/</&lt;/g;
@@ -4088,7 +4087,19 @@ sub print_person
 
 				my $spouse_number = 0;
 				my $previousplace;
+				my @names;
 				foreach my $spouse(@spouses) {
+					print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
+						$spouse->as_string(), '</a>';
+					# print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
+						# $spouse->as_string(),
+						# '</a>';
+					# print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
+						# $spouse->as_string(),
+						# '&lt;/a&gt;';
+					my $name = '<a href="?page=people&entry=' . $spouse->xref() . '">' .
+						$spouse->as_string() .
+						'</a>';
 					my $dateofmarriage = dateofmarriage({ person => $spouse });
 					my $placeofmarriage = get_value({ person => $spouse, value => 'marriage place' });
 					if(!defined($placeofmarriage)) {
@@ -4116,36 +4127,25 @@ sub print_person
 						} else {
 							$name .= ' her)';
 						}
+						push @names, $name;
 						next;
 					}
-
-					print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
-						$spouse->as_string(), '</a>';
-					# print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
-						# $spouse->as_string(),
-						# '</a>';
-					# print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
-						# $spouse->as_string(),
-						# '&lt;/a&gt;';
-					$phrase->append('<a href="?page=people&entry=' . $spouse->xref() . '">' .
-						$spouse->as_string() .
-						'</a>');
 
 					my $printed_bracket = 0;
 					if($dateofmarriage && $placeofmarriage) {
 						$bio .= ' (' . year({ string => $dateofmarriage }) .
 							$placeofmarriage;
-						$phrase->append(' (' . year({ string => $dateofmarriage }) .
-							$placeofmarriage);
+						$name .= ' (' . year({ string => $dateofmarriage }) .
+							$placeofmarriage;
 						$printed_bracket = 1;
 					} elsif($placeofmarriage) {
 						$placeofmarriage =~ s/^\s+//;
 						$bio .= " ($placeofmarriage";
-						$phrase->append(" ($placeofmarriage");
+						$name .= " ($placeofmarriage";
 						$printed_bracket = 1;
 					} elsif($dateofmarriage) {
 						$bio .= ' (' . year({ string => $dateofmarriage });
-						$phrase->append(' (' . year({ string => $dateofmarriage }));
+						$name .= ' (' . year({ string => $dateofmarriage });
 						$printed_bracket = 1;
 					}
 					$spouse_number++;
@@ -4154,10 +4154,10 @@ sub print_person
 						if($death_of_first_spouse && (datecmp($dateofmarriage, $death_of_first_spouse) > 0)) {
 							if($printed_bracket) {
 								$bio .= ', ';
-								$phrase->append(', ');
+								$name .= ', ';
 							} else {
 								$bio .= '(';
-								$phrase->append('(');
+								$name .= '(';
 								$printed_bracket = 1;
 							}
 							if($death_of_first_spouse =~ /\s$/) {
@@ -4170,27 +4170,22 @@ sub print_person
 									person => $spouses[0],
 									record => $death_of_first_spouse,
 								});
-							$phrase->append(i18n('following the death of ') .
+							$name .= i18n('following the death of ') .
 								$spouses[0]->given_names() . ' ' .
 								year({
 									person => $spouses[0],
 									record => $death_of_first_spouse,
-								}));
+								});
 						}
 					}
 					$bio .= ')' if($printed_bracket);
-					$phrase->append(')') if($printed_bracket);
+					$name .= ')' if($printed_bracket);
 					if($spouse_number == (scalar(@spouses) - 1)) {
 						$bio .= i18n(' and');
-						$phrase->append(i18n(' and'));
 					} elsif($spouse_number < (scalar(@spouses) - 1)) {
 						$bio .= ',';
-						$phrase->append(',');
 					}
-					if($phrase->rtrim()->length()) {
-						push @phrases, $phrase;
-						$phrase = Data::Text->new();
-					}
+					push @names, $name;
 					$bio =~ s/&Atilde;&copy;/&eacute;/g;
 					print $html $bio;
 					# $bio =~ s/&eacute;/&#233;/g;
@@ -4199,9 +4194,16 @@ sub print_person
 					$fullbio .= $bio;
 					$bio = '';
 				}
+				if(scalar(@names)) {
+					$phrase->append(' (' . i18n('to ') . conjunction(@names) . ')');
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				}
 				# substr($names, rindex($names, ', '), 2, ' and ');
-				$bio = cite(($marriagecitation));
-				$phrase->append(cite(($marriagecitation)));
+				if($marriagecitation) {
+					$bio = cite(($marriagecitation));
+					$phrase->append(cite(($marriagecitation)));
+				}
 
 				# Determine if all the children are from one marriage, since that's
 				# easier to print.
