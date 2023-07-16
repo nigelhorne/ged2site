@@ -390,6 +390,7 @@ my %all_residences;
 # my $pi = atan2(1,1) * 4;
 
 binmode(STDOUT, ':utf8');
+binmode(STDERR, ':utf8');
 umask(0077);	# Don't let PII become publicly readable
 
 # Help OSM to match
@@ -1873,14 +1874,13 @@ sub print_person
 			# $person->as_string({ middle_names => 1, title => 1 }), '!';
 		$title = $firstname;
 	} else {
-		print $csv $person->xref(), '!',
-			$person->as_string({ include_years => 1, middle_names => 1, title => 1 }), '!';
-		$title = $person->as_string({
+		$title = wide_to_html($person->as_string({
 			include_years => 1,
 			nee => 1,
 			middle_names => 1,
 			title => 1,
-		});
+		}));
+		print $csv $person->xref(), "!$title!";
 	}
 
 	print "Starting output\n" if($opts{'v'});
@@ -1953,12 +1953,12 @@ sub print_person
 	my @phrases;
 
 	if($is_alive && !$opts{'l'}) {
+		print "Living person\n" if($opts{'v'});
 		print $xml "\n\t\t<alive>1</alive>";
 		print $csv '1!';
 		my $str = '<i>This is the record of a living person, so not much data will be shown.</i></p><p>';
 		print $html $str;
 		print $csv $str;
-		print "Living person\n" if($opts{'v'});
 	} else {
 		print $csv '0!';
 		$surnames->{$surname}->{$title} = $person;
@@ -2796,8 +2796,13 @@ sub print_person
 		if($opts{'l'} || !$is_alive) {
 			if($father) {
 				my $f = $father->as_string();
+				$f =~ s/\xc3\xa9/&eacute;/g;
+				$f =~ s/\xc5\xa1/&scaron;/g;
 				utf8::decode($f);
-				$f = HTML::Entities::encode($f);
+				$f =~ s/š/&scaron;/g;
+				$f =~ s/č/&ccaron;/g;
+				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
+					"$f</a>");
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					"$f</a>";
 				# print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
@@ -2806,8 +2811,6 @@ sub print_person
 				# print $csv '<a href="?page=people&entry=', $father->xref(), '">',
 					# $father->as_string(),
 					# '</a>';
-				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
-					"$f</a>");
 
 				if(!$same_occupation_as_father) {
 					my @occupations = get_all_occupations(person => $father);
@@ -2842,12 +2845,15 @@ sub print_person
 			}
 			if($mother) {
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
+					$phrase->append('<a href="?page=people&entry=' . $mother->xref() . "\">$m</a>");
+					$m =~ s/\xc3\xa9/&eacute;/g;
+					$m =~ s/\xc5\xa1/&scaron;/g;
 					utf8::decode($m);
-					$m = HTML::Entities::encode($m);
+					$m =~ s/š/&scaron;/g;
+					$m =~ s/č/&ccaron;/g;
 					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
 					# print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
 					# print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
-					$phrase->append('<a href="?page=people&entry=' . $mother->xref() . "\">$m</a>");
 				}
 
 				my @occupations = get_all_occupations($mother);
@@ -7184,6 +7190,9 @@ sub print_person
 		$copy =~ s/&Acirc;&copy;/&copy;/g;
 		$copy =~ s/é/&eacute;/g;
 		$copy =~ s/ & / &amp; /g;	# Occupations often have '&'
+		$copy =~ s/š/&scaron;/g;
+		$copy =~ s/č/&ccaron;/g;
+		$copy =~ s/\xc5\xa1/&scaron;/g;	# š
 		utf8::decode($copy);
 		print $csv $copy;
 		utf8::decode($s);
@@ -7204,6 +7213,9 @@ sub print_person
 		$s =~ s/\xc3\xb1/&#241;/g;	# ntilde
 		$s =~ s/ñ/&#241;/g;
 		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
+		$s =~ s/\xc5\xa1/&scaron;/g;	# š
+		$s =~ s/š/&scaron;/g;
+		$s =~ s/č/&ccaron;/g;
 		$s =~ s/ë/&#235;/g;
 		$s =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
 		print $xml $s;
@@ -8223,7 +8235,7 @@ sub print_person
 		$fullbio =~ s/,,/,/g;
 		$fullbio =~ s/href="\?page=/href="cgi-bin\/page.fcgi?page=/g;
 		my $xref = $person->xref();
-		print $timeline_xml 'title="', $person->as_string(), '" ',
+		print $timeline_xml 'title="', wide_to_html($person->as_string()), '" ',
 			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $xref, '"',
 			'>', HTML::Entities::encode($fullbio),
 			"<\/event>\n";
@@ -8258,7 +8270,7 @@ sub print_person
 			print $xml "\n\t\t<thumbnail>$profile_thumbnail</thumbnail>";
 		}
 		$fullbio =~ s/'/\&#39;/g;
-		print $visjs '<h2>', $person->as_string(), "</h2><hr>$fullbio'\n},\n";
+		print $visjs '<h2>', wide_to_html($person->as_string()), "</h2><hr>$fullbio'\n},\n";
 	}
 
 	my $m;
@@ -8331,7 +8343,7 @@ sub print_person
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'USA') {
 			$birth_country = 'United States';
-		} elsif($c eq 'United States of America') {
+		} elsif($c eq 'United States Of America') {
 			$birth_country = 'United States';
 		} elsif($c eq 'U.S.A.') {
 			$birth_country = 'United States';
@@ -11202,7 +11214,7 @@ sub print_graphviz
 	if($is_alive && !$opts{'l'}) {
 		$label = 'Living';
 	} else {
-		$label = HTML::Entities::encode($person->as_string());
+		$label = HTML::Entities::encode(wide_to_html($person->as_string()));
 		$dob = dateofbirth($person);
 		$dod = dateofdeath($person);
 	}
@@ -11352,6 +11364,7 @@ sub make_filename_from_person
 	$rc =~ s/--+/-/g;
 	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;
+	$rc = Unicode::Diacritic::Strip::strip_diacritics($rc);
 
 	return "$rc.html";
 }
@@ -11373,7 +11386,7 @@ sub make_filename_from_object
 	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;
 
-	return $rc;
+	return Unicode::Diacritic::Strip::strip_diacritics($rc);
 }
 
 # Parse Gedcom format dates
@@ -11711,6 +11724,9 @@ sub get_all_occupations
 
 	# TODO: sort out case
 	if(scalar(@occupations)) {
+		$occupations[0] =~ tr/\r//;
+		$occupations[0] =~ tr/\n/ /;
+
 		if($occupations[0] =~ /works? on (.+)/i) {
 			$occupations[0] = "$1 worker";
 		} elsif(($occupations[0] eq 'Ag Lab') ||
@@ -13074,6 +13090,20 @@ sub person_in_residence_record
 	}
 
 	return 0;
+}
+
+# See https://www.compart.com/en/unicode/U+0161 etc.
+sub wide_to_html
+{
+	my $string = shift;
+
+	$string =~ s/š/&scaron;/g;
+	$string =~ s/č/&ccaron;/g;
+	utf8::decode($string);
+	$string =~ s/\xc5\xa1/&scaron;/g;
+	$string =~ s/\xc4\x8d/&ccaron;/g;
+
+	return $string;
 }
 
 # Lookup entry in dbpedia.
