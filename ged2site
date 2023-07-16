@@ -1372,8 +1372,9 @@ foreach my $surname(sort keys %{$surnames}) {
 	foreach my $person(sort keys %{$surnames->{$surname}}) {
 		# print "\t$person maps to ", $surnames->{$surname}->{$person}, "\n";
 		print $shtml '<li>',
-			'<a href="', make_filename_from_person(person => $surnames->{$surname}->{$person}), "\">$person</a>",
-			'</li>';
+			'<a href="', make_filename_from_person(person => $surnames->{$surname}->{$person}), "\">",
+			HTML::Entities::encode($person),
+			'</a></li>';
 		print $csv "$index!$filename!", $surnames->{$surname}->{$person}->xref(), "\n";
 		$index++;
 	}
@@ -1456,7 +1457,9 @@ if($opts{'w'}) {
 	foreach my $person(@everyone) {
 		if($person->{'warnings'}) {
 			print $html '<h2>',
-				'<a href="', make_filename_from_person(person => $person), '">', $person->as_string(include_years => 1), '</a></h2>',
+				'<a href="', make_filename_from_person(person => $person), '">',
+				HTML::Entities::encode($person->as_string(include_years => 1)),
+				'</a></h2>',
 				map { HTML::Entities::encode($_) . '<br>' } @{$person->{'warnings'}};
 			my %seen_warnings;
 			foreach my $warning(@{$person->{'warnings'}}) {
@@ -1570,7 +1573,7 @@ if($opts{'w'}) {
 					$summary = $warning;
 					$summary =~ s/\"//g;
 				}
-				my $name = $person->as_string(include_years => 1);
+				my $name = HTML::Entities::encode($person->as_string(include_years => 1));
 				$name =~ tr/"/'/;
 				print $csv "$index!",
 					$person->xref(),
@@ -1653,8 +1656,8 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 		}
 		my $person = $e->{'person'};
 		my $string = $person->as_string();
-		# $string =~ s/'/\&apos;/g;
 		$string = HTML::Entities::encode($person->as_string());
+		$string =~ s/'/\&apos;/g;
 		print $fout '<li>', @{$dtl->month_format_wide()}[$date->month() - 1], ' ',
 			$date->day(), ': <a href="',
 			make_filename_from_person(person => $person), '">',
@@ -2792,9 +2795,11 @@ sub print_person
 
 		if($opts{'l'} || !$is_alive) {
 			if($father) {
+				my $f = $father->as_string();
+				utf8::decode($f);
+				$f = HTML::Entities::encode($f);
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
-					$father->as_string(),
-					'</a>';
+					"$f</a>";
 				# print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					# $father->as_string(),
 					# '$lt;/a$gt;';
@@ -2802,8 +2807,7 @@ sub print_person
 					# $father->as_string(),
 					# '</a>';
 				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
-					$father->as_string() .
-					'</a>');
+					"$f</a>");
 
 				if(!$same_occupation_as_father) {
 					my @occupations = get_all_occupations(person => $father);
@@ -2838,6 +2842,8 @@ sub print_person
 			}
 			if($mother) {
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
+					utf8::decode($m);
+					$m = HTML::Entities::encode($m);
 					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
 					# print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
 					# print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
@@ -11196,7 +11202,7 @@ sub print_graphviz
 	if($is_alive && !$opts{'l'}) {
 		$label = 'Living';
 	} else {
-		$label = $person->as_string();
+		$label = HTML::Entities::encode($person->as_string());
 		$dob = dateofbirth($person);
 		$dod = dateofdeath($person);
 	}
