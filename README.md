@@ -119,8 +119,9 @@ Running the program for the first time with no
 arguments should install them,
 of course that will fail if you don't have the privilege,
 in which case you'll need to add them by hand.
-To ensure you'll be installing them in a directory you can use either use local::lib
-or perlbrew.
+To install by hand you'll either have to use local::lib or perlbrew.
+Of course you could also run ged2site as root,
+but I strongly advise you don't do that.
 
 [Library](https://github.com/nigelhorne/lib) - library of code common with
 [gedcom](https://github.com/nigelhorne/gedcom).
