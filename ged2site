@@ -1834,14 +1834,13 @@ sub print_person
 	my %name_components = $nameparser->components();
 	my $firstname = $name_components{'given_name_1'} // $name_components{'initials_1'};
 	# my $surname = $name_components{'surname_2'} || $name_components{'surname_1'};
-	my $surname = ucfirst(lc($person->surname())); # RT109786
+	my $surname = ucfirst(lc(wide_to_html($person->surname()))); # RT109786
 
 	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
 		$firstname = $1;
 		if(!defined($surname)) {
 			$surname = $2;
 		}
-		utf8::decode($firstname);
 		complain({ person => $person, warning => "Can't parse the name - assuming first name: $firstname, last name: $surname" });
 	}
 
@@ -1904,7 +1903,7 @@ sub print_person
 	}
 
 	if($me && ($person->xref() eq $me->xref())) {
-		my $name = $person->as_string(nee => 1);
+		my $name = wide_to_html($person->as_string(nee => 1));
 
 		open(my $html, '>', 'static-site/index.html');
 		print $html "<html><head><title>The Family Tree $name</title>",
@@ -2020,12 +2019,7 @@ sub print_person
 	}
 
 	if($opts{'w'}) {
-		my $name = $person->name();
-		$name =~ s/\///g;
-		$nameparser->parse($name);
-		my %name_components = $nameparser->components();
-		my $firstname = $name_components{'given_name_1'} // $name_components{'initials_1'};
-		if($firstname && (my $lastname = $name_components{'surname_1'})) {
+		if($firstname && $surname) {
 			my %chronicling_params = ( ua => $cached_browser );
 			if($dateofbirth && ($dateofbirth =~ /(\d{4})$/)) {
 				if($1 <= 1789) {
@@ -2043,8 +2037,8 @@ sub print_person
 			}
 			if($firstname) {
 				$chronicling_params{'firstname'} = $firstname;
-				if($lastname) {
-					$chronicling_params{'lastname'} = $lastname;
+				if($surname) {
+					$chronicling_params{'lastname'} = $surname;
 				}
 			}
 			my $stateofbirth;
@@ -2075,12 +2069,12 @@ sub print_person
 					}
 				}
 				if(defined($yob) && defined($yod)) {
-					obituaries({ person => $person, first => $firstname, last => $lastname, yob => $yob, yod => $yod, age => $yod - $yob });
+					obituaries({ person => $person, first => $firstname, last => $surname, yob => $yob, yod => $yod, age => $yod - $yob });
 
 					my $sex = get_value({ person => $person, value => 'sex' });
 					if(defined($sex) && ($sex eq 'F') && (my $husband = $person->husband())) {
 						my $married_name = ucfirst(lc($husband->surname()));
-						if($married_name eq $lastname) {
+						if($married_name eq $surname) {
 							complain({ person => $person, warning => 'Maiden name same as married name' });
 						}
 						obituaries({ person => $person, first => $firstname, last => $married_name, yob => $yob, yod => $yod, age => $yod - $yob });
@@ -2089,7 +2083,7 @@ sub print_person
 
 				# The wills database currently only contains Kent
 				if($yod && ($placeofdeath =~ /Kent, England/)) {
-					wills({ person => $person, first => $firstname, last => $lastname, year => $yod });
+					wills({ person => $person, first => $firstname, last => $surname, year => $yod });
 				}
 			}
 		}
@@ -2936,7 +2930,10 @@ sub print_person
 				if($phrase->length()) {
 					$phrase->append(', ');
 				}
-				if($name_components{'surname_1'}) {
+				if($surname) {
+					$bio .= "<b>$firstname $surname</b>";
+					$phrase->append("<b>$firstname $surname</b>");
+				} elsif($name_components{'surname_1'}) {
 					$bio .= "<b>$firstname " .
 						$name_components{'surname_1'} .
 						'</b>';
@@ -4335,7 +4332,6 @@ sub print_person
 									# $_->given_names() . '</a>'
 							# } @children);
 							my $decoded = conjunction(map { $_->given_names() } @children);
-							utf8::decode($decoded);
 							$bio .= ": $decoded";
 							$phrase->append(": $decoded");
 						} else {
@@ -6847,9 +6843,9 @@ sub print_person
 					$phrase->set(" $pronoun ");
 				}
 
-				utf8::decode($b);
-				$b = HTML::Entities::encode($b);
-				$b =~ s/&eacute;/&#233;/g;
+				# utf8::decode($b);
+				# $b = HTML::Entities::encode($b);
+				# $b =~ s/&eacute;/&#233;/g;
 
 				my $weather;
 				if($type eq 'burial') {
@@ -7183,6 +7179,7 @@ sub print_person
 		# print $csv $bio;
 		my $s = $bio_dt->as_string();
 		my $copy = $s;
+		$copy = wide_to_html($copy);
 		$copy =~ s/\xc3\xa9/&eacute;/g;
 		$copy =~ s/\xc3\xb1/&ntilde;/g;
 		$copy =~ s/\xc3\xab/&eumlaut;/g;
@@ -7193,6 +7190,7 @@ sub print_person
 		$copy =~ s/š/&scaron;/g;
 		$copy =~ s/č/&ccaron;/g;
 		$copy =~ s/\xc5\xa1/&scaron;/g;	# š
+		$copy =~ s/\xc4\x8d/&ccaron;/g;
 		utf8::decode($copy);
 		print $csv $copy;
 		utf8::decode($s);
@@ -8912,8 +8910,8 @@ sub Gedcom::Individual::as_string
 		$rc .= ' UNKNOWN';
 	}
 
-	if($has_maiden_name && $self->surname()) {
-		$rc .= ' (n&eacute;e ' . normalize_name($self->surname()) . ')';
+	if($has_maiden_name && (my $surname = $self->surname())) {
+		$rc .= ' (née ' . normalize_name($surname) . ')';
 	}
 
 	if(!defined($rc)) {
@@ -8991,19 +8989,23 @@ sub Gedcom::Individual::as_string
 
 sub normalize_name
 {
-	# my $name = shift;
+	my $name = shift;
 
-	# my $rc;
-	# foreach my $word(split(/-| |'/, lc($name))) {
-		# $rc .= '-' if($rc && ($name =~ /-/));
-		# $rc .= "'" if($rc && ($name =~ /'/));
-		# $rc .= ' ' if($rc && ($name =~ / /));
-		# $rc .= ucfirst($word);
+	utf8::decode($name);
+	# if($name =~ /[^\x00-\xFF]/) {
+		# my $rc;
+
+		# foreach my $word(split(/-| |'/, lc($name))) {
+			# $rc .= '-' if($rc && ($name =~ /-/));
+			# $rc .= "'" if($rc && ($name =~ /'/));
+			# $rc .= ' ' if($rc && ($name =~ / /));
+			# $rc .= ucfirst($word);
+		# }
+
+		# return $rc;
 	# }
 
-	# return $rc;
-
-	return Lingua::EN::NameCase::nc(shift);
+	return Lingua::EN::NameCase::nc($name);
 }
 
 sub Gedcom::Individual::pronoun
@@ -12849,11 +12851,9 @@ sub i18n
 					die "BUG: '$format' requires non-empty argument";
 				} else {
 					my $arg = $params{'args'};
-					utf8::encode($arg);
 					$translation = sprintf($translation, $arg);
 				}
 			}
-			utf8::decode($translation);
 			$translation .= ',' if($append_comma);
 			$translation .= ' ' if($append_space);
 			if($prepend_space) {
@@ -12876,7 +12876,6 @@ sub i18n
 			$format = sprintf($format, $params{'args'});
 		}
 	}
-	utf8::decode($format);
 	$format .= ' ' if($append_space);
 	if($prepend_space) {
 		return " $format";
@@ -13097,11 +13096,44 @@ sub wide_to_html
 {
 	my $string = shift;
 
+	# print STDERR __LINE__, ": ($string)\n";
+	#
+	utf8::encode($string);
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/č/&ccaron;/g;
+	$string =~ s/ž/&zcaron;/g;
+	$string =~ s/é/&eacute;/g;
+	$string =~ s/\N{U+0161}/&scaron;/g;
+	$string =~ s/\N{U+010D}/&ccaron;/g;
+	$string =~ s/\N{U+017E}/&zcaron;/g;
+	$string =~ s/\N{U+00E9}/&eacute;/g;
+
+	# print STDERR __LINE__, ": ($string)";
+	# print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
+
 	utf8::decode($string);
+	$string =~ s/\xc3\xa9/&eacute;/g;
 	$string =~ s/\xc5\xa1/&scaron;/g;
 	$string =~ s/\xc4\x8d/&ccaron;/g;
+	$string =~ s/\xc5\xbe/&zcaron;/g;
+	# $string =~ s/\xe4\x8d/&ccaron;/g;	# ? ACOM strangeness
+	$string =~ s/\N{U+0161}/&scaron;/g;
+	$string =~ s/\N{U+010D}/&ccaron;/g;
+	$string =~ s/\N{U+00E9}/&eacute;/g;
+	$string =~ s/\N{U+017E}/&zcaron;/g;
+
+	# if($string =~ /^Maria\(/) {
+		# # print STDERR (unpack 'H*', $string);
+		# print STDERR __LINE__, ': ';
+		# print STDERR (sprintf '%v02X', $string);
+		# print STDERR "\n";
+		# my $i = 0;
+		# while((my @call_details = caller($i++))) {
+			# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		# }
+		# # die $string;
+	# }
 
 	return $string;
 }
