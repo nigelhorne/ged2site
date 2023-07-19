@@ -12850,9 +12850,11 @@ sub i18n
 					die "BUG: '$format' requires non-empty argument";
 				} else {
 					my $arg = $params{'args'};
+					utf8::encode($arg);
 					$translation = sprintf($translation, $arg);
 				}
 			}
+			utf8::decode($translation);
 			$translation .= ',' if($append_comma);
 			$translation .= ' ' if($append_space);
 			if($prepend_space) {
@@ -12875,6 +12877,7 @@ sub i18n
 			$format = sprintf($format, $params{'args'});
 		}
 	}
+	utf8::decode($format);
 	$format .= ' ' if($append_space);
 	if($prepend_space) {
 		return " $format";
