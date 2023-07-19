@@ -34,7 +34,7 @@
 				[% FOREACH summary IN todos.keys.sort %]
 					<h2>[% summary %]</h2>
 					[% FOREACH todo IN todos.$summary %]
-						<li><a href="?page=people&entry=[% todo.person %]">[% todo.title %]</a></li>
+						<li><a href="?page=people&entry=[% todo.xref %]">[% todo.title %]</a></li>
 					[% END %]
 				[% END %]
 			</ul>

@@ -157,6 +157,7 @@ BEGIN {
 		   ($warning !~ /Subroutine HTML::GoogleMaps::V3::_text_to_point redefined at/) &&
 		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
 			if(($warning =~ /^Use of uninitialized value/) ||
+			   ($warning =~ /Wide/) ||
 			   ($warning =~ /isn't numeric in numeric eq /i)) {
 				die $warning;
 			}
@@ -1452,7 +1453,7 @@ if($opts{'w'}) {
 		' | [ <a href="history.html">Family History</a> ]</center><br>';
 
 	open(my $csv, '>', 'dynamic-site/databases/todo.csv');
-	print $csv "entry!person!title!summary!error\n";
+	print $csv "entry!xref!title!summary!error\n";
 	my $index = 1;
 
 	foreach my $person(@everyone) {
@@ -1554,7 +1555,7 @@ if($opts{'w'}) {
 					$summary = 'Date of Residence Differs From Parent\'s';
 				} elsif($warning =~ /^Country not included in country,/) {
 					$summary = 'Country missing or misspelt';
-				} elsif($warning =~ /^Can't parse the name - assuming first name:  /) {
+				} elsif($warning =~ /^Can't parse the name - assuming first name: /) {
 					$summary = "Can't parse the name";
 				} elsif($warning =~ /^Not living with either parent in childhood when aged \d/) {
 					$summary = 'Not living with either parent in childhood';
@@ -1574,12 +1575,17 @@ if($opts{'w'}) {
 					$summary = $warning;
 					$summary =~ s/\"//g;
 				}
-				my $name = HTML::Entities::encode($person->as_string(include_years => 1));
+				my $name = HTML::Entities::encode(wide_to_html($person->as_string(include_years => 1)));
 				$name =~ tr/"/'/;
+				print STDERR "$index!",
+					$person->xref(),
+					"!$name!$summary!",
+					HTML::Entities::encode(wide_to_html($warning)),
+					"\n";
 				print $csv "$index!",
 					$person->xref(),
 					"!$name!$summary!",
-					HTML::Entities::encode($warning),
+					HTML::Entities::encode(wide_to_html($warning)),
 					"\n";
 				$seen_warnings{$warning} = $index;
 				$index++;
@@ -1841,10 +1847,12 @@ sub print_person
 		if(!defined($surname)) {
 			$surname = $2;
 		}
-		my $f = wide_to_html($firstname);
-		my $s = wide_to_html($surname);
-		utf8::decode($f);
-		utf8::decode($s);
+		my $f = $firstname;
+		my $s = $surname;
+		# utf8::decode($f);
+		# utf8::decode($s);
+		$f = wide_to_html($f);
+		$s = wide_to_html($s);
 		complain({ person => $person, warning => "Can't parse the name - assuming first name: $f, last name: $s" });
 	}
 
@@ -2462,10 +2470,10 @@ sub print_person
 				} elsif($dateofcremation) {
 					complain({ person => $person, warning => "Cremation date ($dateofcremation) has no citations" });
 				} elsif($placeofburial) {
-					utf8::decode($placeofburial);
+					# utf8::decode($placeofburial);
 					complain({ person => $person, warning => "Burial place ($placeofburial) has no citations" });
 				} else {
-					utf8::decode($placeofcremation);
+					# utf8::decode($placeofcremation);
 					complain({ person => $person, warning => "Cremation place ($placeofcremation) has no citations" });
 				}
 			}
@@ -2793,12 +2801,7 @@ sub print_person
 
 		if($opts{'l'} || !$is_alive) {
 			if($father) {
-				my $f = $father->as_string();
-				$f =~ s/\xc3\xa9/&eacute;/g;
-				$f =~ s/\xc5\xa1/&scaron;/g;
-				utf8::decode($f);
-				$f =~ s/š/&scaron;/g;
-				$f =~ s/č/&ccaron;/g;
+				my $f = wide_to_html($father->as_string());
 				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
 					"$f</a>");
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
@@ -2843,12 +2846,8 @@ sub print_person
 			}
 			if($mother) {
 				if(my $m = $mother->as_string(give_maidenname => 0)) {
+					$m = wide_to_html($m);
 					$phrase->append('<a href="?page=people&entry=' . $mother->xref() . "\">$m</a>");
-					$m =~ s/\xc3\xa9/&eacute;/g;
-					$m =~ s/\xc5\xa1/&scaron;/g;
-					utf8::decode($m);
-					$m =~ s/š/&scaron;/g;
-					$m =~ s/č/&ccaron;/g;
 					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
 					# print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
 					# print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
@@ -6847,10 +6846,6 @@ sub print_person
 					$phrase->set(" $pronoun ");
 				}
 
-				# utf8::decode($b);
-				# $b = HTML::Entities::encode($b);
-				# $b =~ s/&eacute;/&#233;/g;
-
 				my $weather;
 				if($type eq 'burial') {
 					if($dateofburial) {
@@ -7195,9 +7190,9 @@ sub print_person
 		$copy =~ s/č/&ccaron;/g;
 		$copy =~ s/\xc5\xa1/&scaron;/g;	# š
 		$copy =~ s/\xc4\x8d/&ccaron;/g;
-		utf8::decode($copy);
+		# utf8::decode($copy);
 		print $csv $copy;
-		utf8::decode($s);
+		# utf8::decode($s);
 		$s = HTML::Entities::encode($s);
 		$s =~ s/&/&amp;/g;
 		$s =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
@@ -8153,7 +8148,8 @@ sub print_person
 			my ($head, $map_div) = $map->onload_render();
 			$head =~ s/\n\n*/\n/g;
 			$head =~ s/http:/https:/;
-			utf8::encode($head);
+			$head = wide_to_html($head);
+			# utf8::encode($head);
 			# if($opts{'M'}) {
 				# # Don't include the key in the webpage.
 				# $head =~ s/\?key=\w+?"/"/;
@@ -8272,7 +8268,8 @@ sub print_person
 			print $xml "\n\t\t<thumbnail>$profile_thumbnail</thumbnail>";
 		}
 		$fullbio =~ s/'/\&#39;/g;
-		print $visjs '<h2>', wide_to_html($person->as_string()), "</h2><hr>$fullbio'\n},\n";
+		my $b = wide_to_html($fullbio);
+		print $visjs '<h2>', wide_to_html($person->as_string()), "</h2><hr>$b'\n},\n";
 	}
 
 	my $m;
@@ -8628,8 +8625,8 @@ sub print_person
 		});
 		my @issues = map {
 			my $s = HTML::Entities::decode($_);
-			$s =~ s/\xc3\xa9/&eacute;/g;
-			$s =~ s/é/&eacute;/g;
+			# $s =~ s/\xc3\xa9/&eacute;/g;
+			# $s =~ s/é/&eacute;/g;
 			if($s =~ /<a href="/i) {
 				$s
 			} else {
@@ -8638,7 +8635,7 @@ sub print_person
 		} @{$person->{'warnings'}};
 
 		print $html '<h2>Known Issues</h2>';
-		print $csv @issues;
+		print $csv map { wide_to_html($_) } @issues;
 		print $xml "\n\t\t<issues>";
 		foreach my $issue(@issues) {
 			print $html HTML::Entities::encode($issue);
@@ -8924,7 +8921,7 @@ sub Gedcom::Individual::as_string
 		$rc = 'Unknown person';
 	}
 
-	utf8::decode($rc);
+	# utf8::decode($rc) unless(utf8::is_utf8($rc));
 
 	if($args{'include_years'}) {
 		my $dob = dateofbirth($self);
@@ -8995,8 +8992,10 @@ sub normalize_name
 {
 	my $name = shift;
 
-	utf8::decode($name);
-	# if($name =~ /[^\x00-\xFF]/) {
+	# utf8::decode($name);
+	if($name =~ /[^[:ascii:]]/) {
+		return $name;	# It will break encoding, so don't even try
+
 		# my $rc;
 
 		# foreach my $word(split(/-| |'/, lc($name))) {
@@ -9007,7 +9006,7 @@ sub normalize_name
 		# }
 
 		# return $rc;
-	# }
+	}
 
 	return Lingua::EN::NameCase::nc($name);
 }
@@ -9016,9 +9015,7 @@ sub Gedcom::Individual::pronoun
 {
 	my $self = shift;
 
-	my $sex = get_value({ person => $self, value => 'sex' });
-
-	if(defined($sex)) {
+	if(defined(my $sex = get_value({ person => $self, value => 'sex' }))) {
 		if($sex eq 'F') {
 			return 'She';
 		}
@@ -10249,8 +10246,6 @@ sub place {
 
 		$rc->en($place);
 
-		# FIXME: doesn't work because none of this code properly handles UTF-8 which is needed for Québec
-		# utf8::decode($province);
 		if(defined(my $p = $ca_en->{province2code}{uc($province)} || $ca_fr->{province2code}{uc($province)})) {
 			my $ca;
 			if($language eq 'French') {
@@ -10325,7 +10320,7 @@ sub place {
 		validate_place({ person => $params{'person'}, place => $rc });
 	}
 
-	utf8::decode($place);
+	# utf8::decode($place);
 	if($place =~ /,,/) {
 		complain({ person => $params{'person'}, warning => "Consecutive commas found in '$place'" });
 		$place =~ s/,,/,/g;
@@ -10377,7 +10372,7 @@ sub place {
 	}
 
 	if($address) {
-		utf8::decode($address);
+		# utf8::decode($address);
 		if($params{'nopreposition'}) {
 			$place = " $address, $place";
 			$rc->en(" $address, " . $rc->en());
@@ -10489,7 +10484,7 @@ sub place {
 				# Translate the name of the country into the current locale
 				$c = $lcm->code2country($code, $lang);
 				if($c ne 'United States') {
-					utf8::decode($c);
+					# utf8::decode($c);
 					$rc->set({ lang => $lang, string => "$1, $c" });
 				}
 			}
@@ -10516,7 +10511,7 @@ sub place {
 								$preposition = 'au';
 							}
 						}
-						utf8::decode($place);
+						# utf8::decode($place);
 						$place = " $preposition $place";
 					}
 				}
@@ -12563,7 +12558,7 @@ sub get_location($)
 	} elsif($lcm && ($place =~ /(.+),\s*(.+)$/)) {
 		if($2 ne 'England') {
 			my $c = $2;
-			utf8::encode($c);
+			# utf8::encode($c);
 			if(($language eq 'French') && ($c eq 'Angleterre')) {
 				$place = "$1, England";
 			} elsif(my $code = $lcm->country2code($c, 'LOCALE_CODE_ALPHA_2', get_language_code())) {
@@ -13100,9 +13095,24 @@ sub wide_to_html
 {
 	my $string = shift;
 
-	# print STDERR __LINE__, ": ($string)\n";
-	#
-	utf8::encode($string);
+	# print STDERR __LINE__, ": ($string)";
+	# print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
+	# my $i = 0;
+	# while((my @call_details = caller($i++))) {
+		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+	# }
+
+	$string =~ s/š/&scaron;/g;
+	$string =~ s/č/&ccaron;/g;
+	$string =~ s/ž/&zcaron;/g;
+	$string =~ s/é/&eacute;/g;
+	$string =~ s/\N{U+0161}/&scaron;/g;
+	$string =~ s/\N{U+010D}/&ccaron;/g;
+	$string =~ s/\N{U+017E}/&zcaron;/g;
+	$string =~ s/\N{U+00E9}/&eacute;/g;
+
+	# utf8::encode($string);
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/č/&ccaron;/g;
 	$string =~ s/ž/&zcaron;/g;
@@ -13116,7 +13126,12 @@ sub wide_to_html
 	# print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
 
-	utf8::decode($string);
+	# utf8::decode($string);
+
+	# print STDERR __LINE__, ": ($string)";
+	# # print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
+
 	$string =~ s/\xc3\xa9/&eacute;/g;
 	$string =~ s/\xc5\xa1/&scaron;/g;
 	$string =~ s/\xc4\x8d/&ccaron;/g;
@@ -13139,6 +13154,7 @@ sub wide_to_html
 		# # die $string;
 	# }
 
+	# print STDERR __LINE__, ": ($string)\n";
 	return $string;
 }
 
@@ -13147,6 +13163,8 @@ sub wide_to_html
 # Experimental code with false positives at the moment
 sub dbpedia
 {
+	return;	# TODO
+
 	my %params;
 
 	if(ref($_[0]) eq 'HASH') {
