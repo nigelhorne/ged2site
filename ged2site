@@ -13134,7 +13134,7 @@ sub wide_to_html
 	$string =~ s/\xc5\xa1/&scaron;/g;
 	$string =~ s/\xc4\x8d/&ccaron;/g;
 	$string =~ s/\xc5\xbe/&zcaron;/g;
-	$string =~ s/\xc3\xa7/&ccedil;/g
+	$string =~ s/\xc3\xa7/&ccedil;/g;
 	$string =~ s/\xc3\x96/&Ouml;/g;	# Ö
 	# $string =~ s/\xe4\x8d/&ccaron;/g;	# ? ACOM strangeness
 	$string =~ s/\N{U+0161}/&scaron;/g;
