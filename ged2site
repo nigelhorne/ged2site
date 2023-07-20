@@ -1577,11 +1577,6 @@ if($opts{'w'}) {
 				}
 				my $name = HTML::Entities::encode(wide_to_html($person->as_string(include_years => 1)));
 				$name =~ tr/"/'/;
-				print STDERR "$index!",
-					$person->xref(),
-					"!$name!$summary!",
-					HTML::Entities::encode(wide_to_html($warning)),
-					"\n";
 				print $csv "$index!",
 					$person->xref(),
 					"!$name!$summary!",
@@ -1883,7 +1878,7 @@ sub print_person
 	if($is_alive && !$opts{'l'}) {
 		print $csv $person->xref(), '!', $person->given_names(), '!';
 			# $person->as_string({ middle_names => 1, title => 1 }), '!';
-		$title = $firstname;
+		$title = wide_to_html($firstname);
 	} else {
 		$title = wide_to_html($person->as_string({
 			include_years => 1,
@@ -1898,20 +1893,19 @@ sub print_person
 
 	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
 	my $xtitle = $title;
-	$xtitle =~ s/&eacute;/&#233;/g;
-	$xtitle =~ s/\xc3\xa9/&#233;/g;	# eacute
-	$xtitle =~ s/\xc3\xab/&#235;/g;	# eumlaut, https://www.compart.com/en/unicode/U+00EB
-	$xtitle =~ s/ë/&#235;/g;
-	print $xml "\n\t\t<entry>", $person->xref(),
-		"</entry>\n\t\t<title>$xtitle</title>";
+	$xtitle =~ s/&eacute;/&#x0E9;/g;
+	$xtitle =~ s/&scaron;/&#x161;/g;
+	$xtitle =~ s/&ccaron;/&#x10D;/g;
+
+	print $xml "\n\t\t<xref>", $person->xref(),
+		"</xref>\n\t\t<title>$xtitle</title>";
 	if($firstname) {
-		$firstname =~ s/\xc3\xab/&#235;/g;	# eumlaut
-		$firstname =~ s/ë/&#235;/g;
-		$firstname =~ s/\xc3\xa9/&#233;/g;	# eacute
-		print $xml "\n\t\t<first_name>$firstname</first_name>";
+		print $xml "\n\t\t<first_name>", wide_to_xml($firstname),
+			'</first_name>';
 	}
 	if($surname) {
-		print $xml "\n\t\t<surname>$surname</surname>";
+		print $xml "\n\t\t<surname>", wide_to_xml($surname),
+			'</surname>';
 	}
 
 	if($me && ($person->xref() eq $me->xref())) {
@@ -7177,8 +7171,7 @@ sub print_person
 	if($opts{'l'} || !$is_alive) {
 		# print $csv $bio;
 		my $s = $bio_dt->as_string();
-		my $copy = $s;
-		$copy = wide_to_html($copy);
+		my $copy = wide_to_html($s);
 		$copy =~ s/\xc3\xa9/&eacute;/g;
 		$copy =~ s/\xc3\xb1/&ntilde;/g;
 		$copy =~ s/\xc3\xab/&eumlaut;/g;
@@ -7186,14 +7179,10 @@ sub print_person
 		$copy =~ s/&Acirc;&copy;/&copy;/g;
 		$copy =~ s/é/&eacute;/g;
 		$copy =~ s/ & / &amp; /g;	# Occupations often have '&'
-		$copy =~ s/š/&scaron;/g;
-		$copy =~ s/č/&ccaron;/g;
-		$copy =~ s/\xc5\xa1/&scaron;/g;	# š
-		$copy =~ s/\xc4\x8d/&ccaron;/g;
 		# utf8::decode($copy);
 		print $csv $copy;
 		# utf8::decode($s);
-		$s = HTML::Entities::encode($s);
+		$s = HTML::Entities::encode(wide_to_xml($s));
 		$s =~ s/&/&amp;/g;
 		$s =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
 		$s =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
@@ -7210,9 +7199,6 @@ sub print_person
 		$s =~ s/\xc3\xb1/&#241;/g;	# ntilde
 		$s =~ s/ñ/&#241;/g;
 		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
-		$s =~ s/\xc5\xa1/&scaron;/g;	# š
-		$s =~ s/š/&scaron;/g;
-		$s =~ s/č/&ccaron;/g;
 		$s =~ s/ë/&#235;/g;
 		$s =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
 		print $xml $s;
@@ -7228,14 +7214,14 @@ sub print_person
 			if($father && (my $f = person_line_html({ person => $father, year => $year }))) {
 				print $html "<li>$f</li>";
 				print $csv person_line_csv({ person => $father, year => $year });
-				my $x = HTML::Entities::encode($f);
+				my $x = HTML::Entities::encode(wide_to_xml($f));
 				print $xml "\n\t\t<father>$x</father>";
 			}
 			print $csv '!';
 			if($mother && (my $m = person_line_html({ person => $mother, year => $year }))) {
 				print $html "<li>$m</li>";
 				print $csv person_line_csv({ person => $mother, year => $year });
-				my $x = HTML::Entities::encode($m);
+				my $x = HTML::Entities::encode(wide_to_xml($m));
 				print $xml "\n\t\t<mother>$x</mother>";
 			}
 			print $html '</ol>';
@@ -7257,7 +7243,7 @@ sub print_person
 				$printed_children_header = 1;
 			}
 			print $html "<li>$line</li>";
-			my $x = HTML::Entities::encode($line);
+			my $x = HTML::Entities::encode(wide_to_xml($line));
 			$x =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
 			print $xml "\n\t\t\t<child>$x</child>";
 			if(length($c)) {
@@ -8019,7 +8005,7 @@ sub print_person
 					$line =~ s/&/&amp;/g;
 					$line =~ s/&amp;amp;/&amp;/g;
 					$line =~ s/\xc3\xab/&#235;/g;	# eumlaut
-					print $xml $line;
+					print $xml wide_to_xml($line);
 				}
 				print $xml '</family_tree>';
 			}
@@ -8526,6 +8512,7 @@ sub print_person
 				}
 
 				if($new_place && (my $rplace = place({ person => $person, record => $residence, nopreposition => 1, encode => 0 }))) {
+					$rplace = wide_to_xml($rplace);
 					$rplace =~ s/^\s+//;
 					$rplace =~ s/\xc3\xb1/&#241;/g;	# ntilde
 					$rplace =~ s/ñ/&#241;/g;
@@ -8568,10 +8555,11 @@ sub print_person
 					}
 					if(my $place = place({ person => $person, record => $event, nopreposition => 1 })) {
 						$place =~ s/^\s+//;
+						$entry->{'place'} = $place;
+						$place = wide_to_xml($place);
 						print $xml "\n\t\t\t\t<location>",
 							"\n\t\t\t\t\t$place",
 							"\n\t\t\t\t</location>";
-						$entry->{'place'} = $place;
 					}
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
@@ -8641,11 +8629,11 @@ sub print_person
 			print $html HTML::Entities::encode($issue);
 			$issue =~ s/^<p>//;
 			$issue =~ s/<\/p>$//;
-			$issue = HTML::Entities::encode($issue);
-			$issue =~ s/&eacute;/&#233;/g;
-			$issue =~ s/&Atilde;&copy;/&#233;/g;	# ACOM bizarre
-			$issue =~ s/&euml;/&#235;/g;
-			$issue =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
+			$issue = HTML::Entities::encode(wide_to_xml($issue));
+			# $issue =~ s/&eacute;/&#233;/g;
+			# $issue =~ s/&Atilde;&copy;/&#233;/g;	# ACOM bizarre
+			# $issue =~ s/&euml;/&#235;/g;
+			# $issue =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
 			print $xml "\n\t\t\t<issue>$issue</issue>";
 		}
 		print $xml "\n\t\t</issues>";
@@ -13094,6 +13082,7 @@ sub person_in_residence_record
 }
 
 # See https://www.compart.com/en/unicode/U+0161 etc.
+#	https://www.compart.com/en/unicode/U+00EB
 sub wide_to_html
 {
 	my $string = shift;
@@ -13110,20 +13099,26 @@ sub wide_to_html
 	$string =~ s/č/&ccaron;/g;
 	$string =~ s/ž/&zcaron;/g;
 	$string =~ s/é/&eacute;/g;
+	$string =~ s/ç/&ccedil;/g;
 	$string =~ s/\N{U+0161}/&scaron;/g;
 	$string =~ s/\N{U+010D}/&ccaron;/g;
 	$string =~ s/\N{U+017E}/&zcaron;/g;
 	$string =~ s/\N{U+00E9}/&eacute;/g;
+	$string =~ s/\N{U+00D6}/&Ouml;/g;	# Ö
+	$string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
 
 	# utf8::encode($string);
-	$string =~ s/š/&scaron;/g;
-	$string =~ s/č/&ccaron;/g;
-	$string =~ s/ž/&zcaron;/g;
-	$string =~ s/é/&eacute;/g;
-	$string =~ s/\N{U+0161}/&scaron;/g;
-	$string =~ s/\N{U+010D}/&ccaron;/g;
-	$string =~ s/\N{U+017E}/&zcaron;/g;
-	$string =~ s/\N{U+00E9}/&eacute;/g;
+	# $string =~ s/š/&scaron;/g;
+	# $string =~ s/č/&ccaron;/g;
+	# $string =~ s/ž/&zcaron;/g;
+	# $string =~ s/é/&eacute;/g;
+	# $string =~ s/ç/&ccedil;/g;
+	# $string =~ s/\N{U+0161}/&scaron;/g;
+	# $string =~ s/\N{U+010D}/&ccaron;/g;
+	# $string =~ s/\N{U+017E}/&zcaron;/g;
+	# $string =~ s/\N{U+00E9}/&eacute;/g;
+	# $string =~ s/\N{U+00D6}/&Ouml;/g;	# Ö
+	# $string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
 
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
@@ -13139,11 +13134,15 @@ sub wide_to_html
 	$string =~ s/\xc5\xa1/&scaron;/g;
 	$string =~ s/\xc4\x8d/&ccaron;/g;
 	$string =~ s/\xc5\xbe/&zcaron;/g;
+	$string =~ s/\xc3\xa7/&ccedil;/g
+	$string =~ s/\xc3\x96/&Ouml;/g;	# Ö
 	# $string =~ s/\xe4\x8d/&ccaron;/g;	# ? ACOM strangeness
 	$string =~ s/\N{U+0161}/&scaron;/g;
 	$string =~ s/\N{U+010D}/&ccaron;/g;
 	$string =~ s/\N{U+00E9}/&eacute;/g;
 	$string =~ s/\N{U+017E}/&zcaron;/g;
+	$string =~ s/\N{U+00D6}/&Ouml;/g;	# Ö
+	$string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
@@ -13161,6 +13160,86 @@ sub wide_to_html
 	return $string;
 }
 
+# See https://www.compart.com/en/unicode/U+0161 etc.
+#	https://www.compart.com/en/unicode/U+00EB
+sub wide_to_xml
+{
+	my $string = shift;
+
+	# print STDERR __LINE__, ": ($string)";
+	# print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
+	# my $i = 0;
+	# while((my @call_details = caller($i++))) {
+		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+	# }
+
+	$string =~ s/'/&#39;/g;
+	$string =~ s/š/&s#x161/g;
+	$string =~ s/č/&#x10D;/g;
+	$string =~ s/ž/&z#x17E;/g;
+	$string =~ s/é/&#x0E9;/g;
+	$string =~ s/Ö/&#x0D6;/g;
+	$string =~ s/ç/&#x0E7;/g;
+	$string =~ s/\N{U+0161}/&#x161;/g;
+	$string =~ s/\N{U+010D}/&#x10D;/g;
+	$string =~ s/&ccaron;/&#x10D;/g;
+	$string =~ s/\N{U+017E}/&#x17E;/g;
+	$string =~ s/\N{U+00E9}/&#x0E9;/g;
+	$string =~ s/\N{U+00D6}/&#x0D6;/g;	# Ö
+	$string =~ s/\N{U+00E7}/&#x0E7;/g;	# ç
+
+	# utf8::encode($string);
+	# $string =~ s/š/&s#x161;/g;
+	# $string =~ s/č/&#x10D;/g;
+	# $string =~ s/ž/&z#x17E;/g;
+	# $string =~ s/é/&#x0E9;/g;
+	# $string =~ s/Ö/&#x0D6;/g;
+	# $string =~ s/ç/&#x0E7;/g;
+	# $string =~ s/\N{U+0161}/&#x161;/g;
+	# $string =~ s/\N{U+010D}/&#x10D;/g;
+	# $string =~ s/\N{U+017E}/&#x17E;/g;
+	# $string =~ s/\N{U+00E9}/&#x0E9;/g;
+	# $string =~ s/\N{U+00D6}/&#x0D6;/g;	# Ö
+	# $string =~ s/\N{U+00E7}/&#x0E7;/g;	# ç
+
+	# print STDERR __LINE__, ": ($string)";
+	# print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
+
+	# utf8::decode($string);
+
+	# print STDERR __LINE__, ": ($string)";
+	# # print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
+
+	$string =~ s/\xc3\xa9/&#x0E9;/g;
+	$string =~ s/\xc5\xa1/&#x161;/g;
+	$string =~ s/\xc4\x8d/&#x10D;/g;
+	$string =~ s/\xc5\xbe/&#x17E;/g;
+	$string =~ s/\xc3\x96/&#x0D6;/g;	# Ö
+	$string =~ s/\xc3\xa7/&#x0E7;/g;	# ç
+	# $string =~ s/\xe4\x8d/&#x10D;/g;	# ? ACOM strangeness
+	# $string =~ s/\N{U+0161}/&#x161;/g;
+	# $string =~ s/\N{U+010D}/&#x10D;/g;
+	# $string =~ s/\N{U+00E9}/&#x0E9;/g;
+	# $string =~ s/\N{U+017E}/&#x17E;/g;
+
+	# if($string =~ /^Maria\(/) {
+		# # print STDERR (unpack 'H*', $string);
+		# print STDERR __LINE__, ': ';
+		# print STDERR (sprintf '%v02X', $string);
+		# print STDERR "\n";
+		# my $i = 0;
+		# while((my @call_details = caller($i++))) {
+			# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		# }
+		# # die $string;
+	# }
+
+	# print STDERR __LINE__, ": ($string)\n";
+	return $string;
+}
 # Lookup entry in dbpedia.
 # TODO: Look up maiden name and married name(s)
 # Experimental code with false positives at the moment
