@@ -1838,16 +1838,17 @@ sub print_person
 	my $surname = ucfirst(lc(wide_to_html($person->surname()))); # RT109786
 
 	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
-		$firstname = $1;
+		# $firstname = $1;
+		$firstname = ucfirst(lc(wide_to_html($person->given_names()))); # RT109786
 		if(!defined($surname)) {
 			$surname = $2;
 		}
 		my $f = $firstname;
 		my $s = $surname;
-		# utf8::decode($f);
-		# utf8::decode($s);
-		$f = wide_to_html($f);
-		$s = wide_to_html($s);
+		# # utf8::decode($f);
+		# # utf8::decode($s);
+		# $f = wide_to_html($f);
+		# $s = wide_to_html($s);
 		complain({ person => $person, warning => "Can't parse the name - assuming first name: $f, last name: $s" });
 	}
 
@@ -13103,7 +13104,8 @@ sub wide_to_html
 	$string =~ s/\N{U+00D6}/&Ouml;/g;	# Ö
 	$string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
 	$string =~ s/\N{U+00C9}/&Eacute;/g;
-	$string =~ s/\N{U+00CA}/&ecirc;/g;	# FIXME - also above
+	$string =~ s/\N{U+00CA}/&ecirc;/g;
+	$string =~ s/\N{U+0160}/&Scaron;/g;	# FIXME: also above
 
 	# utf8::encode($string);
 	# $string =~ s/š/&scaron;/g;
@@ -13141,6 +13143,7 @@ sub wide_to_html
 	$string =~ s/\xc3\xa8/&egrave;/g;
 	$string =~ s/\xc3\x89/&Eacute;/g;
 	$string =~ s/\xc3\xaa/&ecirc;/g;
+	$string =~ s/\xc5\xa0/&Scaron;/g;
 	# $string =~ s/\xe4\x8d/&ccaron;/g;	# ? ACOM strangeness
 	$string =~ s/\N{U+0161}/&scaron;/g;
 	$string =~ s/\N{U+010D}/&ccaron;/g;
@@ -13152,7 +13155,8 @@ sub wide_to_html
 	$string =~ s/\N{U+00D6}/&Ouml;/g;	# Ö
 	$string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
 	$string =~ s/\N{U+00C9}/&Eacute;/g;
-	$string =~ s/\N{U+00CA}/&ecirc;/g;	# FIXME - also above
+	$string =~ s/\N{U+00CA}/&ecirc;/g;
+	$string =~ s/\N{U+0160}/&Scaron;/g;	# FIXME: also above
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
@@ -13179,6 +13183,7 @@ sub wide_to_xml
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
+
 	# my $i = 0;
 	# while((my @call_details = caller($i++))) {
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
@@ -13199,7 +13204,6 @@ sub wide_to_xml
 	$string =~ s/ç/&#x0E7;/g;
 	$string =~ s/è/&#x0E8;/g;
 	$string =~ s/ê/&#x0EA;/g;
-	$string =~ s/\N{U+0161}/&#x161;/g;
 	$string =~ s/\N{U+010D}/&#x10D;/g;
 	$string =~ s/&ccaron;/&#x10D;/g;
 	$string =~ s/\N{U+00E4}/&#x0E4/g;	# ä
@@ -13211,6 +13215,8 @@ sub wide_to_xml
 	$string =~ s/\N{U+00E8}/&#x0E8;/g;	# è
 	$string =~ s/\N{U+00E9}/&#x0E9;/g;
 	$string =~ s/\N{U+00E7}/&#x0E7;/g;	# ç
+	$string =~ s/\N{U+0160}/&#x160;/g;
+	$string =~ s/\N{U+0161}/&#x161;/g;
 
 	$string =~ s/&acirc;/&#x0E2;/g;		# â
 	$string =~ s/&auml;/&#x0E4;/g;		# ä
@@ -13218,9 +13224,11 @@ sub wide_to_xml
 	$string =~ s/\N{U+00E9}/&#x0E9;/g;
 	$string =~ s/&egrave;/&#x0E8;/g;
 	$string =~ s/&eacute;/&#x0E9;/g;
+	$string =~ s/&ecirc;/&#x0EA;/g;
 	$string =~ s/&Eacute;/&#x0C9;/g;
 	$string =~ s/&scaron;/&#x161;/g;
-	$string =~ s/&ecirc;/&#x0EA;/g;
+	$string =~ s/&zcaron;/&#x17E;/g;
+	$string =~ s/&Scaron;/&#x160;/g;
 
 	# utf8::encode($string);
 	# $string =~ s/š/&s#x161;/g;
@@ -13258,6 +13266,7 @@ sub wide_to_xml
 	$string =~ s/\xc3\xa8/&#x0E8;/g;	# è
 	$string =~ s/\xc3\x89/&#x0C9;/g;
 	$string =~ s/\xc3\xaa/&#x0EA;/g;
+	$string =~ s/\xc5\xa0/&#x160;/g;
 	# $string =~ s/\xe4\x8d/&#x10D;/g;	# ? ACOM strangeness
 	# $string =~ s/\N{U+0161}/&#x161;/g;
 	# $string =~ s/\N{U+010D}/&#x10D;/g;
