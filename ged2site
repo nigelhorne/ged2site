@@ -1576,7 +1576,6 @@ if($opts{'w'}) {
 					$summary =~ s/\"//g;
 				}
 				my $name = wide_to_html($person->as_string(include_years => 1));
-				$name =~ tr/"/'/;
 				print $csv "$index!",
 					$person->xref(),
 					"!$name!$summary!",
@@ -13085,6 +13084,10 @@ sub wide_to_html
 	# while((my @call_details = caller($i++))) {
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 	# }
+
+	$string =~ s/</&lt;/g;
+	$string =~ s/>/&gt;/g;
+	$string =~ s/"/&quot;/g;
 
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/č/&ccaron;/g;
