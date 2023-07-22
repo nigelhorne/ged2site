@@ -5586,7 +5586,7 @@ sub print_person
 					push @phrases, $phrase;
 				}
 				if(scalar(@phrases)) {
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
 					$phrase = Data::Text->new();
 					@phrases = ();
 				}
@@ -5594,7 +5594,7 @@ sub print_person
 				my $first = $residencelist[0];
 				if((scalar(@residencelist) == 1) && (my $rdate = $first->date())) {
 					$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' }));
-					$phrase->set(' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' })));
+					$phrase->set(ucfirst(year({ person => $person, date => $rdate, circa => 'About' })));
 				} else {
 					if(!$start_of_paragraph) {
 						$bio .= '</p><p>';
@@ -8610,7 +8610,7 @@ sub print_person
 		} @{$person->{'warnings'}};
 
 		print $html '<h2>Known Issues</h2>';
-		print $csv map { wide_to_html($_) } @issues;
+		print $csv map { wide_to_html({ string => $_, keep_hrefs => 1 }) } @issues;
 		print $xml "\n\t\t<issues>";
 		foreach my $issue(@issues) {
 			print $html wide_to_html({ string => $issue, keep_hrefs => 1 });
