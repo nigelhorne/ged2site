@@ -2970,7 +2970,7 @@ sub print_person
 	if($relationship) {
 		print $html " the $relationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
-			$me->as_string(nee => 1),
+			wide_to_html($me->as_string(nee => 1)),
 			'</a>';
 		# print $csv " the $relationship of ",
 			# '<a href="?page=people&home=1">',
@@ -3023,7 +3023,7 @@ sub print_person
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 			"$s</a> the $spouserelationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
-			$me->as_string(nee => 1),
+			wide_to_html($me->as_string(nee => 1)),
 			'</a>';
 		# print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
 			# "$s</a> the $spouserelationship of ",
@@ -3848,15 +3848,15 @@ sub print_person
 								$phrase->append('whose first name is unknown');
 							}
 						} elsif($numberofchildrenwiththisspouse > 1) {
+							# Construct the list for the static pages
 							my $childnames = join(', ', map {
 								'<a href="' . make_filename_from_person(person => $_) . '">' .
 									$_->given_names() . '</a>'
 							} @childrenofthisspouse);
 							substr($childnames, rindex($childnames, ', '), 2, ' and ');
-							$childnames =~ s/&entry=/&amp;entry=/g;
-							print $html $childnames;
-							# FIXME: breaks static HTML page, because of the print $bio
-							#	later on
+							$bio .= $childnames;
+
+							# Construct the list for the dynamic pages
 							my @childlist;
 							my $alive_children = 0;
 							foreach my $child(@childrenofthisspouse) {
@@ -3870,7 +3870,7 @@ sub print_person
 								}
 							}
 							if(scalar(@childlist)) {
-								$bio .= conjunction(@childlist);
+								# $bio .= conjunction(@childlist);
 								$phrase->append(conjunction(@childlist));
 								if($alive_children == 1) {
 									$bio .= ', along with 1 surviving child';
@@ -7167,14 +7167,7 @@ sub print_person
 	if($opts{'l'} || !$is_alive) {
 		# print $csv $bio;
 		my $s = $bio_dt->as_string();
-		my $copy = wide_to_html($s);
-		$copy =~ s/\xc3\xa9/&eacute;/g;
-		$copy =~ s/\xc3\xb1/&ntilde;/g;
-		$copy =~ s/\xc3\xab/&eumlaut;/g;
-		$copy =~ s/\xc2\xa9/&copy;/g;
-		$copy =~ s/&Acirc;&copy;/&copy;/g;
-		$copy =~ s/é/&eacute;/g;
-		$copy =~ s/ & / &amp; /g;	# Occupations often have '&'
+		my $copy = wide_to_html({ string => $s, keep_hrefs => 1 });
 		# utf8::decode($copy);
 		print $csv $copy;
 		# utf8::decode($s);
@@ -8130,7 +8123,7 @@ sub print_person
 			my ($head, $map_div) = $map->onload_render();
 			$head =~ s/\n\n*/\n/g;
 			$head =~ s/http:/https:/;
-			$head = wide_to_html($head);
+			$head = wide_to_html({ string => $head, keep_hrefs => 1 });
 			# utf8::encode($head);
 			# if($opts{'M'}) {
 				# # Don't include the key in the webpage.
@@ -8620,7 +8613,7 @@ sub print_person
 		print $csv map { wide_to_html($_) } @issues;
 		print $xml "\n\t\t<issues>";
 		foreach my $issue(@issues) {
-			print $html HTML::Entities::encode($issue);
+			print $html wide_to_html({ string => $issue, keep_hrefs => 1 });
 			$issue =~ s/^<p>//;
 			$issue =~ s/<\/p>$//;
 			$issue = wide_to_xml($issue);
@@ -13073,9 +13066,21 @@ sub person_in_residence_record
 
 # See https://www.compart.com/en/unicode/U+0161 etc.
 #	https://www.compart.com/en/unicode/U+00EB
+#
+# keep_hrefs => 1 means ensure hyperlinks still work
 sub wide_to_html
 {
-	my $string = shift;
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} elsif(scalar(@_) == 1) {
+		$params{'string'} = shift;
+	}
+
+	my $string = $params{'string'};
 
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
@@ -13085,9 +13090,11 @@ sub wide_to_html
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 	# }
 
-	$string =~ s/</&lt;/g;
-	$string =~ s/>/&gt;/g;
-	$string =~ s/"/&quot;/g;
+	unless($params{'keep_hrefs'}) {
+		$string =~ s/</&lt;/g;
+		$string =~ s/>/&gt;/g;
+		$string =~ s/"/&quot;/g;
+	}
 
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/č/&ccaron;/g;
@@ -13181,7 +13188,17 @@ sub wide_to_html
 #	https://www.compart.com/en/unicode/U+00EB
 sub wide_to_xml
 {
-	my $string = shift;
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} elsif(scalar(@_) == 1) {
+		$params{'string'} = shift;
+	}
+
+	my $string = $params{'string'};
 
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
