@@ -6778,6 +6778,7 @@ sub print_person
 					$phrase->append(' ' . year({ person => $person, date => $dateofcremation, must_postdate => $must_postdate }));
 					$record = $cremation;
 				}
+				die $person->as_string(), ": type $type, record is not set" if(!defined($record));
 				if($funeral && (datecmp($funeral->date(), $record->date()) == 0) && (my $place = place({ person => $person, record => $funeral, nopreposition => 1 }))) {
 					if(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
 						$phrase->append(" ($weather)");
@@ -13096,6 +13097,11 @@ sub wide_to_html
 		$string =~ s/"/&quot;/g;
 	}
 
+	$string =~ s/&db=/&amp;db=/g;
+	$string =~ s/&id=/&amp;id=/g;
+
+	$string =~ s/ & / &amp; /g;
+
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/č/&ccaron;/g;
 	$string =~ s/ž/&zcaron;/g;
@@ -13208,6 +13214,12 @@ sub wide_to_xml
 	# while((my @call_details = caller($i++))) {
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 	# }
+
+	# <issue>&lt;a href=&quot;http://worldconnect.rootsweb.com/cgi-bin/igm.cgi?op=GET&db=kent_memorials&id=I7064&quot;&gt;worldconnect.rootsweb.com&lt;/a&gt; in notes is not found</issue>
+	$string =~ s/&db=/&amp;db=/g;
+	$string =~ s/&id=/&amp;id=/g;
+
+	$string =~ s/ & / &amp; /g;
 
 	$string =~ s/</&lt;/g;
 	$string =~ s/>/&gt;/g;
