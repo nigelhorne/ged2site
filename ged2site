@@ -7751,7 +7751,7 @@ sub print_person
 									$escaped_file =~ s/&/&amp;/g;
 									if($title) {
 										print $html "<a href=\"$localfile\" target=\"_blank\">",
-											'<img src="', $localfile, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
+											'<img src="', $escaped_file, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
 											'</a>';
 										print $csv "/$localfile---$title---$h----";
 										my $escaped_title = $title;
