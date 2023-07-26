@@ -11071,7 +11071,7 @@ sub red_warning
 	if($opts{'w'}) {
 		my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-		die "What do you want to say?" unless($params{'warning'});
+		die 'What do you want to say?' unless($params{'warning'});
 
 		my $warning = HTML::Entities::decode($params{'warning'});
 		my @call_details = caller($params{'caller'} || 0);
