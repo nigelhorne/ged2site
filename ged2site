@@ -1306,7 +1306,8 @@ if(scalar(%changes)) {
 	}
 
 	close($log);
-	copy('changes.psv', 'dynamic-site/databases/changes.psv');
+	link('changes.psv', 'dynamic-site/databases/changes.psv');
+}
 
 print "Creating twins index\n";
 
@@ -1315,7 +1316,6 @@ print $csv "entry!twin\n";
 
 foreach my $twin(sort keys(%twins)) {
 	print $csv "$twin!$twins{$twin}\n";
-}
 }
 close $csv;
 
@@ -7710,7 +7710,8 @@ sub print_person
 							next OBJE if($pass == 2);
 							if($title) {
 								print "Process image $title\n" if($opts{'v'});
-								print $html "<h3>$title</h3>";
+								my $escaped_title = wide_to_html($title);
+								print $html "<h3>$escaped_title</h3>";
 								next if($titlehistory{$title});
 								$titlehistory{$title} = 1;
 							} else {
@@ -7999,7 +8000,6 @@ sub print_person
 					$line =~ s/>/&gt;/g;
 					$line =~ s/&/&amp;/g;
 					$line =~ s/&amp;amp;/&amp;/g;
-					$line =~ s/\xc3\xab/&#235;/g;	# eumlaut
 					print $xml wide_to_xml($line);
 				}
 				print $xml '</family_tree>';
@@ -13164,6 +13164,7 @@ sub wide_to_html
 	$string =~ s/\xc3\xa8/&egrave;/g;
 	$string =~ s/\xc3\x89/&Eacute;/g;
 	$string =~ s/\xc3\xaa/&ecirc;/g;
+	$string =~ s/\xc3\xab/&euml;/g;
 	$string =~ s/\xc5\xa0/&Scaron;/g;
 	# $string =~ s/\xe4\x8d/&ccaron;/g;	# ? ACOM strangeness
 	$string =~ s/\N{U+0161}/&scaron;/g;
@@ -13259,6 +13260,7 @@ sub wide_to_xml
 	$string =~ s/&egrave;/&#x0E8;/g;
 	$string =~ s/&eacute;/&#x0E9;/g;
 	$string =~ s/&ecirc;/&#x0EA;/g;
+	$string =~ s/&euml;/&#x0EB;/g;	# euml
 	$string =~ s/&Eacute;/&#x0C9;/g;
 	$string =~ s/&scaron;/&#x161;/g;
 	$string =~ s/&zcaron;/&#x17E;/g;
@@ -13300,6 +13302,7 @@ sub wide_to_xml
 	$string =~ s/\xc3\xa8/&#x0E8;/g;	# è
 	$string =~ s/\xc3\x89/&#x0C9;/g;
 	$string =~ s/\xc3\xaa/&#x0EA;/g;
+	$string =~ s/\xc3\xab/&#x0EB;/g;	# eumlaut
 	$string =~ s/\xc5\xa0/&#x160;/g;
 	# $string =~ s/\xe4\x8d/&#x10D;/g;	# ? ACOM strangeness
 	# $string =~ s/\N{U+0161}/&#x161;/g;
