@@ -6778,23 +6778,28 @@ sub print_person
 					$phrase->append(' ' . year({ person => $person, date => $dateofcremation, must_postdate => $must_postdate }));
 					$record = $cremation;
 				}
-				die $person->as_string(), ": type $type, record is not set" if(!defined($record));
-				if($funeral && (datecmp($funeral->date(), $record->date()) == 0) && (my $place = place({ person => $person, record => $funeral, nopreposition => 1 }))) {
-					if(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
-						$phrase->append(" ($weather)");
-						$bio .= " ($weather)";
+				if(defined($record)) {
+					if($funeral && (datecmp($funeral->date(), $record->date()) == 0) && (my $place = place({ person => $person, record => $funeral, nopreposition => 1 }))) {
+						if(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
+							$phrase->append(" ($weather)");
+							$bio .= " ($weather)";
+						}
+						$phrase->append(' following ' .
+							($person->pronoun() eq 'She' ? 'her' : 'his') .
+							" funeral at$place");
+						$bio .= ' following ' .
+							($person->pronoun() eq 'She' ? 'her' : 'his') .
+							" funeral at$place";
+					} elsif($place = place({ person => $person, record => $record, nopreposition => 1 })) {
+						if(my $weather = weather({ person => $person, record => $record, meteo => $meteo })) {
+							$phrase->append(" ($weather)");
+							$bio .= " ($weather)";
+						}
 					}
-					$phrase->append(' following ' .
-						($person->pronoun() eq 'She' ? 'her' : 'his') .
-						" funeral at$place");
-					$bio .= ' following ' .
-						($person->pronoun() eq 'She' ? 'her' : 'his') .
-						" funeral at$place";
-				} elsif($place = place({ person => $person, record => $record, nopreposition => 1 })) {
-					if(my $weather = weather({ person => $person, record => $record, meteo => $meteo })) {
-						$phrase->append(" ($weather)");
-						$bio .= " ($weather)";
-					}
+				} elsif(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
+					# Funeral record, but no burial or cremation
+					$phrase->append(" ($weather)");
+					$bio .= " ($weather)";
 				}
 				if(my $b = notes({ person => $person, record => $burial // $cremation // $funeral, paragraph => 0, note_locations => \@note_locations })) {
 					$b =~ s/\.$//;
@@ -7750,12 +7755,12 @@ sub print_person
 									my $escaped_file = $localfile;
 									$escaped_file =~ s/&/&amp;/g;
 									if($title) {
-										print $html "<a href=\"$localfile\" target=\"_blank\">",
-											'<img src="', $escaped_file, "\" alt=\"$title\" width=\"175\" height=\"$h\">",
-											'</a>';
-										print $csv "/$localfile---$title---$h----";
 										my $escaped_title = $title;
 										$escaped_title =~ s/&/&amp;/g;
+										print $html "<a href=\"$localfile\" target=\"_blank\">",
+											'<img src="', $escaped_file, "\" alt=\"$escaped_title\" width=\"175\" height=\"$h\">",
+											'</a>';
+										print $csv "/$localfile---$title---$h----";
 										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$escaped_file</file>\n\t\t\t\t<title>$escaped_title</title>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
 									} else {
 										print $html "<a href=\"$localfile\" target=\"_blank\">",
@@ -13215,11 +13220,8 @@ sub wide_to_xml
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 	# }
 
-	# <issue>&lt;a href=&quot;http://worldconnect.rootsweb.com/cgi-bin/igm.cgi?op=GET&db=kent_memorials&id=I7064&quot;&gt;worldconnect.rootsweb.com&lt;/a&gt; in notes is not found</issue>
-	$string =~ s/&db=/&amp;db=/g;
-	$string =~ s/&id=/&amp;id=/g;
-
-	$string =~ s/ & / &amp; /g;
+	$string =~ s/&amp;/&/g;
+	$string =~ s/&/&amp;/g;
 
 	$string =~ s/</&lt;/g;
 	$string =~ s/>/&gt;/g;
