@@ -11947,6 +11947,9 @@ sub datecmp($$)
 		}
 		return 0;
 	}
+
+	return 0 if($left eq $right);
+
 	if(!ref($left)) {
 		if($left =~ /^bef/i) {
 			if($right =~ /^\d+$/) {
@@ -12273,11 +12276,8 @@ sub dateofbirth {
 		$dateofbirth = $d[0];
 	} elsif(scalar(@d)) {
 		# More than one date - are they all the same?
-		while(defined($d[1]) && ($d[0] eq $d[1])) {
-			pop @d;
-		}
-		while(defined($d[1]) && ($d[0] !~ /^abt/i) && (date_to_datetime($d[0])->ymd() eq date_to_datetime($d[1])->ymd())) {
-			pop @d;
+		while(defined($d[1]) && (datecmp($d[0], $d[1]) == 0)) {
+			shift @d;
 		}
 		if(scalar(@d) == 1) {
 			complain({ person => $person, warning => "Removed duplicate dates of birth ($d[0])" });
