@@ -8126,19 +8126,19 @@ sub print_person
 			print "Create map HTML\n" if($opts{'v'});
 			# Can't put $head into the head since it's far too
 			# late now!
-			my ($head, $map_div) = $map->onload_render();
-			$head =~ s/\n\n*/\n/g;
-			$head =~ s/http:/https:/;
-			$head = wide_to_html({ string => $head, keep_hrefs => 1 });
-			# utf8::encode($head);
+			my ($map_head, $map_div) = $map->onload_render();
+			$map_head =~ s/\n\n*/\n/g;
+			$map_head =~ s/http:/https:/;
+			$map_head = wide_to_html({ string => $map_head, keep_hrefs => 1, keep_apos => 1 });
+			# utf8::encode($map_head);
 			# if($opts{'M'}) {
 				# # Don't include the key in the webpage.
-				# $head =~ s/\?key=\w+?"/"/;
+				# $map_head =~ s/\?key=\w+?"/"/;
 			# }
-			print $html HTML::Entities::encode($head), '<h2>Map</h2>', HTML::Entities::encode($map_div), "\n";
-			print $xml "\n\t\t<map>\n\t\t\t<head>", MIME::Base64::encode_base64url($head),
-				"</head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>";
-			print $csv MIME::Base64::encode_base64url($head), '!', MIME::Base64::encode_base64url($map_div), '!';
+			print $html HTML::Entities::encode($map_head), '<h2>Map</h2>', HTML::Entities::encode($map_div), "\n";
+			print $xml "\n\t\t<map>\n\t\t\t<map_head>", MIME::Base64::encode_base64url($map_head),
+				"</map_head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>";
+			print $csv MIME::Base64::encode_base64url($map_head), '!', MIME::Base64::encode_base64url($map_div), '!';
 		} else {
 			print $csv '!!';
 		}
@@ -12276,7 +12276,7 @@ sub dateofbirth {
 		$dateofbirth = $d[0];
 	} elsif(scalar(@d)) {
 		# More than one date - are they all the same?
-		while(defined($d[1]) && (datecmp($d[0], $d[1]) == 0)) {
+		while(defined($d[1]) && ($d[1] !~ /\sor\s/) && (datecmp($d[0], $d[1]) == 0)) {
 			shift @d;
 		}
 		if(scalar(@d) == 1) {
@@ -13074,6 +13074,8 @@ sub person_in_residence_record
 #	https://www.compart.com/en/unicode/U+00EB
 #
 # keep_hrefs => 1 means ensure hyperlinks still work
+# keep_apos => 1 means keep apostraphes, useful within <script>
+# TODO: don't transform anything within <script>...</script>
 sub wide_to_html
 {
 	my %params;
@@ -13107,7 +13109,9 @@ sub wide_to_html
 
 	$string =~ s/ & / &amp; /g;
 
-	$string =~ s/'/\&apos;/g;
+	unless($params{'keep_apos'}) {
+		$string =~ s/'/\&apos;/g;
+	}
 
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/č/&ccaron;/g;
