@@ -8215,9 +8215,9 @@ sub print_person
 		$fullbio =~ s/,,/,/g;
 		$fullbio =~ s/href="\?page=/href="cgi-bin\/page.fcgi?page=/g;
 		my $xref = $person->xref();
-		print $timeline_xml 'title="', wide_to_html($person->as_string()), '" ',
+		print $timeline_xml 'title="', wide_to_xml($person->as_string()), '" ',
 			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $xref, '"',
-			'>', HTML::Entities::encode($fullbio),
+			'>', wide_to_xml($fullbio),
 			"<\/event>\n";
 
 		print $visjs "{\ncontent: '<a href=\"cgi-bin/page.fcgi?page=people&entry=$xref\">",
