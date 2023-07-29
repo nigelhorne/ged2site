@@ -965,6 +965,13 @@ print $xml "\t$string";
 ########
 # print $xml "\n</table>\n"; exit;
 ########
+my $name;
+if($me) {
+	$name = 'of ' . $me->as_string(nee => 1);
+} else {
+	$name = 'on this site';
+}
+
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country!warnings\n";
 
@@ -972,8 +979,8 @@ open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
 print $timeline_xml "<?xml version=\"1.0\"?>\n",
 	"<data date-time-format=\"iso8601\">\n";
 
-open(my $visjs, '>', 'dynamic-site/visjs.html');
-print $visjs <<'HEADER';
+open(my $visjs_html, '>', 'dynamic-site/visjs.html');
+print $visjs_html <<'HEADER';
 <!DOCTYPE HTML>
 <html lang="en" dir="ltr">
 <head>
@@ -1006,8 +1013,24 @@ print $visjs <<'HEADER';
 	}
   </style>
 </head>
-<body>
-	<h1>Blood Relatives' Timeline</h1>
+
+HEADER
+
+print $visjs_html "<body><center><h1>Blood Relatives' Timeline", wide_to_html($name), '</h1>';
+
+if($me) {
+	print $visjs_html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+}
+print $visjs_html ' | [ <a href="surnames.html">Surnames Index</a> ]';
+if($opts{'w'}) {
+	print $visjs_html ' | [ <a href="todo.html">Errors</a> ]';
+}
+if($gedcal) {
+	print $visjs_html ' | [ <a href="calendar/index.html">Calendar</a> ]';
+}
+print $visjs_html '</center><br>';
+
+print $visjs_html <<'BODY';
 	<p><font size=+1>
 		Click and move the mouse to move around the timeline.
 		Only people with known birth dates are shown.
@@ -1028,7 +1051,7 @@ print $visjs <<'HEADER';
 
   // Create a DataSet (allows two way data-binding)
 	var items = new vis.DataSet([
-HEADER
+BODY
 
 # TODO: Add a -p option to do something like this - it's useful in debugging
 # foreach my $person($ged->get_individual('Dolly Cowell')) {
@@ -1061,7 +1084,7 @@ close $csv;
 print $timeline_xml "</data>\n";
 close $timeline_xml;
 
-print $visjs <<'FOOTER';
+print $visjs_html <<'FOOTER';
 	]);
 
   // Configuration for the Timeline
@@ -1102,17 +1125,10 @@ var options = {
 </html>
 FOOTER
 
-close $visjs;
+close $visjs_html;
 
 if(!$opts{'w'}) {
 	print "\n$index records processed\n";
-}
-
-my $name;
-if($me) {
-	$name = 'of ' . $me->as_string(nee => 1);
-} else {
-	$name = 'on this site';
 }
 
 if(scalar(%censuses)) {
@@ -2782,8 +2798,7 @@ sub print_person
 			$phrase->append(i18n(' of '));
 		}
 
-		$bio =~ s/\s&\s/ &amp; /g;
-		print $html $bio;
+		print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
 		$bio =~ s/&eacute;/&#233;/g;
 		# print $xml $bio;
 
@@ -7333,12 +7348,16 @@ sub print_person
 				}
 				my $c;
 				if(my $file = $citation->file()) {
-					$c = "<a href=\"$file\">" . HTML::Entities::encode($title) . '</a>';
+					$c = "<a href=\"$file\">" . $title . '</a>';
 				} else {
 					if($title =~ /^https?:\/\//) {
-						$c = "<a href=\"$title\">" . HTML::Entities::encode($title) . '</a>';
+						if($title =~ /^<a href=\"/) {
+							$c .= $title;
+						} else {
+							$c = "<a href=\"$title\">" . $title . '</a>';
+						}
 					} else {
-						$c = HTML::Entities::encode($title);
+						$c = $title;
 						if($title =~ /Census/) {
 							if(my $census = $censusmaps{$title}) {
 								# TODO: Add pointer to image
@@ -7350,13 +7369,13 @@ sub print_person
 					}
 				}
 				if(defined(my $publication = $citation->publication())) {
-					$c .= ' ' . HTML::Entities::encode($publication);
+					$c .= ' ' . $publication;
 					if(defined(my $continuation = $citation->cont())) {
-						$c .= ' ' . HTML::Entities::encode($continuation);
+						$c .= ' ' . $continuation;
 					}
 				}
 				if(defined(my $page = $citation->page())) {
-					$c .= ' ' . HTML::Entities::encode($page);
+					$c .= ' ' . $page;
 				}
 				my @notes = $citation->note();
 				foreach my $note(@notes) {
@@ -7366,33 +7385,25 @@ sub print_person
 
 					if($note && ($note !~ /^This information comes from/)) {
 						$ufinder->find(\$note);
-						$c .= ' (' . HTML::Entities::encode($note) . ')' unless($note eq $title);
+						$c .= ' (' . $note . ')' unless($note eq $title);
 					}
 				}
 				if($citationnotes{$index}) {
 					$citationnotes{$index} =~ s/\.$//;
-					$c .= ' (' . HTML::Entities::encode($citationnotes{$index}) . ')';
+					$c .= ' (' . $citationnotes{$index} . ')';
 				}
 				if(($title =~ /census/i) && ($title =~ /(\d{3,4})/)) {
 					$census_years{$1} = $title;
 				}
 
 				$c =~ s/\R//g;	# Remove line breaks from the citations
-				my $h = $c;
-				if($h =~ s/&lt;a href=&quot;http/<a href="http/gi) {
-					$h =~ s/&quot;&gt;/">/g;
-					$h =~ s/&lt;\/a&gt;/<\/a>/gi;
-				}
-				$h =~ s/&Acirc;&copy;/&copy;/g;
-				print $html "<li>$h</li>";
+				$c =~ s/&lt;/</g;	# TODO: find out where these are being encoded
+				$c =~ s/&gt;/>/g;
+				my $h = wide_to_html({ string => $c, keep_hrefs => 1 });
 				print $csv '----' if($index > 1);
 				print $csv $h;
-				$c =~ s/&/&amp;/g;
-				$c =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
-				$c =~ s/&amp;copy;/&#169;/g;
-				$c =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
-				$c =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
-				print $xml "\n\t\t\t<citation>$c</citation>";
+				print $html "<li>$h</li>";
+				print $xml "\n\t\t\t<citation>", wide_to_xml({ string => $c, keep_hrefs => 1 }), '</citation>';
 			}
 			print $html '</ol>';
 			print $xml "\n\t\t</citations>";
@@ -7872,6 +7883,7 @@ sub print_person
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', '/bin/cat')) {
+				binmode($fout, ':utf8');
 				# print $fout 'digraph family { graph [rankdir=LR];';
 				print $fout 'digraph family {',
 					' subgraph parents { rank="min"; ';
@@ -8215,43 +8227,47 @@ sub print_person
 		$fullbio =~ s/,,/,/g;
 		$fullbio =~ s/href="\?page=/href="cgi-bin\/page.fcgi?page=/g;
 		my $xref = $person->xref();
+		my $xml_fullbio = $fullbio;
+		$xml_fullbio =~ s/<\/p><p>/<br \/>/g;
+		$xml_fullbio =~ s/<p>/<br \/>/g;
 		print $timeline_xml 'title="', wide_to_xml($person->as_string()), '" ',
 			'link="/cgi-bin/page.fcgi?page=people&amp;entry=', $xref, '"',
-			'>', wide_to_xml($fullbio),
+			'>', wide_to_xml({ string => $xml_fullbio, keep_hrefs => 1 }),
 			"<\/event>\n";
 
-		print $visjs "{\ncontent: '<a href=\"cgi-bin/page.fcgi?page=people&entry=$xref\">",
-			$person->as_string(), "</a>',\n",
+		# Don't use wide_to_html, otherwise the <b> etc. will be lost
+		print $visjs_html "{\ncontent: '<a href=\"cgi-bin/page.fcgi?page=people&entry=$xref\">",
+			wide_to_html({ string => $person->as_string(), keep_hrefs => 1 }), "</a>',\n",
 			'start: \'', $birth_dt->year();
 
 		if($birth_dt->month() && $birth_dt->day()) {
-			printf $visjs '-%02d', $birth_dt->month();
+			printf $visjs_html '-%02d', $birth_dt->month();
 			if($birth_dt->day()) {
-				printf $visjs '-%02d', $birth_dt->day();
+				printf $visjs_html '-%02d', $birth_dt->day();
 			}
 		}
-		print $visjs "'";
+		print $visjs_html "'";
 
 		if($death_dt) {
-			print $visjs ",\nend: '", $death_dt->year();
+			print $visjs_html ",\nend: '", $death_dt->year();
 			if($death_dt->month() && $death_dt->day()) {
-				printf $visjs '-%02d', $death_dt->month();
+				printf $visjs_html '-%02d', $death_dt->month();
 				if($death_dt->day()) {
-					printf $visjs '-%02d', $death_dt->day();
+					printf $visjs_html '-%02d', $death_dt->day();
 				}
 			}
-			print $visjs "'";
+			print $visjs_html "'";
 		}
 
-		print $visjs ",\ntitle: '";
+		print $visjs_html ",\ntitle: '";
 		if($profile_thumbnail) {
-			print $visjs "<img src=\"/$profile_thumbnail\" alt=\"", $person->as_string(), "\"><p>";
+			print $visjs_html "<img src=\"/$profile_thumbnail\" alt=\"", $person->as_string(), "\"><p>";
 			print $csv $profile_thumbnail;
 			print $xml "\n\t\t<thumbnail>$profile_thumbnail</thumbnail>";
 		}
 		$fullbio =~ s/'/\&#39;/g;
 		my $b = wide_to_html($fullbio);
-		print $visjs '<h2>', wide_to_html($person->as_string()), "</h2><hr>$b'\n},\n";
+		print $visjs_html '<h2>', wide_to_html($person->as_string()), "</h2><hr>$b'\n},\n";
 	}
 
 	my $m;
@@ -8437,10 +8453,13 @@ sub print_person
 		} elsif(($c eq 'Preußen') || ($c eq 'Deutschland')) {	# Prussia
 			$death_country = 'Germany';
 		} elsif($c =~ /Can\./) {
-			complain({ person => $person, warning => 'Assuming country of death is Canada'});
+			complain({ person => $person, warning => 'Assuming country of death is Canada' });
 			$death_country = 'Canada';
 		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
 			$death_country = $b->code_alpha2();
+		} elsif(($c =~ /[A-Z]{2} USA/) && ($us->{code2state}{substr($c, 0, 2)})) {
+			complain({ person => $person, warning => "$c: assuming country of death is USA" });
+			$death_country = 'United States';
 		} else {
 			complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
 		}
@@ -10838,17 +10857,17 @@ sub person_line_html
 	if($opts{'l'} || !is_alive(%params)) {
 		if(my $dob = dateofbirth($person)) {
 			return '<a href="' . make_filename_from_person(person => $person) . '">' .
-				$person->given_names() .
+				wide_to_html($person->given_names()) .
 				'</a> was born ' .
 				year({ person => $person, date => $dob });
 		} elsif(my $bd = get_value({ person => $person, value => 'baptism date' })) {
 			return '<a href="' . make_filename_from_person(person => $person) . '">' .
-				$person->given_names() . "</a> was born c. $bd";
+				wide_to_html($person->given_names()) . "</a> was born c. $bd";
 		}
 		return '';
 	}
 	return '<a href="' . make_filename_from_person(person => $person) . '">' .
-		$person->given_names() .
+		wide_to_html($person->given_names()) .
 		'</a>';
 }
 
@@ -10861,19 +10880,19 @@ sub person_line_csv
 	if($opts{'l'} || !is_alive(%params)) {
 		if(my $dob = dateofbirth($person)) {
 			return '<a href="?page=people&entry=' . $person->xref() . '">' .
-				$person->given_names() .
+				wide_to_html($person->given_names()) .
 				'</a> was born ' .
 				year({ person => $person, date => $dob });
 		} elsif(my $bd = get_value({ person => $person, value => 'baptism date' })) {
 			return '<a href="?page=people&entry=' . $person->xref() . '">' .
-				$person->given_names() . "</a> was born c. $bd";
+				wide_to_html($person->given_names()) . "</a> was born c. $bd";
 		}
 		return '';
 	}
 	# return '<a href="?page=people&entry=' . $person->xref() . '">' .
 		# $person->given_names() .
 		# '</a>';
-	return $person->given_names();
+	return wide_to_html($person->given_names());
 }
 
 sub places_are_the_same
@@ -11193,7 +11212,7 @@ sub print_graphviz
 	if($is_alive && !$opts{'l'}) {
 		$label = 'Living';
 	} else {
-		$label = wide_to_html($person->as_string());
+		$label = $person->as_string();
 		$dob = dateofbirth($person);
 		$dod = dateofdeath($person);
 	}
@@ -11435,7 +11454,7 @@ sub date_to_datetime
 
 	if(my $date = $params{'date'}) {
 		# if($date !~ /^(bef|abt|aft).?\s/i) {
-		if($date !~ /^(bef|abt|aft)/i) {
+		if(($date !~ /^(bef|abt|aft)/i) && ($date !~ /\sor\s/)) {
 			return $dfg->parse_datetime(%params);
 		}
 	}
@@ -11705,6 +11724,7 @@ sub get_all_occupations
 	if(scalar(@occupations)) {
 		$occupations[0] =~ tr/\r//;
 		$occupations[0] =~ tr/\n/ /;
+		$occupations[0] =~ s/\.+$//;
 
 		if($occupations[0] =~ /works? on (.+)/i) {
 			$occupations[0] = "$1 worker";
@@ -13090,6 +13110,13 @@ sub wide_to_html
 	}
 
 	my $string = $params{'string'};
+	if(!defined($string)) {
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'BUG: string not set';
+	}
 
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
@@ -13111,7 +13138,7 @@ sub wide_to_html
 	$string =~ s/ & / &amp; /g;
 
 	unless($params{'keep_apos'}) {
-		$string =~ s/'/\&apos;/g;
+		$string =~ s/'/&apos;/g;
 	}
 
 	$string =~ s/š/&scaron;/g;
@@ -13221,6 +13248,13 @@ sub wide_to_xml
 	}
 
 	my $string = $params{'string'};
+	if(!defined($string)) {
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die 'BUG: string not set';
+	}
 
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
@@ -13234,9 +13268,11 @@ sub wide_to_xml
 	$string =~ s/&amp;/&/g;
 	$string =~ s/&/&amp;/g;
 
-	$string =~ s/</&lt;/g;
-	$string =~ s/>/&gt;/g;
-	$string =~ s/"/&quot;/g;
+	unless($params{'keep_hrefs'}) {
+		$string =~ s/</&lt;/g;
+		$string =~ s/>/&gt;/g;
+		$string =~ s/"/&quot;/g;
+	}
 
 	$string =~ s/'/&#39;/g;
 	$string =~ s/š/&#x161;/g;
