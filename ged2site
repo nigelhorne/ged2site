@@ -1595,8 +1595,9 @@ $ged = undef;
 if($gedcal) {
 	print "Creating calendar\n";
 	if(open(my $fout, '>', 'static-site/calendar/index.html')) {
-		print $fout "<html><head><title>Genealogy Calendar $name</title></head>",
-			"<body><center><h1>Genealogy Calendar $name</h1>";
+		my $html_name = wide_to_html($name);
+		print $fout "<html><head><title>Genealogy Calendar $html_name</title></head>",
+			"<body><center><h1>Genealogy Calendar $html_name</h1>";
 		if($me) {
 			print $fout '[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]';
 		}
