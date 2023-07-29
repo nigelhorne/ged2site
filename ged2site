@@ -971,6 +971,7 @@ if($me) {
 } else {
 	$name = 'on this site';
 }
+my $html_name = wide_to_html($name);
 
 open(my $csv, '>', 'dynamic-site/databases/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country!warnings\n";
@@ -1016,21 +1017,17 @@ print $visjs_html <<'HEADER';
 
 HEADER
 
-print $visjs_html "<body><center><h1>Blood Relatives' Timeline", wide_to_html($name), '</h1>';
-
-if($me) {
-	print $visjs_html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
-}
-print $visjs_html ' | [ <a href="surnames.html">Surnames Index</a> ]';
-if($opts{'w'}) {
-	print $visjs_html ' | [ <a href="todo.html">Errors</a> ]';
-}
-if($gedcal) {
-	print $visjs_html ' | [ <a href="calendar/index.html">Calendar</a> ]';
-}
-print $visjs_html '</center><br>';
+print $visjs_html "<body><center><h1>Blood Relatives' Timeline ", wide_to_html($name), '</h1>';
 
 print $visjs_html <<'BODY';
+	<center>
+		[ <a href="cgi-bin/page.fcgi?page=people&amp;home=1">Home</a> ] |
+		[ <a href="cgi-bin/page.fcgi?page=censuses">Census Index</a> ] |
+		[ <a href="cgi-bin/page.fcgi?page=surnames">Surname Index</a> ] |
+		[ <a href="cgi-bin/page.fcgi?page=history">Family History</a> ] |
+		[ <a href="cgi-bin/page.fcgi?page=todo">To Do</a> ] |
+		[ <a href="cgi-bin/page.fcgi?page=calendar">Calendar</a> ]
+	</center>
 	<p><font size=+1>
 		Click and move the mouse to move around the timeline.
 		Only people with known birth dates are shown.
@@ -1370,9 +1367,9 @@ foreach my $surname(sort keys %{$surnames}) {
 	print $html ')</li>';
 
 	open(my $shtml, '>', "static-site/$filename.html");
-	print $shtml "<html><head><title>The Family Tree $name - $surname</title>",
+	print $shtml "<html><head><title>The Family Tree $html_name - $surname</title>",
 		'</head>',
-		"<body><center><h1>The Family Tree $name - $surname</h1>";
+		"<body><center><h1>The Family Tree $html_name - $surname</h1>";
 	if($me) {
 		print $shtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	}
@@ -1611,7 +1608,6 @@ $ged = undef;
 if($gedcal) {
 	print "Creating calendar\n";
 	if(open(my $fout, '>', 'static-site/calendar/index.html')) {
-		my $html_name = wide_to_html($name);
 		print $fout "<html><head><title>Genealogy Calendar $html_name</title></head>",
 			"<body><center><h1>Genealogy Calendar $html_name</h1>";
 		if($me) {
@@ -7369,6 +7365,7 @@ sub print_person
 					}
 				}
 				if(defined(my $publication = $citation->publication())) {
+					utf8::decode($publication);	# Seems to be needed from ACOM publications
 					$c .= ' ' . $publication;
 					if(defined(my $continuation = $citation->cont())) {
 						$c .= ' ' . $continuation;
@@ -7384,7 +7381,10 @@ sub print_person
 					}
 
 					if($note && ($note !~ /^This information comes from/)) {
-						$ufinder->find(\$note);
+						$note = HTML::Entities::decode($note);
+						if($note !~ /<a href="/i) {
+							$ufinder->find(\$note);
+						}
 						$c .= ' (' . $note . ')' unless($note eq $title);
 					}
 				}
@@ -7397,13 +7397,19 @@ sub print_person
 				}
 
 				$c =~ s/\R//g;	# Remove line breaks from the citations
-				$c =~ s/&lt;/</g;	# TODO: find out where these are being encoded
-				$c =~ s/&gt;/>/g;
 				my $h = wide_to_html({ string => $c, keep_hrefs => 1 });
+
+				# ACOM embeds these HTML codes in citations
+				$h =~ s/<p>/<br>/g;
+				$h =~ s/<\/p>//g;
+				$h =~ s/<li>/<br>/g;
+				$h =~ s/<\/li>/ /g;
+				$h =~ s/\s\s+/ /g;
+
 				print $csv '----' if($index > 1);
 				print $csv $h;
 				print $html "<li>$h</li>";
-				print $xml "\n\t\t\t<citation>", wide_to_xml({ string => $c, keep_hrefs => 1 }), '</citation>';
+				print $xml "\n\t\t\t<citation>", wide_to_xml(string => $c), '</citation>';
 			}
 			print $html '</ol>';
 			print $xml "\n\t\t</citations>";
@@ -8148,7 +8154,9 @@ sub print_person
 				# # Don't include the key in the webpage.
 				# $map_head =~ s/\?key=\w+?"/"/;
 			# }
-			print $html HTML::Entities::encode($map_head), '<h2>Map</h2>', HTML::Entities::encode($map_div), "\n";
+			print $html wide_to_html({ string => $map_head, keep_hrefs => 1 }),
+				'<h2>Map</h2>', wide_to_html({ string => $map_div, keep_hrefs => 1 }),
+				"\n";
 			print $xml "\n\t\t<map>\n\t\t\t<map_head>", MIME::Base64::encode_base64url($map_head),
 				"</map_head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>";
 			print $csv MIME::Base64::encode_base64url($map_head), '!', MIME::Base64::encode_base64url($map_div), '!';
@@ -11362,6 +11370,8 @@ sub make_filename_from_person
 	$rc =~ s/--+/-/g;
 	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;
+
+	utf8::decode($rc);
 	$rc = Unicode::Diacritic::Strip::strip_diacritics($rc);
 
 	return "$rc.html";
@@ -11384,6 +11394,7 @@ sub make_filename_from_object
 	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;
 
+	utf8::decode($rc);
 	return Unicode::Diacritic::Strip::strip_diacritics($rc);
 }
 
@@ -13141,15 +13152,7 @@ sub wide_to_html
 		$string =~ s/'/&apos;/g;
 	}
 
-	$string =~ s/š/&scaron;/g;
-	$string =~ s/č/&ccaron;/g;
-	$string =~ s/ž/&zcaron;/g;
-	$string =~ s/â/&acirc;/g;
-	$string =~ s/é/&eacute;/g;
-	$string =~ s/è/&egrave;/g;
-	$string =~ s/ç/&ccedil;/g;
-	$string =~ s/ê/&ecirc;/g;
-	$string =~ s/ë/&euml;/g;
+	$string =~ s/\N{U+00A9}/&copy;/g;
 	$string =~ s/\N{U+0161}/&scaron;/g;
 	$string =~ s/\N{U+010D}/&ccaron;/g;
 	$string =~ s/\N{U+017E}/&zcaron;/g;
@@ -13162,6 +13165,7 @@ sub wide_to_html
 	$string =~ s/\N{U+00C9}/&Eacute;/g;
 	$string =~ s/\N{U+00CA}/&ecirc;/g;
 	$string =~ s/\N{U+00EB}/&euml;/g;
+	$string =~ s/\N{U+00FB}/&ucirc;/g;
 	$string =~ s/\N{U+0160}/&Scaron;/g;	# FIXME: also above
 
 	# utf8::encode($string);
@@ -13189,6 +13193,7 @@ sub wide_to_html
 	# # print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
 
+	$string =~ s/\xc2\xa9/&copy;/g;
 	$string =~ s/\xc3\xa2/&acirc;/g;
 	$string =~ s/\xc3\xa4/&auml;/g;
 	$string =~ s/\xc3\xa9/&eacute;/g;
@@ -13201,21 +13206,36 @@ sub wide_to_html
 	$string =~ s/\xc3\x89/&Eacute;/g;
 	$string =~ s/\xc3\xaa/&ecirc;/g;
 	$string =~ s/\xc3\xab/&euml;/g;
+	$string =~ s/\xc3\xbb/&ucirc;/g;
 	$string =~ s/\xc5\xa0/&Scaron;/g;
 	# $string =~ s/\xe4\x8d/&ccaron;/g;	# ? ACOM strangeness
 	$string =~ s/\N{U+0161}/&scaron;/g;
 	$string =~ s/\N{U+010D}/&ccaron;/g;
+	$string =~ s/\N{U+00A9}/&copy;/g;
 	$string =~ s/\N{U+00E2}/&acirc;/g;
 	$string =~ s/\N{U+00E4}/&auml;/g;
 	$string =~ s/\N{U+00E8}/&egrave;/g;
 	$string =~ s/\N{U+00E9}/&eacute;/g;
 	$string =~ s/\N{U+00EB}/&euml;/g;
+	$string =~ s/\N{U+00FB}/&ucirc;/g;
 	$string =~ s/\N{U+017E}/&zcaron;/g;
 	$string =~ s/\N{U+00D6}/&Ouml;/g;	# Ö
 	$string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
 	$string =~ s/\N{U+00C9}/&Eacute;/g;
 	$string =~ s/\N{U+00CA}/&ecirc;/g;
 	$string =~ s/\N{U+0160}/&Scaron;/g;	# FIXME: also above
+
+	$string =~ s/š/&scaron;/g;
+	$string =~ s/č/&ccaron;/g;
+	$string =~ s/ž/&zcaron;/g;
+	$string =~ s/â/&acirc;/g;
+	$string =~ s/é/&eacute;/g;
+	$string =~ s/è/&egrave;/g;
+	$string =~ s/ç/&ccedil;/g;
+	$string =~ s/ê/&ecirc;/g;
+	$string =~ s/ë/&euml;/g;
+	$string =~ s/©/&copy;/g;
+	$string =~ s/û/&ucirc;/g;
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
@@ -13274,22 +13294,11 @@ sub wide_to_xml
 		$string =~ s/"/&quot;/g;
 	}
 
-	$string =~ s/'/&#39;/g;
-	$string =~ s/š/&#x161;/g;
-	$string =~ s/č/&#x10D;/g;
-	$string =~ s/ž/&#x17E;/g;
-	$string =~ s/â/&#x0E2;/g;
-	$string =~ s/ä/&#x0E4;/g;	# ä
-	$string =~ s/é/&#x0E9;/g;
-	$string =~ s/Ö/&#x0D6;/g;
-	$string =~ s/ç/&#x0E7;/g;
-	$string =~ s/è/&#x0E8;/g;
-	$string =~ s/ê/&#x0EA;/g;
-	$string =~ s/ë/&#x0EB;/g;
 	$string =~ s/\N{U+010D}/&#x10D;/g;
 	$string =~ s/&ccaron;/&#x10D;/g;
+	$string =~ s/\N{U+00A9}/&#x0A9;/g;	# ©
 	$string =~ s/\N{U+00E4}/&#x0E4/g;	# ä
-	$string =~ s/\N{U+00CA}/&#x0EA;/g;
+	$string =~ s/\N{U+00EA}/&#x0EA;/g;
 	$string =~ s/\N{U+00C9}/&#x0C9;/g;
 	$string =~ s/\N{U+017E}/&#x17E;/g;
 	$string =~ s/\N{U+00D6}/&#x0D6;/g;	# Ö
@@ -13298,6 +13307,7 @@ sub wide_to_xml
 	$string =~ s/\N{U+00E9}/&#x0E9;/g;
 	$string =~ s/\N{U+00E7}/&#x0E7;/g;	# ç
 	$string =~ s/\N{U+00EB}/&#x0EB;/g;	# ë
+	$string =~ s/\N{U+00FB}/&#x0FB;/g;	# û
 	$string =~ s/\N{U+0160}/&#x160;/g;
 	$string =~ s/\N{U+0161}/&#x161;/g;
 
@@ -13311,6 +13321,7 @@ sub wide_to_xml
 	$string =~ s/&euml;/&#x0EB;/g;	# euml
 	$string =~ s/&Eacute;/&#x0C9;/g;
 	$string =~ s/&scaron;/&#x161;/g;
+	$string =~ s/&ucirc;/&#x0FB;/g;
 	$string =~ s/&zcaron;/&#x17E;/g;
 	$string =~ s/&Scaron;/&#x160;/g;
 
@@ -13339,6 +13350,7 @@ sub wide_to_xml
 	# # print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
 
+	$string =~ s/\xc2\xa9/&#x0A9;/g;
 	$string =~ s/\xc3\xa9/&#x0E9;/g;
 	$string =~ s/\xc5\xa1/&#x161;/g;
 	$string =~ s/\xc4\x8d/&#x10D;/g;
@@ -13351,12 +13363,28 @@ sub wide_to_xml
 	$string =~ s/\xc3\x89/&#x0C9;/g;
 	$string =~ s/\xc3\xaa/&#x0EA;/g;
 	$string =~ s/\xc3\xab/&#x0EB;/g;	# eumlaut
+	$string =~ s/\xc3\xbb/&#x0BB;/g;	# û - ucirc
 	$string =~ s/\xc5\xa0/&#x160;/g;
 	# $string =~ s/\xe4\x8d/&#x10D;/g;	# ? ACOM strangeness
 	# $string =~ s/\N{U+0161}/&#x161;/g;
 	# $string =~ s/\N{U+010D}/&#x10D;/g;
 	# $string =~ s/\N{U+00E9}/&#x0E9;/g;
 	# $string =~ s/\N{U+017E}/&#x17E;/g;
+
+	$string =~ s/'/&#39;/g;
+	$string =~ s/©/&#x0A9;/g;
+	$string =~ s/š/&#x161;/g;
+	$string =~ s/č/&#x10D;/g;
+	$string =~ s/ž/&#x17E;/g;
+	$string =~ s/â/&#x0E2;/g;
+	$string =~ s/ä/&#x0E4;/g;	# ä
+	$string =~ s/é/&#x0E9;/g;
+	$string =~ s/Ö/&#x0D6;/g;
+	$string =~ s/ç/&#x0E7;/g;
+	$string =~ s/è/&#x0E8;/g;
+	$string =~ s/ê/&#x0EA;/g;
+	$string =~ s/ë/&#x0EB;/g;
+	$string =~ s/û/&#x0FB;/g;
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
@@ -13413,6 +13441,7 @@ sub dbpedia
 	my $firstname = $name_components{'given_name_1'} // $person->given_names // $name_components{'initials_1'};
 	if($firstname) {
 		$firstname =~ s/\'/\\\'/g;
+		utf8::decode($firstname);
 		$firstname = Unicode::Diacritic::Strip::strip_diacritics($firstname);
 	} else {
 		$firstname = 'NULL';
@@ -13421,6 +13450,7 @@ sub dbpedia
 	my $surname = ucfirst(lc($person->surname()));
 	if($surname) {
 		$surname =~ s/\'/\\\'/g;
+		utf8::decode($surname);
 		$surname = Unicode::Diacritic::Strip::strip_diacritics($surname);
 	} else {
 		$surname = 'NULL';
