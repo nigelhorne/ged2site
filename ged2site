@@ -1017,7 +1017,7 @@ print $visjs_html <<'HEADER';
 
 HEADER
 
-print $visjs_html "<body><center><h1>Blood Relatives' Timeline ", wide_to_html($name), '</h1>';
+print $visjs_html "<body><center><h1>Blood Relatives' Timeline ", wide_to_html($name), '</h1></center>';
 
 print $visjs_html <<'BODY';
 	<center>
