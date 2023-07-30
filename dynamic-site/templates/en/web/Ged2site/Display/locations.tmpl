@@ -35,8 +35,8 @@
 		</div>
 		<div id="container">
 			<center>
-				[ <a href="?page=home=1">Home</a> ] |
-				[ <a href="?page=people&home=1">Home Person</a> ] |
+				[ <a href="?page=home">Home</a> ] |
+				[ <a href="?page=people&amp;home=1">Home Person</a> ] |
 				[ <a href="?page=censuses">Census Index</a> ] |
 				[ <a href="?page=surnames">Surname Index</a> ] |
 				[ <a href="?page=history">Family History</a> ] |
@@ -62,7 +62,7 @@
 						<!-- ged2site sorts them numerically -->
 						[% FOREACH map IN locations.0.maps.map %]
 							<li>
-								<a href="?page=locations&year=[%- map.year %]">[% map.year %]</a>
+								<a href="?page=locations&amp;year=[%- map.year %]">[% map.year %]</a>
 							</li>
 						[% END %]
 					</ul>
