@@ -28,7 +28,9 @@ sub html {
 
 	unless(scalar(keys %params)) {
 		# Display the list of surnames
-		my @s = sort $surnames->surname(distinct => 1);
+		my @s = map {
+			HTML::Entites::decode($_)
+		} $surnames->surname(distinct => 1);
 		return $self->SUPER::html({ surnames => \@s, updated => $surnames->updated() });
 	}
 
