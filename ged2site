@@ -10240,7 +10240,8 @@ sub place {
 	if($lang ne 'en') {
 		$rc->set({ lang => $lang, string => $place });
 	}
-	$place =~ s/\xc3\xa9/é/g;
+	# $place =~ s/\xc3\xa9/é/g;
+	$place =~ s/\xc3\xa9/\N{U+00E9}/g;
 
 	if(($place =~ /(.+?)\s*United States$/i) || ($place =~ /(.+?)\s*United States of America$/i)) {
 		$place = "$1 USA";
@@ -10526,9 +10527,11 @@ sub place {
 			}
 		}
 	}
+
 	if($params{'encode'}) {
 		$rc->encode();
 	}
+
 	return $rc;
 }
 
@@ -13154,11 +13157,33 @@ sub wide_to_html
 		$string =~ s/'/&apos;/g;
 	}
 
+	$string =~ s/\xc2\xa9/&copy;/g;
+	$string =~ s/\xc2\xae/&reg;/g;
+	$string =~ s/\xc3\xa1/&aacute;/g;
+	$string =~ s/\xc3\xa2/&acirc;/g;
+	$string =~ s/\xc3\xa4/&auml;/g;
+	$string =~ s/\xc3\xa9/&eacute;/g;
+	$string =~ s/\xc5\xa1/&scaron;/g;
+	$string =~ s/\xc4\x8d/&ccaron;/g;
+	$string =~ s/\xc5\xbe/&zcaron;/g;
+	$string =~ s/\xc3\xa7/&ccedil;/g;
+	$string =~ s/\xc3\xb3/&oacute;/g;
+	$string =~ s/\xc3\x96/&Ouml;/g;	# Ö
+	$string =~ s/\xc3\xa8/&egrave;/g;
+	$string =~ s/\xc3\x89/&Eacute;/g;
+	$string =~ s/\xc3\xaa/&ecirc;/g;
+	$string =~ s/\xc3\xab/&euml;/g;
+	$string =~ s/\xc3\xbb/&ucirc;/g;
+	$string =~ s/\xc5\x9b/&sacute;/g;
+	$string =~ s/\xc5\xa0/&Scaron;/g;
+	$string =~ s/\xe2\x80\x93/-/g;
+
 	$string =~ s/\N{U+00A9}/&copy;/g;
 	$string =~ s/\N{U+00AE}/&reg;/g;
 	$string =~ s/\N{U+0161}/&scaron;/g;
 	$string =~ s/\N{U+010D}/&ccaron;/g;
 	$string =~ s/\N{U+017E}/&zcaron;/g;
+	$string =~ s/\N{U+00E1}/&aacute;;/g;
 	$string =~ s/\N{U+00E2}/&acirc;/g;
 	$string =~ s/\N{U+00E4}/&auml;/g;
 	$string =~ s/\N{U+00E8}/&egrave;/g;
@@ -13168,8 +13193,10 @@ sub wide_to_html
 	$string =~ s/\N{U+00C9}/&Eacute;/g;
 	$string =~ s/\N{U+00CA}/&ecirc;/g;
 	$string =~ s/\N{U+00EB}/&euml;/g;
+	$string =~ s/\N{U+00F3}/&oacute;/g;
+	$string =~ s/\N{U+015B}/&sacute;/g;
 	$string =~ s/\N{U+00FB}/&ucirc;/g;
-	$string =~ s/\N{U+0160}/&Scaron;/g;	# FIXME: also above
+	$string =~ s/\N{U+0160}/&Scaron;/g;
 	$string =~ s/\N{U+2013}/-/g;
 
 	# utf8::encode($string);
@@ -13197,46 +13224,30 @@ sub wide_to_html
 	# # print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
 
-	$string =~ s/\xc2\xa9/&copy;/g;
-	$string =~ s/\xc2\xae/&reg;/g;
-	$string =~ s/\xc3\xa2/&acirc;/g;
-	$string =~ s/\xc3\xa4/&auml;/g;
-	$string =~ s/\xc3\xa9/&eacute;/g;
-	$string =~ s/\xc5\xa1/&scaron;/g;
-	$string =~ s/\xc4\x8d/&ccaron;/g;
-	$string =~ s/\xc5\xbe/&zcaron;/g;
-	$string =~ s/\xc3\xa7/&ccedil;/g;
-	$string =~ s/\xc3\x96/&Ouml;/g;	# Ö
-	$string =~ s/\xc3\xa8/&egrave;/g;
-	$string =~ s/\xc3\x89/&Eacute;/g;
-	$string =~ s/\xc3\xaa/&ecirc;/g;
-	$string =~ s/\xc3\xab/&euml;/g;
-	$string =~ s/\xc3\xbb/&ucirc;/g;
-	$string =~ s/\xc5\xa0/&Scaron;/g;
-	$string =~ s/\xe2\x80\x93/-/g;
-
 	# $string =~ s/\xe4\x8d/&ccaron;/g;	# ? ACOM strangeness
-	$string =~ s/\N{U+0161}/&scaron;/g;
-	$string =~ s/\N{U+010D}/&ccaron;/g;
-	$string =~ s/\N{U+00A9}/&copy;/g;
-	$string =~ s/\N{U+00AE}/&reg;/g;
-	$string =~ s/\N{U+00E2}/&acirc;/g;
-	$string =~ s/\N{U+00E4}/&auml;/g;
-	$string =~ s/\N{U+00E8}/&egrave;/g;
-	$string =~ s/\N{U+00E9}/&eacute;/g;
-	$string =~ s/\N{U+00EB}/&euml;/g;
-	$string =~ s/\N{U+00FB}/&ucirc;/g;
-	$string =~ s/\N{U+017E}/&zcaron;/g;
-	$string =~ s/\N{U+00D6}/&Ouml;/g;	# Ö
-	$string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
-	$string =~ s/\N{U+00C9}/&Eacute;/g;
-	$string =~ s/\N{U+00CA}/&ecirc;/g;
-	$string =~ s/\N{U+0160}/&Scaron;/g;	# FIXME: also above
-	$string =~ s/\N{U+2013}/-/g;
+	# $string =~ s/\N{U+0161}/&scaron;/g;
+	# $string =~ s/\N{U+010D}/&ccaron;/g;
+	# $string =~ s/\N{U+00A9}/&copy;/g;
+	# $string =~ s/\N{U+00AE}/&reg;/g;
+	# $string =~ s/\N{U+00E2}/&acirc;/g;
+	# $string =~ s/\N{U+00E4}/&auml;/g;
+	# $string =~ s/\N{U+00E8}/&egrave;/g;
+	# $string =~ s/\N{U+00E9}/&eacute;/g;
+	# $string =~ s/\N{U+00EB}/&euml;/g;
+	# $string =~ s/\N{U+00F3}/&oacute;/g;
+	# $string =~ s/\N{U+00FB}/&ucirc;/g;
+	# $string =~ s/\N{U+017E}/&zcaron;/g;
+	# $string =~ s/\N{U+00D6}/&Ouml;/g;	# Ö
+	# $string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
+	# $string =~ s/\N{U+00C9}/&Eacute;/g;
+	# $string =~ s/\N{U+00CA}/&ecirc;/g;
+	# $string =~ s/\N{U+0160}/&Scaron;/g;	# FIXME: also above
+	# $string =~ s/\N{U+2013}/-/g;
 
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/č/&ccaron;/g;
 	$string =~ s/ž/&zcaron;/g;
+	$string =~ s/á/&aacute;/g;
 	$string =~ s/â/&acirc;/g;
 	$string =~ s/é/&eacute;/g;
 	$string =~ s/è/&egrave;/g;
@@ -13245,6 +13256,8 @@ sub wide_to_html
 	$string =~ s/ë/&euml;/g;
 	$string =~ s/©/&copy;/g;
 	$string =~ s/®/&reg;/g;
+	$string =~ s/ó/&oacute;/g;
+	$string =~ s/ś/&sacute;/g;
 	$string =~ s/û/&ucirc;/g;
 	$string =~ s/–/-/g;
 
@@ -13296,7 +13309,10 @@ sub wide_to_xml
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 	# }
 
-	$string =~ s/&amp;/&/g;
+	$string = HTML::Entities::decode($string);
+	# print STDERR __LINE__, ": ($string)\n";
+
+	# $string =~ s/&amp;/&/g;
 	$string =~ s/&/&amp;/g;
 
 	unless($params{'keep_hrefs'}) {
@@ -13305,25 +13321,68 @@ sub wide_to_xml
 		$string =~ s/"/&quot;/g;
 	}
 
+	# print STDERR __LINE__, ": ($string)";
+	# print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
+
+	$string =~ s/\xc2\xa9/&#x0A9;/g;
+	$string =~ s/\xc2\xae/&#x0AE;/g;
+	$string =~ s/\xc3\xa1/&#x0E1;/g;
+	$string =~ s/\xc3\xa9/&#x0E9;/g;
+	$string =~ s/\xc5\xa1/&#x161;/g;
+	$string =~ s/\xc4\x8d/&#x10D;/g;
+	$string =~ s/\xc5\xbe/&#x17E;/g;
+	$string =~ s/\xc3\x96/&#x0D6;/g;	# Ö
+	$string =~ s/\xc3\xa2/&#x0E2;/g;	# â
+	$string =~ s/\xc3\xa4/&#x0E4;/g;	# ä
+	$string =~ s/\xc3\xa7/&#x0E7;/g;	# ç
+	$string =~ s/\xc3\xb3/&#x0F3;/g;	# ó
+	$string =~ s/\xc3\xa8/&#x0E8;/g;	# è
+	$string =~ s/\xc3\x89/&#x0C9;/g;
+	$string =~ s/\xc3\xaa/&#x0EA;/g;
+	$string =~ s/\xc3\xab/&#x0EB;/g;	# eumlaut
+	$string =~ s/\xc3\xbb/&#x0BB;/g;	# û - ucirc
+	$string =~ s/\xc5\x9b/&#x15B;/g;	# ś - sacute
+	$string =~ s/\xc5\xa0/&#x160;/g;
+	$string =~ s/\xe2\x80\x93/-/g;
+	# $string =~ s/\xe4\x8d/&#x10D;/g;	# ? ACOM strangeness
+	# $string =~ s/\N{U+0161}/&#x161;/g;
+	# $string =~ s/\N{U+010D}/&#x10D;/g;
+	# $string =~ s/\N{U+00E9}/&#x0E9;/g;
+	# $string =~ s/\N{U+017E}/&#x17E;/g;
+
 	$string =~ s/\N{U+010D}/&#x10D;/g;
 	$string =~ s/&ccaron;/&#x10D;/g;
-	$string =~ s/\N{U+00A9}/&#x0A9;/g;	# ©
 	$string =~ s/\N{U+00AE}/&#x0AE;/g;	# ®
-	$string =~ s/\N{U+00E4}/&#x0E4/g;	# ä
+	$string =~ s/\N{U+00E4}/&#x0E4;/g;	# ä
 	$string =~ s/\N{U+00EA}/&#x0EA;/g;
 	$string =~ s/\N{U+00C9}/&#x0C9;/g;
 	$string =~ s/\N{U+017E}/&#x17E;/g;
 	$string =~ s/\N{U+00D6}/&#x0D6;/g;	# Ö
+	$string =~ s/\N{U+00E1}/&#x0E1;/g;	# á - aacute
 	$string =~ s/\N{U+00E2}/&#x0E2;/g;
 	$string =~ s/\N{U+00E8}/&#x0E8;/g;	# è
+	$string =~ s/\N{U+00F3}/&#x0F3;/g;	# ó
+	$string =~ s/\N{U+015B}/&#x15B;/g;	# ś
+	# print STDERR __LINE__, ": ($string)";
+	# print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
 	$string =~ s/\N{U+00E9}/&#x0E9;/g;
+	# print STDERR __LINE__, ": ($string)";
+	# print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
 	$string =~ s/\N{U+00E7}/&#x0E7;/g;	# ç
 	$string =~ s/\N{U+00EB}/&#x0EB;/g;	# ë
 	$string =~ s/\N{U+00FB}/&#x0FB;/g;	# û
 	$string =~ s/\N{U+0160}/&#x160;/g;
 	$string =~ s/\N{U+0161}/&#x161;/g;
+	$string =~ s/\N{U+00A9}/&#x0A9;/g;	# ©
+	# print STDERR __LINE__, ": ($string)";
+	# print STDERR (sprintf '%v02X', $string);
+	# print STDERR "\n";
 	$string =~ s/\N{U+2013}/-/g;
 
+	$string =~ s/&aacute;/&#x0E1;/g;	# á
 	$string =~ s/&acirc;/&#x0E2;/g;		# â
 	$string =~ s/&auml;/&#x0E4;/g;		# ä
 	$string =~ s/&ccedil;/&#x0E7;/g;	# ç
@@ -13352,7 +13411,6 @@ sub wide_to_xml
 	# $string =~ s/\N{U+00E9}/&#x0E9;/g;
 	# $string =~ s/\N{U+00D6}/&#x0D6;/g;	# Ö
 	# $string =~ s/\N{U+00E7}/&#x0E7;/g;	# ç
-	# $string =~ s/\N{U+00E9}/&#x0E9;/g;
 
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
@@ -13360,45 +13418,19 @@ sub wide_to_xml
 
 	# utf8::decode($string);
 
-	# print STDERR __LINE__, ": ($string)";
-	# # print STDERR (sprintf '%v02X', $string);
-	# print STDERR "\n";
-
-	$string =~ s/\xc2\xa9/&#x0A9;/g;
-	$string =~ s/\xc2\xae/&#x0AE;/g;
-	$string =~ s/\xc3\xa9/&#x0E9;/g;
-	$string =~ s/\xc5\xa1/&#x161;/g;
-	$string =~ s/\xc4\x8d/&#x10D;/g;
-	$string =~ s/\xc5\xbe/&#x17E;/g;
-	$string =~ s/\xc3\x96/&#x0D6;/g;	# Ö
-	$string =~ s/\xc3\xa2/&#x0E2;/g;	# â
-	$string =~ s/\xc3\xa4/&#x0E4;/g;	# ä
-	$string =~ s/\xc3\xa7/&#x0E7;/g;	# ç
-	$string =~ s/\xc3\xa8/&#x0E8;/g;	# è
-	$string =~ s/\xc3\x89/&#x0C9;/g;
-	$string =~ s/\xc3\xaa/&#x0EA;/g;
-	$string =~ s/\xc3\xab/&#x0EB;/g;	# eumlaut
-	$string =~ s/\xc3\xbb/&#x0BB;/g;	# û - ucirc
-	$string =~ s/\xc5\xa0/&#x160;/g;
-	$string =~ s/\xe2\x80\x93/-/g;
-	# $string =~ s/\xe4\x8d/&#x10D;/g;	# ? ACOM strangeness
-	# $string =~ s/\N{U+0161}/&#x161;/g;
-	# $string =~ s/\N{U+010D}/&#x10D;/g;
-	# $string =~ s/\N{U+00E9}/&#x0E9;/g;
-	# $string =~ s/\N{U+017E}/&#x17E;/g;
-
 	$string =~ s/'/&#39;/g;
 	$string =~ s/©/&#x0A9;/g;
 	$string =~ s/®/&#x0AE;/g;
 	$string =~ s/š/&#x161;/g;
 	$string =~ s/č/&#x10D;/g;
 	$string =~ s/ž/&#x17E;/g;
+	$string =~ s/á/&#x0E1;/g;	# á
 	$string =~ s/â/&#x0E2;/g;
 	$string =~ s/ä/&#x0E4;/g;	# ä
-	$string =~ s/é/&#x0E9;/g;
 	$string =~ s/Ö/&#x0D6;/g;
 	$string =~ s/ç/&#x0E7;/g;
 	$string =~ s/è/&#x0E8;/g;
+	$string =~ s/é/&#x0E9;/g;
 	$string =~ s/ê/&#x0EA;/g;
 	$string =~ s/ë/&#x0EB;/g;
 	$string =~ s/û/&#x0FB;/g;
