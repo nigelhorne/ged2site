@@ -3,6 +3,7 @@ package Ged2site::Display::surnames;
 # Display the surnames page
 
 use Ged2site::Display;
+use HTML::Entites::decode;
 
 our @ISA = ('Ged2site::Display');
 
