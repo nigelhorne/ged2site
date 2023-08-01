@@ -117,7 +117,7 @@ sub allow {
 			unless($throttler->try_push(key => $addr)) {
 				# Recommend you send HTTP 429 at this point
 				if($logger) {
-					$logger->warn("$addr throttled");
+					$logger->warn("$addr has been throttled");
 				}
 				$status{$addr} = 0;
 				throw Error::Simple("$addr has been throttled");
@@ -137,6 +137,7 @@ sub allow {
 					$logger->warn("$addr blocked connexion from ", $lingua->country());
 				}
 				$status{$addr} = 0;
+				$info->status(403);
 				throw Error::Simple("$addr: blocked connexion from " . $lingua->country(), 0);
 			}
 		}
@@ -154,7 +155,19 @@ sub allow {
 						$logger->warn("$addr: IDS blocked connexion for ", $info->as_string());
 					}
 					$status{$addr} = 0;
+					$info->status(403);
 					throw Error::Simple("$addr: IDS blocked connexion for " . $info->as_string());
+				}
+
+				foreach my $v (values %{$params}) {
+					if($v eq '/etc/passwd') {
+						if($logger) {
+							$logger->warn("$addr: blocked connexion attempt for /etc/passwd from ", $info->as_string());
+						}
+						$status{$addr} = 0;
+						$info->status(403);
+						return 0;
+					}
 				}
 			}
 		}
@@ -168,6 +181,7 @@ sub allow {
 				if($logger) {
 					$logger->warn("$addr: Blocked trawler");
 				}
+				$info->status(403);
 				$status{$addr} = 0;
 				throw Error::Simple("$addr: Blocked trawler");
 			}
@@ -181,7 +195,19 @@ sub allow {
 					$logger->warn("$addr: Blocked shellshocker for $referer");
 				}
 				$status{$addr} = 0;
+				$info->status(403);
 				throw Error::Simple("$addr: Blocked shellshocker for $referer");
+			}
+		}
+
+		if(my $script_uri = $ENV{'SCRIPT_URI'}) {
+			if(($script_uri =~ /\/shell\.php$/) ||
+			   ($script_uri =~ /\/cmd\.php$/)) {
+				if($logger) {
+					$logger->warn("$addr: Blocked attacker from $addr");
+				}
+				$status{$addr} = 0;
+				throw Error::Simple("$addr: Blocked attacker for $addr");
 			}
 		}
 	}
@@ -233,10 +259,10 @@ sub allow {
 		my $xml;
 		eval {
 			if(my $string = LWP::Simple::WithCache::get(DSHIELD)) {
-                                $xml = XML::LibXML->load_xml(string => $string);
-                        } else {
-                                warn DSHIELD;
-                        }
+				$xml = XML::LibXML->load_xml(string => $string);
+			} else {
+				warn DSHIELD;
+			}
 		};
 		unless($@ || !defined($xml)) {
 			foreach my $source ($xml->findnodes('/sources/data')) {
