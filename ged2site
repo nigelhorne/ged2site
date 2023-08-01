@@ -158,10 +158,8 @@ BEGIN {
 		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
 			if(($warning =~ /^Use of uninitialized value/) ||
 			   ($warning =~ /Wide/) ||
+			   ($warning =~ /: attempt to add consecutive punctuation/) ||
 			   ($warning =~ /isn't numeric in numeric eq /i)) {
-				die $warning;
-			}
-			if($warning =~ /: attempt to add consecutive punctuation/) {
 				die $warning;
 			}
 			utf8::decode($warning);
@@ -3873,9 +3871,14 @@ sub print_person
 							my $alive_children = 0;
 							foreach my $child(@childrenofthisspouse) {
 								if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
-									push @childlist,
-										'<a href="?page=people&entry=' . $child->xref() . '">' .
-											$child->given_names() . '</a>'
+									my $cgiven = $child->given_names();
+									# Remove the '.' from an initial
+									$cgiven =~ s/[\.\s]+$//;
+									if(length($cgiven)) {
+										push @childlist,
+											'<a href="?page=people&entry=' . $child->xref() . '">' .
+											"$cgiven</a>";
+									}
 								} else {
 									$alive_children++;
 									# push @childlist, $child->given_names();
@@ -7532,7 +7535,7 @@ sub print_person
 			# print $csv notes({ person => $person, record => $death });
 		# }
 
-		if(my $dbpedia = dbpedia({ person => $person, birth_dt => $birth_dt, yod => $yod })) {
+		if($opts{'w'} && (my $dbpedia = dbpedia({ person => $person, birth_dt => $birth_dt, yod => $yod }))) {
 		}
 
 		if(($person->get_value('note')) &&
@@ -10439,7 +10442,7 @@ sub place {
 			$str = "$3,$4";
 			if($places_printed->{" in$str"} || $places_printed->{" at$str"}) {
 				if($params{'encode'}) {
-					return HTML::Entities::encode("$1,$2,$3");
+					return wide_to_html("$1,$2,$3");
 				}
 				return "$1,$2,$3";
 			}
@@ -13107,6 +13110,8 @@ sub person_in_residence_record
 	return 0;
 }
 
+# Encode to HTML whatever the non-ascii encoding scheme has been chosen
+#
 # See https://www.compart.com/en/unicode/U+0161 etc.
 #	https://www.compart.com/en/unicode/U+00EB
 #
