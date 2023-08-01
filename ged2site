@@ -8468,11 +8468,12 @@ sub print_person
 		} elsif($c =~ /Can\./) {
 			complain({ person => $person, warning => 'Assuming country of death is Canada' });
 			$death_country = 'Canada';
-		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
-			$death_country = $b->code_alpha2();
 		} elsif(($c =~ /[A-Z]{2} USA/) && ($us->{code2state}{substr($c, 0, 2)})) {
 			complain({ person => $person, warning => "$c: assuming country of death is USA" });
 			$death_country = 'United States';
+		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
+			# Country is found
+			$death_country = $b->code_alpha2();
 		} else {
 			complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
 		}
