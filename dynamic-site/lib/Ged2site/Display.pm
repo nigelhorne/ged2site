@@ -82,6 +82,7 @@ sub new {
 }
 
 # Call this to display the page
+# It calls http() to create the HTTP headers, then html() to create the body
 sub as_string {
 	my ($self, $args) = @_;
 
@@ -239,6 +240,8 @@ sub http {
 	return $rc . "X-Frame-Options: SAMEORIGIN\nX-Content-Type-Options: nosniff\n\n";
 }
 
+# Override this routine in a subclass if you wish to create special arguments to
+# send to the template
 sub html {
 	my $self = shift;
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
