@@ -10274,7 +10274,7 @@ sub place {
 					$rc->fr("$town, Qu\N{U+00E9}bec, Canada");
 				} else {
 					$p = 'Quebec';
-					if($town eq 'Montréal') {
+					if(($town eq 'Montréal') || ($town eq "Montr\N{U+00E9}al")) {
 						$town = 'Montreal';
 					}
 					$rc->en("$town, Quebec, Canada");
