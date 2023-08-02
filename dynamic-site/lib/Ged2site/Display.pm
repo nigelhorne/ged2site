@@ -81,6 +81,45 @@ sub new {
 	return bless $self, $class;
 }
 
+# Call this to display the page
+sub as_string {
+	my ($self, $args) = @_;
+
+	# TODO: Get all cookies and send them to the template.
+	# 'cart' is an example
+	unless($args && $args->{cart}) {
+		my $purchases = $self->{_info}->get_cookie(cookie_name => 'cart');
+		if($purchases) {
+			my %cart = split(/:/, $purchases);
+			$args->{cart} = \%cart;
+		}
+	}
+	unless($args && $args->{itemsincart}) {
+		if($args->{cart}) {
+			my $itemsincart;
+			foreach my $key(keys %{$args->{cart}}) {
+				if(defined($args->{cart}{$key}) && ($args->{cart}{$key} ne '')) {
+					$itemsincart += $args->{cart}{$key};
+				} else {
+					delete $args->{cart}{$key};
+				}
+			}
+			$args->{itemsincart} = $itemsincart;
+		}
+	}
+
+	# my $html = $self->html($args);
+	# unless($html) {
+		# return;
+	# }
+	# return $self->http() . $html;
+	my $rc = $self->http();
+	if($rc =~ /^Location:\s/ms) {
+		return $rc;
+	}
+	return $rc . $self->html($args);
+}
+
 sub get_template_path {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -268,44 +307,6 @@ sub html {
 	}
 
 	return $rc;
-}
-
-sub as_string {
-	my ($self, $args) = @_;
-
-	# TODO: Get all cookies and send them to the template.
-	# 'cart' is an example
-	unless($args && $args->{cart}) {
-		my $purchases = $self->{_info}->get_cookie(cookie_name => 'cart');
-		if($purchases) {
-			my %cart = split(/:/, $purchases);
-			$args->{cart} = \%cart;
-		}
-	}
-	unless($args && $args->{itemsincart}) {
-		if($args->{cart}) {
-			my $itemsincart;
-			foreach my $key(keys %{$args->{cart}}) {
-				if(defined($args->{cart}{$key}) && ($args->{cart}{$key} ne '')) {
-					$itemsincart += $args->{cart}{$key};
-				} else {
-					delete $args->{cart}{$key};
-				}
-			}
-			$args->{itemsincart} = $itemsincart;
-		}
-	}
-
-	# my $html = $self->html($args);
-	# unless($html) {
-		# return;
-	# }
-	# return $self->http() . $html;
-	my $rc = $self->http();
-	if($rc =~ /^Location:\s/ms) {
-		return $rc;
-	}
-	return $rc . $self->html($args);
 }
 
 # my $f = pfopen('/tmp:/var/tmp:/home/njh/tmp', 'foo', 'txt:bin' );
