@@ -3,7 +3,7 @@ package Ged2site::Display::surnames;
 # Display the surnames page
 
 use Ged2site::Display;
-use HTML::Entites::decode;
+use HTML::Entities;
 
 our @ISA = ('Ged2site::Display');
 
@@ -30,7 +30,7 @@ sub html {
 	unless(scalar(keys %params)) {
 		# Display the list of surnames
 		my @s = map {
-			HTML::Entites::decode($_)
+			HTML::Entities::decode($_)
 		} $surnames->surname(distinct => 1);
 		return $self->SUPER::html({ surnames => \@s, updated => $surnames->updated() });
 	}
