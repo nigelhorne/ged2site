@@ -1324,10 +1324,14 @@ if(scalar(%changes)) {
 print "Creating intermarriages database\n";
 
 open($csv, '>', 'dynamic-site/databases/intermarriages.csv');
-print $csv "entry!spouse\n";
+print $csv "entry!spouse!relatioship\n";
 
 foreach my $entry(sort keys(%intermarriages)) {
-	print $csv "$entry!$intermarriages{$entry}\n";
+	my $intermarriage = $intermarriages{$entry};
+	print Data::Dumper->new([$intermarriage])->Dump();
+	print $csv "$entry!",
+		$intermarriage->{'spouse_xref'}, '!',
+		$intermarriage->{'relationship'}, "\n";
 }
 close $csv;
 
@@ -1341,7 +1345,7 @@ foreach my $twin(sort keys(%twins)) {
 }
 close $csv;
 
-print "Creating surname index\n";
+print "Creating surname database\n";
 open(my $html, '>', 'static-site/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree $name</title>",
 	"</head><body><center><h1>Surnames in the Family Tree $name</h1>";
@@ -3671,7 +3675,11 @@ sub print_person
 							->append($srelationship)->append(' ');
 						$bio .= (($person->pronoun() eq 'She') ? 'her ' : 'his ') .
 							"$srelationship ";
-						$intermarriages{$person->xref()} = $spouses[0]->xref();
+						$intermarriages{$person->xref()} = {
+
+							'spouse_xref' => $spouses[0]->xref(),
+							'relationship' => $relationship
+						};
 					}
 
 					if($haveprintedspousename) {
@@ -10351,6 +10359,7 @@ sub place {
 	if($place =~ /,,/) {
 		complain({ person => $params{'person'}, warning => "Consecutive commas found in '$place'" });
 		$place =~ s/,,/,/g;
+		$place =~ s/,(\S)/, $1/g;
 	}
 	if($place =~ /,(\S)/) {
 		complain({ person => $params{'person'}, warning => "Space missing after comma in '$place'" });
