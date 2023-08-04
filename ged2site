@@ -12553,9 +12553,10 @@ sub parse_date
 				return $1 . ucfirst(lc(substr($2, 0, 3))) . " $3";
 			}
 			if($date =~ /^([A-Z]{3,})\s+(\d+),?\s+([\d\/]+)$/i) {	# U.S. format - Jul 4 instead of 4 Jul
-				complain({ person => $person, warning => "$date changed to $2 $1 $3" });
 				# FIXME: assumes the months are in English
-				return $2 . ucfirst(lc(substr($1, 0, 3))) . " $3";
+				my $rc = "$2 " . ucfirst(lc(substr($1, 0, 3))) . " $3";
+				complain({ person => $person, warning => "$date changed to $rc" });
+				return $rc;
 			}
 			my $i = 0;
 			while((my @call_details = caller($i++))) {
