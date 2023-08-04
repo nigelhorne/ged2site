@@ -77,6 +77,7 @@ use Ged2site::Display::calendar;
 use Ged2site::Display::descendants;
 use Ged2site::Display::graphs;
 use Ged2site::Display::emmigrants;
+use Ged2site::Display::intermarriages;
 use Ged2site::Display::locations;
 use Ged2site::Display::ww1;
 use Ged2site::Display::military;
@@ -95,6 +96,7 @@ if($@) {
 use Ged2site::DB::censuses;
 use Ged2site::DB::surnames;
 use Ged2site::DB::history;
+use Ged2site::DB::intermarriages;
 use Ged2site::DB::todo;
 use Ged2site::DB::name_date;
 use Ged2site::DB::surname_date;
@@ -114,6 +116,7 @@ my $censuses = Ged2site::DB::censuses->new();
 my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::DB::history->new();
 my $todo = Ged2site::DB::todo->new();
+my $intermarriages = Ged2site::DB::intermarriages->new();
 # TODO: why are these arguments needed?
 my $locations = Ged2site::DB::locations->new(directory => $database_dir, logger => $logger);
 my $name_date = Ged2site::DB::name_date->new();
@@ -403,6 +406,8 @@ sub doit
 			$display = Ged2site::Display::graphs->new($args);
 		} elsif($page eq 'emmigrants') {
 			$display = Ged2site::Display::emmigrants->new($args);
+		} elsif($page eq 'intermarriages') {
+			$display = Ged2site::Display::intermarriages->new($args);
 		} elsif($page eq 'locations') {
 			$display = Ged2site::Display::locations->new($args);
 		} elsif($page eq 'ww1') {
@@ -441,6 +446,7 @@ sub doit
 			locations => $locations,
 			surnames => $surnames,
 			history => $history,
+			intermarriages => $intermarriages,
 			todo => $todo,
 			name_date => $name_date,
 			surname_date => $surname_date,
@@ -517,6 +523,7 @@ sub choose
 			"/cgi-bin/page.fcgi?page=descendants\n",
 			"/cgi-bin/page.fcgi?page=graphs\n",
 			"/cgi-bin/page.fcgi?page=emmigrants\n",
+			"/cgi-bin/page.fcgi?page=intermarriages\n",
 			"/cgi-bin/page.fcgi?page=ww1\n",
 			"/cgi-bin/page.fcgi?page=military\n",
 			"/cgi-bin/page.fcgi?page=twins\n",
