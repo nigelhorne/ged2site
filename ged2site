@@ -1324,7 +1324,7 @@ if(scalar(%changes)) {
 print "Creating intermarriages database\n";
 
 open($csv, '>', 'dynamic-site/databases/intermarriages.csv');
-print $csv "entry!spouse!relatioship\n";
+print $csv "entry!spouse!relationship\n";
 
 foreach my $entry(sort keys(%intermarriages)) {
 	my $intermarriage = $intermarriages{$entry};
