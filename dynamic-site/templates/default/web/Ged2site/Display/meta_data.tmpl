@@ -10,7 +10,7 @@
 		<meta name="object" content="Index">
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2023 Nigel Horne">
 		<title>[ SiteTitle ]: Meta Data</title>
 		[% IF keywords %]
 			<meta name="keywords" content="[% keywords %]" />
@@ -21,8 +21,8 @@
 	<body>
 		[% IF info %]
 			<H1>Info</H1>
-			Domain_name: [% info.domain_name() %]<br>
-			Browser Type: [% info.browser_type() %]
+			domain_name: [% info.domain_name() %]<br>
+			browser_type: [% info.browser_type() %]
 		[% END %]
 		[% IF lingua %]
 			<H1>Lingua</H1>
