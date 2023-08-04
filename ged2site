@@ -385,6 +385,7 @@ my %name_date;	# Maps first names to quarter century
 my %surname_date;	# Maps surnames to quarter century
 my %changes;	# If the -x option is given, tracks changes between the previous run and this run
 my $facts;
+my %intermarriages;	# People who've married a relative
 my %all_residences;
 # my $pi = atan2(1,1) * 4;
 
@@ -1320,7 +1321,17 @@ if(scalar(%changes)) {
 	link('changes.psv', 'dynamic-site/databases/changes.psv');
 }
 
-print "Creating twins index\n";
+print "Creating intermarriages database\n";
+
+open($csv, '>', 'dynamic-site/databases/intermarriages.csv');
+print $csv "entry!spouse\n";
+
+foreach my $entry(sort keys(%intermarriages)) {
+	print $csv "$entry!$intermarriages{$entry}\n";
+}
+close $csv;
+
+print "Creating twins database\n";
 
 open($csv, '>', 'dynamic-site/databases/twins.csv');
 print $csv "entry!twin\n";
@@ -2641,11 +2652,12 @@ sub print_person
 					push @phrases, $phrase;
 				}
 				$phrase = Data::Text->new('The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
-					' of ' . $person_twins[0]->{'sibling'}->given_names());
+					i18n(' of ') . $person_twins[0]->{'sibling'}->given_names());
 				$bio .= 'The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
-					' of ' . $person_twins[0]->{'sibling'}->given_names();
+					i18n(' of ') . $person_twins[0]->{'sibling'}->given_names();
 			}
 			$printed_comma = 0;
+			$twins{$person->xref()} = $person_twins[0]->{'sibling'}->xref();
 		}
 	}
 
@@ -2759,8 +2771,8 @@ sub print_person
 						$bio .= ' de ' . (scalar(@siblings) + 1) . ' enfants';
 						$phrase->append(' de ' . (scalar(@siblings) + 1) . ' enfants');
 					} else {
-						$bio .= ' of ' . (scalar(@siblings) + 1) . ' children';
-						$phrase->append(' of ' . (scalar(@siblings) + 1) . ' children');
+						$bio .= i18n(' of ') . (scalar(@siblings) + 1) . ' children';
+						$phrase->append(i18n(' of ') . (scalar(@siblings) + 1) . ' children');
 					}
 				} else {
 					if($language eq 'French') {
@@ -3377,6 +3389,7 @@ sub print_person
 						push @phrases, $phrase;
 						$phrase = Data::Text->new();
 					}
+					$twins{$person->xref()} = $sibling->xref();
 				}
 				if(scalar(@spouses) && ($numberofchildren > 0)) {
 					$bio .= i18n(' and');
@@ -3658,6 +3671,7 @@ sub print_person
 							->append($srelationship)->append(' ');
 						$bio .= (($person->pronoun() eq 'She') ? 'her ' : 'his ') .
 							"$srelationship ";
+						$intermarriages{$person->xref()} = $spouses[0]->xref();
 					}
 
 					if($haveprintedspousename) {
