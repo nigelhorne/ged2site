@@ -13185,6 +13185,7 @@ sub wide_to_html
 
 	unless($params{'keep_apos'}) {
 		$string =~ s/'/&apos;/g;
+		$string =~ s/‘/&apos;/g;
 	}
 
 	$string =~ s/\xc2\xa9/&copy;/g;
@@ -13354,6 +13355,7 @@ sub wide_to_xml
 		$string =~ s/"/&quot;/g;
 	}
 
+	$string =~ s/‘/&apos;/g;
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
