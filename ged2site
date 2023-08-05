@@ -1328,7 +1328,6 @@ print $csv "entry!spouse!relationship\n";
 
 foreach my $entry(sort keys(%intermarriages)) {
 	my $intermarriage = $intermarriages{$entry};
-	print Data::Dumper->new([$intermarriage])->Dump();
 	print $csv "$entry!",
 		$intermarriage->{'spouse_xref'}, '!',
 		$intermarriage->{'relationship'}, "\n";
@@ -11055,7 +11054,7 @@ sub sibling_baptism_string
 			i18n(($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ')) .
 			conjunction(map {
 				if($opts{'l'} || !is_alive($_)) {
-					'<a><href="?page=people&entry=' . $_->xref() . '">' . $_->given_names() . '</a>'
+					'<a href="?page=people&entry=' . $_->xref() . '">' . $_->given_names() . '</a>'
 				} else {
 					$_->given_names()
 				}
@@ -13294,6 +13293,7 @@ sub wide_to_html
 	$string =~ s/ô/&ocirc;/g;
 	$string =~ s/ś/&sacute;/g;
 	$string =~ s/û/&ucirc;/g;
+	$string =~ s/£/&pound;/g;
 	$string =~ s/–/-/g;
 
 	# if($string =~ /^Maria\(/) {
@@ -13474,6 +13474,7 @@ sub wide_to_xml
 	$string =~ s/ê/&#x0EA;/g;
 	$string =~ s/ë/&#x0EB;/g;
 	$string =~ s/û/&#x0FB;/g;
+	$string =~ s/£/&#x0A3;/g;
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
