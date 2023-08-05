@@ -3676,9 +3676,8 @@ sub print_person
 						$bio .= (($person->pronoun() eq 'She') ? 'her ' : 'his ') .
 							"$srelationship ";
 						$intermarriages{$person->xref()} = {
-
 							'spouse_xref' => $spouses[0]->xref(),
-							'relationship' => $relationship
+							'relationship' => $srelationship
 						};
 					}
 
@@ -8696,7 +8695,7 @@ sub print_person
 	my $death_in_last_run;
 	if($current_people) {
 		foreach my $p($current_people->root()->children('person')) {
-			my $entry = $p->first_child('entry');
+			my $entry = $p->first_child('xref');
 			next if($entry->first_child()->pcdata() ne $person->xref());
 			if($firstname && (my $f = $p->first_child('first_name'))) {
 				next if($f->first_child()->pcdata() ne $firstname);

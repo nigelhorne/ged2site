@@ -37,11 +37,9 @@
 				<ul id="nav">
 					[% FOREACH intermarriage IN intermarriages %]
 						<li>
-							<p>
-								<a href="?page=people&amp;entry=[%- intermarriage.left.entry %]">[% intermarriage.left.title %]</a>
-								<a href="?page=people&amp;entry=[%- intermarriage.right.entry %]">[% intermarriage.right.title %]</a>
-								[% intermarriage.intermarriage.relationship %]
-							<p>
+							<h2>[% intermarriage.intermarriage.relationship %]</h2>
+							<a href="?page=people&amp;entry=[%- intermarriage.left.entry %]">[% intermarriage.left.title %]</a>
+							<a href="?page=people&amp;entry=[%- intermarriage.right.entry %]">[% intermarriage.right.title %]</a>
 						</li>
 					[% END %]
 				</ul>
