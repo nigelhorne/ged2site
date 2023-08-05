@@ -719,11 +719,10 @@ my %censusmaps = (
 	'1921 Census of Canada' => '1921 Canadian Census',
 
 	'1790 United States Federal Census' => '1790 US Census',
-
 	'1800 United States Federal Census' => '1800 US Census',
-
 	'1820 United States Federal Census' => '1820 US Census',
-
+	'1830 United States Federal Census' => '1830 US Census',
+	'1840 United States Federal Census' => '1840 US Census',
 	'1850 United States Federal Census' => '1850 US Census',
 	'US Census 1850 - Findmypast' => '1850 US Census',
 	'Us Census 1850 - Findmypast' => '1850 US Census',	# Strange...
@@ -762,12 +761,13 @@ my %censusmaps = (
 	'US Census 1930 - Findmypast' => '1930 US Census',
 	'1930 United States Federal Census' => '1930 US Census',
 
-	'South Dakota, State Census, 1935' => '1935 US Census',
+	'South Dakota, State Census, 1935' => '1935 US State Censuses',
 
 	'US Census 1940 - Findmypast' => '1940 US Census',
 	'1940 United States Federal Census' => '1940 US Census',
-
 	'1950 United States Federal Census' => '1950 US Census',
+
+	'Ireland, Census, 1901' => '1901 Ireland Census',
 );
 
 # sub realdie
