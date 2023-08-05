@@ -3677,7 +3677,7 @@ sub print_person
 							"$srelationship ";
 						$intermarriages{$person->xref()} = {
 							'spouse_xref' => $spouses[0]->xref(),
-							'relationship' => $srelationship
+							'relationship' => ucfirst($srelationship)
 						};
 					}
 
