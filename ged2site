@@ -7213,25 +7213,29 @@ sub print_person
 		# utf8::decode($copy);
 		print $csv $copy;
 		# utf8::decode($s);
-		$s = HTML::Entities::encode(wide_to_xml($s));
-		$s =~ s/&/&amp;/g;
-		$s =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
-		$s =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
-		$s =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
-		$s =~ s/&amp;pound;/&#163;/g;
-		$s =~ s/&amp;#39;/'/g;
-		$s =~ s/&amp;#/&#/g;
-		$s =~ s/</&lt;/g;
-		$s =~ s/>/&gt;/g;
-		$s =~ s/&amp;eacute;/&#233;/g;
-		$s =~ s/&amp;quot;/&quot;/g;
-		$s =~ s/\xc3\xa9/&#233;/g;	# eacute
-		$s =~ s/é/&#233;/g;
-		$s =~ s/\xc3\xb1/&#241;/g;	# ntilde
-		$s =~ s/ñ/&#241;/g;
-		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
-		$s =~ s/ë/&#235;/g;
-		$s =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
+		$s = wide_to_xml($s);
+		if(0) {	# wide_to_xml should now have fixed all this
+			$s = HTML::Entities::encode(wide_to_xml($s));
+			$s =~ s/&/&amp;/g;
+			$s =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
+			$s =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
+			$s =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
+			$s =~ s/&amp;pound;/&#163;/g;
+			$s =~ s/&amp;#39;/'/g;
+			$s =~ s/&amp;#/&#/g;
+			$s =~ s/</&lt;/g;
+			$s =~ s/>/&gt;/g;
+			$s =~ s/&amp;eacute;/&#233;/g;
+			$s =~ s/&amp;quot;/&quot;/g;
+			$s =~ s/\xc3\xa9/&#233;/g;	# eacute
+			$s =~ s/é/&#233;/g;
+			$s =~ s/\xc3\xb1/&#241;/g;	# ntilde
+			$s =~ s/ñ/&#241;/g;
+			$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
+			$s =~ s/ë/&#235;/g;
+			$s =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
+		}
+		$s =~ s/\s\s+/ /g;
 		print $xml $s;
 	}
 	print $csv '!';
@@ -13186,6 +13190,7 @@ sub wide_to_html
 		$string =~ s/'/&apos;/g;
 		$string =~ s/‘/&apos;/g;
 		$string =~ s/’/&apos;/g;
+		$string =~ s/‘/&apos;/g;
 	}
 
 	$string =~ s/\xc2\xa9/&copy;/g;
@@ -13208,7 +13213,7 @@ sub wide_to_html
 	$string =~ s/\xc3\xbb/&ucirc;/g;
 	$string =~ s/\xc5\x9b/&sacute;/g;
 	$string =~ s/\xc5\xa0/&Scaron;/g;
-	$string =~ s/\xe2\x80\x93/-/g;
+	$string =~ s/\xe2\x80\x93/&ndash;/g;
 
 	$string =~ s/\N{U+00A9}/&copy;/g;
 	$string =~ s/\N{U+00AE}/&reg;/g;
@@ -13230,7 +13235,7 @@ sub wide_to_html
 	$string =~ s/\N{U+015B}/&sacute;/g;
 	$string =~ s/\N{U+00FB}/&ucirc;/g;
 	$string =~ s/\N{U+0160}/&Scaron;/g;
-	$string =~ s/\N{U+2013}/-/g;
+	$string =~ s/\N{U+2013}/&ndash;/g;
 
 	# utf8::encode($string);
 	# $string =~ s/š/&scaron;/g;
@@ -13294,7 +13299,8 @@ sub wide_to_html
 	$string =~ s/ś/&sacute;/g;
 	$string =~ s/û/&ucirc;/g;
 	$string =~ s/£/&pound;/g;
-	$string =~ s/–/-/g;
+	$string =~ s/–/&ndash;/g;
+	$string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
@@ -13358,6 +13364,7 @@ sub wide_to_xml
 
 	$string =~ s/‘/&apos;/g;
 	$string =~ s/’/&apos;/g;
+	$string =~ s/‘/&apos;/g;
 
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
@@ -13367,6 +13374,7 @@ sub wide_to_xml
 	$string =~ s/\xc2\xae/&#x0AE;/g;
 	$string =~ s/\xc3\xa1/&#x0E1;/g;
 	$string =~ s/\xc3\xa9/&#x0E9;/g;
+	$string =~ s/\xc3\xb1/&#x0F1;/g;	# ntilde
 	$string =~ s/\xc5\xa1/&#x161;/g;
 	$string =~ s/\xc4\x8d/&#x10D;/g;
 	$string =~ s/\xc5\xbe/&#x17E;/g;
@@ -13437,6 +13445,9 @@ sub wide_to_xml
 	$string =~ s/&Scaron;/&#x160;/g;
 	$string =~ s/&copy;/&#x0A9;/g;
 	$string =~ s/&reg;/&#x0AE;/g;
+	$string =~ s/&pound;/&#163;/g;
+	$string =~ s/&ntilde;/&#x0F1;/g;
+	$string =~ s/&ndash;/-/g;
 
 	# utf8::encode($string);
 	# $string =~ s/š/&s#x161;/g;
@@ -13464,6 +13475,7 @@ sub wide_to_xml
 	$string =~ s/š/&#x161;/g;
 	$string =~ s/č/&#x10D;/g;
 	$string =~ s/ž/&#x17E;/g;
+	$string =~ s/£/&#x0A3;/g;
 	$string =~ s/á/&#x0E1;/g;	# á
 	$string =~ s/â/&#x0E2;/g;
 	$string =~ s/ä/&#x0E4;/g;	# ä
@@ -13474,7 +13486,8 @@ sub wide_to_xml
 	$string =~ s/ê/&#x0EA;/g;
 	$string =~ s/ë/&#x0EB;/g;
 	$string =~ s/û/&#x0FB;/g;
-	$string =~ s/£/&#x0A3;/g;
+	$string =~ s/ñ/&#x0F1;/g;
+	$string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
