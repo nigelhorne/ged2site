@@ -499,6 +499,17 @@ sub choose
 	$logger->info('Called with no page to display');
 
 	return unless($info->status() == 200);
+	my $status = $info->status();
+
+	if($status != 200) {
+		require HTTP::Status;
+		HTTP::Status->import();
+
+		print "Status: $status ",
+			HTTP::Status::status_message($status),
+			"\n\n";
+		return;
+	}
 
 	print "Status: 300 Multiple Choices\n",
 		"Content-type: text/plain\n";
