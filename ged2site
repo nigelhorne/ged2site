@@ -3691,7 +3691,7 @@ sub print_person
 							complain({ person => $spouses[0], warning => 'seems to have no first name' });
 						}
 					} else {
-						print $html wide_to_html($bio);
+						print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
 						# $bio =~ s/&/&amp;/g;
 						# $bio =~ s/</&lt;/g;
 						# $bio =~ s/>/&gt;/g;
@@ -4048,7 +4048,7 @@ sub print_person
 
 				$bio .= ' - to';
 
-				print $html $bio;
+				print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
 				# $bio =~ s/</&lt;/g;
 				# $bio =~ s/>/&gt;/g;
 				# $bio =~ s/&/&amp;/g;
@@ -4229,8 +4229,8 @@ sub print_person
 						$bio .= ',';
 					}
 					push @names, $name;
-					$bio =~ s/&Atilde;&copy;/&eacute;/g;
-					print $html $bio;
+					# $bio =~ s/&Atilde;&copy;/&eacute;/g;
+					print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
 					# $bio =~ s/&eacute;/&#233;/g;
 					# print $xml $bio;
 
@@ -7200,7 +7200,7 @@ sub print_person
 		}
 	}
 
-	print $html $bio;
+	print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
 	$fullbio .= $bio;
 
 # warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
@@ -13182,16 +13182,18 @@ sub wide_to_html
 		# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 	# }
 
+	$string = HTML::Entities::decode($string);
+	# $string =~ s/ & / &amp; /g;
+	$string =~ s/&/&amp;/g;
+
 	unless($params{'keep_hrefs'}) {
 		$string =~ s/</&lt;/g;
 		$string =~ s/>/&gt;/g;
 		$string =~ s/"/&quot;/g;
 	}
 
-	$string =~ s/&db=/&amp;db=/g;
-	$string =~ s/&id=/&amp;id=/g;
-
-	$string =~ s/ & / &amp; /g;
+	# $string =~ s/&db=/&amp;db=/g;
+	# $string =~ s/&id=/&amp;id=/g;
 
 	unless($params{'keep_apos'}) {
 		$string =~ s/'/&apos;/g;
