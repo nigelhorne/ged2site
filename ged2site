@@ -726,48 +726,35 @@ my %censusmaps = (
 	'1850 United States Federal Census' => '1850 US Census',
 	'US Census 1850 - Findmypast' => '1850 US Census',
 	'Us Census 1850 - Findmypast' => '1850 US Census',	# Strange...
-
-	'New York, State Census, 1855' => '1855 New York Census',
-
+	'New York, State Census, 1855' => '1855 US State Censuses',
 	'1860 United States Federal Census' => '1860 US Census',
 	'US Census 1860 - Findmypast' => '1860 US Census',
-	'Nebraska, State Census Collection, 1860-1885' => '1860 US Census',
-
-	'New York, State Census, 1865' => '1865 New York Census',
-
+	'Nebraska, State Census Collection, 1860-1885' => '1860 US State Censuses',
+	'New York, State Census, 1865' => '1865 US State Censuses',
 	'US Census 1870 - Findmypast' => '1870 US Census',
 	'1870 United States Federal Census' => '1870 US Census',
-
-	'New York, State Census, 1875' => '1875 New York Census',
-
+	'New York, State Census, 1875' => '1875 US State Censuses',
 	'1880 United States Federal Census' => '1880 US Census',
 	'US Census 1880 - Findmypast' => '1880 US Census',
 	'Us Census 1880 - Findmypast' => '1880 US Census',
-
 	'US Census 1900 - Findmypast' => '1900 US Census',
 	'1900 United States Federal Census' => '1900 US Census',
-
-	'New York, State Census, 1905' => '1905 New York Census',
-
+	'New York, State Census, 1905' => '1905 US State Censuses',
 	'1910 United States Federal Census' => '1910 US Census',
 	'US Census 1910 - Findmypast' => '1910 US Census',
-
 	'1920 United States Federal Census' => '1920 US Census',
 	'US Census 1920 - Findmypast' => '1920 US Census',
-
 	'New York, State Census, 1925' => '1925 US State Censuses',
 	'South Dakota, State Census, 1925' => '1925 US State Censuses',
-
 	'US Census 1930 - Findmypast' => '1930 US Census',
 	'1930 United States Federal Census' => '1930 US Census',
-
 	'South Dakota, State Census, 1935' => '1935 US State Censuses',
-
 	'US Census 1940 - Findmypast' => '1940 US Census',
 	'1940 United States Federal Census' => '1940 US Census',
 	'1950 United States Federal Census' => '1950 US Census',
 
 	'Ireland, Census, 1901' => '1901 Ireland Census',
+	'Web: Ireland, Census, 1901' => '1901 Ireland Census',
 );
 
 # sub realdie
@@ -1016,7 +1003,7 @@ print $visjs_html <<'HEADER';
 
 HEADER
 
-print $visjs_html "<body><center><h1>Blood Relatives' Timeline ", wide_to_html($name), '</h1></center>';
+print $visjs_html "<body><center><h1>Blood Relatives' Timeline $html_name</h1></center>";
 
 print $visjs_html <<'BODY';
 	<center>
@@ -1346,8 +1333,8 @@ close $csv;
 
 print "Creating surname database\n";
 open(my $html, '>', 'static-site/surnames.html');
-print $html "<html><head><title>Surnames in the Family Tree $name</title>",
-	"</head><body><center><h1>Surnames in the Family Tree $name</h1>";
+print $html "<html><head><title>Surnames in the Family Tree $html_name</title>",
+	"</head><body><center><h1>Surnames in the Family Tree $html_name</h1>";
 if($me) {
 	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 }
@@ -1468,8 +1455,8 @@ if(open($csv, '>', 'dynamic-site/databases/surname_date.csv')) {
 # Output the warnings last, so that all are included
 if($opts{'w'}) {
 	open(my $html, '>', 'static-site/todo.html');
-	print $html "<html><head><title>Errors in the Family Tree $name</title>",
-		"</head><body><center><h1>Errors in the Family Tree $name</h1>";
+	print $html "<html><head><title>Errors in the Family Tree $html_name</title>",
+		"</head><body><center><h1>Errors in the Family Tree $html_name</h1>";
 	if($me) {
 		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	}
@@ -1654,8 +1641,8 @@ if($gedcal) {
 
 if(open(my $fout, '>', 'static-site/history.html')) {
 	print "Creating family history page\n";
-	print $fout "<html><head><title>Family History $name</title></head>",
-		"<body><center><h1>Family History $name</h1>";
+	print $fout "<html><head><title>Family History $html_name</title></head>",
+		"<body><center><h1>Family History $html_name</h1>";
 	if($me) {
 		print $fout '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	}
