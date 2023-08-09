@@ -2625,7 +2625,7 @@ sub print_person
 
 	my @person_twins;
 	if($birth_dt && ($opts{'l'} || !$is_alive)) {
-		@person_twins = twins({ dob => $dateofbirth, birth_dt => $birth_dt, siblings => \@siblings });
+		@person_twins = twins({ birth_dt => $birth_dt, siblings => \@siblings });
 
 		if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
 			if(scalar(@occupations)) {
@@ -3338,7 +3338,7 @@ sub print_person
 					}
 				}
 			} elsif($birth_dt) {
-				my @person_twins = twins({ dob => $dateofbirth, birth_dt => $birth_dt, siblings => \@siblings });
+				my @person_twins = twins({ birth_dt => $birth_dt, siblings => \@siblings });
 
 				if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
 					my $t = $person_twins[0];
@@ -12994,7 +12994,7 @@ sub weather
 		%params = @_;
 	}
 
-	my $person = $params{'person'};
+	# my $person = $params{'person'};
 	my $record = $params{'record'};	# death record
 	my $meteo = $params{'meteo'};
 
@@ -13084,7 +13084,6 @@ sub twins
 		%params = @_;
 	}
 
-	my $dob = $params{'dob'};
 	my $birth_dt = $params{'birth_dt'};
 	my @siblings = @{$params{'siblings'}};
 	my @twins;
@@ -13600,9 +13599,8 @@ sub dbpedia
 										# Born after dbpedia person died
 										next;
 									}
-								} elsif($t =~ /\((\d{4})\x{2013}(\d{4})\)/) {
+								} elsif($t =~ /\((\d{4})\x{2013}\d{4}\)/) {
 									my $b = $1;
-									my $d = $2;
 									if(defined($yod) && ($yod < $b)) {
 										# Died before the dbpedia person was born
 										next;
