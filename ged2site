@@ -1979,13 +1979,12 @@ sub print_person
 		print $html $str;
 		print $csv $str;
 	} else {
+		print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
 		print $csv '0!';
 		$surnames->{$surname}->{$title} = $person;
 	}
 
 	print "Gathering basic information\n" if($opts{'v'});
-
-	print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
 
 	my $birth = $person->get_record('birth');
 
@@ -7206,32 +7205,10 @@ sub print_person
 		print $csv $copy;
 		# utf8::decode($s);
 		$s = wide_to_xml($s);
-		if(0) {	# wide_to_xml should now have fixed all this
-			$s = HTML::Entities::encode(wide_to_xml($s));
-			$s =~ s/&/&amp;/g;
-			$s =~ s/&amp;amp;/&amp;/g;	# Because of the Encode entities
-			$s =~ s/&amp;Acirc;&amp;copy;/&#169;/g;
-			$s =~ s/&amp;acirc;&amp;#128;&amp;#152;//g;
-			$s =~ s/&amp;pound;/&#163;/g;
-			$s =~ s/&amp;#39;/'/g;
-			$s =~ s/&amp;#/&#/g;
-			$s =~ s/</&lt;/g;
-			$s =~ s/>/&gt;/g;
-			$s =~ s/&amp;eacute;/&#233;/g;
-			$s =~ s/&amp;quot;/&quot;/g;
-			$s =~ s/\xc3\xa9/&#233;/g;	# eacute
-			$s =~ s/é/&#233;/g;
-			$s =~ s/\xc3\xb1/&#241;/g;	# ntilde
-			$s =~ s/ñ/&#241;/g;
-			$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
-			$s =~ s/ë/&#235;/g;
-			$s =~ s/&amp;Atilde;amp;&laquo;/&#235;/g;	# ACOM bizarre
-		}
 		$s =~ s/\s\s+/ /g;
-		print $xml $s;
+		print $xml "$s\n\t\t\t</en>\n\t\t</bio>";
 	}
 	print $csv '!';
-	print $xml "\n\t\t\t</en>\n\t\t</bio>";
 
 	if($opts{'l'} || !$is_alive) {
 		print "Create parents\n" if($opts{'v'});
