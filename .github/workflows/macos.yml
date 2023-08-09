@@ -21,7 +21,7 @@ jobs:
         run: perl -V
       - name: Install Dependencies
         run: |
-          export PATH=$PATH:/usr/local/Cellar/perl/5.36.0/bin/
+          export PATH=$PATH:/usr/local/Cellar/perl/5.36.1/bin/
           cpan -iT File::Spec ExtUtils::MakeMaker App::cpanminus
           cpanm -vin Geo::Coder::Free
           # Force path to Gedcom or else it doesn't find it
