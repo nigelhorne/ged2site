@@ -1584,6 +1584,8 @@ if($opts{'w'}) {
 					$summary = 'Missing house number';
 				} elsif($warning =~ /^Adding date of burial as/) {
 					$summary = 'Guessed at date of burial';
+				} elsif($warning =~ /\d changed to \d/) {
+					$summary = 'Changed format of date';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
@@ -1847,7 +1849,10 @@ sub print_person
 	my %name_components = $nameparser->components();
 	my $firstname = $name_components{'given_name_1'} // $name_components{'initials_1'};
 	# my $surname = $name_components{'surname_2'} || $name_components{'surname_1'};
-	my $surname = ucfirst(lc(wide_to_html($person->surname()))); # RT109786
+	my $surname = $person->surname(); # RT109786
+	if($surname) {
+		$surname = ucfirst(lc(wide_to_html($surname)));
+	}
 
 	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
 		# $firstname = $1;
@@ -13186,6 +13191,10 @@ sub wide_to_html
 		$string =~ s/‘/&apos;/g;
 		$string =~ s/’/&apos;/g;
 		$string =~ s/‘/&apos;/g;
+	}
+
+	if($string !~ /[^[:ascii:]]/) {
+		return $string;
 	}
 
 	$string =~ s/\xc2\xa9/&copy;/g;
