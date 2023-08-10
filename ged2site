@@ -1117,8 +1117,8 @@ if(!$opts{'w'}) {
 if(scalar(%censuses)) {
 	print "Creating census index\n";
 	open(my $html, '>', 'static-site/censuses.html');
-	print $html "<html><head><title>Censuses in the Family Tree $name</title>",
-		"</head><body><center><h1>Censuses in the Family Tree $name</h1></center><br><ul>";
+	print $html "<html><head><title>Censuses in the Family Tree $html_name</title>",
+		"</head><body><center><h1>Censuses in the Family Tree $html_name</h1></center><br><ul>";
 
 	open($csv, '>', 'dynamic-site/databases/censuses.psv');
 	print $csv "entry|census|person\n";
@@ -1159,9 +1159,10 @@ if(scalar(%censuses)) {
 		print $chtml '</ul></body></html>';
 		close $chtml;
 	}
+	close $csv;
+
 	print $html '</ul></body></html>';
 	close $html;
-	close $csv;
 
 	undef %censuses;
 }
