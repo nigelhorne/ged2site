@@ -7,16 +7,14 @@ use strict;
 use warnings;
 
 use CHI;
+use Data::Dumper;
 use DBI;
 use Error;
-use POSIX;
 use Log::Any::Adapter;
 
 BEGIN {
 	Log::Any::Adapter->set('Log4perl');
 }
-
-my $pi = atan2(1,1) * 4;
 
 sub create_disc_cache {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -31,6 +29,7 @@ sub create_disc_cache {
 		throw Error::Simple('root_dir is not optional') unless($root_dir);
 
 		if($logger) {
+			$logger->warn(Data::Dumper->new([$config])->Dump());
 			$logger->warn('disc_cache not defined in ', $config->{'config_path'}, ' falling back to BerkeleyDB');
 		}
 		return CHI->new(driver => 'BerkeleyDB', root_dir => $root_dir, namespace => $args{'namespace'});
@@ -60,7 +59,7 @@ sub create_disc_cache {
 			if($config->{disc_cache}->{'port'}) {
 				$servers[0] .= ':' . $config->{disc_cache}->{port};
 			} else {
-				throw Error::Simple('port is not optional');
+				throw Error::Simple('port is not optional in ' . $config->{'config_path'});
 			}
 			$chi_args{'server'} = $servers[0];
 			if($logger) {
@@ -83,7 +82,7 @@ sub create_disc_cache {
 		$chi_args{'redis_options'} = \%redis_options;
 	} elsif($driver eq 'DBI') {
 		# Use the cache connection details in the configuration file
-		$chi_args{'dbh'} = DBI->connect($config->{disc_cache}->{connect});
+                $chi_args{'dbh'} = DBI->connect($config->{disc_cache}->{connect});
                 if(!defined($chi_args{'dbh'})) {
                         if($logger) {
                                 $logger->error($DBI::errstr);
@@ -104,12 +103,13 @@ sub create_memory_cache {
 	my $logger = $args{'logger'};
 	my $driver = $config->{memory_cache}->{driver};
 	unless(defined($driver)) {
-		# FIXME: not everywhere runs memcache, should fall back to something else
 		if($logger) {
-			$logger->warn('memory_cache not defined in ', $config->{'config_path'}, ' falling back to memcached');
+			$logger->warn('memory_cache not defined in ', $config->{'config_path'}, ' falling back to sharedmem');
 		}
-		return CHI->new(driver => 'Memcached', servers => [ '127.0.0.1:11211' ], namespace => $args{'namespace'});
-	}
+		# return CHI->new(driver => 'Memcached', servers => [ '127.0.0.1:11211' ], namespace => $args{'namespace'});
+		# return CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => $args{'namespace'});
+		return CHI->new(driver => 'SharedMem', size => 16 * 1024, shmkey => 98766789, namespace => $args{'namespace'});
+}
 	if($logger) {
 		$logger->debug('memory cache via ', $config->{memory_cache}->{driver}, ', namespace: ', $args{'namespace'});
 	}
@@ -135,7 +135,7 @@ sub create_memory_cache {
 			if($config->{memory_cache}->{'port'}) {
 				$servers[0] .= ':' . $config->{memory_cache}->{port};
 			} else {
-				throw Error::Simple('port is not optional');
+				throw Error::Simple('port is not optional in ' . $config->{'config_path'});
 			}
 			$chi_args{'server'} = $servers[0];
 			if($logger) {
@@ -143,7 +143,12 @@ sub create_memory_cache {
 			}
 		}
 		$chi_args{'servers'} = \@servers;
-	} elsif($driver ne 'Null') {
+	} elsif($driver eq 'SharedMem') {
+		$chi_args{'shmkey'} = $args{'shmkey'} || $config->{memory_cache}->{shmkey};
+		if(my $size = $args{'size'} || $config->{'memory_cache'}->{'size'}) {
+			$chi_args{'size'} = $size;
+		}
+	} elsif(($driver ne 'Null') && ($driver ne 'Memory') && ($driver ne 'SharedMem')) {
 		$chi_args{'root_dir'} = $args{'root_dir'} || $config->{memory_cache}->{root_dir};
 		throw Error::Simple('root_dir is not optional') unless($chi_args{'root_dir'});
 		if($logger) {
@@ -176,6 +181,8 @@ sub distance {
 	}
 	return ($dist);
 }
+
+my $pi = atan2(1,1) * 4;
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #:::  This function get the arccos function using arctan function   :::
