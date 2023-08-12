@@ -108,7 +108,7 @@ sub create_memory_cache {
 		}
 		# return CHI->new(driver => 'Memcached', servers => [ '127.0.0.1:11211' ], namespace => $args{'namespace'});
 		# return CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => $args{'namespace'});
-		return CHI->new(driver => 'SharedMem', size => 16 * 1024, shmkey => 98766789, namespace => $args{'namespace'});
+		return CHI->new(driver => 'SharedMem', size => 16 * 1024, max_size => 16 * 1024, shmkey => 98766789, namespace => $args{'namespace'});
 }
 	if($logger) {
 		$logger->debug('memory cache via ', $config->{memory_cache}->{driver}, ', namespace: ', $args{'namespace'});
@@ -146,7 +146,7 @@ sub create_memory_cache {
 	} elsif($driver eq 'SharedMem') {
 		$chi_args{'shmkey'} = $args{'shmkey'} || $config->{memory_cache}->{shmkey};
 		if(my $size = $args{'size'} || $config->{'memory_cache'}->{'size'}) {
-			$chi_args{'size'} = $size;
+			$chi_args{'max_size'} = $chi_args{'size'} = $size;
 		}
 	} elsif(($driver ne 'Null') && ($driver ne 'Memory') && ($driver ne 'SharedMem')) {
 		$chi_args{'root_dir'} = $args{'root_dir'} || $config->{memory_cache}->{root_dir};
