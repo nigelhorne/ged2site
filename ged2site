@@ -1130,9 +1130,9 @@ if(scalar(%censuses)) {
 		print $html "<li><a href=\"$filename.html\">$census</a></li>";
 
 		open(my $chtml, '>', "static-site/$filename.html");
-		print $chtml "<html><head><title>The Family Tree $name - $census</title>",
+		print $chtml "<html><head><title>The Family Tree $html_name - $census</title>",
 			'</head>',
-			"<body><center><h1>The Family Tree $name - $census</h1>";
+			"<body><center><h1>The Family Tree $html_name - $census</h1>";
 		if($me) {
 			print $chtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 		}
