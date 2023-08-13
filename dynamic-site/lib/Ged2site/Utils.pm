@@ -146,10 +146,10 @@ sub create_memory_cache {
 	} elsif($driver eq 'SharedMem') {
 		$chi_args{'shm_key'} = $args{'shm_key'} || $config->{memory_cache}->{shm_key};
 		if(my $shm_size = ($args{'shm_size'} || $config->{'memory_cache'}->{'shm_size'})) {
-			$chi_args{'shm_size'} = $size;
+			$chi_args{'shm_size'} = $shm_size;
 		}
 		if(my $max_size = ($args{'max_size'} || $config->{'memory_cache'}->{'max_size'})) {
-			$chi_args{'max_size'} = $size;
+			$chi_args{'max_size'} = $max_size;
 		}
 	} elsif(($driver ne 'Null') && ($driver ne 'Memory') && ($driver ne 'SharedMem')) {
 		$chi_args{'root_dir'} = $args{'root_dir'} || $config->{memory_cache}->{root_dir};
