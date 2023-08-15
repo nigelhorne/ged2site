@@ -500,7 +500,6 @@ sub choose
 {
 	$logger->info('Called with no page to display');
 
-	return unless($info->status() == 200);
 	my $status = $info->status();
 
 	if($status != 200) {
