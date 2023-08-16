@@ -1587,6 +1587,14 @@ if($opts{'w'}) {
 					$summary = 'Guessed at date of burial';
 				} elsif($warning =~ /\d changed to \d/) {
 					$summary = 'Changed format of date';
+				} elsif($warning =~ /should start with 'Bef'/) {
+					$summary = "Date should start with 'Bef'";
+				} elsif($warning =~ /should be 3 letters/) {
+					$summary = 'Month should be 3 letters';
+				} elsif($warning =~ /Invalid date format for date of/) {
+					$summary = 'Invalid date format';
+				} elsif($warning =~ /Leading comma in/) {
+					$summary = 'Leading comma in placename';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
@@ -11232,7 +11240,7 @@ sub print_graphviz
 	if($is_alive && !$opts{'l'}) {
 		$label = 'Living';
 	} else {
-		$label = $person->as_string();
+		$label = wide_to_html($person->as_string());
 		$dob = dateofbirth($person);
 		$dod = dateofdeath($person);
 	}
