@@ -13568,6 +13568,7 @@ sub dbpedia
 							if(($class->{'Label'}->{'text'} eq 'Place') ||
 							   ($class->{'Label'}->{'text'} eq 'School') ||
 							   ($class->{'Label'}->{'text'} eq 'Work') ||
+							   ($class->{'Label'}->{'text'} eq 'Event') ||
 							   ($class->{'Label'}->{'text'} eq 'Artwork')) {
 								next RESULT;
 							}
