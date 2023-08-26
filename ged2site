@@ -6082,21 +6082,26 @@ sub print_person
 						}
 
 						if(defined(my $date = year(record => $event))) {
-							if($date =~ /^on /) {
-								$bio .= ucfirst($date) . ' ';
-								$phrase->set(' ' . ucfirst($date) . ' ');
-							} elsif($date =~ /^in (\d{4})/) {
-								$bio .= "During $1, ";
-								$phrase->set(" During $1, ");
-							} elsif($date =~ /(.+)\-(.+)/) {
-								$bio .= "Between $1 and $2 ";
-								$phrase->set(" Between $1 and $2 ");
+							if($date =~ /^from /) {
+								$bio .= "$pronoun served in the military $date";
+								$phrase->set("$pronoun served in the military $date");
 							} else {
-								$bio .= ucfirst($date) . ' ';
-								$phrase->set(' ' . ucfirst($date) . ' ');
+								if($date =~ /^on /) {
+									$bio .= ucfirst($date) . ' ';
+									$phrase->set(' ' . ucfirst($date) . ' ');
+								} elsif($date =~ /^in (\d{4})/) {
+									$bio .= "During $1, ";
+									$phrase->set(" During $1, ");
+								} elsif($date =~ /(.+)\-(.+)/) {
+									$bio .= "Between $1 and $2 ";
+									$phrase->set(" Between $1 and $2 ");
+								} else {
+									$bio .= ucfirst($date) . ' ';
+									$phrase->set(' ' . ucfirst($date) . ' ');
+								}
+								$bio .= lcfirst($pronoun) . ' was serving in the military';
+								$phrase->append(lcfirst($pronoun) . ' was serving in the military');
 							}
-							$bio .= lcfirst($pronoun) . ' was serving in the military';
-							$phrase->append(lcfirst($pronoun) . ' was serving in the military');
 						} else {
 							$bio .= "$pronoun served in the military";
 							$phrase->set(" $pronoun served in the military");
@@ -6554,9 +6559,9 @@ sub print_person
 			}
 			if($dateofburial) {
 				$end_of_sentence = 0;
-				$bio .= $pronoun;
+				$bio .= $firstname // $pronoun;
 				if((scalar(@phrases) == 0) && ($phrase->length() == 0)) {
-					$phrase->set($pronoun);
+					$phrase->set(text => $firstname // $pronoun);
 				}
 				$bio .= ($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : 'was cremated';
 				$phrase->append(($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : ' was cremated');
