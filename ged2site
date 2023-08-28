@@ -10393,6 +10393,12 @@ sub place {
 			}
 			return " aux \N{U+00C9}tats-Unis";
 		}
+		if($language eq 'German') {
+			if($params{'nopreposition'}) {
+				return ' der Vereinigten Staaten';
+			}
+			return ' aus der Vereinigten Staaten';
+		}
 		if($params{'nopreposition'}) {
 			return ' USA';
 		}
