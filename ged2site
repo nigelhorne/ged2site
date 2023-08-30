@@ -3663,7 +3663,7 @@ sub print_person
 							$args{'format'} = 'is married to ';
 						}
 					} else {
-						$args{'format'} = 'was married to ';
+						$args{'format'} = 'married ';
 					}
 					$bio .= ' ' . i18n(\%args);
 					$phrase->append(i18n(\%args));
@@ -4000,8 +4000,11 @@ sub print_person
 							}
 							$haveprintedspousename = 1;
 						}
-						$bio .= ' ' . year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt) if($dateofmarriage);
-						$phrase->append(' ')->append(year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt)) if($dateofmarriage);
+						if($dateofmarriage) {
+							my $string = ' ' . year(person => $person, string => $dateofmarriage, must_postdate => $birth_dt, must_predate => $death_dt, circa => 'around');
+							$bio .= $string;
+							$phrase->append($string);
+						}
 					}
 					if($marriagecitation) {
 						$bio .= cite(($marriagecitation));
