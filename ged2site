@@ -13662,7 +13662,8 @@ sub dbpedia
 									}
 									foreach my $category(@categories) {
 										my $uri = $category->{'URI'}->{'text'};
-										if($uri =~ /Category:Teaching_hospitals/) {
+										if(($uri =~ /Category:Teaching_hospitals/) ||
+										   ($uri =~ /Category:Seismological_observatories/)) {
 											next RESULT;
 										}
 										if(defined($yod)) {
