@@ -8350,7 +8350,7 @@ sub print_person
 
 	my $birth_country = '';
 
-	if($placeofbirth && ($placeofbirth =~ /(.+[a-z]) USA$/)) {
+	if($placeofbirth && ($placeofbirth =~ /(.+[a-z]) USA$/i)) {
 		complain({ person => $person, warning => "Comma missing before USA in birth location '$placeofbirth'" });
 		$placeofbirth = "$1, USA";
 		$birth_country = 'United States';
@@ -8429,6 +8429,8 @@ sub print_person
 		} elsif($c eq 'Scot') {
 			complain({ person => $person, warning => "$c: birth country should be Scotland'" });
 			$birth_country = 'United Kingdom';
+		} elsif($c eq 'Slovenija') {
+			$birth_country = 'Slovenia';
 		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
 			$birth_country = $b->name();
 		} else {
