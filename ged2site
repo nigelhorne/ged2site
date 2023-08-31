@@ -7040,9 +7040,14 @@ sub print_person
 					if(!defined($place)) {
 						$place = place({ person => $person, place => $placeofdeath, places_printed => \%places_printed });
 					}
-					if(defined($place) && ($place eq ' in , , ')) {
-						complain({ person => $person, warning => 'Assuming place of death is unknown' });
-						$place = undef;
+					if(defined($place)) {
+						if($place eq ' in , , ') {
+							complain({ person => $person, warning => 'Assuming place of death is unknown' });
+							$place = undef;
+						} elsif($place =~ /[\,;]\s*$/) {
+							complain({ person => $person, warning => "Removing trailing spaces from '$place'" });
+							$place =~ s/[\,;]\s*//g;
+						}
 					}
 					if(defined($place)) {
 						$bio .= $place;
@@ -7149,8 +7154,13 @@ sub print_person
 				}
 			}
 		} elsif((!$placeofmarriage) || ($placeofdeath ne $placeofmarriage)) {
-			$bio .= place({ person => $person, place => $placeofdeath });
-			$phrase->append(place({ person => $person, place => $placeofdeath }));
+			my $place = place({ person => $person, place => $placeofdeath });
+			if($place =~ /[\,;]\s*$/) {
+				complain({ person => $person, warning => "Removing trailing spaces from '$place'" });
+				$place =~ s/[\,;]\s*//g;
+			}
+			$bio .= $place;
+			$phrase->append($place);
 		}
 		$bio .= cite(@deathcitations);
 		$phrase->append(cite(@deathcitations));
