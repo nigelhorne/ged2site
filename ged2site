@@ -3585,7 +3585,7 @@ sub print_person
 					$end_of_sentence = 1;
 					$start_of_paragraph = 1;
 
-					print $xml "\n\t\t<orphaned>$orphaned_year</orphaned>";
+					print $xml "<orphaned>$orphaned_year</orphaned>\n\t\t\t\t";
 					push @{$orphans{$orphaned_year}}, $person->xref();
 				}
 			}
@@ -12065,7 +12065,7 @@ sub datecmp($$)
 			}
 			return 0;
 		}
-		if($left =~ /^(Abt|ca?)\s+(.+)/i) {
+		if($left =~ /^(Abt|ca?)\.?\s+(.+)/i) {
 			$left = $2;
 		} elsif(($left =~ /\//) && ($left =~ /^[a-z\/]+\s+(.+)/i)) {
 			# e.g. "Oct/Nov/Dec 1950"
