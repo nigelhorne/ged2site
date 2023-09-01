@@ -12107,7 +12107,7 @@ sub datecmp($$)
 			}
 			return 0;
 		}
-		if($right =~ /^(Abt|ca?)\s+(.+)/i) {
+		if($right =~ /^(Abt|ca?)\.?\s+(.+)/i) {
 			$right = $2;
 		}
 		if($right =~ /^\d{3,4}$/) {
