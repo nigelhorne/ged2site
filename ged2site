@@ -13600,6 +13600,7 @@ sub dbpedia
 							   ($class->{'Label'}->{'text'} eq 'School') ||
 							   ($class->{'Label'}->{'text'} eq 'Work') ||
 							   ($class->{'Label'}->{'text'} eq 'Event') ||
+							   ($class->{'Label'}->{'text'} eq 'Holiday') ||
 							   ($class->{'Label'}->{'text'} eq 'Artwork')) {
 								next RESULT;
 							}
