@@ -4061,16 +4061,6 @@ sub print_person
 
 				my $all_marriages_have_date = 1;
 				foreach my $spouse(@spouses) {
-					# my $date = get_value({ person => $spouse, value => 'marriage date' });
-					# if(!defined($date)) {
-						# if(my $marriage = ($spouse->get_record('marriage') || $spouse->get_record('fams marriage'))) {
-							# $date = $marriage->date();
-						# }
-					# }
-					# if(!date_to_datetime($date)) {
-						# $all_marriages_have_date = 0;
-						# last;
-					# }
 					if(!date_to_datetime(dateofmarriage($spouse))) {
 						$all_marriages_have_date = 0;
 						last;
@@ -4079,12 +4069,6 @@ sub print_person
 				if($all_marriages_have_date) {
 					@spouses = Sort::Key::DateTime::dtkeysort {
 						my $date = dateofmarriage($_);
-						# if(my $rec = $_->get_record('fams marriage')) {
-							# $date = $rec->date();
-						# }
-						# if((!defined($date)) && (my $rec = $_->get_record('marriage'))) {
-							# $date = $rec->date();
-						# }
 						die "BUG: can't find all marriage dates" if(!defined($date));
 						date_to_datetime(date => $date);
 					} @spouses;
@@ -4115,18 +4099,22 @@ sub print_person
 						}
 					}
 
-					if($date1 && $date2 && ($date1 ne $date2)) {
-						if($date1 =~ /.+(\d{4})$/) {
-							my $year1 = $1;
-							if($date2 =~ /.+(\d{4})$/) {
-								my $year2 = $1;
-								if($year2 < $year1) {
-									# swap the spouses into marriage date order
-									my $tmp = $spouses[0];
-									$spouses[0] = $spouses[1];
-									$spouses[1] = $tmp;
+					if($date1 && $date2) {
+						if($date1 ne $date2) {
+							if($date1 =~ /.+(\d{4})$/) {
+								my $year1 = $1;
+								if($date2 =~ /.+(\d{4})$/) {
+									my $year2 = $1;
+									if($year2 < $year1) {
+										# swap the spouses into marriage date order
+										my $tmp = $spouses[0];
+										$spouses[0] = $spouses[1];
+										$spouses[1] = $tmp;
+									}
 								}
 							}
+						} else {
+							complain({ person => $person, message => "Two marriages with the same date: $date1" });
 						}
 					}
 				}
