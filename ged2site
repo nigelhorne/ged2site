@@ -4186,7 +4186,6 @@ sub print_person
 					if(defined($dateofmarriage) && (scalar(@spouses) == 2) && ($spouse_number == 2)) {
 						my $death_of_first_spouse = dateofdeath($spouses[0]);
 						if($death_of_first_spouse &&
-						   ($death_of_first_spouse !~ /[a-z]{3}\/[a-z]{3}/i) &&
 						   (datecmp($dateofmarriage, $death_of_first_spouse) > 0)) {
 							if($printed_bracket) {
 								$bio .= ', ';
@@ -12116,6 +12115,19 @@ sub datecmp($$)
 		# }
 		my @r = $dfg->parse_datetime($right);
 		if(!defined($r[0])) {
+			if($right =~ /\s(\d{4})$/) {
+				# e.g. cmp "1891 <=> Oct/Nov/Dec 1892"
+				my $year = $1;
+				if(ref($left)) {
+					if($left->year() != $year) {
+						return $left->year() <=> $year;
+					}
+				} else {
+					if($left != $year) {
+						return $left <=> $year;
+					}
+				}
+			}
 			# TODO: throw an error that we can catch
 			my $i = 0;
 			while((my @call_details = caller($i++))) {
