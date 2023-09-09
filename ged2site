@@ -4987,8 +4987,6 @@ sub print_person
 									if($cyob =~ /(\d{3,4})\s*$/) {
 										$cyob = $1;
 									}
-									# FIXME:  it would be best to check the full date not just the
-									#	year, once datecmp() works when only the month is known
 									if($rdate !~ /^Bef/i) {
 										next if(datecmp($cyob, $rdate) >= 0);	# Child was not born yet
 									}
@@ -13698,6 +13696,7 @@ sub dbpedia
 									foreach my $category(@categories) {
 										my $uri = $category->{'URI'}->{'text'};
 										if(($uri =~ /Category:Teaching_hospitals/) ||
+										   ($uri =~ /Category:Public_housing/) ||
 										   ($uri =~ /Category:Seismological_observatories/)) {
 											next RESULT;
 										}
@@ -13720,15 +13719,28 @@ sub dbpedia
 												}
 											}
 										}
-										if(defined($yob) && ($uri =~ /Category:(\d{4})_births$/)) {
-											my $b = $1;
-											if(defined($yod) && ($yod < $b)) {
-												# Died before the dbpedia person was born
-												next RESULT;
-											}
-											if($yob != $b) {
-												# Born different year from the dbpedia person was born
-												next RESULT;
+										if(defined($yob)) {
+											if($uri =~ /Category:(\d{4})_births$/) {
+												my $b = $1;
+												if(defined($yod) && ($yod < $b)) {
+													# Died before the dbpedia person was born
+													next RESULT;
+												}
+												if($yob != $b) {
+													# Born different year from the dbpedia person was born
+													next RESULT;
+												}
+											} elsif(($uri =~ /(\d{3,4})s_deaths/)) {
+												if($yob > ($1 + 10)) {
+													# Born after the end of the decade this person died
+													next RESULT;
+												}
+											} elsif($uri =~ /(\d\d)th-century_deaths/) {
+												my $c = ($1 + 1) * 100;
+												if($yob > $c) {
+													# Born after dbpedia person died
+													next RESULT;
+												}
 											}
 										}
 										warn ">>>>>>>>>> $uri";
