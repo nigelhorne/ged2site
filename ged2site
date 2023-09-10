@@ -6057,7 +6057,9 @@ sub print_person
 				my $type = $event->type();
 				print "Event type: $type\n" if($opts{'v'});
 				if($type eq 'Military service') {
+					my $army;
 					if(!$mentioned_military) {
+						my $notes;
 						if($end_of_sentence) {
 							$bio .= ' ' unless($bio =~ /\s$/);
 						} else {
@@ -6092,6 +6094,10 @@ sub print_person
 								$bio .= lcfirst($pronoun) . ' was serving in the military';
 								$phrase->append(lcfirst($pronoun) . ' was serving in the military');
 							}
+						} elsif(($notes = notes(record => $event)) && ($notes =~ /^army\.?$/i)) {
+							$army = 1;
+							$bio .= "$pronoun served in the army";
+							$phrase->set(" $pronoun served in the army");
 						} else {
 							$bio .= "$pronoun served in the military";
 							$phrase->set(" $pronoun served in the military");
@@ -6105,7 +6111,7 @@ sub print_person
 						$mentioned_military = 1;
 					}
 
-					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
+					if((!$army) && (my $notes = notes(record => $event, note_locations => \@note_locations))) {
 						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 						$notes =~ s/[\s\.]+$//;
 						$bio .= " (<em>$notes</em>)";
