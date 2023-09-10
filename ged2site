@@ -2809,7 +2809,6 @@ sub print_person
 
 		print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
 		$bio =~ s/&eacute;/&#233;/g;
-		# print $xml $bio;
 
 		$fullbio = $bio;
 		$bio = undef;
@@ -2819,14 +2818,13 @@ sub print_person
 				my $f = wide_to_html($father->as_string());
 				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
 					"$f</a>");
+				$bio = '<a href="?page=people&entry=' . $father->xref() . '">' .
+					"$f</a>";
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					"$f</a>";
 				# print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					# $father->as_string(),
 					# '$lt;/a$gt;';
-				# print $csv '<a href="?page=people&entry=', $father->xref(), '">',
-					# $father->as_string(),
-					# '</a>';
 
 				if(!$same_occupation_as_father) {
 					my @occupations = get_all_occupations(person => $father);
@@ -2864,7 +2862,6 @@ sub print_person
 					$m = wide_to_html($m);
 					$phrase->append('<a href="?page=people&entry=' . $mother->xref() . "\">$m</a>");
 					print $html '<a href="', make_filename_from_person(person => $mother), "\">$m</a>";
-					# print $csv '<a href="?page=people&entry=', $mother->xref(), "\">$m</a>";
 					# print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), "\"&gt;$m&lt;/a&gt;";
 				}
 
@@ -2888,9 +2885,6 @@ sub print_person
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					$father->given_names(),
 					'</a>';
-				# print $csv '<a href="?page=people&entry=', $father->xref(), '">',
-					# $father->given_names(),
-					# '</a>';
 				# print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					# $father->given_names(),
 					# '&lt;/a&gt;';
@@ -2906,9 +2900,6 @@ sub print_person
 				print $html '<a href="', make_filename_from_person(person => $mother), '">',
 					$mother->given_names(),
 					'</a>';
-				# print $csv '<a href="?page=people&entry=', $mother->xref(), '">',
-					# $mother->given_names(),
-					# '</a>';
 				# print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
 					# $mother->given_names(),
 					# '&lt;/a&gt;';
@@ -2997,14 +2988,14 @@ sub print_person
 			'<a href="', make_filename_from_person(person => $me), '">',
 			wide_to_html($me->as_string(nee => 1)),
 			'</a>';
-		# print $csv " the $relationship of ",
-			# '<a href="?page=people&home=1">',
-			# $me->as_string(nee => 1),
-			# '</a>';
 		# print $xml " the $relationship of ",
 			# '&lt;a href="?page=people&amp;home=1"&gt;',
 			# $me->as_string(nee => 1),
 			# '&lt;/a&gt;';
+		$bio = " the $relationship of " .
+			'<a href="?page=people&home=1">' .
+			$me->as_string(nee => 1) .
+			'</a>';
 		$phrase->append(" the $relationship of " .
 			'<a href="?page=people&home=1">' .
 			$me->as_string(nee => 1) .
@@ -3050,26 +3041,20 @@ sub print_person
 			'<a href="', make_filename_from_person(person => $me), '">',
 			wide_to_html($me->as_string(nee => 1)),
 			'</a>';
-		# print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
-			# "$s</a> the $spouserelationship of ",
-			# '<a href="?page=people&home=1">',
-			# $me->as_string(nee => 1),
-			# '</a>';
 		$phrase->append(' <a href="?page=people&entry=' . $spouse->xref() . '">' .
 			"$s</a> the $spouserelationship of " .
 			'<a href="?page=people&home=1">' .
 			$me->as_string(nee => 1) .
 			'</a>');
-		# $s =~ s/\xc3\xab/&#235;/g;	# eumlaut
-		# print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
-			# "$s&lt;/a&gt; the $spouserelationship of ",
-			# '&lt;a href="?page=people&amp;home=1"&gt;',
-			# $me->as_string(nee => 1),
-			# '&lt;/a&gt;';
+		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
+		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
+			"$s&lt;/a&gt; the $spouserelationship of ",
+			'&lt;a href="?page=people&amp;home=1"&gt;',
+			$me->as_string(nee => 1),
+			'&lt;/a&gt;';
 		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
 			print $html ',';
-			# print $csv ',';
-			# print $xml ',';
+			print $xml ',';
 		}
 		if($phrase->length()) {
 			push @phrases, $phrase;
@@ -3081,8 +3066,8 @@ sub print_person
 	if(my $aka = $person->as_string({ use_aka => 1 })) {
 		$phrase->append(" (also known as $aka)");
 		print $html " (also known as $aka)";
-		# $aka =~ s/&eacute;/&#233;/g;
-		# print $xml " (also known as $aka)";
+		$aka =~ s/&eacute;/&#233;/g;
+		print $xml " (also known as $aka)";
 	}
 
 	my $start_of_paragraph = 0;
@@ -3704,9 +3689,6 @@ sub print_person
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 								$spouses[0]->as_string(),
 								'</a>';
-							# print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
-								# $spouses[0]->as_string(),
-								# '</a>';
 							# print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								# $spouses[0]->as_string(),
 								# '&lt;/a&gt;';
@@ -3717,9 +3699,6 @@ sub print_person
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
 								$spouses[0]->given_names(),
 								'</a>';
-							# print $csv '<a href="?page=people&entry=', $spouses[0]->xref(), '">',
-								# $spouses[0]->given_names(),
-								# '</a>';
 							# print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								# $spouses[0]->given_names(),
 								# '&lt;/a&gt;';
@@ -4125,9 +4104,6 @@ sub print_person
 				foreach my $spouse(@spouses) {
 					print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 						$spouse->as_string(), '</a>';
-					# print $csv ' <a href="?page=people&entry=', $spouse->xref(), '">',
-						# $spouse->as_string(),
-						# '</a>';
 					# print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 						# $spouse->as_string(),
 						# '&lt;/a&gt;';
@@ -5732,7 +5708,6 @@ sub print_person
 			}
 		}
 	} else {
-		# print $csv '.!!!';
 		print $csv '.';
 		# print $xml '.';
 		$phrase->append('XXXXXXXXXXXXXXXXXXXXXX');
@@ -7220,9 +7195,8 @@ sub print_person
 	if($opts{'l'} || !$is_alive) {
 		# print $csv $bio;
 		my $s = $bio_dt->as_string();
-		my $copy = wide_to_html({ string => $s, keep_hrefs => 1 });
 		# utf8::decode($copy);
-		print $csv $copy;
+		print $csv = wide_to_html({ string => $s, keep_hrefs => 1 });
 		# utf8::decode($s);
 		$s = wide_to_xml($s);
 		$s =~ s/\s\s+/ /g;
@@ -7546,7 +7520,6 @@ sub print_person
 		# if($death && (my $notes = notes({ person => $person, record => $death, paragraph => 1 }))) {
 			# print $html "<h2>Notes</h2>$notes";
 			# $printed_notes = 1;
-			# print $csv notes({ person => $person, record => $death });
 		# }
 
 		if($opts{'w'} && (my $dbpedia = dbpedia({ person => $person, birth_dt => $birth_dt, yob => $yob, yod => $yod }))) {
@@ -7558,7 +7531,6 @@ sub print_person
 			print $html '<h2>Notes</h2>';
 
 			print $html $notes;
-			# print $csv '----' if($printed_notes);
 			my $n = notes({ person => $person, record => $person, note_locations => \@note_locations, encode => 0 });
 			$n =~ s/"/&quot;/g;
 			print $csv $n;
