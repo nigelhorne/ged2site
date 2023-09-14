@@ -11837,7 +11837,13 @@ sub get_all_occupations
 		} elsif(($occupations[0] eq 'Nurse') && ($language eq 'French')) {
 			$occupations[0] = ($person->sex() eq 'M') ? 'infirmier' : "infirmi\N{U+00E8}re";
 		} elsif($occupations[0] =~ /teaching/i) {
-			$occupations[0] = ($language eq 'French') ? 'professeur' : 'teacher';
+			if($language eq 'French') {
+				$occupations[0] = 'professeur';
+			} elsif($language eq 'German') {
+				$occupations[0] = ($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin';
+			} else {
+				$occupations[0] = 'teacher';
+			}
 		} elsif(($occupations[0] !~ /gas works/i) && ($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i)) {
 			# Don't change Bus Driver to Bu's Driver
 			$occupations[0] = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
