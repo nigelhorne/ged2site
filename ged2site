@@ -10611,6 +10611,7 @@ sub notes
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
 	my $rc = $record->get_value();
 	$rc .= '.' if($rc && !scalar(@notes));
+	$rc = undef if(defined($rc) && (lc($rc) eq 'was recorded at this address'));
 
 	foreach my $note(@notes) {
 		if($note) {
