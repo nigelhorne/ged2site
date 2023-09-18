@@ -10011,6 +10011,9 @@ sub year
 		}
 		$from =~ s/^(in|on|c.) //;
 		$to =~ s/^(in|on|c.) //;
+		if($language eq 'German') {
+			return "von $from bis $to";
+		}
 		return "from $from to $to";
 	}
 
@@ -13919,6 +13922,7 @@ during %s life:F:während ihres Lebens
 eldest::älteste
 father::Vater
 following the death of::Nach dem Tod von
+from::bis
 has had::hatte
 had::hatte
 has lived in %s::hat in %s gelebt
