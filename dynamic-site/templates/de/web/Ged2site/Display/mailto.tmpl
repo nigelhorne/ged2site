@@ -10,7 +10,7 @@
 		[% IF action == 'sent' %]
 			<title>E-mail sent</title>
 		[% ELSE %]
-			<title>Send an e-mail to [% name.ucfirst %]</title>
+			<title>Senden ein e-mail an [% name.ucfirst %]</title>
 		[% END %]
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<meta http-equiv="Content-Language" content="English">
@@ -61,19 +61,19 @@
 					<form method="post" action="#">
 						<input name="action" value="send" type="hidden">
 						<input name="page" value="mailto" type="hidden">
-						<label for="yname">Your Name</label>
+						<label for="yname">Ihre Name</label>
 						<input name="yname" id="yname" type="text" value="[%- yname %]">
 						<br>
 						<br>
-						<label for="yemail">Your E-Mail Adresse</label>
+						<label for="yemail">Ihre E-Mail Adresse</label>
 						<input name="yemail" id="yemail" type="email" value="[%- yemail %]">
 						<br>
 						<br>
-						<label for="subject">Subject</label>
+						<label for="subject">Betreff</label>
 						<input name="subject" id="subject" type="text" value="[%- subject %]">
 						<br>
 						<br>
-						<label for="message">Message</label>
+						<label for="message">Nachricht</label>
 						[% IF message %]
 							<textarea name="message" id="message" rows="4" value="[%- message %]"></textarea>
 						[% ELSE %]
@@ -86,7 +86,7 @@
 						</ul> -->
 						<center>
 							<button type="submit" class="myButton" value="submit">
-								Send E-mail
+								Senden E-mail
 							</button>
 						</center>
 					</form>
