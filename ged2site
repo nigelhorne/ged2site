@@ -574,8 +574,21 @@ if($opts{'m'} || $opts{'w'}) {
 
 	$geocoder->push(Geo::Coder::Free::Local->new());
 
+	my %topts;
 	if(my $oa = $ENV{'OPENADDR_HOME'}) {
-		$freegeocoder = Geo::Coder::Free->new(openaddr => $oa);
+		$topts{'openaddr'} = $oa;
+	}
+	if($logger) {
+		$topts{'logger'} = $logger;
+	}
+	$topts{'cache'} = CHI->new(
+		driver => 'File',
+		root_dir => $cachedir,
+		l1_cache => { driver => 'RawMemory', global => 1, max_size => 1024*1024 }
+	);
+	$topts{'cache_duration'} = '1 month';
+	$freegeocoder = Geo::Coder::Free->new(%topts);
+	if(my $oa = $ENV{'OPENADDR_HOME'}) {
 		# $geocoder->push({ regex => qr/,[\w\s]+,[\w\s]+$/, geocoder => $freegeocoder });
 		# $geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada|Australia)+$/, geocoder => Geo::Coder::Free::OpenAddresses->new(openaddr => $oa) })
 			# ->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
@@ -584,7 +597,6 @@ if($opts{'m'} || $opts{'w'}) {
 		$geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada|Australia)\s*$/, geocoder => $freegeocoder })
 			->push({ regex => qr/^([\w\s]+,)?\s*[\w\s]+,\s*[\w\s]+\s*$/, geocoder => $freegeocoder });
 	} else {
-		$freegeocoder = Geo::Coder::Free->new();
 		$geocoder->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => $freegeocoder })
 			# E.g. 'Nebraska, USA'
 			->push({ regex => qr/^[\w\s]+,\s*(UK|England|Canada|USA|US|United States)$/i, geocoder => $freegeocoder });
