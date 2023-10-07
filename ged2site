@@ -10649,7 +10649,7 @@ sub notes
 			$note =~ s/[\x93\x94]/"/g;
 			$note =~ s/[\x91\x92]/'/g;
 			$note =~ s/[\xc2\xe2]//g;
-			if($rc ne $note) {
+			if(defined($rc) && ($rc ne $note)) {
 				if($paragraph) {
 					if($encode) {
 						$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
