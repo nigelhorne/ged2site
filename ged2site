@@ -10649,25 +10649,29 @@ sub notes
 			$note =~ s/[\x93\x94]/"/g;
 			$note =~ s/[\x91\x92]/'/g;
 			$note =~ s/[\xc2\xe2]//g;
-			if($paragraph) {
-				if($encode) {
-					$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
-					if($paragraph) {
-						$note =~ s/\n+/<\/p><p>/g;
+			if($rc ne $note) {
+				if($paragraph) {
+					if($encode) {
+						$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
+						if($paragraph) {
+							$note =~ s/\n+/<\/p><p>/g;
+						}
+					} else {
+						$rc .= "<p>$note.</p>";
 					}
 				} else {
-					$rc .= "<p>$note.</p>";
+					if($rc) {
+						$rc .= ' ';
+					}
+					if($encode) {
+						$rc .= HTML::Entities::encode($note);
+					} else {
+						$rc .= $note;
+					}
+					$rc .= '.' if($note !~ /(\."?|<\/p>)$/);
 				}
 			} else {
-				if($rc) {
-					$rc .= ' ';
-				}
-				if($encode) {
-					$rc .= HTML::Entities::encode($note);
-				} else {
-					$rc .= $note;
-				}
-				$rc .= '.' if($note !~ /(\."?|<\/p>)$/);
+				complain("Note record ($note) is the same as the description");
 			}
 		} else {
 			complain('Notes field is empty');
