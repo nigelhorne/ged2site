@@ -11789,6 +11789,11 @@ sub get_all_occupations
 		$occupations[0] =~ tr/\n/ /;
 		$occupations[0] =~ s/\.+$//;
 
+		if(($occupations[0] =~ /(.+)\sdomestic$/i) ||
+		   ($occupations[0] =~ /(.+)\sdom$/i)) {
+			$occupations[0] = "Domestic $1";
+		}
+
 		if($occupations[0] =~ /works? on (.+)/i) {
 			$occupations[0] = "$1 worker";
 		} elsif(($occupations[0] eq 'Ag Lab') ||
@@ -11896,12 +11901,11 @@ sub get_all_occupations
 			$occupations[0] =~ s/[\(\)]//g;
 			$occupations[0] =~ s/\s+Own Account//i;
 			if($occupations[0] =~ /works? (on|for) (.+)/i) {
-				$occupations[0] = "$1 Worker";
+				$occupations[0] = "$2 worker";
 			} elsif($occupations[0] =~ /^Cleaner\s+(.+)/i) {
-				$occupations[0] = "$1 Cleaner";
-			} else {
-				$occupations[0] = ucfirst($occupations[0]);
+				$occupations[0] = "$1 cleaner";
 			}
+			$occupations[0] = ucfirst($occupations[0]);
 			$occupations[0] =~ s/\s+heavy worker$//i;
 			$occupations[0] =~ s/\s+own business$//i;
 		} else {
