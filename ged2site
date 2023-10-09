@@ -11814,12 +11814,15 @@ sub get_all_occupations
 		} elsif($occupations[0] eq 'Platelayer Railway') {
 			$occupations[0] = 'Railway Platelayer';
 		} elsif(($occupations[0] eq 'General Servant Domestic') ||
-			($occupations[0] eq 'Domestic servant')) {
+			($occupations[0] =~ /^General serv.+dom/i) ||
+			($occupations[0] =~ /^Domestic servant$/i)) {
 			if($language eq 'French') {
 				$occupations[0] = 'Domestique';
 			} else {
-				$occupations[0] = 'Domestic Servant';
+				$occupations[0] = 'Domestic servant';
 			}
+		} elsif($occupations[0] =~ /(.+)\sserv$/i) {
+			$occupations[0] = "$1 servant";
 		} elsif($occupations[0] eq 'Lorry Driver Heavy Worker') {
 			$occupations[0] = 'Lorry Driver';
 		} elsif($occupations[0] =~ /^Shop Assistant (.*)/) {
@@ -11841,7 +11844,8 @@ sub get_all_occupations
 			$occupations[0] =~ s/^of the //i;
 		} elsif($occupations[0] =~ /Labourer Gas Stoker/) {
 			$occupations[0] = 'Gas Stoker';
-		} elsif($occupations[0] eq 'Under Gardener Domestic') {
+		} elsif(($occupations[0] eq 'Under Gardener Domestic') ||
+			($occupations[0] eq 'Domestic Under Gardner')) {	# sic
 			$occupations[0] = 'Domestic Gardener';
 		} elsif($occupations[0] eq 'Market gardener') {
 			$occupations[0] = 'Market Gardener';
@@ -11849,10 +11853,9 @@ sub get_all_occupations
 			$occupations[0] = 'Brewery Labourer';
 		} elsif($occupations[0] eq "Labourer Builders") {
 			$occupations[0] = "Builder's labourer";
-		} elsif($occupations[0] eq 'Gardener domestic') {
+		} elsif(($occupations[0] eq 'Gardener domestic') ||
+			($occupations[0] eq 'Gardner and domestic servant')) {
 			$occupations[0] = 'Gardener and Domestic';
-		} elsif($occupations[0] =~ /^General serv.+dom/i) {
-			$occupations[0] = 'General Domestic Servent';
 		} elsif($occupations[0] =~ /^(.+) on farm/i) {
 			$occupations[0] = ($language eq 'French') ? "$1 en un ferme" : "$1 on a farm";
 		} elsif($occupations[0] eq 'Plate Glass Cutter') {
