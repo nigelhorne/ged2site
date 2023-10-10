@@ -11794,15 +11794,20 @@ sub get_all_occupations
 			$occupations[0] = "Domestic $1";
 		}
 
+		$occupations[0] =~ s/^Formerly //;
+
 		if($occupations[0] =~ /works? on (.+)/i) {
 			$occupations[0] = "$1 worker";
 		} elsif(($occupations[0] eq 'Ag Lab') ||
 			($occupations[0] eq 'Ag Labourer') ||
 			($occupations[0] eq 'Ag Labourer Pauper') ||
+			($occupations[0] eq 'Ag Lab Pauper') ||
 			($occupations[0] eq 'Farm Labourer') ||
 			($occupations[0] eq 'Agricultural Farm Labourer') ||
 			($occupations[0] eq 'Ordinary Agricultural Labourer') ||
 			($occupations[0] eq 'work on farm') ||
+			($occupations[0] eq 'Agricultural Lab') ||
+			($occupations[0] eq 'Agril Laborer') ||
 			($occupations[0] eq 'Labourer (Ag)')) {
 			$occupations[0] = 'Agricultural Labourer';
 		} elsif($occupations[0] eq 'Poultry Farming') {
