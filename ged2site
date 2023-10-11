@@ -11784,148 +11784,157 @@ sub get_all_occupations
 	}
 
 	# TODO: sort out case
-	if(scalar(@occupations)) {
-		$occupations[0] =~ tr/\r//;
-		$occupations[0] =~ tr/\n/ /;
-		$occupations[0] =~ s/\.+$//;
+	my @rc;
 
-		if(($occupations[0] =~ /(.+)\sdomestic$/i) ||
-		   ($occupations[0] =~ /(.+)\sdom$/i)) {
-			$occupations[0] = "Domestic $1";
+	while(my $occupation = shift @occupations) {
+		$occupation =~ tr/\r//;
+		$occupation =~ tr/\n/ /;
+		$occupation =~ s/\.+$//;
+
+		if(($occupation =~ /(.+)\sdomestic$/i) ||
+		   ($occupation =~ /(.+)\sdom$/i)) {
+			$occupation = "Domestic $1";
 		}
 
-		$occupations[0] =~ s/^Formerly //;
+		$occupation =~ s/^Formerly //i;
+		$occupation =~ s/\sretired$//i;
+		$occupation =~ s/Labor/Labour/i;
 
-		if($occupations[0] =~ /works? on (.+)/i) {
-			$occupations[0] = "$1 worker";
-		} elsif(($occupations[0] eq 'Ag Lab') ||
-			($occupations[0] eq 'Ag Labourer') ||
-			($occupations[0] eq 'Ag Labourer Pauper') ||
-			($occupations[0] eq 'Ag Lab Pauper') ||
-			($occupations[0] eq 'Farm Labourer') ||
-			($occupations[0] eq 'Agricultural Farm Labourer') ||
-			($occupations[0] eq 'Ordinary Agricultural Labourer') ||
-			($occupations[0] eq 'work on farm') ||
-			($occupations[0] eq 'Agricultural Lab') ||
-			($occupations[0] eq 'Agril Laborer') ||
-			($occupations[0] eq 'Labourer (Ag)')) {
-			$occupations[0] = 'Agricultural Labourer';
-		} elsif($occupations[0] eq 'Poultry Farming') {
+		if($occupation =~ /works? on (.+)/i) {
+			$occupation = "$1 worker";
+		} elsif(($occupation eq 'Ag Lab') ||
+			($occupation eq 'Ag Labourer') ||
+			($occupation eq 'Ag Labourer Pauper') ||
+			($occupation eq 'Ag Lab Pauper') ||
+			($occupation eq 'Farm Labourer') ||
+			($occupation eq 'Agricultural Farm Labourer') ||
+			($occupation eq 'Ordinary Agricultural Labourer') ||
+			($occupation eq 'work on farm') ||
+			($occupation eq 'Agricultural Lab') ||
+			($occupation eq 'Agril Labourer') ||
+			($occupation eq 'Labourer (Ag)')) {
+			$occupation = 'Agricultural Labourer';
+		} elsif($occupation eq 'Poultry Farming') {
 			if($language eq 'French') {
-				$occupations[0] = (($person->sex() eq 'M') ? 'Agriculteur de poulet' : 'Agricultrice de poulet');
+				$occupation = (($person->sex() eq 'M') ? 'Agriculteur de poulet' : 'Agricultrice de poulet');
 			} else {
-				$occupations[0] = 'Poultry Farmer';
+				$occupation = 'Poultry Farmer';
 			}
-		} elsif($occupations[0] eq 'Platelayer Railway') {
-			$occupations[0] = 'Railway Platelayer';
-		} elsif(($occupations[0] eq 'General Servant Domestic') ||
-			($occupations[0] =~ /^General serv.+dom/i) ||
-			($occupations[0] =~ /^Domestic servant$/i)) {
+		} elsif($occupation eq 'Platelayer Railway') {
+			$occupation = 'Railway Platelayer';
+		} elsif(($occupation eq 'General Servant Domestic') ||
+			($occupation =~ /^General serv.+dom/i) ||
+			($occupation =~ /^Domestic servant$/i)) {
 			if($language eq 'French') {
-				$occupations[0] = 'Domestique';
+				$occupation = 'Domestique';
 			} else {
-				$occupations[0] = 'Domestic servant';
+				$occupation = 'Domestic servant';
 			}
-		} elsif($occupations[0] =~ /(.+)\sserv$/i) {
-			$occupations[0] = "$1 servant";
-		} elsif($occupations[0] eq 'Lorry Driver Heavy Worker') {
-			$occupations[0] = 'Lorry Driver';
-		} elsif($occupations[0] =~ /^Shop Assistant (.*)/) {
-			$occupations[0] = "$1's Shop Assistant";
-		} elsif($occupations[0] =~ /(.*) Assistant$/i) {
+		} elsif($occupation =~ /(.+)\sserv$/i) {
+			$occupation = "$1 servant";
+		} elsif($occupation eq 'Lorry Driver Heavy Worker') {
+			$occupation = 'Lorry Driver';
+		} elsif($occupation =~ /^Shop Assistant (.*)/) {
+			$occupation = "$1's Shop Assistant";
+		} elsif($occupation =~ /(.*) Assistant$/i) {
 			if($1 eq 'Bakers') {
-				$occupations[0] = "Baker's Assistant";
+				$occupation = "Baker's Assistant";
 			} elsif($1 eq 'Butchers') {
-				$occupations[0] = "Butcher's Assistant";
+				$occupation = "Butcher's Assistant";
 			} elsif($1 ne 'Shop') {
-				$occupations[0] = "$1's Assistant" unless($1 =~ /'s$/);
+				$occupation = "$1's Assistant" unless($1 =~ /'s$/);
 			}
-		} elsif($occupations[0] =~ /Clerk (.*)/) {
-			$occupations[0] = "$1 Clerk";
-		} elsif($occupations[0] =~ /Salesman (.*)/i) {
-			$occupations[0] = "$1 Salesman";
-		} elsif($occupations[0] =~ /Foreman (.*)/i) {
-			$occupations[0] = "$1 Foreman";
-			$occupations[0] =~ s/^of the //i;
-		} elsif($occupations[0] =~ /Labourer Gas Stoker/) {
-			$occupations[0] = 'Gas Stoker';
-		} elsif(($occupations[0] eq 'Under Gardener Domestic') ||
-			($occupations[0] eq 'Domestic Under Gardner')) {	# sic
-			$occupations[0] = 'Domestic Gardener';
-		} elsif($occupations[0] eq 'Market gardener') {
-			$occupations[0] = 'Market Gardener';
-		} elsif($occupations[0] eq "Brewer's Labourer") {
-			$occupations[0] = 'Brewery Labourer';
-		} elsif($occupations[0] eq "Labourer Builders") {
-			$occupations[0] = "Builder's labourer";
-		} elsif(($occupations[0] eq 'Gardener domestic') ||
-			($occupations[0] eq 'Gardner and domestic servant')) {
-			$occupations[0] = 'Gardener and Domestic';
-		} elsif($occupations[0] =~ /^(.+) on farm/i) {
-			$occupations[0] = ($language eq 'French') ? "$1 en un ferme" : "$1 on a farm";
-		} elsif($occupations[0] eq 'Plate Glass Cutter') {
-		} elsif($occupations[0] =~ /police$/i) {
-			$occupations[0] .= ' officer';
-		} elsif(($occupations[0] eq 'Nurse') && ($language eq 'French')) {
-			$occupations[0] = ($person->sex() eq 'M') ? 'infirmier' : "infirmi\N{U+00E8}re";
-		} elsif($occupations[0] =~ /teaching/i) {
+		} elsif($occupation =~ /Clerk (.*)/) {
+			$occupation = "$1 Clerk";
+		} elsif($occupation =~ /^Salesman (.*)/i) {
+			$occupation = "$1 Salesman";
+		} elsif($occupation =~ /Foreman (.*)/i) {
+			$occupation = "$1 Foreman";
+			$occupation =~ s/^of the //i;
+		} elsif($occupation =~ /Labourer Gas Stoker/) {
+			$occupation = 'Gas Stoker';
+		} elsif(($occupation eq 'Under Gardener Domestic') ||
+			($occupation eq 'Domestic Under Gardner')) {	# sic
+			$occupation = 'Domestic Gardener';
+		} elsif($occupation eq 'Market gardener') {
+			$occupation = 'Market Gardener';
+		} elsif($occupation eq "Brewer's Labourer") {
+			$occupation = 'Brewery Labourer';
+		} elsif($occupation eq "Labourer Builders") {
+			$occupation = "Builder's labourer";
+		} elsif(($occupation eq 'Gardener domestic') ||
+			($occupation eq 'Gardner and domestic servant')) {
+			$occupation = 'Gardener and Domestic';
+		} elsif($occupation =~ /(.+)\sserv$/i) {
+			$occupation = "$1 servant";
+		} elsif($occupation =~ /^(.+) on farm/i) {
+			$occupation = ($language eq 'French') ? "$1 en un ferme" : "$1 on a farm";
+		} elsif($occupation eq 'Plate Glass Cutter') {
+		} elsif($occupation =~ /police$/i) {
+			$occupation .= ' officer';
+		} elsif(($occupation eq 'Nurse') && ($language eq 'French')) {
+			$occupation = ($person->sex() eq 'M') ? 'infirmier' : "infirmi\N{U+00E8}re";
+		} elsif($occupation =~ /teaching/i) {
 			if($language eq 'French') {
-				$occupations[0] = 'professeur';
+				$occupation = 'professeur';
 			} elsif($language eq 'German') {
-				$occupations[0] = ($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin';
+				$occupation = ($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin';
 			} else {
-				$occupations[0] = 'teacher';
+				$occupation = 'teacher';
 			}
-		} elsif(($occupations[0] !~ /gas works/i) && ($occupations[0] =~ /(.+)([a-z])s\s+([a-z]+)$/i)) {
+		} elsif(($occupation !~ /gas works/i) && ($occupation =~ /(.+)([a-z])s\s+([a-z]+)$/i)) {
 			# Don't change Bus Driver to Bu's Driver
-			$occupations[0] = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
-		} elsif(($occupations[0] =~ /Manager (.*)/i) &&
-			($occupations[0] !~ /^Manager of /i) &&
-			($occupations[0] !~ /Manager & /i)) {
-			$occupations[0] = "$1 Manager";
+			$occupation = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
+		} elsif(($occupation =~ /Manager (.*)/i) &&
+			($occupation !~ /^Manager of /i) &&
+			($occupation !~ /Manager & /i)) {
+			$occupation = "$1 Manager";
 		}
 
-		if($occupations[0]) {
+		if($occupation) {
 			if($language eq 'English') {
 				if($ENV{'LANG'} =~ /^en_US/) {
-					$occupations[0] = Lingua::EN::ABC::b2a(lc($occupations[0]));
+					$occupation = Lingua::EN::ABC::b2a(lc($occupation));
+					$occupation =~ s/labour/labor/;
+					$occupation =~ s/Labour/Labor/;
 				} elsif($ENV{'LANG'} =~ /^en_CA/) {
-					$occupations[0] = Lingua::EN::ABC::b2c(lc($occupations[0]));
+					$occupation = Lingua::EN::ABC::b2c(lc($occupation));
 				} else {
-					$occupations[0] = Lingua::EN::ABC::a2b(lc($occupations[0]));
+					$occupation = Lingua::EN::ABC::a2b(lc($occupation));
 				}
 			} elsif($language eq 'French') {
-				if($occupations[0] eq 'Postman') {
-					$occupations[0] = (($person->sex() eq 'M') ? 'Facteur' : 'Factrisse');
-				} elsif($occupations[0] =~ /(.+)\sFarmer/) {
-					$occupations[0] = (($person->sex() eq 'M') ? "Agriculteur $1" : "Agricultrice $1");
-				} elsif($occupations[0] eq 'Farmer') {
-					$occupations[0] = (($person->sex() eq 'M') ? 'Agriculteur' : 'Agricultrice');
-				} elsif($occupations[0] eq 'Teacher') {
-					$occupations[0] = 'Professeur';
+				if($occupation eq 'Postman') {
+					$occupation = (($person->sex() eq 'M') ? 'Facteur' : 'Factrisse');
+				} elsif($occupation =~ /(.+)\sFarmer/) {
+					$occupation = (($person->sex() eq 'M') ? "Agriculteur $1" : "Agricultrice $1");
+				} elsif($occupation eq 'Farmer') {
+					$occupation = (($person->sex() eq 'M') ? 'Agriculteur' : 'Agricultrice');
+				} elsif($occupation eq 'Teacher') {
+					$occupation = 'Professeur';
 				}
-				$occupations[0] =~ s/retired/\N{U+00E0} la retrainte/i;
+				$occupation =~ s/retired/\N{U+00E0} la retrainte/i;
 			}
-			$occupations[0] =~ s/[\(\)]//g;
-			$occupations[0] =~ s/\s+Own Account//i;
-			if($occupations[0] =~ /works? (on|for) (.+)/i) {
-				$occupations[0] = "$2 worker";
-			} elsif($occupations[0] =~ /^Cleaner\s+(.+)/i) {
-				$occupations[0] = "$1 cleaner";
+			$occupation =~ s/[\(\)]//g;
+			$occupation =~ s/\s+Own Account//i;
+			if($occupation =~ /works? (on|for) (.+)/i) {
+				$occupation = "$2 worker";
+			} elsif($occupation =~ /^Cleaner\s+(.+)/i) {
+				$occupation = "$1 cleaner";
 			}
-			$occupations[0] = ucfirst($occupations[0]);
-			$occupations[0] =~ s/\s+heavy worker$//i;
-			$occupations[0] =~ s/\s+own business$//i;
+			$occupation = ucfirst($occupation);
+			$occupation =~ s/\s+heavy worker$//i;
+			$occupation =~ s/\s+own business$//i;
+
+			push @rc, $occupation;
 		} else {
 			complain({
 				person => $person,
 				warning => 'Occupation is empty'
 			});
-			shift @occupations;
 		}
 	}
 
-	return @occupations;
+	return @rc;
 }
 
 # Document a complete journey when both a departure and an arrival record exist
