@@ -13723,6 +13723,8 @@ sub dbpedia
 										my $uri = $category->{'URI'}->{'text'};
 										if(($uri =~ /Category:Teaching_hospitals/) ||
 										   ($uri =~ /Category:Public_housing/) ||
+										   ($uri =~ /Category:Defunct_companies/) ||
+										   ($uri =~ /Category:Songs_/) ||
 										   ($uri =~ /Category:Seismological_observatories/)) {
 											next RESULT;
 										}
