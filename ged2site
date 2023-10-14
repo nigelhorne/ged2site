@@ -4734,7 +4734,6 @@ sub print_person
 			if($spouses[0] && ($spdeath_dt = dateofdeath($spouses[0]))) {
 				$spdeath_dt = date_to_datetime(date => $spdeath_dt);
 			}
-			my $printed_following_message;
 			# my $yod;
 			# my $dod = dateofdeath($person);
 			# if($dod && ($dod =~ /.*?(\d{3,4})/)) {
@@ -5522,7 +5521,7 @@ sub print_person
 							}
 						}
 					}
-					if($spdeath_dt && (!$printed_following_message) && (my $rdate_dt = date_to_datetime($rdate))) {
+					if($spdeath_dt && (my $rdate_dt = date_to_datetime($rdate))) {
 						if($rdate_dt > $spdeath_dt) {
 							# Living with a child following death of spouse?
 							CHILD: foreach my $child(@children) {
@@ -5575,7 +5574,10 @@ sub print_person
 									year(date => $date);
 								$spdeath_dt = undef;
 							}
-							$printed_following_message = 1;
+							if($phrase->length()) {
+								push @phrases, $phrase;
+								$phrase = Data::Text->new();
+							}
 						}
 					}
 				}
