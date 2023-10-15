@@ -4330,7 +4330,7 @@ sub print_person
 							$bio .= ' with an unknown ' . i18n(($sex eq 'M') ? 'mother' : 'father');
 							$phrase->append(' with an unknown ' . i18n(($sex eq 'M') ? 'mother' : 'father'));
 						}
-						# TODO: make hyperlink to the persons record, unless surviving
+						# TODO: make hyperlink to the person's record, unless surviving
 						$bio .= ', ' . $children[0]->given_names();
 						$phrase->append(', ' . $children[0]->given_names());
 					} else {
