@@ -5949,7 +5949,7 @@ sub print_person
 				}
 				my $place = place({ person => $person, record => $events[0] });
 				if($language eq 'German') {
-					$place =~ s/^\sin/ nach/;
+					$place =~ s/^\sin/ von/;
 				} else {
 					$place =~ s/^\sin/ from/;
 				}
@@ -6339,7 +6339,7 @@ sub print_person
 						}
 						my $place = place({ person => $person, record => $event });
 						if($language eq 'German') {
-							$place =~ s/^\sin/ nach/;
+							$place =~ s/^\sin/ von/;
 						} else {
 							$place =~ s/^\sin/ from/;
 						}
@@ -13986,7 +13986,7 @@ during %s life:F:während ihres Lebens
 eldest::älteste
 father::Vater
 following the death of::Nach dem Tod von
-from::nach
+from::von
 has had::hatte
 had::hatte
 has lived in %s::hat in %s gelebt
