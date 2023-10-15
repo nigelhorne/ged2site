@@ -389,6 +389,12 @@ my %intermarriages;	# People who've married a relative
 my %all_residences;
 # my $pi = atan2(1,1) * 4;
 
+if($opts{'W'} && !$opts{'w'}) {
+	warn '-W only makes sense with the -w option';
+} elsif($opts{'w'} && !defined($ENV{'CLICOLOR'})) {
+	$opts{'W'} = 1;
+}
+
 binmode(STDOUT, ':utf8');
 binmode(STDERR, ':utf8');
 umask(0077);	# Don't let PII become publicly readable
@@ -905,16 +911,25 @@ my $obituaries;
 my $wills;
 
 if($opts{'w'}) {
-	if(!defined($ENV{'CLICOLOR'})) {
-		$opts{'W'} = 1;
+	my $opts;
+	if(my $redis = $ENV{'REDIS_SERVER'}) {
+		$opts->{'cache'} = CHI->new(
+			driver => 'Redis',
+			namespace => $script_name,
+			server => $redis,
+			debug => $opts{'v'}
+		);
+	} else {
+		$opts->{'cache'} = CHI->new(
+			driver => 'File',
+			root_dir => $cachedir,
+		);
 	}
 	if($logger) {
-		$obituaries = Genealogy::ObituaryDailyTimes->new(logger => $logger);
-		$wills = Genealogy::Wills->new(logger => $logger);
-	} else {
-		$obituaries = Genealogy::ObituaryDailyTimes->new();
-		$wills = Genealogy::Wills->new();
+		$opts->{'logger'} = $logger;
 	}
+	$obituaries = Genealogy::ObituaryDailyTimes->new($opts);
+	$wills = Genealogy::Wills->new($opts);
 } else {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
 }
