@@ -3796,6 +3796,9 @@ sub print_person
 							if($language eq 'French') {
 								$bio .= "avec qu'" . lcfirst($pronoun);
 								$phrase->append("avec qu'" . lcfirst($pronoun));
+							} elsif($language eq 'German') {
+								$bio .= 'mit wem ' . lcfirst($pronoun);
+								$phrase->append('mit wem ' . lcfirst($pronoun));
 							} else {
 								$bio .= 'with whom ' . lcfirst($pronoun);
 								$phrase->append('with whom ' . lcfirst($pronoun));
@@ -11914,6 +11917,12 @@ sub get_all_occupations
 			($occupation !~ /^Manager of /i) &&
 			($occupation !~ /Manager & /i)) {
 			$occupation = "$1 Manager";
+		}
+
+		if($language eq 'German') {
+			if($occupation eq 'Bus driver') {
+				$occupation = ($person->sex() eq 'M') ? 'Busfahrer' : 'Busfahrerin';
+			}
 		}
 
 		if($occupation) {
