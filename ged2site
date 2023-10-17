@@ -421,8 +421,11 @@ if($opts{'v'}) {
 }
 
 my $places;
+my $lcm;
 if(defined($language) && ($language ne 'English')) {
 	$places = Class::Simple::Readonly::Cached->new(object => Locale::Places->new(), cache => { });
+	$lcm = Class::Simple::Readonly::Cached->new(object => Locale::Country::Multilingual->new(),
+		cache => CHI->new(driver => 'RawMemory', datastore => {}));
 }
 
 # Read in the $text table for translation
@@ -437,12 +440,6 @@ if(my $data = Data::Section::Simple::get_data_section($language)) {
 			$i18n->{$english} = $foreign;
 		}
 	}
-}
-
-my $lcm;
-if($language && ($language ne 'English')) {
-	$lcm = Class::Simple::Readonly::Cached->new(object => Locale::Country::Multilingual->new(),
-		cache => CHI->new(driver => 'RawMemory', datastore => {}));
 }
 
 my $date_parser = Genealogy::Gedcom::Date->new();
@@ -11818,15 +11815,17 @@ sub get_all_occupations
 		$occupation =~ tr/\r//;
 		$occupation =~ tr/\n/ /;
 		$occupation =~ s/\.+$//;
+		$occupation =~ s/[\(\)]//g;
+
+		$occupation =~ s/\s+Own Account//i;
+		$occupation =~ s/^Formerly //i;
+		$occupation =~ s/\sretired$//i;
+		$occupation =~ s/Labor/Labour/i;
 
 		if(($occupation =~ /(.+)\sdomestic$/i) ||
 		   ($occupation =~ /(.+)\sdom$/i)) {
 			$occupation = "Domestic $1";
 		}
-
-		$occupation =~ s/^Formerly //i;
-		$occupation =~ s/\sretired$//i;
-		$occupation =~ s/Labor/Labour/i;
 
 		if($occupation =~ /works? on (.+)/i) {
 			$occupation = "$1 worker";
@@ -11948,8 +11947,6 @@ sub get_all_occupations
 				}
 				$occupation =~ s/retired/\N{U+00E0} la retrainte/i;
 			}
-			$occupation =~ s/[\(\)]//g;
-			$occupation =~ s/\s+Own Account//i;
 			if($occupation =~ /works? (on|for) (.+)/i) {
 				$occupation = "$2 worker";
 			} elsif($occupation =~ /^Cleaner\s+(.+)/i) {
