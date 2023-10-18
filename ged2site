@@ -6066,7 +6066,6 @@ sub print_person
 				print "Event type: $type\n" if($opts{'v'});
 				if($type eq 'Military service') {
 					if(!$mentioned_military) {
-						my $notes;
 						if($end_of_sentence) {
 							$bio .= ' ' unless($bio =~ /\s$/);
 						} else {
@@ -6080,10 +6079,19 @@ sub print_person
 							@phrases = ();
 						}
 
+						my $service;
+						my $notes = notes(record => $event);
+						if($notes =~ /Navy/i) {
+							$service = 'navy';
+						} elsif(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i)) {
+							$service = 'army';
+						} else {
+							$service = 'military';
+						}
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^from /) {
-								$bio .= "$pronoun served in the military $date";
-								$phrase->set("$pronoun served in the military $date");
+								$bio .= "$pronoun served in the $service $date";
+								$phrase->set("$pronoun served in the $service $date");
 							} else {
 								if($date =~ /^on /) {
 									$bio .= ucfirst($date) . ' ';
@@ -6098,16 +6106,12 @@ sub print_person
 									$bio .= ucfirst($date) . ' ';
 									$phrase->set(' ' . ucfirst($date) . ' ');
 								}
-								$bio .= lcfirst($pronoun) . ' was serving in the military';
-								$phrase->append(lcfirst($pronoun) . ' was serving in the military');
+								$bio .= lcfirst($pronoun) . " was serving in the $service";
+								$phrase->append(lcfirst($pronoun) . " was serving in the $service");
 							}
-						} elsif(($notes = notes(record => $event)) &&
-							(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i))) {
-							$bio .= "$pronoun served in the army";
-							$phrase->set(" $pronoun served in the army");
 						} else {
-							$bio .= "$pronoun served in the military";
-							$phrase->set(" $pronoun served in the military");
+							$bio .= "$pronoun served in the $service";
+							$phrase->set(" $pronoun served in the $service");
 						}
 
 						if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
