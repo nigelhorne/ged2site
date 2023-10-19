@@ -7233,7 +7233,7 @@ sub print_person
 		# print $csv $bio;
 		my $s = $bio_dt->as_string();
 		# utf8::decode($copy);
-		print $csv = wide_to_html({ string => $s, keep_hrefs => 1 });
+		print $csv wide_to_html({ string => $s, keep_hrefs => 1 });
 		# utf8::decode($s);
 		$s = wide_to_xml($s);
 		$s =~ s/\s\s+/ /g;
