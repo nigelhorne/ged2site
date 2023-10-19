@@ -3067,11 +3067,10 @@ sub print_person
 			'<a href="?page=people&home=1">' .
 			$me->as_string(nee => 1) .
 			'</a>');
-		$s =~ s/\xc3\xab/&#235;/g;	# eumlaut
 		print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 			"$s&lt;/a&gt; the $spouserelationship of ",
 			'&lt;a href="?page=people&amp;home=1"&gt;',
-			$me->as_string(nee => 1),
+			wide_to_xml($me->as_string(nee => 1)),
 			'&lt;/a&gt;';
 		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
 			print $html ',';
@@ -3087,7 +3086,7 @@ sub print_person
 	if(my $aka = $person->as_string({ use_aka => 1 })) {
 		$phrase->append(" (also known as $aka)");
 		print $html " (also known as $aka)";
-		$aka =~ s/&eacute;/&#233;/g;
+		$aka = wide_to_xml($aka);
 		print $xml " (also known as $aka)";
 	}
 
