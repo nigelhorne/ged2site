@@ -268,10 +268,7 @@ if($opts{'F'}) {
 	push @modules, $magick, 'Image::Magick::Thumbnail';
 }
 if(defined($language) && ($language ne 'English')) {
-	push @modules, 'Locale::Country::Multilingual';
-	if($language ne 'English') {
-		push @modules, 'Locale::Places';
-	}
+	push @modules, 'Locale::Country::Multilingual', 'Locale::Places';
 }
 if($ENV{'GEO_CODER_OPENCAGE_API_KEY'}) {
 	push @modules, 'Geo::Coder::OpenCage';
@@ -8099,6 +8096,7 @@ sub print_person
 			if($record->date()) {
 				my $date = year({ person => $person, record => $record, nopreposition => 1 });
 				$date =~ s/^on //;
+				$date = wide_to_xml($date);
 				print $xml "\n\t\t\t\t<date>$date</date>";
 			}
 			print $xml "\n\t\t\t</event>";
@@ -9815,7 +9813,7 @@ sub Gedcom::Individual::relationship_up
 								" father's side";
 						}
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
-						if($me && ($self eq $me)) {
+						if($me->xref() && ($self->xref() eq $me->xref())) {
 							$rc .= i18n(" on the mother's side");
 						} else {
 							$rc .= ' on ' .
@@ -9840,7 +9838,7 @@ sub Gedcom::Individual::relationship_down
 	my $other = shift;
 	my @descendant;
 
-	if($me && ($self eq $me)) {
+	if($me && ($self->xref() eq $me->xref())) {
 		unless(@mydescendants) {
 			@mydescendants = $me->descendants();
 		}
