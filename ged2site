@@ -6446,6 +6446,21 @@ sub print_person
 						$phrase = Data::Text->new();
 						$end_of_sentence = 0;
 					}
+				} elsif($type eq 'Newspaper') {
+					if($phrase->length()) {
+						push @phrases, $phrase;
+					}
+					my $url = $event->source()->tag_record('REF')->value();
+					$bio .= '. ' if(!$end_of_sentence);
+					my $s = " $pronoun appeared in a newspaper ($url)";
+					$bio .= " $s";
+					# die $i->page();
+
+					if(scalar(@phrases)) {
+						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+						$phrase = Data::Text->new($firstname // $pronoun)->set($s);
+						@phrases = ();
+					}
 				} elsif($type eq 'Funeral') {
 					$funeral = $event;
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
