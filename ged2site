@@ -10712,7 +10712,7 @@ sub notes
 					$rc .= '.' if($note !~ /(\."?|<\/p>)$/);
 				}
 			} else {
-				complain("Note record ($note) is the same as the description");
+				# complain("Note record ($note) is the same as the description");
 			}
 		} else {
 			complain('Notes field is empty');
@@ -13660,7 +13660,6 @@ sub dbpedia
 	my $firstname = $name_components{'given_name_1'} // $person->given_names // $name_components{'initials_1'};
 	if($firstname) {
 		$firstname =~ s/\'/\\\'/g;
-		utf8::decode($firstname);
 		$firstname = Unicode::Diacritic::Strip::strip_diacritics($firstname);
 	} else {
 		$firstname = 'NULL';
@@ -13669,7 +13668,6 @@ sub dbpedia
 	my $surname = ucfirst(lc($person->surname()));
 	if($surname) {
 		$surname =~ s/\'/\\\'/g;
-		utf8::decode($surname);
 		$surname = Unicode::Diacritic::Strip::strip_diacritics($surname);
 	} else {
 		$surname = 'NULL';
@@ -13678,8 +13676,7 @@ sub dbpedia
 	print "https://lookup.dbpedia.org/api/search?query=$firstname%20$surname\n" if($opts{'v'});
 	if(($firstname ne '?') && (my $resp = $cached_browser->get("https://lookup.dbpedia.org/api/search?query=$firstname%20$surname"))) {
 		if($resp->is_success()) {
-			my $dbpedia = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content());
-			if(my $arrayofresults = $dbpedia->{'ArrayOfResults'}) {
+			if(my $arrayofresults = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content())->{'ArrayOfResults'}) {
 				RESULT: foreach my $result(@{$arrayofresults->{'Result'}}) {
 					if($result->{'Classes'}->{'Class'} &&
 					   (ref($result->{'Classes'}->{'Class'}) eq 'ARRAY')) {
@@ -13690,6 +13687,7 @@ sub dbpedia
 							   ($class->{'Label'}->{'text'} eq 'Work') ||
 							   ($class->{'Label'}->{'text'} eq 'Event') ||
 							   ($class->{'Label'}->{'text'} eq 'Holiday') ||
+							   ($class->{'Label'}->{'text'} eq 'Plant') ||
 							   ($class->{'Label'}->{'text'} eq 'Artwork')) {
 								next RESULT;
 							}
@@ -13732,8 +13730,13 @@ sub dbpedia
 										# Born after the dbpedia person died
 										next;
 									}
+								} elsif($t =~ /may refer to:$/) {
+									# TODO: recursive checking
+									complain('TODO: also check ' . $result->{'URI'}->{'text'});
+									next;
 								}
-								if(my $dt = DateTime::Format::Text->parse_datetime($t)) {
+								my @dts = DateTime::Format::Text->parse_datetime($t);
+								if((scalar(@dts) == 1) && (defined(my $dt = $dts[0]))) {
 									if($birth_dt && ($dt < $birth_dt)) {
 										$dt = $dt->delta_days($birth_dt);
 										if(($dt->{'days'} / 356) > 2) {
@@ -13745,7 +13748,6 @@ sub dbpedia
 										# next;
 									}
 								}
-								my @dts = DateTime::Format::Text->parse_datetime($t);
 								if(scalar(@dts) == 2) {
 									if(defined($yob) && (($yob != $dts[0]->year()) || ($yob > $dts[1]->year()))) {
 										next;
