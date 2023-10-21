@@ -7573,8 +7573,8 @@ sub print_person
 			# $printed_notes = 1;
 		# }
 
-		if($opts{'w'} && (my $dbpedia = dbpedia({ person => $person, birth_dt => $birth_dt, yob => $yob, yod => $yod }))) {
-		}
+		# if($opts{'w'} && (my $dbpedia = dbpedia({ person => $person, birth_dt => $birth_dt, yob => $yob, yod => $yod }))) {
+		# }
 
 		if(($person->get_value('note')) &&
 		   (my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations }))) {
@@ -11189,28 +11189,28 @@ sub complain
 
 sub red_warning
 {
-	if($opts{'w'}) {
-		my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	return unless($opts{'w'});
 
-		die 'What do you want to say?' unless($params{'warning'});
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-		my $warning = HTML::Entities::decode($params{'warning'});
-		my @call_details = caller($params{'caller'} || 0);
-		if($params{'person'}) {
-			warn colored(['red'], $params{'person'}->as_string(middle_names => 1), ": $warning at line ", $call_details[2]);
-			push @{$params{'person'}->{'warnings'}}, $warning;
+	die 'What do you want to say?' unless($params{'warning'});
+
+	my $warning = HTML::Entities::decode($params{'warning'});
+	my @call_details = caller($params{'caller'} || 0);
+	if($params{'person'}) {
+		warn colored(['red'], $params{'person'}->as_string(middle_names => 1), ": $warning at line ", $call_details[2]);
+		push @{$params{'person'}->{'warnings'}}, $warning;
+	} else {
+		if($opts{'W'}) {
+			print STDERR $params{'warning'}, "\n";
 		} else {
-			if($opts{'W'}) {
-				print STDERR $params{'warning'}, "\n";
-			} else {
-				warn colored(['red'], $params{'warning'}, ' at line ', $call_details[2]);
-			}
+			warn colored(['red'], $params{'warning'}, ' at line ', $call_details[2]);
 		}
-		if($params{'stack_trace'}) {
-			my $i = 0;
-			while((my @call_details = (caller($i++)))) {
-				print STDERR "\t", colored($call_details[1] . ':' . $call_details[2] . ' calling function ' . $call_details[3], 'red'), "\n";
-			}
+	}
+	if($params{'stack_trace'}) {
+		my $i = 0;
+		while((my @call_details = (caller($i++)))) {
+			print STDERR "\t", colored($call_details[1] . ':' . $call_details[2] . ' calling function ' . $call_details[3], 'red'), "\n";
 		}
 	}
 }
@@ -13697,138 +13697,137 @@ sub dbpedia
 					   ($result->{'Label'}->{'text'} =~ /$firstname([a-z\s]+)$surname/i) &&
 					   (my $description = $result->{'Description'})) {
 						if(my $t = $description->{'text'}) {
-							if($t =~ /$firstname([a-z\s]+)$surname/i) {
-								if($t =~ /\(born\s.*?(\d{4})\D*?\)/) {
-									my $b = $1;
-									if(defined($yod) && ($yod < $b)) {
-										# Died before the dbpedia person was born
-										next;
-									}
-									if(defined($yob) && ($yob != $b)) {
-										# Born different year from the dbpedia person was born
-										next;
-									}
-								} elsif($t =~ /\(died\s.*?(\d{4})\)/) {
-									my $d = $1;
-									if(defined($yob) && ($yob > $d)) {
-										# Born after dbpedia person died
-										next;
-									}
-								} elsif($t =~ /\((\d{4})\x{2013}\d{4}\)/) {
-									my $b = $1;
-									if(defined($yod) && ($yod < $b)) {
-										# Died before the dbpedia person was born
-										next;
-									}
-									if(defined($yob) && ($yob != $b)) {
-										# Born different year from the dbpedia person was born
-										next;
-									}
-								} elsif($t =~ /\(c\. \d{4} \x{2013} (\d{4})\)/) {
-									my $d = $1;
-									if(defined($yob) && ($yob > $d)) {
-										# Born after the dbpedia person died
-										next;
-									}
-								} elsif($t =~ /may refer to:$/) {
-									# TODO: recursive checking
-									complain('TODO: also check ' . $result->{'URI'}->{'text'});
+							next if($t !~ /$firstname([a-z\s]+)$surname/i);
+							if($t =~ /\(born\s.*?(\d{4})\D*?\)/) {
+								my $b = $1;
+								if(defined($yod) && ($yod < $b)) {
+									# Died before the dbpedia person was born
 									next;
 								}
-								my @dts = DateTime::Format::Text->parse_datetime($t);
-								if((scalar(@dts) == 1) && (defined(my $dt = $dts[0]))) {
-									if($birth_dt && ($dt < $birth_dt)) {
-										$dt = $dt->delta_days($birth_dt);
-										if(($dt->{'days'} / 356) > 2) {
-											# Born more than 2 years after
-											# the dbpedia event
-											next;
-										}
-									# } elsif(defined($yob) && ($yob != $dt->year())) {
-										# next;
-									}
+								if(defined($yob) && ($yob != $b)) {
+									# Born different year from the dbpedia person was born
+									next;
 								}
-								if(scalar(@dts) == 2) {
-									if(defined($yob) && (($yob != $dts[0]->year()) || ($yob > $dts[1]->year()))) {
+							} elsif($t =~ /\(died\s.*?(\d{4})\)/) {
+								my $d = $1;
+								if(defined($yob) && ($yob > $d)) {
+									# Born after dbpedia person died
+									next;
+								}
+							} elsif($t =~ /\((\d{4})\x{2013}\d{4}\)/) {
+								my $b = $1;
+								if(defined($yod) && ($yod < $b)) {
+									# Died before the dbpedia person was born
+									next;
+								}
+								if(defined($yob) && ($yob != $b)) {
+									# Born different year from the dbpedia person was born
+									next;
+								}
+							} elsif($t =~ /\(c\. \d{4} \x{2013} (\d{4})\)/) {
+								my $d = $1;
+								if(defined($yob) && ($yob > $d)) {
+									# Born after the dbpedia person died
+									next;
+								}
+							} elsif($t =~ /may refer to:$/) {
+								# TODO: recursive checking
+								complain('TODO: also check ' . $result->{'URI'}->{'text'});
+								next;
+							}
+							my @dts = DateTime::Format::Text->parse_datetime($t);
+							if((scalar(@dts) == 1) && (defined(my $dt = $dts[0]))) {
+								if($birth_dt && ($dt < $birth_dt)) {
+									$dt = $dt->delta_days($birth_dt);
+									if(($dt->{'days'} / 356) > 2) {
+										# Born more than 2 years after
+										# the dbpedia event
 										next;
 									}
-									if(defined($yod)) {
-										if($yod < $dts[0]->year()) {
-											next;
-										}
-										if($yod < ($dts[1]->year() - 40)) {
-											# Died more than 40 years before the
-											# dbpedia person
-											next;
-										}
+								# } elsif(defined($yob) && ($yob != $dt->year())) {
+									# next;
+								}
+							}
+							if(scalar(@dts) == 2) {
+								if(defined($yob) && (($yob != $dts[0]->year()) || ($yob > $dts[1]->year()))) {
+									next;
+								}
+								if(defined($yod)) {
+									if($yod < $dts[0]->year()) {
+										next;
 									}
-								} elsif($result->{'Categories'}->{'Category'}) {
-									# Try to guess other info
-									my @categories;
-									if(ref($result->{'Categories'}->{'Category'}) eq 'ARRAY') {
-										@categories = @{$result->{'Categories'}->{'Category'}};
-									} else {
-										@categories = ( $result->{'Categories'}->{'Category'} );
-									}
-									foreach my $category(@categories) {
-										my $uri = $category->{'URI'}->{'text'};
-										if(($uri =~ /Category:Teaching_hospitals/) ||
-										   ($uri =~ /Category:Public_housing/) ||
-										   ($uri =~ /Category:Defunct_companies/) ||
-										   ($uri =~ /Category:Songs_/) ||
-										   ($uri =~ /Category:Seismological_observatories/)) {
-											next RESULT;
-										}
-										if(defined($yod)) {
-											if($uri =~ /Living_people$/) {
-												# dbpedia person is alive, ours is not
-												next RESULT;
-											}
-											if($uri =~ /Category:(\d{4})_deaths$/) {
-												my $d = $1;
-												if(defined($yob) && ($yob > $d)) {
-													# Born after this person died
-													next RESULT;
-												}
-											} elsif($uri =~ /(\d\d)th-century_deaths/) {
-												my $c = ($1 + 1) * 100;
-												if(defined($yob) && ($yob > $c)) {
-													# Born after dbpedia person died
-													next RESULT;
-												}
-											}
-										}
-										if(defined($yob)) {
-											if($uri =~ /Category:(\d{4})_births$/) {
-												my $b = $1;
-												if(defined($yod) && ($yod < $b)) {
-													# Died before the dbpedia person was born
-													next RESULT;
-												}
-												if($yob != $b) {
-													# Born different year from the dbpedia person was born
-													next RESULT;
-												}
-											} elsif(($uri =~ /(\d{3,4})s_deaths/)) {
-												if($yob > ($1 + 10)) {
-													# Born after the end of the decade this person died
-													next RESULT;
-												}
-											} elsif($uri =~ /(\d\d)th-century_deaths/) {
-												my $c = ($1 + 1) * 100;
-												if($yob > $c) {
-													# Born after dbpedia person died
-													next RESULT;
-												}
-											}
-										}
-										warn ">>>>>>>>>> $uri";
+									if($yod < ($dts[1]->year() - 40)) {
+										# Died more than 40 years before the
+										# dbpedia person
+										next;
 									}
 								}
-								$Data::Dumper::Maxdepth = 0;
-								print STDERR Data::Dumper->new([\$result])->Dump();
-								return $t;
+							} elsif($result->{'Categories'}->{'Category'}) {
+								# Try to guess other info
+								my @categories;
+								if(ref($result->{'Categories'}->{'Category'}) eq 'ARRAY') {
+									@categories = @{$result->{'Categories'}->{'Category'}};
+								} else {
+									@categories = ( $result->{'Categories'}->{'Category'} );
+								}
+								foreach my $category(@categories) {
+									my $uri = $category->{'URI'}->{'text'};
+									if(($uri =~ /Category:Teaching_hospitals/) ||
+									   ($uri =~ /Category:Public_housing/) ||
+									   ($uri =~ /Category:Defunct_companies/) ||
+									   ($uri =~ /Category:Songs_/) ||
+									   ($uri =~ /Category:Seismological_observatories/)) {
+										next RESULT;
+									}
+									if(defined($yod)) {
+										if($uri =~ /Living_people$/) {
+											# dbpedia person is alive, ours is not
+											next RESULT;
+										}
+										if($uri =~ /Category:(\d{4})_deaths$/) {
+											my $d = $1;
+											if(defined($yob) && ($yob > $d)) {
+												# Born after this person died
+												next RESULT;
+											}
+										} elsif($uri =~ /(\d\d)th-century_deaths/) {
+											my $c = ($1 + 1) * 100;
+											if(defined($yob) && ($yob > $c)) {
+												# Born after dbpedia person died
+												next RESULT;
+											}
+										}
+									}
+									if(defined($yob)) {
+										if($uri =~ /Category:(\d{4})_births$/) {
+											my $b = $1;
+											if(defined($yod) && ($yod < $b)) {
+												# Died before the dbpedia person was born
+												next RESULT;
+											}
+											if($yob != $b) {
+												# Born different year from the dbpedia person was born
+												next RESULT;
+											}
+										} elsif(($uri =~ /(\d{3,4})s_deaths/)) {
+											if($yob > ($1 + 10)) {
+												# Born after the end of the decade this person died
+												next RESULT;
+											}
+										} elsif($uri =~ /(\d\d)th-century_deaths/) {
+											my $c = ($1 + 1) * 100;
+											if($yob > $c) {
+												# Born after dbpedia person died
+												next RESULT;
+											}
+										}
+									}
+									warn ">>>>>>>>>> $uri";
+								}
 							}
+							$Data::Dumper::Maxdepth = 0;
+							print STDERR Data::Dumper->new([\$result])->Dump();
+							return $t;
 						}
 					}
 				}
