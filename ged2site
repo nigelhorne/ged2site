@@ -13475,6 +13475,31 @@ sub wide_to_xml
 	$string =~ s/‘/&apos;/g;
 	$string =~ s/‘/&apos;/g;
 
+	$string =~ s/&ccaron;/&#x10D;/g;
+	$string =~ s/&aacute;/&#x0E1;/g;	# á
+	$string =~ s/&acirc;/&#x0E2;/g;		# â
+	$string =~ s/&auml;/&#x0E4;/g;		# ä
+	$string =~ s/&ccedil;/&#x0E7;/g;	# ç
+	$string =~ s/&egrave;/&#x0E8;/g;
+	$string =~ s/&eacute;/&#x0E9;/g;
+	$string =~ s/&ecirc;/&#x0EA;/g;
+	$string =~ s/&euml;/&#x0EB;/g;	# euml
+	$string =~ s/&Eacute;/&#x0C9;/g;
+	$string =~ s/&icirc;/&#x0EE;/g;
+	$string =~ s/&scaron;/&#x161;/g;
+	$string =~ s/&ucirc;/&#x0F4;/g;
+	$string =~ s/&zcaron;/&#x17E;/g;
+	$string =~ s/&Scaron;/&#x160;/g;
+	$string =~ s/&copy;/&#x0A9;/g;
+	$string =~ s/&reg;/&#x0AE;/g;
+	$string =~ s/&pound;/&#163;/g;
+	$string =~ s/&ntilde;/&#x0F1;/g;
+	$string =~ s/&ndash;/-/g;
+
+	if($string !~ /[^[:ascii:]]/) {
+		return $string;
+	}
+
 	# print STDERR __LINE__, ": ($string)";
 	# print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
@@ -13509,7 +13534,6 @@ sub wide_to_xml
 	# $string =~ s/\N{U+017E}/&#x17E;/g;
 
 	$string =~ s/\N{U+010D}/&#x10D;/g;
-	$string =~ s/&ccaron;/&#x10D;/g;
 	$string =~ s/\N{U+00AE}/&#x0AE;/g;	# ®
 	$string =~ s/\N{U+00E4}/&#x0E4;/g;	# ä
 	$string =~ s/\N{U+00EA}/&#x0EA;/g;
@@ -13540,26 +13564,6 @@ sub wide_to_xml
 	# print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
 	$string =~ s/\N{U+2013}/-/g;
-
-	$string =~ s/&aacute;/&#x0E1;/g;	# á
-	$string =~ s/&acirc;/&#x0E2;/g;		# â
-	$string =~ s/&auml;/&#x0E4;/g;		# ä
-	$string =~ s/&ccedil;/&#x0E7;/g;	# ç
-	$string =~ s/&egrave;/&#x0E8;/g;
-	$string =~ s/&eacute;/&#x0E9;/g;
-	$string =~ s/&ecirc;/&#x0EA;/g;
-	$string =~ s/&euml;/&#x0EB;/g;	# euml
-	$string =~ s/&Eacute;/&#x0C9;/g;
-	$string =~ s/&icirc;/&#x0EE;/g;
-	$string =~ s/&scaron;/&#x161;/g;
-	$string =~ s/&ucirc;/&#x0F4;/g;
-	$string =~ s/&zcaron;/&#x17E;/g;
-	$string =~ s/&Scaron;/&#x160;/g;
-	$string =~ s/&copy;/&#x0A9;/g;
-	$string =~ s/&reg;/&#x0AE;/g;
-	$string =~ s/&pound;/&#163;/g;
-	$string =~ s/&ntilde;/&#x0F1;/g;
-	$string =~ s/&ndash;/-/g;
 
 	# utf8::encode($string);
 	# $string =~ s/š/&s#x161;/g;
