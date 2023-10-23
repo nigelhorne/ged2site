@@ -13697,7 +13697,7 @@ sub dbpedia
 					   ($result->{'Label'}->{'text'} =~ /$firstname([a-z\s]+)$surname/i) &&
 					   (my $description = $result->{'Description'})) {
 						if(my $t = $description->{'text'}) {
-							next if($t !~ /$firstname([a-z\s]+)$surname/i);
+							next if($t !~ /$firstname([a-z\s]+)$surname\s/i);
 							if($t =~ /\(born\s.*?(\d{4})\D*?\)/) {
 								my $b = $1;
 								if(defined($yod) && ($yod < $b)) {
