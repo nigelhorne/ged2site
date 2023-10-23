@@ -12133,7 +12133,7 @@ sub datecmp($$)
 		}
 
 		if($left !~ /^\d{3,4}$/) {
-			if($left !~ /[a-z]/i) {
+			if(($left !~ /[a-z]/i) || ($left =~ /[a-z]$/)) {
 				my $i = 0;
 				while((my @call_details = caller($i++))) {
 					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";

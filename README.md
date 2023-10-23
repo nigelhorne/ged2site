@@ -132,7 +132,6 @@ but I strongly advise you don't do that.
 [Library](https://github.com/nigelhorne/lib) - library of code common with
 [gedcom](https://github.com/nigelhorne/gedcom).
 
-
 Ancestry on Windows
 ===================
 
@@ -253,8 +252,9 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 ## See Also
 
-[gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files
-[gedcmp](https://github.com/nigelhorne/gedcmp) - compare two Gedcoms
+* [gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files
+* [gedcmp](https://github.com/nigelhorne/gedcmp) - compare two Gedcoms
+* [lib](https://github.com/nigelhorne/lib) - library of routines used by this package
 
 # LICENSE AND COPYRIGHT
 
