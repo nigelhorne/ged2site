@@ -66,8 +66,28 @@ use Carp;
 our $directory;
 our $logger;
 our $cache;
+our $cache_duration;
 
 =head1 SUBROUTINES/METHODS
+
+=head2 init
+
+Set some class level defaults.
+
+    __PACKAGE__::DB::init(directory => '../databases')
+
+See the documentation for new() to see what variables can be set
+
+=cut
+
+sub init {
+	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	$directory ||= $args{'directory'};
+	$logger ||= $args{'logger'};
+	$cache ||= $args{'cache'};
+	$cache_duration ||= $args{'cache_duration'};
+}
 
 =head2 new
 
@@ -77,6 +97,9 @@ Arguments:
 
 cache => place to store results
 cache_duration => how long to store results in the cache (default is 1 hour)
+directory => where the database file is held
+
+If the arguments are not set, tries to take from class level defaults
 
 =cut
 
@@ -97,18 +120,10 @@ sub new {
 		logger => $args{'logger'} || $logger,
 		directory => $args{'directory'} || $directory,	# The directory containing the tables in XML, SQLite or CSV format
 		cache => $args{'cache'} || $cache,
+		cache_duration => $args{'cache_duration'} || $cache_duration || '1 hour',
 		table => $args{'table'},	# The name of the file containing the table, defaults to the class name
 		no_entry => $args{'no_entry'} || 0,
 	}, $class;
-}
-
-# Can also be run as a class level __PACKAGE__::DB::init(directory => '../databases')
-sub init {
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
-
-	$directory ||= $args{'directory'};
-	$logger ||= $args{'logger'};
-	$cache ||= $args{'cache'};
 }
 
 sub set_logger {
@@ -326,8 +341,6 @@ sub selectall_hash {
 	my $table = $self->{table} || ref($self);
 	$table =~ s/.*:://;
 
-	$self->_open() if(!$self->{$table});
-
 	if((scalar(keys %params) == 0) && $self->{'data'}) {
 		if($self->{'logger'}) {
 			$self->{'logger'}->trace("$table: selectall_hash fast track return");
@@ -341,6 +354,8 @@ sub selectall_hash {
 	# if((scalar(keys %params) == 1) && $self->{'data'} && defined($params{'entry'})) {
 	# }
 
+	$self->_open() if(!$self->{$table});
+
 	my $query;
 	my $done_where = 0;
 	if(($self->{'type'} eq 'CSV') && !$self->{no_entry}) {
@@ -349,6 +364,7 @@ sub selectall_hash {
 	} else {
 		$query = "SELECT * FROM $table";
 	}
+
 	my @query_args;
 	foreach my $c1(sort keys(%params)) {	# sort so that the key is always the same
 		my $arg = $params{$c1};
@@ -356,7 +372,7 @@ sub selectall_hash {
 			if($self->{'logger'}) {
 				$self->{'logger'}->fatal("selectall_hash $query: argument is not a string");
 			}
-			throw Error::Simple("$query: argument is not a string");
+			throw Error::Simple("$query: argument is not a string: " . ref($arg));
 		}
 		if(!defined($arg)) {
 			my @call_details = caller(0);
@@ -400,12 +416,20 @@ sub selectall_hash {
 			$key .= ' ' . join(', ', @query_args);
 		}
 		if(my $rc = $c->get($key)) {
+			if($self->{'logger'}) {
+				$self->{'logger'}->debug('cache HIT');
+			}
 			# This use of a temporary variable is to avoid
 			#	"Implicit scalar context for array in return"
 			# return @{$rc};
 			my @rc = @{$rc};
 			return @rc;
 		}
+		if($self->{'logger'}) {
+			$self->{'logger'}->debug('cache MISS');
+		}
+	} elsif($self->{'logger'}) {
+		$self->{'logger'}->debug('cache not used');
 	}
 
 	if(my $sth = $self->{$table}->prepare($query)) {

@@ -105,7 +105,12 @@ use Ged2site::DB::military;
 use Ged2site::DB::locations;
 
 my $database_dir = "$script_dir/../databases";
-Ged2site::DB::init({ directory => $database_dir, logger => $logger });
+Ged2site::DB::init({
+	cache => CHI->new(driver => 'Memory', datastore => {}),
+	cache_duration => '1 day',
+	directory => $database_dir,
+	logger => $logger
+});
 
 my $people = Ged2site::DB::people->new();
 if($@) {
