@@ -31,6 +31,7 @@ use Log::Any::Adapter;
 use Error qw(:try);
 use File::Spec;
 use Log::WarnDie 0.09;
+use CGI::ACL;
 use HTTP::Date;
 # use Taint::Runtime qw($TAINT taint_env);
 use autodie qw(:all);
@@ -139,6 +140,10 @@ if($ENV{'HTTP_USER_AGENT'}) {
 my $requestcount = 0;
 my $handling_request = 0;
 my $exit_requested = 0;
+
+# CHI->stats->enable();
+
+my $acl = CGI::ACL->new()->deny_country(country => ['RU', 'CN'])->allow_ip('131.161.0.0/16')->allow_ip('127.0.0.1');
 
 sub sig_handler {
 	$exit_requested = 1;
@@ -338,8 +343,7 @@ sub doit
 		syslog => $syslog,
 	});
 
-	if($vwflog) {
-		open(my $fout, '>>', $vwflog);
+	if($vwflog && open(my $fout, '>>', $vwflog)) {
 		print $fout
 			'"', $info->domain_name(), '",',
 			'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
@@ -347,6 +351,18 @@ sub doit
 			'"', $lingua->language(), '",',
 			'"', $info->as_string(), "\"\n";
 		close($fout);
+	}
+
+	if($ENV{'REMOTE_ADDR'} && $acl->all_denied(lingua => $lingua)) {
+		print "Status: 403 Forbidden\n",
+			"Content-type: text/plain\n",
+			"Pragma: no-cache\n\n";
+
+		unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
+			print "Access Denied\n";
+		}
+		$logger->warn($ENV{'REMOTE_ADDR'}, ': access denied');
+		return;
 	}
 
 	my $args = {
