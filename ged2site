@@ -517,10 +517,15 @@ if(my $e = $ENV{'CACHEDIR'}) {
 if(!-d $cachedir) {
 	mkdir $cachedir, 0700 || die "$cachedir: $!";
 }
-$cached_browser = LWP::UserAgent::Cached->new(cache_dir => $cachedir,
+$cached_browser = LWP::UserAgent::Cached->new(
+	cache_dir => $cachedir,
 	agent => basename($0),
 	keep_alive => 1,
 	timeout => 60,
+	cachename_spec => {
+		_body => '',
+		_headers => []
+	}
 );
 $cached_browser->env_proxy(1);
 $cached_browser->conn_cache->total_capacity(undef);
@@ -6463,6 +6468,7 @@ sub print_person
 						$end_of_sentence = 0;
 					}
 				} elsif($type eq 'Newspaper') {
+					# FIMXE: duplicate code with one event
 					if($phrase->length()) {
 						push @phrases, $phrase;
 					}
