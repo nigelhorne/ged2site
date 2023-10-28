@@ -6034,10 +6034,12 @@ sub print_person
 				}
 				my $url = $event->source()->tag_record('REF')->value();
 				$bio .= '. ' if(!$end_of_sentence);
-				my $s = " $pronoun appeared in a newspaper ($url)";
+				my $s = " $pronoun appeared in a newspaper ";
 				if(my $date = $event->date()) {
 					$s .= " on $date";
 				}
+				$s .= " ($url)";
+
 				$bio .= " $s";
 				# die $i->page();
 
@@ -6481,10 +6483,12 @@ sub print_person
 					}
 					my $url = $event->source()->tag_record('REF')->value();
 					$bio .= '. ' if(!$end_of_sentence);
-					my $s = " $pronoun appeared in a newspaper ($url)";
+					my $s = " $pronoun appeared in a newspaper ";
 					if(my $date = $event->date()) {
 						$s .= " on $date";
 					}
+					$s .= " ($url)";
+
 					$bio .= " $s";
 					# die $i->page();
 
