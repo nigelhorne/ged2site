@@ -6028,17 +6028,24 @@ sub print_person
 					$end_of_sentence = 0;
 				}
 			} elsif($type eq 'Newspaper') {
+				# die $i->page();
 				if($phrase->length()) {
 					push @phrases, $phrase;
-					$phrase = Data::Text->new();
-				}
-				if(scalar(@phrases) == 0) {
-					$phrase->set($firstname // $pronoun)->append(' ');
 				}
 				my $url = $event->source()->tag_record('REF')->value();
-				$phrase->append("appeared in a newspaper ($url)");
-
+				$bio .= '. ' if(!$end_of_sentence);
+				my $s = " $pronoun appeared in a newspaper ($url)";
+				if(my $date = $event->date()) {
+					$s .= " on $date";
+				}
+				$bio .= " $s";
 				# die $i->page();
+
+				if(scalar(@phrases)) {
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new($firstname // $pronoun)->set($s);
+					@phrases = ();
+				}
 			} elsif($type eq 'Funeral') {
 				$funeral = $event;
 			# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
@@ -6475,6 +6482,9 @@ sub print_person
 					my $url = $event->source()->tag_record('REF')->value();
 					$bio .= '. ' if(!$end_of_sentence);
 					my $s = " $pronoun appeared in a newspaper ($url)";
+					if(my $date = $event->date()) {
+						$s .= " on $date";
+					}
 					$bio .= " $s";
 					# die $i->page();
 
