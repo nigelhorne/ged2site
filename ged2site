@@ -10488,7 +10488,7 @@ sub place {
 			if($params{'nopreposition'}) {
 				return ' der Vereinigten Staaten';
 			}
-			return ' aus der Vereinigten Staaten';
+			return ' in den Vereinigten Staaten';
 		}
 		if($params{'nopreposition'}) {
 			return ' USA';
