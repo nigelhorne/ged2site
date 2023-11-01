@@ -515,7 +515,7 @@ if(my $e = $ENV{'CACHEDIR'}) {
 	$cachedir = File::Spec->catfile(File::HomeDir->my_home(), '.cache', 'lwp-cache')
 }
 if(!-d $cachedir) {
-	mkdir $cachedir, 0700 || die "$cachedir: $!";
+	mkdir $cachedir, 02700 || die "$cachedir: $!";
 }
 $cached_browser = LWP::UserAgent::Cached->new(
 	cache_dir => $cachedir,
