@@ -14,13 +14,12 @@ sub html {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'facts',
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
 	};
-	my %params = %{$info->params({ allow => $allowed })};
+	my %params = %{$self->{'_info'}->params({ allow => $allowed })};
 
 	my $json_file = File::Spec->catfile($args{'databasedir'}, 'facts.json');
 
