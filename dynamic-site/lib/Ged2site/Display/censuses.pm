@@ -10,7 +10,6 @@ sub html {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'censuses',
 		'census' => undef,	# TODO: regex of allowable name formats
@@ -21,7 +20,7 @@ sub html {
 	if(my $censuses = $args{'censuses'}) {
 		my $people = $args{'people'};
 
-		my %params = %{$info->params({ allow => $allowed })};
+		my %params = %{$self->{'_info'}->params({ allow => $allowed })};
 
 		delete $params{'page'};
 		delete $params{'lint_content'};
