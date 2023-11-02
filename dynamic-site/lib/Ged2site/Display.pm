@@ -178,7 +178,7 @@ sub get_template_path {
 	$modulepath =~ s/::/\//g;
 
 	# my $filename = $self->_pfopen($prefix, $modulepath, 'tmpl:tt:html:htm:txt');
-	my($fh, $filename) = _pfopen($prefix, $modulepath, 'tmpl:tt:html:htm:txt');
+	my($fh, $filename) = File::pfopen::pfopen($prefix, $modulepath, 'tmpl:tt:html:htm:txt');
 	# if((!defined($filename)) || (!-f $filename) || (!-r $filename)) {
 	if((!defined($filename)) || (!defined($fh))) {
 		throw Error::Simple("Can't find suitable $modulepath html or tmpl file in $prefix in $dir or a subdir");
