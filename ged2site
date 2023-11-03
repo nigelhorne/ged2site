@@ -2563,6 +2563,24 @@ sub print_person
 				return;
 			}
 		}
+		if($numberofchildren == 2) {
+			if((my $first = dateofbirth(person => $children[0])) &&
+			   (my $second = dateofbirth(person => $children[1]))) {
+				if($first =~ /.*?(\d{3,4})$/) {
+					$first = $1;
+					if($second =~ /.*?(\d{3,4})$/) {
+						$second = $1;
+						my $gap = abs($first - $second);
+						if($gap >= 20) {
+							complain({
+								person => $person,
+								warning => "Large age gap ($gap years) between the two children"
+							});
+						}
+					}
+				}
+			}
+		}
 	}
 
 	print "numberofchildren = $numberofchildren\n" if($opts{'v'});
