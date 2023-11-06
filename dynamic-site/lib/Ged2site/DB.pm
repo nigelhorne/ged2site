@@ -126,24 +126,25 @@ sub new {
 	}, $class;
 }
 
-sub set_logger {
+sub set_logger
+{
 	my $self = shift;
 
 	my %args;
 
 	if(ref($_[0]) eq 'HASH') {
 		%args = %{$_[0]};
-	} elsif(!ref($_[0])) {
-		Carp::croak('Usage: set_logger(logger => $logger)');
 	} elsif(scalar(@_) % 2 == 0) {
 		%args = @_;
-	} else {
+	} elsif((scalar(@_) == 1) && !ref($_[0])) {
 		$args{'logger'} = shift;
 	}
 
-	$self->{'logger'} = $args{'logger'};
-
-	return $self;
+	if(defined($args{'logger'})) {
+		$self->{'logger'} = $args{'logger'};
+		return $self;
+	}
+	Carp::croak('Usage: execute(query => $query)')
 }
 
 # Open the database.
@@ -312,7 +313,7 @@ sub _open {
 				}
 				$dbh->func($table, 'XML', $slurp_file, 'xmlsimple_import');
 			} else {
-				throw Error::DB::Open(-file => $slurp_file);
+				throw Error::DB::Open(-file => "$dir/$table");
 			}
 			$self->{'type'} = 'XML';
 		}
@@ -539,11 +540,9 @@ sub execute {
 
 	if(ref($_[0]) eq 'HASH') {
 		%args = %{$_[0]};
-	} elsif(ref($_[0])) {
-		Carp::croak('Usage: execute(query => $query)');
 	} elsif(scalar(@_) % 2 == 0) {
 		%args = @_;
-	} else {
+	} elsif((scalar(@_) == 1) && !ref($_[0])) {
 		$args{'query'} = shift;
 	}
 

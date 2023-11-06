@@ -1530,9 +1530,9 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Two residence records for/) {
 					$summary = 'Residence Records for the Same Date that Don\'t Match';
 				} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
-					$summary = 'Baptism Before Birth';
+					$summary = 'Baptism before birth';
 				} elsif($warning =~ /^Year of residence .+ is after the year of death /) {
-					$summary = 'Residence After Death';
+					$summary = 'Residence after death';
 				} elsif($warning =~ /^Born less than 10 months before sibling /) {
 					$summary = 'Born Under 10 Months Before Sibling';
 				} elsif($warning =~ /^married when less than 16 years old/) {
@@ -1588,7 +1588,7 @@ if($opts{'w'}) {
 				} elsif($warning =~ /^Duplicate residence on /) {
 					$summary = 'Duplicate Residence';
 				} elsif($warning =~ /^Changing 'United States' to 'USA' in /) {
-					$summary = 'Change &quot;United States&quot; to &quot;USA&quot;';
+					$summary = 'Changed &quot;United States&quot; to &quot;USA&quot;';
 				} elsif($warning =~ /Location for .+ differs from /) {
 					$summary = 'Inconsistent Location';
 				} elsif($warning =~ /Date of residence \(.+\sdiffers from\s/i) {
@@ -1621,6 +1621,12 @@ if($opts{'w'}) {
 					$summary = 'Invalid date format';
 				} elsif($warning =~ /Leading comma in/) {
 					$summary = 'Leading comma in placename';
+				} elsif($warning =~ /Capitalizing month in date of death/) {
+					$summary = 'Capitalizing month in date of death';
+				} elsif($warning =~ /Consecutive commas found in/) {
+					$summary = 'Consecutive commas found in place name';
+				} elsif($warning =~ /assuming country of death is USA/) {
+					$summary = 'Assuming country of death is USA';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
