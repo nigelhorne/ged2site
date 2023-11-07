@@ -136,7 +136,7 @@ sub set_logger
 		%args = %{$_[0]};
 	} elsif(scalar(@_) % 2 == 0) {
 		%args = @_;
-	} elsif((scalar(@_) == 1) && !ref($_[0])) {
+	} elsif(scalar(@_) == 1) {
 		$args{'logger'} = shift;
 	}
 
@@ -144,7 +144,7 @@ sub set_logger
 		$self->{'logger'} = $args{'logger'};
 		return $self;
 	}
-	Carp::croak('Usage: execute(query => $query)')
+	Carp::croak('Usage: set_logger(logger => $logger)')
 }
 
 # Open the database.
