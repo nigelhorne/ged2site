@@ -136,7 +136,7 @@ sub set_logger
 		%args = %{$_[0]};
 	} elsif(scalar(@_) % 2 == 0) {
 		%args = @_;
-	} elsif(scalar(@_) == 1) {
+	} elsif((scalar(@_) == 1) && ref($_[0])) {
 		$args{'logger'} = shift;
 	}
 
