@@ -58,9 +58,10 @@ sub new {
 	my $self = {
 		_config => $config,
 		_info => $info,
-		_lingua => $args{lingua},
-		_logger => $args{logger},
-		_cachedir => $args{cachedir},
+		# _lingua => $args{lingua},
+		# _logger => $args{logger},
+		# _cachedir => $args{cachedir},
+		%args,
 		# _page => $info->param('page'),
 	};
 
@@ -77,7 +78,7 @@ sub new {
 		$sm = HTML::SocialMedia->new({ cache => $smcache, lingua => $args{lingua}, logger => $args{logger} });
 	}
 	$self->{'_social_media'}->{'facebook_share_button'} = $sm->as_string(facebook_share_button => 1);
-	$self->{'_social_media'}->{'google_plusone'} = $sm->as_string(google_plusone => 1);
+	# $self->{'_social_media'}->{'google_plusone'} = $sm->as_string(google_plusone => 1);
 
 	return bless $self, $class;
 }
@@ -181,6 +182,7 @@ sub get_template_path {
 	if((!defined($filename)) || (!defined($fh))) {
 		throw Error::Simple("Can't find suitable $modulepath html or tmpl file in $prefix in $dir or a subdir");
 	}
+	close($fh);
 	$self->_debug({ message => "using $filename" });
 	$self->{_filename} = $filename;
 	return $filename;
