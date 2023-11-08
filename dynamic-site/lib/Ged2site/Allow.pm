@@ -9,7 +9,7 @@ package Ged2site::Allow;
 
 # Decide if we're going to allow this client to view the website
 # Usage:
-# unless(Ged2site::Allow::allow({info => $info, lingua => $lingua})) {
+#	unless(Ged2site::Allow::allow({info => $info, lingua => $lingua})) {
 
 use strict;
 use warnings;
@@ -42,6 +42,7 @@ our %blacklist_countries = (
 our %blacklist_agents = (
 	'Barkrowler' => 'Barkrowler',
 	'masscan' => 'Masscan',
+	'python-requests/2.27.1' => 'python-requests/2.27.1',
 	'WBSearchBot' => 'Warebay',
 	'MJ12' => 'Majestic',
 	'Mozilla/4.0 (compatible; Vagabondo/4.0; webcrawler at wise-guys dot nl; http://webagent.wise-guys.nl/; http://www.wise-guys.nl/)' => 'wise-guys',
@@ -150,13 +151,17 @@ sub allow {
 
 				my $ids = CGI::IDS->new();
 				$ids->set_scan_keys(scan_keys => 1);
-				if($ids->detect_attacks(request => $params) > 0) {
+				my $impact = $ids->detect_attacks(request => $params);
+				if($impact > 0) {
 					if($logger) {
-						$logger->warn("$addr: IDS blocked connexion for ", $info->as_string());
+						$logger->warn("$addr: IDS blocked connexion for ", $info->as_string(), " impact = $impact");
+						$logger->warn(Data::Dumper->new([$ids->get_attacks()]));
 					}
-					$status{$addr} = 0;
-					$info->status(403);
-					throw Error::Simple("$addr: IDS blocked connexion for " . $info->as_string());
+					if($impact > 30) {
+						$status{$addr} = 0;
+						$info->status(403);
+						throw Error::Simple("$addr: IDS blocked connexion for " . $info->as_string());
+					}
 				}
 
 				foreach my $v (values %{$params}) {

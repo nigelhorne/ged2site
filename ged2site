@@ -12025,6 +12025,10 @@ sub get_all_occupations
 					$occupation = 'Professeur';
 				}
 				$occupation =~ s/retired/\N{U+00E0} la retrainte/i;
+			} elsif($language eq 'German') {
+				if($occupation eq 'Teacher') {
+					$occupation = (($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin');
+				}
 			}
 			if($occupation =~ /works? (on|for) (.+)/i) {
 				$occupation = "$2 worker";
