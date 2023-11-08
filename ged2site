@@ -2569,7 +2569,7 @@ sub print_person
 				return;
 			}
 		}
-		if($numberofchildren == 2) {
+		if($numberofchildren >= 2) {
 			if((my $first = dateofbirth(person => $children[0])) &&
 			   (my $second = dateofbirth(person => $children[1]))) {
 				if($first =~ /.*?(\d{3,4})$/) {
