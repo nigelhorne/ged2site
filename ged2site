@@ -2577,7 +2577,7 @@ sub print_person
 					if($second =~ /.*?(\d{3,4})$/) {
 						$second = $1;
 						my $gap = abs($first - $second);
-						if($gap >= 20) {
+						if($gap >= 40) {
 							complain({
 								person => $person,
 								warning => "Large age gap ($gap years) between the two children"
