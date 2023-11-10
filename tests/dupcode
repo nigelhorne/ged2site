@@ -1,0 +1,1 @@
+PERL5LIB='dynamic-site/lib' ../NJH-Snippets/bin/cutnpaste
