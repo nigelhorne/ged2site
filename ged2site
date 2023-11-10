@@ -6129,14 +6129,13 @@ sub print_person
 							@phrases = ();
 						}
 
-						my $service;
-						my $notes = notes(record => $event);
-						if($notes =~ /Navy/i) {
-							$service = 'navy';
-						} elsif(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i)) {
-							$service = 'army';
-						} else {
-							$service = 'military';
+						my $service = 'military';
+						if(my $notes = notes(record => $event)) {
+							if($notes =~ /Navy/i) {
+								$service = 'navy';
+							} elsif(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i)) {
+								$service = 'army';
+							}
 						}
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^from /) {
