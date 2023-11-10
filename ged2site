@@ -13359,6 +13359,7 @@ sub wide_to_html
 		$string =~ s/‘/&apos;/g;
 		$string =~ s/’/&apos;/g;
 		$string =~ s/‘/&apos;/g;
+		$string =~ s/\x98/&apos;/g;
 	}
 
 	if($string !~ /[^[:ascii:]]/) {
@@ -13540,6 +13541,7 @@ sub wide_to_xml
 	$string =~ s/’/&apos;/g;
 	$string =~ s/‘/&apos;/g;
 	$string =~ s/‘/&apos;/g;
+	$string =~ s/\x98/&apos;/g;
 
 	$string =~ s/&ccaron;/&#x10D;/g;
 	$string =~ s/&aacute;/&#x0E1;/g;	# á
@@ -13651,7 +13653,7 @@ sub wide_to_xml
 
 	# utf8::decode($string);
 
-	$string =~ s/'/&#39;/g;
+	$string =~ s/['\x98]/&#039;/g;
 	$string =~ s/©/&#x0A9;/g;
 	$string =~ s/®/&#x0AE;/g;
 	$string =~ s/š/&#x161;/g;
