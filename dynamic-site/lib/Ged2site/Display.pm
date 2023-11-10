@@ -58,11 +58,11 @@ sub new {
 	my $self = {
 		_config => $config,
 		_info => $info,
-		# _lingua => $args{lingua},
-		# _logger => $args{logger},
-		# _cachedir => $args{cachedir},
+		_lingua => $args{lingua},
+		_logger => $args{logger},
+		_cachedir => $args{cachedir},
 		%args,
-		# _page => $info->param('page'),
+		_page => $info->param('page'),
 	};
 
 	if(my $key = $info->param('key')) {
@@ -127,6 +127,10 @@ sub get_template_path {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
+	if($self->{_logger}) {
+		$self->{_logger}->trace('Entering get_template_path');
+	}
+		
 	if($self->{_filename}) {
 		return $self->{_filename};
 	}
