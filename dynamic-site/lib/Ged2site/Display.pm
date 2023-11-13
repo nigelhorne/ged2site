@@ -359,7 +359,7 @@ sub _append_browser_type {
 		} elsif($self->{_info}->is_mobile()) {
 			$rc = "$directory/mobile:";
 		} elsif($self->{_info}->is_robot()) {
-			$rc = "$directory/robot:";
+			$rc = "$directory/robot:$directory/search:";
 		}
 		$rc .= "$directory/web:";
 
