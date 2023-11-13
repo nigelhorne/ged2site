@@ -10102,8 +10102,12 @@ sub year
 	}
 
 	if($string =~ /^\s*(.+\d\d)\s*\-\s*(.+\d\d)\s*$/) {
-		complain({ person => $params{'person'}, warning => "Changing date '$string' to 'bet $1 and $2'" });
-		$string = "bet $1 and $2";
+		my $start = $1;
+		my $end = $2;
+		if($end !~ /^\d\d\-\d\d$/) {
+			complain({ person => $person, warning => "Changing date '$rdate' to 'bet $start and $end'" });
+			$string = "bet $start and $end";
+		}
 	}
 
 	if(($string =~ /^bet (.+) and (.+)/i) ||
