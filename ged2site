@@ -5194,9 +5194,13 @@ sub print_person
 								next if(!defined($sdate));
 								next if($sdate ne $rdate);
 								if(($place =~ /^\s\d/) && (place({ person => $sibling, record => $sr, nopreposition => 1 }) eq $place)) {
+									$residencestring =~ s/^\s//;
+									push @residencestringarray, $residencestring;
 									if($first) {
-										$residencestring .= i18n(' with ') . ($person->pronoun() eq 'She' ? 'her' : 'his');
+										$residencestring = ' there ' . i18n('with ') . ($person->pronoun() eq 'She' ? 'her' : 'his');
 										$first = 0;
+									} else {
+										$residencestring = undef;
 									}
 									$residencestring .= ' ' .
 										i18n(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
