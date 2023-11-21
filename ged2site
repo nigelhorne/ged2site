@@ -5060,18 +5060,18 @@ sub print_person
 									$residencestring .= $rdate;
 									# $print_year_only = 0;
 								}
-							} else {
-								if((!defined($residencestring)) && (my $p = pop(@residencestringarray))) {
-									if($language eq 'French') {
-										$p =~ s/ et /, /g;
-										$residencestring = "$p et $this_date";
-									} else {
-										$p =~ s/ and /, /g;
-										$residencestring = "$p and $this_date";
-									}
+							} elsif((!defined($residencestring)) && (my $p = pop(@residencestringarray))) {
+								if($language eq 'French') {
+									$p =~ s/ et /, /g;
+									$residencestring = "$p et $this_date";
 								} else {
-									$residencestring .= " $this_date";
+									$p =~ s/ and /, /g;
+									$residencestring = "$p and $this_date";
 								}
+								# We could just added a comma after a sibling's name
+								$residencestring =~ s/,,/,/g;
+							} else {
+								$residencestring .= " $this_date";
 							}
 							$prev_residence = $residence;
 						}
