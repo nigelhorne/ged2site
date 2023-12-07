@@ -13866,10 +13866,10 @@ sub dbpedia
 												# Born after this person died
 												next RESULT;
 											}
-										} elsif($uri =~ /(\d\d)th-century_deaths/) {
+										} elsif($uri =~ /(\d\d)th-century_/) {
 											my $c = ($1 + 1) * 100;
 											if(defined($yob) && ($yob > $c)) {
-												# Born after dbpedia person died
+												# Born after dbpedia event
 												next RESULT;
 											}
 										}
