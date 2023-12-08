@@ -265,9 +265,15 @@ sub allow {
 		eval {
 			if(my $string = LWP::Simple::WithCache::get(DSHIELD)) {
 				$xml = XML::LibXML->load_xml(string => $string);
-			} else {
-				warn DSHIELD;
-			}
+                        } elsif($logger) {
+                                $logger->warn("Couldn't download ", DSHIELD);
+                                delete $status{$addr};
+                                return 1;
+                        } else {
+                                warn DSHIELD;
+                                delete $status{$addr};
+                                return 1;
+                        }
 		};
 		unless($@ || !defined($xml)) {
 			foreach my $source ($xml->findnodes('/sources/data')) {
