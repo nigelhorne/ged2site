@@ -5077,11 +5077,7 @@ sub print_person
 						}
 					}
 				}
-				if((!($opts{'c'} && $residence->source())) && (my $notes = notes({ record => $residence, note_locations => \@note_locations }))) {
-					$notes =~ s/\.$//;
-					$notes = lcfirst($notes);
-					$residencestring .= " ($notes)";
-				} elsif($opts{'c'}) {
+				if($opts{'c'}) {
 					my @citationlist;
 					if($residencecitations{$residence}) {
 						push @citationlist, $residencecitations{$residence};
@@ -5103,6 +5099,10 @@ sub print_person
 						}
 						$residencestring .= cite(@citationlist);
 					}
+				} elsif($residence->source() && (my $notes = notes({ record => $residence, note_locations => \@note_locations }))) {
+					$notes =~ s/\.$//;
+					$notes = lcfirst($notes);
+					$residencestring .= " ($notes)";
 				}
 				$count++;
 				if(($count == 1) && (scalar(@residencelist) == 2)) {
