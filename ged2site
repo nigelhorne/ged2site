@@ -9281,7 +9281,7 @@ sub Gedcom::Individual::relationship_up
 				} elsif($language eq 'Latin') {
 					return ($sex eq 'M') ? 'avus' : 'avia';
 				} elsif($language eq 'German') {
-					return ($sex eq 'M') ? 'Grossvater' : 'Grossmutter';
+					return ($sex eq 'M') ? "Gro\N{U+00DF}vater" : "Gro\N{U+00DF}utter";
 				}
 				return "grand$title";
 			} elsif($steps == 3) {
@@ -9290,14 +9290,14 @@ sub Gedcom::Individual::relationship_up
 				} elsif($language eq 'Latin') {
 					return ($sex eq 'M') ? 'proavus' : 'proavia';
 				} elsif($language eq 'German') {
-					return ($sex eq 'M') ? 'Urgrossvater' : 'Urgrossmutter';
+					return ($sex eq 'M') ? "Urgro\N{U+00DF}vater" : "Urgro\N{U+00DF}utter";
 				}
 				return "great-grand$title";
 			} elsif($steps == 4) {
 				if($language eq 'Latin') {
 					return ($sex eq 'M') ? 'abavus' : 'abavia';
 				} elsif($language eq 'German') {
-					return ($sex eq 'M') ? 'Ur-urgrossvater' : 'Urg-urrossmutter';
+					return ($sex eq 'M') ? "Ur-urgro\N{U+00DF}vater" : "Ur-urgro\N{U+00DF}utter";
 				}
 				return "great-great-grand$title";
 			} elsif($steps <= 0) {
@@ -12145,7 +12145,14 @@ sub journey
 		complain({ person => $person, warning => 'Departure record has no location' });
 	}
 	if(defined($arrival->place())) {
-		$rc .= (($language eq 'French') ? " \N{U+00E0}" : ' to') . place({ person => $person, record => $arrival, nopreposition => 1 });
+		if($language eq 'French') {
+			$rc .= " \N{U+00E0}";
+		} elsif($language eq 'German') {
+			$rc .= ' nach';
+		} else {
+			$rc .= ' to';
+		}
+		$rc .= place({ person => $person, record => $arrival, nopreposition => 1 });
 		if(my $notes = notes(record => $arrival)) {
 			if((!defined($dnotes)) || ($notes !~ qr/$dnotes/i)) {
 				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
