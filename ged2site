@@ -1627,6 +1627,8 @@ if($opts{'w'}) {
 					$summary = 'Consecutive commas found in place name';
 				} elsif($warning =~ /assuming country of death is USA/) {
 					$summary = 'Assuming country of death is USA';
+				} elsif($warning =~ /Location for military service /) {
+					$summary = 'Missing Location for Military Service';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
