@@ -6513,25 +6513,44 @@ sub print_person
 					}
 				} elsif($type eq 'Newspaper') {
 					# FIMXE: duplicate code with one event
+					# This is a non-standard thing that FMP has evented.
 					if($phrase->length()) {
 						push @phrases, $phrase;
 					}
-					my $url = $event->source()->tag_record('REF')->value();
-					$bio .= '. ' if(!$end_of_sentence);
-					my $s = " $pronoun appeared in a newspaper ";
-					if(my $date = $event->date()) {
+					my $s;
+					if((!defined($prev_type)) || ($prev_type ne 'Newspaper')) {
+						$bio .= '. ' if(!$end_of_sentence);
+						$s = $firstname // $pronoun . ' ';
+						$s .= 'appeared ';
+					}
+					my $newspaper = newspaper({ gedcom => $ged, person => $person, record => $event });
+					my $title = $newspaper->title();
+					if($title =~ /^https?:\/\//) {
+						$s = "<a href=\"$title\">$title</a>";
+					}
+					$s .= "in $title ";
+					if(my $date = $newspaper->date()) {
 						$s .= " on $date";
 					}
-					$s .= " ($url)";
+					if(my $page = $newspaper->page()) {
+						$s .= " on page $page";
+					}
+					if(my $url = $newspaper->url()) {
+						$s .= " ($url)";
+					}
+					$bio .= $s;
 
-					$bio .= " $s";
-					# die $i->page();
+					$previous = $event;
+					$prev_type = 'Newspaper';
 
 					if(scalar(@phrases)) {
 						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 						$phrase = Data::Text->new($firstname // $pronoun)->set($s);
 						@phrases = ();
+					} else {
+						$phrase->append($s);
 					}
+
 				} elsif($type eq 'Funeral') {
 					$funeral = $event;
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
@@ -7458,13 +7477,13 @@ sub print_person
 				utf8::decode($title);	# ACOM
 				my $c;
 				if(my $file = $citation->file()) {
-					$c = "<a href=\"$file\">" . $title . '</a>';
+					$c = "<a href=\"$file\">$title</a>";
 				} else {
 					if($title =~ /^https?:\/\//) {
 						if($title =~ /^<a href=\"/) {
 							$c .= $title;
 						} else {
-							$c = "<a href=\"$title\">" . $title . '</a>';
+							$c = "<a href=\"$title\">$title</a>";
 						}
 					} else {
 						$c = $title;
@@ -13946,6 +13965,48 @@ sub dbpedia
 			complain({ person => $person, warning => "dbpedia: $firstname $surname failed: " . $resp->status_line() });
 		}
 	}
+}
+
+# Parse a Newspaper event
+# These are in FindMyPast records
+sub newspaper
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $event = $params{'event'};
+
+	my $rc = Class::Simple->new();
+	
+	if(my $date = $event->date()) {
+		$date =~ s/^0//;
+		$rc->date($date);
+	}
+
+	# my $source = $event->source();
+	if(ref(my $source = $event->source())) {
+		$rc->url($source->tag_record('REF')->value());
+		$rc->title('a newspaper');
+	} else {
+		$source = get_source({ source => $source, %params });
+		if(my $title = $source->title()) {
+			$title =~ s/\.$//;
+			$rc->title($title);
+		}
+
+		$source = $event->tag_record('SOUR');
+		$rc->url($source->tag_record('REF')->value());
+
+		if(my $page = $source->tag_record('PAGE')->value()) {
+			$page =~ s/^0+//;
+			$rc->page($page);
+		}
+
+		# my @items = $source->items();
+		# $Data::Dumper::Maxdepth = 2;
+		# die Data::Dumper->new([\@items])->Dump();
+	}
+
+	return $rc;
 }
 
 # Must all be in lower case
