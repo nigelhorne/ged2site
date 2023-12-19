@@ -13905,6 +13905,7 @@ sub dbpedia
 									   ($uri =~ /Category:Public_housing/) ||
 									   ($uri =~ /Category:Defunct_companies/) ||
 									   ($uri =~ /Category:Songs_/) ||
+									   ($uri =~ /Category:Fictional/) ||
 									   ($uri =~ /Category:Seismological_observatories/)) {
 										next RESULT;
 									}
