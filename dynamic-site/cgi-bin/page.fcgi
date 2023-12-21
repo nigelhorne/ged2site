@@ -33,6 +33,8 @@ use File::Spec;
 use Log::WarnDie 0.09;
 use CGI::ACL;
 use HTTP::Date;
+use POSIX qw(strftime);
+# FIXME: Gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
 # use Taint::Runtime qw($TAINT taint_env);
 use autodie qw(:all);
 
@@ -46,15 +48,20 @@ use Ged2site::Config;
 # $TAINT = 1;
 # taint_env();
 
-Log::WarnDie->filter(\&filter);
-
 my $info = CGI::Info->new();
-my $tmpdir = $info->tmpdir();
 my $script_dir = $info->script_dir();
 my $config;
-
 my @suffixlist = ('.pl', '.fcgi');
 my $script_name = basename($info->script_name(), @suffixlist);
+my $tmpdir = $info->tmpdir();
+
+if($ENV{'HTTP_USER_AGENT'}) {
+	# open STDERR, ">&STDOUT";
+	close STDERR;
+	open(STDERR, '>>', "$tmpdir/$script_name.stderr");
+}
+
+Log::WarnDie->filter(\&filter);
 
 my $vwflog = File::Spec->catfile($info->logdir(), 'vwf.log');
 
@@ -129,12 +136,6 @@ my $name_date = Ged2site::DB::name_date->new();
 my $surname_date = Ged2site::DB::surname_date->new();
 my $twins = Ged2site::DB::twins->new();
 my $military = Ged2site::DB::military->new();
-
-if($ENV{'HTTP_USER_AGENT'}) {
-	# open STDERR, ">&STDOUT";
-	close STDERR;
-	open(STDERR, '>>', "$tmpdir/$script_name.stderr");
-}
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
@@ -346,6 +347,7 @@ sub doit
 	if($vwflog && open(my $fout, '>>', $vwflog)) {
 		print $fout
 			'"', $info->domain_name(), '",',
+			'"', strftime('%F %T', localtime), '",',
 			'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
 			'"', $info->browser_type(), '",',
 			'"', $lingua->language(), '",',
@@ -361,7 +363,7 @@ sub doit
 		unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 			print "Access Denied\n";
 		}
-		$logger->warn($ENV{'REMOTE_ADDR'}, ': access denied');
+		$logger->info($ENV{'REMOTE_ADDR'}, ': access denied');
 		return;
 	}
 
@@ -391,7 +393,7 @@ sub doit
 		$fb->init(
 			cache => $buffercache,
 			# generate_304 => 0,
-			cache_age => '1 day',
+			cache_duration => '1 day',
 		);
 		if($fb->is_cached()) {
 			return;
