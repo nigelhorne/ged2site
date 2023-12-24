@@ -6068,12 +6068,13 @@ sub print_person
 				if($phrase->length()) {
 					push @phrases, $phrase;
 				}
-				my $url = $event->source()->tag_record('REF')->value();
+				my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $event });
 				$bio .= '. ' if(!$end_of_sentence);
 				my $s = " $pronoun appeared in a newspaper ";
-				if(my $date = $event->date()) {
+				if(my $date = $newspaper->date()) {
 					$s .= " on $date";
 				}
+				my $url = $newspaper->url();
 				$s .= " ($url)";
 
 				$bio .= " $s";
