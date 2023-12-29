@@ -13803,8 +13803,9 @@ sub dbpedia
 		$surname = 'NULL';
 	}
 
-	print "https://lookup.dbpedia.org/api/search?query=$firstname%20$surname\n" if($opts{'v'});
-	if(($firstname ne '?') && (my $resp = $cached_browser->get("https://lookup.dbpedia.org/api/search?query=$firstname%20$surname"))) {
+	my $url = "https://lookup.dbpedia.org/api/search?query=$firstname%20$surname";
+	print "$url\n" if($opts{'v'});
+	if(($firstname ne '?') && (my $resp = $cached_browser->get($url))) {
 		if($resp->is_success()) {
 			if(my $arrayofresults = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content())->{'ArrayOfResults'}) {
 				RESULT: foreach my $result(@{$arrayofresults->{'Result'}}) {
@@ -13970,7 +13971,7 @@ sub dbpedia
 				}
 			}
 		} else {
-			complain({ person => $person, warning => "dbpedia: $firstname $surname failed: " . $resp->status_line() });
+			complain({ person => $person, warning => "$url: $firstname $surname failed: " . $resp->status_line() });
 		}
 	}
 }
