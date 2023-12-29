@@ -5608,10 +5608,11 @@ sub print_person
 											' was living with ' .
 											lcfirst($person->possessive()) .
 											(i18n(($child->sex() eq 'F') ? ' daughter, ' : ' son, ')) .
-											$child->given_names() .
-											', following the death of ' .
+											$child->given_names() . ',' .
+											i18n(' following the death of ') .
 											(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-											year(date => dateofdeath($spouses[0]));
+											year(date => dateofdeath($spouses[0])) .
+											',';
 										$spdeath_dt = undef;
 										last CHILD;
 									}
