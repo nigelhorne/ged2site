@@ -180,6 +180,7 @@ foreach my $module(@needfull) {
 	}
 	$module =~ s/\-/::/g;
 	$module =~ s/\.tar\.gz$//;
+	$module =~ s/::(\d)+$/ $1/;
 	eval "require $module";
 	if($@) {
 		die $@;
