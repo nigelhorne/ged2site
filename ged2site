@@ -158,6 +158,7 @@ BEGIN {
 		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
 			if(($warning =~ /^Use of uninitialized value/) ||
 			   ($warning =~ /Wide/) ||
+			   ($warning =~ /masks earlier declaration in same scope/) ||
 			   ($warning =~ /: attempt to add consecutive punctuation/) ||
 			   ($warning =~ /isn't numeric in numeric eq /i)) {
 				die $warning;
