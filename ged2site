@@ -12568,11 +12568,15 @@ sub dateofbirth {
 		my @b = $person->birth();
 
 		for my $i(0..1) {
-			foreach my $item(@{$b[$i]->{'items'}}) {
-				if(($item->tag() eq '_PRIM') && ($item->value() eq 'Y')) {
-					$dateofbirth = $b[$i]->date();
-					last;
+			if(ref($b[$i])) {
+				foreach my $item(@{$b[$i]->{'items'}}) {
+					if(($item->tag() eq '_PRIM') && ($item->value() eq 'Y')) {
+						$dateofbirth = $b[$i]->date();
+						last;
+					}
 				}
+			} else {
+				complain({ person => $person, warning => [ $b[$i], ' is not a ref' ] })
 			}
 		}
 		if(!defined($dateofbirth)) {
