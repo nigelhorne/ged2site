@@ -12576,9 +12576,20 @@ sub dateofbirth {
 					}
 				}
 			} else {
-				complain({ person => $person, warning => [ $b[$i], ' is not a ref' ] })
+				my @r = $person->get_record('birth');
+				foreach my $item(@{$r[$i]->{'items'}}) {
+					if(($item->tag() eq '_PRIM') && ($item->value() eq 'Y')) {
+						$dateofbirth = $r[$i]->date();
+						last;
+					}
+				}
+				# TODO:  This is in more for debugging
+				#	to make sure that the record's value
+				#	is included in the bio
+				complain({ person => $person, warning => [ $b[$i], ' is not a ref' ] });
 			}
 		}
+
 		if(!defined($dateofbirth)) {
 			complain({ person => $person, warning => "Two dates of birth ($d[0]/$d[1]), neither of which is marked primary" });
 			$dateofbirth = $d[0];
