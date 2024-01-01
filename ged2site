@@ -670,6 +670,7 @@ if($opts{'m'} || $opts{'w'}) {
 		'api.geonames.org' => 1,
 		'yboss.yahooapis.com' => 1,	# Geo::Coder::PlaceFinder
 		'www.familysearch.org' => 1,
+		'lookup.dbpedia.org' => 1,
 	});
 
 	# G::C::GooglePlaces
@@ -13823,7 +13824,7 @@ sub dbpedia
 
 	my $url = "https://lookup.dbpedia.org/api/search?query=$firstname%20$surname";
 	print "$url\n" if($opts{'v'});
-	if(($firstname ne '?') && (my $resp = $cached_browser->get($url))) {
+	if(($firstname ne '?') && (my $resp = $browser->get($url))) {
 		if($resp->is_success()) {
 			if(my $arrayofresults = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content())->{'ArrayOfResults'}) {
 				RESULT: foreach my $result(@{$arrayofresults->{'Result'}}) {
