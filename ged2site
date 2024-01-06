@@ -5614,8 +5614,8 @@ sub print_person
 											$child->given_names() . ',' .
 											i18n(' following the death of ') .
 											(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-											year(date => dateofdeath($spouses[0])) .
-											',';
+											year(date => dateofdeath($spouses[0]));
+										$residencestring .= ',' if($iterator->peek());
 										$spdeath_dt = undef;
 										last CHILD;
 									}
