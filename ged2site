@@ -507,7 +507,6 @@ my $geocoder;
 my $textgeocoder;
 my $freegeocoder;
 my $browser;
-my $cached_browser;
 
 my $cachedir;
 if(my $e = $ENV{'CACHEDIR'}) {
@@ -519,7 +518,7 @@ if(my $e = $ENV{'CACHEDIR'}) {
 if(!-d $cachedir) {
 	mkdir $cachedir, 02700 || die "$cachedir: $!";
 }
-$cached_browser = LWP::UserAgent::Cached->new(
+my $cached_browser = LWP::UserAgent::Cached->new(
 	cache_dir => $cachedir,
 	agent => basename($0),
 	keep_alive => 1,
@@ -531,6 +530,7 @@ $cached_browser = LWP::UserAgent::Cached->new(
 );
 $cached_browser->env_proxy(1);
 $cached_browser->conn_cache->total_capacity(undef);
+$cached_browser->ssl_opts(verify_hostname => 1, SSL_ca_file => Mozilla::CA::SSL_ca_file());
 
 Lingua::Conjunction->separator_phrase(',');
 Lingua::Conjunction->penultimate(0);
