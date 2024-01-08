@@ -10,7 +10,7 @@
 		<meta name="object" content="Index">
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2023 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
 		<title>[% SiteTitle %]: Meta Data</title>
 		[% IF keywords %]
 			<meta name="keywords" content="[% keywords %]" />
@@ -26,6 +26,7 @@
 		[% END %]
 		[% IF lingua %]
 			<H1>Lingua</H1>
+			country: [% lingua.country() %]<br>
 			requested_language: [% lingua.requested_language() %]<br>
 			language_code_alpha2: [% lingua.language_code_alpha2() %]
 		[% END %]
