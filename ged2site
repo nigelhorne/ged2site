@@ -74,7 +74,7 @@ BEGIN {
 		'HTML::Entities', 'Image::Info', 'JSON',
 		'List::Util',
 		'LWP::Simple::WithCache', 'MIME::Base64',
-		'LWP::UserAgent::Cached',
+		'LWP::UserAgent::Cached', 'Mozilla::CA',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
@@ -263,7 +263,7 @@ if($opts{'F'}) {
 	my $magick;
 	if($^O eq 'linux') {
 		# Debian lacks ImageMagick-7
-		$magick = 'Image::Magick 6.9.12-2';
+		$magick = 'Image::Magick 6.9.12-98';
 	} else {
 		$magick = 'Image::Magick';
 	}
@@ -1738,6 +1738,7 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	close $fout;
 }
 
+# TODO: modify the facts template to show the average age at death
 if($facts && open(my $json, '>', 'dynamic-site/databases/facts.json')) {
 	print "Creating facts page\n";
 
@@ -2414,6 +2415,28 @@ sub print_person
 		} else {
 			$facts->{'oldest_age'}->{'age'} = $age_at_death;
 			$facts->{'oldest_age'}->{'xref'} = $person->xref();
+		}
+
+		# Calculate the average age of adults death on both sides of the family
+		if((my $age = $age_at_death->years()) >= 20) {
+			my $fr;
+		   	my $mr;
+			if(my $mother = $me->mother()) {
+				if($mr = $mother->relationship($person)) {
+					$facts->{'mothers_side'}->{'age'} += $age;
+					$facts->{'mothers_side'}->{'count'}++;
+				}
+			}
+			if(my $father = $me->father()) {
+				if($fr = $father->relationship($person)) {
+					$facts->{'fathers_side'}->{'age'} += $age;
+					$facts->{'fathers_side'}->{'count'}++;
+				}
+			}
+			if($mr && $fr) {
+				# Keep a tally of the number of people appearing on both sides
+				$facts->{'both_sides'}->{'count'}++;
+			}
 		}
 	}
 
