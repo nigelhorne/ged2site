@@ -3175,8 +3175,8 @@ sub print_person
 			if($dateofbirth || $placeofbirth) {
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
-				$bio = ',' if($relationship);
 				if($relationship) {
+					$bio .= ',';
 					push @phrases, $phrase;
 					$phrase = Data::Text->new();
 				} elsif($phrase->length()) {
@@ -3316,8 +3316,8 @@ sub print_person
 							$phrase->append(" $pronoun a \N{U+00E9}t\N{U+00E9} ");	# a été
 						}
 					} else {
-						$bio .= 'was ';
-						$phrase->append('was ');
+						$bio .= i18n('was ');
+						$phrase->append(i18n('was '));
 					}
 				}
 				if($language eq 'French') {
@@ -6047,7 +6047,7 @@ sub print_person
 				if(scalar(@phrases)) {
 					push @phrases, $phrase;
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
-					$phrase = Data::Text->new();
+					$phrase = Data::Text->new(' ');
 					@phrases = ();
 				} else {
 					$phrase->append(' ');
