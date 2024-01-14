@@ -5598,6 +5598,7 @@ sub print_person
 										}
 									}
 									$residencestring .= place({ record => $l->{'residence'}, there => $p2, places_printed => \%places_printed });
+									$residencestring .= ' -' if($printed_person);
 									$printed_person = 1;
 								}
 							}
