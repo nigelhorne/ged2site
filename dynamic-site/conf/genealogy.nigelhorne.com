@@ -1,5 +1,5 @@
 <config>
-	<rootdir>/home/hornenj/genealogy.nigelhorne.com</rootdir>
+	<root_dir>/home/hornenj/genealogy.nigelhorne.com</root_dir>
 	<SiteTitle>The Family Tree of Nigel Horne</SiteTitle>
 	<twitter>nigelhorne</twitter>
 	<disc_cache>

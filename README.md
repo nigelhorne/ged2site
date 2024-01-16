@@ -34,7 +34,7 @@ then modify the contents of the template tree so that the site looks as you
 want it.
 The configuration file can be in any number of formats including INI and XML.
 
-    rootdir: /full/path/to/website directory
+    root_dir: /full/path/to/website directory
     SiteTitle: The title of your website
     memory_cache: where short-term volatile information is stored, such as the country of origin of the client
     disc_cache: where long-term information is stored, such as copies of output to see if HTTP 304 can be returned
