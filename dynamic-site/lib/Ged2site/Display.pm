@@ -135,7 +135,7 @@ sub get_template_path {
 		return $self->{_filename};
 	}
 
-	my $dir = $self->{_config}->{rootdir} || $self->{_info}->rootdir();
+	my $dir = $self->{_config}->{root_dir} || $self->{_info}->root_dir();
 	if($self->{_logger}) {
 		$self->{_logger}->debug("Rootdir: $dir");
 	}
@@ -192,7 +192,8 @@ sub get_template_path {
 	return $filename;
 }
 
-sub set_cookie {
+sub set_cookie
+{
 	my $self = shift;
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -259,12 +260,6 @@ sub html {
 		require Template;
 		Template->import();
 
-		my $template = Template->new({
-			INTERPOLATE => 1,
-			POST_CHOMP => 1,
-			ABSOLUTE => 1,
-		});
-
 		my $info = $self->{_info};
 
 		# The values in config are defaults which can be overridden by
@@ -292,6 +287,12 @@ sub html {
 		$vals->{info} = $info;
 		$vals->{as_string} = $info->as_string();
 
+		my $template = Template->new({
+			INTERPOLATE => 1,
+			POST_CHOMP => 1,
+			ABSOLUTE => 1,
+		});
+
 		if(!$template->process($filename, $vals, \$rc)) {
 			if(my $err = $template->error()) {
 				throw Error::Simple($err);
@@ -310,16 +311,15 @@ sub html {
 		throw Error::Simple("Unhandled file type $filename");
 	}
 
-	if(($filename !~ /.txt$/) && ($rc =~ /\smailto:(.+?)>/)) {
-		unless($1 =~ /^&/) {
-			$self->_debug({ message => "Found mailto link $1, you should remove it or use " . obfuscate($1) . ' instead' });
-		}
+	if(($filename !~ /.txt$/) && ($rc =~ /\smailto:(.+?)>/) && ($1 !~ /^&/)) {
+		$self->_debug({ message => "Found mailto link $1, you should remove it or use " . obfuscate($1) . ' instead' });
 	}
 
 	return $rc;
 }
 
-sub _debug {
+sub _debug
+{
 	my $self = shift;
 
 	if($self->{_logger}) {
@@ -330,10 +330,11 @@ sub _debug {
 			$self->{_logger}->debug($params{'message'});
 		}
 	}
+	return $self;
 }
 
 sub obfuscate {
-	map { '&#' . ord($_) . ';' } split(//, shift);
+	return map { '&#' . ord($_) . ';' } split(//, shift);
 }
 
 sub _append_browser_type {
@@ -351,8 +352,8 @@ sub _append_browser_type {
 	if($self->{_logger}) {
 		$self->{_logger}->debug("_append_browser_type: directory = $directory");
 	}
-	my $rc;
 
+	my $rc;
 	if(-d $directory) {
 		if($self->{_info}->is_search_engine()) {
 			$rc = "$directory/search:$directory/robot:";

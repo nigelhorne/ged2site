@@ -7,7 +7,7 @@ Ged2site::DB
 =cut
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2023, Nigel Horne
+# Copyright (C) 2015-2024, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
