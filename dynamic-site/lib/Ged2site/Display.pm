@@ -58,15 +58,19 @@ sub new {
 	my $self = {
 		_config => $config,
 		_info => $info,
-		_lingua => $args{lingua},
 		_logger => $args{logger},
 		_cachedir => $args{cachedir},
 		%args,
-		_page => $info->param('page'),
 	};
 
+	if(my $lingua = $args{'lingua'}) {
+		$self->{'_lingua'} = $lingua;
+	}
 	if(my $key = $info->param('key')) {
 		$self->{'_key'} = $key;
+	}
+	if(my $page = $info->param('page')) {
+		$self->{'_page'} = $page;
 	}
 
 	if(my $twitter = $config->{'twitter'}) {
@@ -130,14 +134,15 @@ sub get_template_path {
 	if($self->{_logger}) {
 		$self->{_logger}->trace('Entering get_template_path');
 	}
-		
+
 	if($self->{_filename}) {
 		return $self->{_filename};
 	}
 
 	my $dir = $self->{_config}->{root_dir} || $self->{_info}->root_dir();
 	if($self->{_logger}) {
-		$self->{_logger}->debug("Rootdir: $dir");
+		$self->{_logger}->debug(__PACKAGE__, ': ', __LINE__, ": root_dir $dir");
+		$self->{_logger}->debug(Data::Dumper->new([$self->{_config}])->Dump());
 	}
 	$dir .= '/templates';
 
@@ -150,6 +155,7 @@ sub get_template_path {
 
 		$self->_debug({ message => 'Requested language: ' . $lingua->requested_language() });
 
+		# FIXME: look for lower priority languages if the highest isn't found
 		my $candidate;
 		if($lingua->sublanguage_code_alpha2()) {
 			$candidate = "$dir/" . $lingua->code_alpha2() . '/' . $lingua->sublanguage_code_alpha2();
@@ -182,7 +188,14 @@ sub get_template_path {
 	my $modulepath = $args{'modulepath'} || ref($self);
 	$modulepath =~ s/::/\//g;
 
-	my($fh, $filename) = File::pfopen::pfopen($prefix, $modulepath, 'tmpl:tt:html:htm:txt');
+	if($prefix =~ /\.\.\//) {
+		throw Error::Simple("Prefix must not contain ../ ($prefix)");
+	}
+
+	# Untaint the prefix value which may have been read in from a configuration file
+	($prefix) = ($prefix =~ m/^([A-Z0-9_\.\-\/:]+)$/ig);
+
+	my ($fh, $filename) = File::pfopen::pfopen($prefix, $modulepath, 'tmpl:tt:html:htm:txt');
 	if((!defined($filename)) || (!defined($fh))) {
 		throw Error::Simple("Can't find suitable $modulepath html or tmpl file in $prefix in $dir or a subdir");
 	}
@@ -200,6 +213,7 @@ sub set_cookie
 	foreach my $key(keys(%params)) {
 		$self->{_cookies}->{$key} = $params{$key};
 	}
+	return $self;
 }
 
 sub http {
@@ -300,7 +314,7 @@ sub html {
 			throw Error::Simple("Unknown error in template: $filename");
 		}
 	} elsif($filename =~ /\.(html?|txt)$/) {
-		open(my $fin, '<', $filename) || die "$filename: $!";
+		open(my $fin, '<', $filename) || throw Error::Simple("$filename: $!");
 
 		my @lines = <$fin>;
 
