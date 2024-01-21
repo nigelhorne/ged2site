@@ -1752,6 +1752,8 @@ if($facts && open(my $json, '>', 'dynamic-site/databases/facts.json')) {
 	}
 	print $json encode_json($facts);
 	close $json;
+
+	undef $facts;
 }
 
 sub print_person
@@ -8600,12 +8602,12 @@ sub print_person
 		if((my $age = $age_at_death->years()) >= 20) {
 			if(my $mother = $me->mother()) {
 				if(my $mr = $mother->relationship($person)) {
-					$facts->{'mothers_side'}->{$birth_country}++;
+					$facts->{'mothers_side'}->{'birth_countries'}->{$birth_country}++;
 				}
 			}
 			if(my $father = $me->father()) {
 				if(my $fr = $father->relationship($person)) {
-					$facts->{'fathers_side'}->{$birth_country}++;
+					$facts->{'fathers_side'}->{'birth_countries'}->{$birth_country}++;
 				}
 			}
 		}
