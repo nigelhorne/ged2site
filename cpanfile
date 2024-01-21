@@ -64,6 +64,7 @@ requires 'Statistics::LineFit';
 requires 'Statistics::Lite';
 requires 'String::ProgressBar';
 requires 'Template::Plugin::EnvHash';
+requires 'Template::Plugin::Math';
 requires 'Term::ANSIColor';
 requires 'Text::CSV::Slurp';
 requires 'Text::Names::GB';

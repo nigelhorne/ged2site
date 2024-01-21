@@ -15,6 +15,7 @@ use File::pfopen;
 
 use Template::Filters;
 use Template::Plugin::EnvHash;
+use Template::Plugin::Math;
 use HTML::SocialMedia;
 
 our $sm;

@@ -8,6 +8,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta charset="utf8">
 		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
+		[% USE Math %]
 	</head>
 	<body>
 		<h1>Facts for [% SiteTitle.join(' ') %]</h1>
@@ -18,15 +19,21 @@
 			<p>
 				There are [% facts.count %] people in the tree,
 				of which [% facts.sex.M %] are male and [% facts.sex.F %] are female.
+				IF [% facts.sex.U %]
+					There are also [% facts.sex.U %] people for which the sex is unknown.
+				[% END %]
 			</p>
                         [% IF facts.fathers_side %]
                                 <p>
-                                        There are [% facts.fathers_side.count %] adults aged 20 or over on the father's side
+                                        There are [% facts.fathers_side.count %] adults aged 20 or over on the father's side,
+					of which the average age at death was [% Math.int(facts.fathers_side.age / facts.fathers_side.count) %].
+
                                 </p>
                         [% END %]               
                         [% IF facts.mothers_side %]
                                 <p>     
-                                        There are [% facts.mothers_side.count %] adults aged 20 or over on the mother's side
+                                        There are [% facts.mothers_side.count %] adults aged 20 or over on the mother's side,
+					of which the average age at death was [% Math.int(facts.mothers_side.age / facts.mothers_side.count) %].
                                 </p>                    
                         [% END %]
 			[% IF facts.first_birth %]

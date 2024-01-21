@@ -8,6 +8,7 @@
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
+		[% USE Math %]
 	</head>
 	<body>
 		<div id="header_container">
@@ -32,16 +33,21 @@
 				<ul>
 					<li>
 						There are [% facts.count %] people in the tree,
-						of which [% facts.sex.M %] are male and [% facts.sex.F %] are female
+						of which [% facts.sex.M %] are male and [% facts.sex.F %] are female.
+						[% IF facts.sex.U %]
+							There are also [% facts.sex.U %] people for which the sex is unknown.
+						[% END %]
 					</li>
 					[% IF facts.fathers_side %]
 						<li>
-							There are [% facts.fathers_side.count %] adults aged 20 or over on the father's side
+							There are [% facts.fathers_side.count %] adults aged 20 or over on the father's side,
+							of which the average age at death was [% Math.int(facts.fathers_side.age / facts.fathers_side.count) %].
 						</li>
 					[% END %]               
 					[% IF facts.mothers_side %]
 						<li>     
-							There are [% facts.mothers_side.count %] adults aged 20 or over on the mother's side
+							There are [% facts.mothers_side.count %] adults aged 20 or over on the mother's side,
+							of which the average age at death was [% Math.int(facts.mothers_side.age / facts.mothers_side.count) %].
 						</li>                    
 					[% END %]
 					[% IF facts.first_birth %]

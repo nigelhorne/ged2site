@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2023, Nigel Horne
+# Copyright (C) 2015-2024, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -8591,6 +8591,23 @@ sub print_person
 			$birth_country = $b->name();
 		} else {
 			complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
+		}
+	}
+
+	if(($birth_country ne '') && $birth_dt && $death_dt) {
+		my $age_at_death = $death_dt - $birth_dt;
+		# Calculate the average age of adults death on both sides of the family
+		if((my $age = $age_at_death->years()) >= 20) {
+			if(my $mother = $me->mother()) {
+				if(my $mr = $mother->relationship($person)) {
+					$facts->{'mothers_side'}->{$birth_country}++;
+				}
+			}
+			if(my $father = $me->father()) {
+				if(my $fr = $father->relationship($person)) {
+					$facts->{'fathers_side'}->{$birth_country}++;
+				}
+			}
 		}
 	}
 
