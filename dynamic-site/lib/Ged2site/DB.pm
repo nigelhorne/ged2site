@@ -27,9 +27,9 @@ Ged2site::DB
 
 # package MyPackageName::DB::foo;
 
-# use NJH::Snippets::DB;
+# use Ged2site::DB;
 
-# our @ISA = ('NJH::Snippets::DB');
+# our @ISA = ('Ged2site::DB');
 
 # 1;
 
@@ -105,11 +105,23 @@ If the arguments are not set, tries to take from class level defaults
 
 sub new {
 	my $proto = shift;
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+        my %args;
+
+        if(ref($_[0]) eq 'HASH') {
+                %args = %{$_[0]};
+        } elsif(scalar(@_) % 2 == 0) {
+                %args = @_;
+        } elsif(scalar(@_) == 1) {
+                $args{'directory'} = shift;
+        }
 
 	my $class = ref($proto) || $proto;
 
-	if($class eq __PACKAGE__) {
+	if(!defined($class)) {
+		# Using Ged2site::DB->new(), not Ged2site::DB::new()
+		carp(__PACKAGE__, ' use ->new() not ::new() to instantiate');
+		return;
+	} elsif($class eq __PACKAGE__) {
 		croak("$class: abstract class");
 	}
 
@@ -148,6 +160,8 @@ sub set_logger
 }
 
 # Open the database.
+
+# FIXME: The default separator character is (for my historical reasons) '!' not ','
 
 sub _open {
 	my $self = shift;
@@ -211,9 +225,13 @@ sub _open {
 		if(defined($slurp_file) && (-r $slurp_file)) {
 			close($fin);
 			my $sep_char = $args{'sep_char'};
+			if($self->{'logger'}) {
+				$self->{'logger'}->debug(__LINE__, ' of ', __PACKAGE__, ": slurp_file = $slurp_file, sep_char = $sep_char");
+			}
 			if($args{'column_names'}) {
-				$dbh = DBI->connect("dbi:CSV:csv_sep_char=$sep_char", undef, undef,
+				$dbh = DBI->connect("dbi:CSV:db_name=$slurp_file", undef, undef,
 					{
+						csv_sep_char => $sep_char,
 						csv_tables => {
 							$table => {
 								col_names => $args{'column_names'},
@@ -222,7 +240,7 @@ sub _open {
 					}
 				);
 			} else {
-				$dbh = DBI->connect("dbi:CSV:csv_sep_char=$sep_char");
+				$dbh = DBI->connect("dbi:CSV:db_name=$slurp_file", undef, undef, { csv_sep_char => $sep_char});
 			}
 			$dbh->{'RaiseError'} = 1;
 
@@ -275,6 +293,7 @@ sub _open {
 			# Text::CSV::Slurp->import();
 			# $self->{'data'} = Text::CSV::Slurp->load(file => $slurp_file, %options);
 
+			# FIXME: Text::xSV::Slurp can't cope well with quotes in field contents
 			require Text::xSV::Slurp;
 			Text::xSV::Slurp->import();
 
@@ -580,6 +599,9 @@ sub updated {
 # Returns an array of the matches, or just the first entry when called in
 #	scalar context
 
+# If the first column if the database is "entry" you can do a quick lookup with
+#	my $value = $table->column($key);	# where column is the value you're after
+
 # Set distinct to 1 if you're after a unique list
 sub AUTOLOAD {
 	our $AUTOLOAD;
@@ -596,7 +618,14 @@ sub AUTOLOAD {
 
 	$self->_open() if(!$self->{$table});
 
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my %params;
+        if(ref($_[0]) eq 'HASH') {
+                %params = %{$_[0]};
+        } elsif((scalar(@_) % 2) == 0) {
+                %params = @_;
+        } elsif(scalar(@_) == 1) {
+                $params{'entry'} = shift;
+        }
 
 	my $query;
 	my $done_where = 0;
@@ -608,6 +637,21 @@ sub AUTOLOAD {
 			$query = "SELECT $column FROM $table";
 		}
 	} else {
+		if($self->{'data'} && ((scalar keys %params) == 1)) {
+			# The data has been read in using Text::xSV::Slurp, and it's a simple query
+			#	so no need to do any SQL
+			my ($key, $value) = %params;
+			if(my $data = $self->{'data'}) {
+				foreach my $row(@{$data}) {
+					if(($row->{$key} eq $value) && (my $rc = $row->{$column})) {
+						if($self->{'logger'}) {
+							$self->{'logger'}->trace("AUTOLOAD return '$rc' from slurped data");
+						}
+						return $rc;
+					}
+				}
+			}
+		}
 		if(($self->{'type'} eq 'CSV') && !$self->{no_entry}) {
 			$query = "SELECT DISTINCT $column FROM $table WHERE entry IS NOT NULL AND entry NOT LIKE '#%'";
 			$done_where = 1;
@@ -617,6 +661,9 @@ sub AUTOLOAD {
 	}
 	my @args;
 	while(my ($key, $value) = each %params) {
+		if($self->{'logger'}) {
+			$self->{'logger'}->debug(__PACKAGE__, ": AUTOLOAD adding $key=>$value");
+		}
 		if(defined($value)) {
 			if($done_where) {
 				$query .= " AND $key = ?";
@@ -637,8 +684,9 @@ sub AUTOLOAD {
 			}
 		}
 	}
-	$query .= " ORDER BY $column";
-	if(!wantarray) {
+	if(wantarray) {
+		$query .= " ORDER BY $column";
+	} else {
 		$query .= ' LIMIT 1';
 	}
 	if($self->{'logger'}) {
