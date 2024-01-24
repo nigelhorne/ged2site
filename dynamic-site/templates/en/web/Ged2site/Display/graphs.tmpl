@@ -67,8 +67,9 @@
 				clear: both;
 			}
 		</style>
-		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script> -->
-		<script type="text/javascript" src="https://cdn.canvasjs.com/canvasjs.min.js"></script></head>
+		</head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+		<!-- <script type="text/javascript" src="https://cdn.canvasjs.com/canvasjs.min.js"></script> -->
 		[% IF datapoints.M %]
 			<script type="text/javascript">
 
@@ -282,7 +283,7 @@
 			<script type="text/javascript">
 
 			window.onload = function () {
-				var mchart = new CanvasJS.Chart("chartContainer", {
+				var chartM = new CanvasJS.Chart("chartContainerM", {
 					theme: "theme1",	//theme2
 					title:{
 						text: "[% title %] (Mother's side)"
@@ -290,16 +291,16 @@
 					animationEnabled: true,	// change to false
 					data: [ [% mdata %] ]
 				});
-				mchart.render();
-				var fchart = new CanvasJS.Chart("chartContainer", {
+				var chartF = new CanvasJS.Chart("chartContainerF", {
 					theme: "theme1",	//theme2
 					title:{
-						text: "[% title %]" (Father's side)
+						text: "[% title %] (Father's side)
 					},
 					animationEnabled: true,	// change to false
 					data: [ [% fdata %] ]
 				});
-				fchart.render();
+				chartF.render();
+				chartM.render();
 			}
 			</script>
 		[% ELSIF mdatapoints && fdatapoints %]
@@ -552,6 +553,7 @@
 					<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
 					<li><a href="?page=graphs&amp;graph=name_date">First Name Popularity</a></li>
 					<li><a href="?page=graphs&amp;graph=surname_date">Surname Popularity</a></li>
+					<li><a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a></li>
 				</ul>
 			</div>
 		[% END %]
