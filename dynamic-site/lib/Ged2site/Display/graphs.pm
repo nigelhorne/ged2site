@@ -41,10 +41,13 @@ our $mapper = {
 	'familysizetime' => \&_familysizetime,
 	'motherchildren' => \&_motherchildren,
 	'percentagedying' => \&_percentagedying,
+	'birth_countries' => \&_birth_countries,
 	'name_date' => \&_name_date,
 	'surname_date' => \&_surname_date,
 };
 
+# Call the correct routine from the "graphs" parameter using the "mapper" table
+#	and pass all that routine's return values to the graphs.tmpl file
 sub html {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -1089,6 +1092,45 @@ sub _percentagedyingbysex
 	}
 
 	return { datapoints => $datapoints };
+}
+
+# Count of in which country folks were born
+# uses https://canvasjs.com/docs/charts/chart-types/html5-bar-chart/
+
+sub _birth_countries
+{
+	my $self = shift;
+	my $args = shift;
+
+	my $json_file = File::Spec->catfile($args->{'databasedir'}, 'facts.json');
+
+	if(open(my $json, '<', $json_file)) {
+		my $facts = JSON::MaybeXS->new()->utf8()->decode(<$json>);
+
+		close($json);
+
+		if($self->{'logger'}) {
+			$self->{'logger'}->debug(__PACKAGE__, ': ', __LINE__, ': ',
+				Data::Dumper->new([$facts->{'mothers_side'}])->Dump());
+		}
+		my $mdata = "{\ntype: \"bar\",\ndataPoints: [\n";
+		if(my $m = $facts->{'mothers_side'}->{'birth_countries'}) {
+			foreach my $country (sort keys %{$m}) {
+				$mdata .= '{ y: ' . $m->{$country} . ", label: \"$country\"},\n";
+			}
+		}
+		$mdata .= "]\n}\n";
+		my $fdata = "{\ntype: \"bar\",\ndataPoints: [\n";
+		if(my $f = $facts->{'fathers_side'}->{'birth_countries'}) {
+			foreach my $country (sort keys %{$f}) {
+				$fdata .= '{ y: ' . $f->{$country} . ", label: \"$country\"},\n";
+			}
+		}
+		$fdata .= "]\n}\n";
+
+		return { mdata => $mdata, fdata => $fdata };
+	}
+	return { error => "Can't open $json_file" };
 }
 
 # Show popularity of firstnames by quarter of a century
