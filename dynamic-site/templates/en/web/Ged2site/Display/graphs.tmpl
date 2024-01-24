@@ -481,6 +481,12 @@
 				are assuming to be missing a death record.
 				These differences could cause anomolies.
 			</p>
+		[% ELSIF graph == 'birth_countries' %]
+			<p>
+				Shows the countries of birth on both sides of the family of all adults in the tree.
+			<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
 		[% ELSIF name_date %]
 			<div id="header_container">
 				<center>
