@@ -3005,11 +3005,11 @@ sub print_person
 						$bio .= ',';
 						$phrase->append(',');
 					} elsif($is_alive) {
-						$bio .= ' is';
-						$phrase->append(' is');
+						$bio .= i18n(' is');
+						$phrase->append(i18n('is '));
 					} else {
-						$bio .= ' was';
-						$phrase->append(' was');
+						$bio .= i18n(' was');
+						$phrase->append(i18n('was '));
 					}
 				}
 			} else {
@@ -3038,11 +3038,11 @@ sub print_person
 						$bio .= ',';
 						$phrase->append(',');
 					} elsif($opts{'l'} || $is_alive) {
-						$bio .= ' is';
-						$phrase->append(' is');
+						$bio .= i18n(' is');
+						$phrase->append(i18n(' is'));
 					} else {
-						$bio .= ' was';
-						$phrase->append(' was');
+						$bio .= i18n(' was');
+						$phrase->append(i18n(' was'));
 					}
 				}
 			}
@@ -3265,6 +3265,7 @@ sub print_person
 					# } else {
 						# die 'BUG: Impossible case';
 					# }
+				# }
 				if(defined($yob)) {
 					foreach my $dc(@deathcitations) {
 						my $citation = $citations{$dc};
@@ -3290,6 +3291,7 @@ sub print_person
 					# } else {
 						# die "BUG: Impossible case";
 					# }
+				# }
 				if(defined($yod)) {
 					foreach my $bc(@birthcitations) {
 						my $citation = $citations{$bc};
@@ -4622,9 +4624,9 @@ sub print_person
 				$phrase->append(' ' . lc($same_occupation_as_father));
 			} else {
 				$bio .= ' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
-					(is_alive(person => $person) ? ' is' : ' was');
+					i18n((is_alive(person => $person) ? ' is' : ' was'));
 				$phrase->set(' Like ' . lcfirst($person->possessive()) . ' father, ' . lcfirst($pronoun) .
-					(is_alive(person => $person) ? ' is' : ' was'));
+					i18n((is_alive(person => $person) ? ' is' : ' was')));
 				$bio .= ' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father));
 				$phrase->append(' ' . Lingua::EN::Inflect::A(lc($same_occupation_as_father)));
 			}
@@ -14289,6 +14291,7 @@ the same day as::die gleichen Tag als
 times::fache
 they::Sie
 to::nach
+was::war
 was born::wurde geboren
 was married to %s::war mit %s verheiratet
 wife::Frau
