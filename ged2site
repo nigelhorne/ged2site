@@ -3509,8 +3509,13 @@ sub print_person
 			}
 			if($placeofbaptism) {
 				if($placeofbirth && ($placeofbaptism eq $placeofbirth)) {
-					$bio .= ' there';
-					$phrase->append(' there');
+					if($language eq 'German') {
+						$bio .= ' dort';
+						$phrase->append(' dort');
+					} else {
+						$bio .= ' there';
+						$phrase->append(' there');
+					}
 					if(my $address = $baptism->address()) {
 						$bio .= " at $address";
 						$phrase->append(" at $address");
@@ -12133,6 +12138,8 @@ sub get_all_occupations
 				if($occupation eq 'Teacher') {
 					$occupation = (($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin');
 				}
+				$occupation =~ s/retired/im ruhestand/i;
+				$occupation =~ s/self-employed/slbststa\N{U+00E4}ndig/;
 			}
 			if($occupation =~ /works? (on|for) (.+)/i) {
 				$occupation = "$2 worker";
