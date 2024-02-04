@@ -10535,15 +10535,14 @@ sub place {
 		# Translate the city from English
 		# TODO: if language eq English, translate a city to English
 		if($language ne 'English') {
+			# if($language ne 'French') {
+				# die "TODO: add language $language";
+			# }
 			# FIXME: should be table driven
-			my $to = 'en';
-			if($language eq 'French') {
-				$to = 'fr';
-			} else {
-				die "TODO: add language $language";
-			}
-			if(my $t = $places->translate({ place => $1, from => 'en', to => $to })) {
+			$rc->en($place);
+			if(my $t = $places->translate({ place => $1, from => 'en', to => $lang })) {
 				$place = "$t$2, $3";
+				$rc->set(lang => $lang, string => $place);
 			}
 		}
 	}
