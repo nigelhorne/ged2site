@@ -4129,6 +4129,7 @@ sub print_person
 				$fullbio .= $bio;
 				$bio = '';
 
+				# Sort the order of the marriages by date
 				my $all_marriages_have_date = 1;
 				foreach my $spouse(@spouses) {
 					if(!date_to_datetime(dateofmarriage($spouse))) {
@@ -4136,6 +4137,7 @@ sub print_person
 						last;
 					}
 				}
+
 				if($all_marriages_have_date) {
 					@spouses = Sort::Key::DateTime::dtkeysort {
 						my $date = dateofmarriage($_);
@@ -4282,11 +4284,6 @@ sub print_person
 					}
 					$bio .= ')' if($printed_bracket);
 					$name .= ')' if($printed_bracket);
-					if($spouse_number == (scalar(@spouses) - 1)) {
-						$bio .= i18n(' and');
-					} elsif($spouse_number < (scalar(@spouses) - 1)) {
-						$bio .= ',';
-					}
 					push @names, $name;
 					# $bio =~ s/&Atilde;&copy;/&eacute;/g;
 					print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
