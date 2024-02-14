@@ -74,7 +74,7 @@ our $cache_duration;
 
 Set some class level defaults.
 
-    __PACKAGE__::DB::init(directory => '../databases')
+    __PACKAGE__::DB::init(directory => '../data')
 
 See the documentation for new() to see what variables can be set
 

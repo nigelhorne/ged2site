@@ -1,6 +1,6 @@
 set -e
 
-cd ../databases && rm -f *.sql
+cd ../data && rm -f *.sql
 csv2sqlite -o sep_char='!' surnames.csv surnames.sql
 [ -r censuses.csv ] && csv2sqlite -o sep_char='!' censuses.csv censuses.sql
 csv2sqlite -o sep_char='!' name_date.csv name_date.sql

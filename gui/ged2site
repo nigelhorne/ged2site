@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2017, Nigel Horne
+# Copyright (C) 2024, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -44,7 +44,7 @@ sub file_open
 		-initialdir => $config->{'inputdir'}
 	);
 
-	File::Path::remove_tree('static-site', 'dynamic-site/img', 'dynamic-site/databases' , { keep_root => 1 });
+	File::Path::remove_tree('static-site', 'dynamic-site/img', 'dynamic-site/data' , { keep_root => 1 });
 
 	# FIXME: options should be optional
 	my $ec = $mw->ExecuteCommand(

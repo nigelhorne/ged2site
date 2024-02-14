@@ -831,13 +831,13 @@ if($opts{'F'}) {
 	}
 }
 
-for my $dir('dynamic-site/databases', 'dynamic-site/img', 'static-site') {
+for my $dir('dynamic-site/data', 'dynamic-site/img', 'static-site') {
 	if(-d $dir) {
 		File::Path::rmtree($dir);
 	}
 }
 
-my @dirlist = ('static-site', 'dynamic-site/databases');
+my @dirlist = ('static-site', 'dynamic-site/data');
 if($dot || $opts{'d'}) {
 	push @dirlist, 'static-site/img';
 	push @dirlist, 'dynamic-site/img';
@@ -972,7 +972,7 @@ if($current_people) {
 	$current_people = $xml;
 }
 
-open(my $xml, '>', 'dynamic-site/databases/people.xml');
+open(my $xml, '>', 'dynamic-site/data/people.xml');
 print $xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>\n";
 my $string = XML::Dumper->new()->pl2xml(\%opts);
 $string =~ s/perldata/opts/g;
@@ -988,7 +988,7 @@ if($me) {
 }
 my $html_name = wide_to_html($name);
 
-open(my $csv, '>', 'dynamic-site/databases/people.csv');
+open(my $csv, '>', 'dynamic-site/data/people.csv');
 print $csv "entry!title!home!alive!bio!father!mother!children!citations!notes!media!family_tree!map_head!map_body!dob!dod!profile_thumbnail!marriages!sex!birth_coords!death_coords!birth_country!death_country!warnings\n";
 
 open(my $timeline_xml, '>', 'dynamic-site/timeline.xml');
@@ -1149,7 +1149,7 @@ if(scalar(%censuses)) {
 	print $html "<html><head><title>Censuses in the Family Tree $html_name</title>",
 		"</head><body><center><h1>Censuses in the Family Tree $html_name</h1></center><br><ul>";
 
-	open($csv, '>', 'dynamic-site/databases/censuses.psv');
+	open($csv, '>', 'dynamic-site/data/censuses.psv');
 	print $csv "entry|census|person\n";
 
 	$index = 1;
@@ -1199,12 +1199,12 @@ if(scalar(%censuses)) {
 if(scalar(%all_locations)) {
 	print "Creating locations database\n";
 
-	open($csv, '>', 'dynamic-site/databases/locations.csv');
+	open($csv, '>', 'dynamic-site/data/locations.csv');
 	print $csv "entry!location!person!year!date\n";
 
 	$index = 1;
 
-	open(my $locations_xml, '>', 'dynamic-site/databases/locations.xml');
+	open(my $locations_xml, '>', 'dynamic-site/data/locations.xml');
 	print $locations_xml "<locations>\n\t<maps>\n";
 	my ($head, $body);
 	foreach my $year(sort keys(%all_locations)) {
@@ -1267,7 +1267,7 @@ if(scalar(%all_locations)) {
 
 if(scalar(%all_military)) {
 	print "Creating military records\n";
-	open($csv, '>', 'dynamic-site/databases/military.csv');
+	open($csv, '>', 'dynamic-site/data/military.csv');
 	print $csv "entry!person!date!place!notes\n";
 
 	$index = 1;
@@ -1284,7 +1284,7 @@ if(scalar(%all_military)) {
 
 if(scalar(%all_occupations)) {
 	print "Creating occupations records\n";
-	open($csv, '>', 'dynamic-site/databases/occupations.csv');
+	open($csv, '>', 'dynamic-site/data/occupations.csv');
 	print $csv "entry!people\n";
 
 	foreach my $occupation(sort keys(%all_occupations)) {
@@ -1299,7 +1299,7 @@ if(scalar(%all_occupations)) {
 
 if(scalar(%orphans)) {
 	print "Creating orphan records\n";
-	open($csv, '>', 'dynamic-site/databases/orphans.csv');
+	open($csv, '>', 'dynamic-site/data/orphans.csv');
 	print $csv "entry!people\n";
 
 	foreach my $year(sort keys(%orphans)) {
@@ -1316,7 +1316,7 @@ if(scalar(%changes)) {
 	print "Adding to change blog\n";
 
 	# Keep a copy in the current directory so that it's not trashed
-	# when the databases directory is cleared
+	# when the data directory is cleared
 
 	open(my $log, '>>', 'changes.psv');
 
@@ -1335,12 +1335,12 @@ if(scalar(%changes)) {
 	}
 
 	close($log);
-	link('changes.psv', 'dynamic-site/databases/changes.psv');
+	link('changes.psv', 'dynamic-site/data/changes.psv');
 }
 
 print "Creating intermarriages database\n";
 
-open($csv, '>', 'dynamic-site/databases/intermarriages.csv');
+open($csv, '>', 'dynamic-site/data/intermarriages.csv');
 print $csv "entry!spouse!relationship\n";
 
 foreach my $entry(sort keys(%intermarriages)) {
@@ -1353,7 +1353,7 @@ close $csv;
 
 print "Creating twins database\n";
 
-open($csv, '>', 'dynamic-site/databases/twins.csv');
+open($csv, '>', 'dynamic-site/data/twins.csv');
 print $csv "entry!twin\n";
 
 foreach my $twin(sort keys(%twins)) {
@@ -1376,7 +1376,7 @@ if($opts{'w'}) {
 }
 print $html ' | [ <a href="history.html">Family History</a> ]</center><br><ul>';
 
-open($csv, '>', 'dynamic-site/databases/surnames.csv');
+open($csv, '>', 'dynamic-site/data/surnames.csv');
 print $csv "entry!surname!person\n";
 $index = 1;
 
@@ -1451,7 +1451,7 @@ if($key) {
 	}
 }
 
-if(open($csv, '>', 'dynamic-site/databases/name_date.csv')) {
+if(open($csv, '>', 'dynamic-site/data/name_date.csv')) {
 	# Ready for HTML::TagCloud
 	print $csv "entry!name!count!sex!people\n";
 	$index = 1;
@@ -1467,7 +1467,7 @@ if(open($csv, '>', 'dynamic-site/databases/name_date.csv')) {
 	close $csv;
 }
 
-if(open($csv, '>', 'dynamic-site/databases/surname_date.csv')) {
+if(open($csv, '>', 'dynamic-site/data/surname_date.csv')) {
 	# Ready for HTML::TagCloud
 	print $csv "entry!name!count!people\n";
 	$index = 1;
@@ -1495,7 +1495,7 @@ if($opts{'w'}) {
 		' | [ <a href="calendar/index.html">Calendar</a> ]',
 		' | [ <a href="history.html">Family History</a> ]</center><br>';
 
-	open(my $csv, '>', 'dynamic-site/databases/todo.csv');
+	open(my $csv, '>', 'dynamic-site/data/todo.csv');
 	print $csv "entry!xref!title!summary!error\n";
 	my $index = 1;
 
@@ -1703,7 +1703,7 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 		'<ul>';
 	my @sorted_events = Sort::Key::DateTime::dtkeysort { $all_events{$_}->{'date'} } keys %all_events;
 	my $year;
-	open(my $csv, '>', 'dynamic-site/databases/history.csv');
+	open(my $csv, '>', 'dynamic-site/data/history.csv');
 	print $csv "entry!year!month!day!person!title!event\n";
 	my $index = 1;
 	while(my $e = shift @sorted_events) {
@@ -1739,7 +1739,7 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 }
 
 # TODO: modify the facts template to show the average age at death
-if($facts && open(my $json, '>', 'dynamic-site/databases/facts.json')) {
+if($facts && open(my $json, '>', 'dynamic-site/data/facts.json')) {
 	print "Creating facts page\n";
 
 	if(my $fb = $facts->{'first_birth'}) {

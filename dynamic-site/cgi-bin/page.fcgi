@@ -112,7 +112,7 @@ use Ged2site::DB::twins;
 use Ged2site::DB::military;
 use Ged2site::DB::locations;
 
-my $database_dir = "$script_dir/../databases";
+my $database_dir = "$script_dir/../data";
 Ged2site::DB::init({
 	cache => CHI->new(driver => 'Memory', datastore => {}),
 	cache_duration => '1 day',

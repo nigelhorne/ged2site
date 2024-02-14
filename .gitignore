@@ -21,7 +21,7 @@ nytprof.out
 .*.swp
 dynamic-site/visjs.html
 dynamic-site/timeline.xml
-dynamic-site/databases
+dynamic-site/data
 dynamic-site/img
 static-site
 local/
