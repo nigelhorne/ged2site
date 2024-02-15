@@ -22,6 +22,7 @@ use Log::Log4perl qw(:levels);	# Put first to cleanup last
 use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info;
 use CGI::Lingua 0.61;
+use Database::Abstraction 0.05;
 use File::Basename;
 # use CGI::Alert 'you@example.com';
 use FCGI;
@@ -103,7 +104,7 @@ if($@) {
 }
 use Ged2site::DB::censuses;
 use Ged2site::DB::surnames;
-use Ged2site::DB::history;
+use Ged2site::Data::history;
 use Ged2site::DB::intermarriages;
 use Ged2site::DB::todo;
 use Ged2site::DB::name_date;
@@ -119,6 +120,12 @@ Ged2site::DB::init({
 	directory => $database_dir,
 	logger => $logger
 });
+Database::Abstraction::init({
+	cache => CHI->new(driver => 'Memory', datastore => {}),
+	cache_duration => '1 day',
+	directory => $database_dir,
+	logger => $logger
+});
 
 my $people = Ged2site::DB::people->new();
 if($@) {
@@ -127,7 +134,7 @@ if($@) {
 }
 my $censuses = Ged2site::DB::censuses->new();
 my $surnames = Ged2site::DB::surnames->new();
-my $history = Ged2site::DB::history->new();
+my $history = Ged2site::Data::history->new();
 my $todo = Ged2site::DB::todo->new();
 my $intermarriages = Ged2site::DB::intermarriages->new();
 # TODO: why are these arguments needed?
