@@ -260,7 +260,7 @@ sub http {
 
 	# https://www.owasp.org/index.php/Clickjacking_Defense_Cheat_Sheet
 	# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
-	return $rc . "X-Frame-Options: SAMEORIGIN\nX-Content-Type-Options: nosniff\n\n";
+	return $rc . "X-Frame-Options: SAMEORIGIN\nX-Content-Type-Options: nosniff\nReferrer-Policy: origin-when-cross-origin\n\n";
 }
 
 # Override this routine in a subclass if you wish to create special arguments to
