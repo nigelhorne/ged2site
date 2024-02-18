@@ -5179,6 +5179,7 @@ sub print_person
 						my $place = place({ person => $person, record => $r, nopreposition => 1 });
 						next if(!defined($place));
 						my $first = 1;
+						my @siblings_living_with;
 
 						foreach my $sibling(@siblings) {
 							if(my $ss = $sibling->spouse()) {
@@ -5228,21 +5229,40 @@ sub print_person
 								next if(!defined($sdate));
 								next if($sdate ne $rdate);
 								if(($place =~ /^\s\d/) && (place({ person => $sibling, record => $sr, nopreposition => 1 }) eq $place)) {
-									$residencestring =~ s/^\s//;
-									push @residencestringarray, $residencestring;
-									if($first) {
-										$residencestring = ' there ' . i18n('with ') . ($person->pronoun() eq 'She' ? 'her' : 'his');
-										$first = 0;
-									} else {
-										$residencestring = undef;
-									}
-									$residencestring .= ' ' .
-										i18n(($sibling->sex() eq 'F') ? 'sister, ' : 'brother, ') .
-										$sibling->given_names() . ',';
-									$printed_sibling = 1;
+									push @siblings_living_with, $sibling;
 									last;
 								}
 							}
+						}
+						if(scalar(@siblings_living_with)) {
+							# Print out all the siblings this person was living with
+							# as an adult
+							if(!defined($residencestring)) {
+								$residencestring = i18n(' with ') . ($person->pronoun() eq 'She' ? 'her' : 'his');
+								$first = 0;
+							} else {
+								$residencestring =~ s/^\s//;
+							}
+							if(scalar(@siblings_living_with) == 1) {
+								$residencestring .= 
+									i18n(($sex eq 'F') ? ' sister, ' : ' brother, ') .
+									$siblings_living_with[0]->given_names();
+							} else {
+								my $sex = $siblings_living_with[0]->sex();
+								foreach my $sibling(@siblings_living_with) {
+									if($sibling->sex() ne $sex) {
+										undef $sex;
+										last;
+									}
+								}
+								if($sex) {
+									$residencestring .= i18n(($sex eq 'F') ? ' sisters, ' : ' brothers, ') .
+										conjunction(map { $_->given_names() } @siblings_living_with);
+								} else {
+									die 'TODO: living with siblings of differing genders';
+								}
+							}
+							$printed_sibling = 1;
 						}
 						# FIXME: only checks when there are @siblings
 						if(($bdiff->in_units('years') >= 30) || ($bdiff->in_units('years') < 16)) {
