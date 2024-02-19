@@ -14162,6 +14162,8 @@ the same day as::the same day as
 they::they
 times::times
 to::to
+today::today
+tomorrow::tomorrow
 twice::twice
 was::was
 was buried::was buried
@@ -14239,6 +14241,8 @@ they:M:ils
 they:F:elles
 times::temps
 to::à
+today::aujourd'hui
+tomorrow::demain
 twice::deux fois
 was::était
 was buried:M:a été inhumé
@@ -14307,6 +14311,7 @@ the same day as::die gleichen Tag als
 times::fache
 they::Sie
 to::nach
+today::heute
 was::war
 was born::wurde geboren
 was married to %s::war mit %s verheiratet
