@@ -595,7 +595,7 @@ if($opts{'m'} || $opts{'w'}) {
 	);
 	$topts{'cache_duration'} = '1 month';
 	$freegeocoder = Geo::Coder::Free->new(%topts);
-	if(my $oa = $ENV{'OPENADDR_HOME'}) {
+	if($ENV{'OPENADDR_HOME'}) {
 		# $geocoder->push({ regex => qr/,[\w\s]+,[\w\s]+$/, geocoder => $freegeocoder });
 		# $geocoder->push({ regex => qr/,\s*(USA|US|United States|Canada|Australia)+$/, geocoder => Geo::Coder::Free::OpenAddresses->new(openaddr => $oa) })
 			# ->push({ regex => qr/^[\w\s\-]+?,[\w\s]+,[\w\s]+?$/, geocoder => Geo::Coder::Free->new() });
@@ -8623,14 +8623,14 @@ sub print_person
 	if(($birth_country ne '') && $birth_dt && $death_dt) {
 		my $age_at_death = $death_dt - $birth_dt;
 		# Calculate the average age of adults death on both sides of the family
-		if((my $age = $age_at_death->years()) >= 20) {
+		if($age_at_death->years() >= 20) {
 			if(my $mother = $me->mother()) {
-				if(my $mr = $mother->relationship($person)) {
+				if($mother->relationship($person)) {
 					$facts->{'mothers_side'}->{'birth_countries'}->{$birth_country}++;
 				}
 			}
 			if(my $father = $me->father()) {
-				if(my $fr = $father->relationship($person)) {
+				if($father->relationship($person)) {
 					$facts->{'fathers_side'}->{'birth_countries'}->{$birth_country}++;
 				}
 			}
