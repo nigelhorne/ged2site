@@ -102,7 +102,7 @@ if($@) {
 	Log::WarnDie->dispatcher(undef);
 	die $@;
 }
-use Ged2site::DB::censuses;
+use Ged2site::Data::censuses;
 use Ged2site::DB::surnames;
 use Ged2site::Data::history;
 use Ged2site::DB::intermarriages;
@@ -132,7 +132,7 @@ if($@) {
 	$logger->error($@);
 	die $@;
 }
-my $censuses = Ged2site::DB::censuses->new();
+my $censuses = Ged2site::Data::censuses->new();
 my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::Data::history->new();
 my $todo = Ged2site::DB::todo->new();
