@@ -23,6 +23,7 @@ use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info;
 use CGI::Lingua 0.61;
 use Database::Abstraction 0.05;
+use Error::DB::Open;
 use File::Basename;
 # use CGI::Alert 'you@example.com';
 use FCGI;
@@ -114,12 +115,6 @@ use Ged2site::DB::military;
 use Ged2site::DB::locations;
 
 my $database_dir = "$script_dir/../data";
-Ged2site::DB::init({
-	cache => CHI->new(driver => 'Memory', datastore => {}),
-	cache_duration => '1 day',
-	directory => $database_dir,
-	logger => $logger
-});
 Database::Abstraction::init({
 	cache => CHI->new(driver => 'Memory', datastore => {}),
 	cache_duration => '1 day',

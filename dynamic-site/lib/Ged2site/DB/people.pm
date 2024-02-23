@@ -2,8 +2,8 @@ package Ged2site::DB::people;
 
 # The database associated with the people template file
 
-use Ged2site::DB;
+use Database::Abstraction;
 
-our @ISA = ('Ged2site::DB');
+our @ISA = ('Database::Abstraction');
 
 1;

@@ -1,9 +1,9 @@
 package Ged2site::DB::locations;
 
 use XML::Simple;
-use Ged2site::DB;
+use Database::Abstraction;
 
-our @ISA = ('Ged2site::DB');
+our @ISA = ('Database::Abstraction');
 
 # The database associated with the locations template file
 

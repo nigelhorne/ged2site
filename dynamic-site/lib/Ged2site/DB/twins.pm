@@ -2,8 +2,8 @@ package Ged2site::DB::twins;
 
 # The database associated with the twins template file
 
-use Ged2site::DB;
+use Database::Abstraction;
 
-our @ISA = ('Ged2site::DB');
+our @ISA = ('Database::Abstraction');
 
 1;
