@@ -23,7 +23,6 @@ use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info;
 use CGI::Lingua 0.61;
 use Database::Abstraction 0.05;
-use Error::DB::Open;
 use File::Basename;
 # use CGI::Alert 'you@example.com';
 use FCGI;
@@ -46,6 +45,7 @@ use autodie qw(:all);
 use lib '../lib';
 
 use Ged2site::Config;
+use Error::DB::Open;
 
 # $TAINT = 1;
 # taint_env();
