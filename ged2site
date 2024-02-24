@@ -5237,9 +5237,8 @@ sub print_person
 						if(scalar(@siblings_living_with)) {
 							# Print out all the siblings this person was living with
 							# as an adult
-							if(!defined($residencestring)) {
-								$residencestring = i18n(' with ') . ($person->pronoun() eq 'She' ? 'her' : 'his');
-								$first = 0;
+							if($first) {
+								$residencestring .= ' (' . i18n('with ') . ($person->pronoun() eq 'She' ? 'her' : 'his');
 							} else {
 								$residencestring =~ s/^\s//;
 							}
@@ -5256,11 +5255,32 @@ sub print_person
 									}
 								}
 								if($sex) {
+									# living with more than one sibling all of the same gender
 									$residencestring .= i18n(($sex eq 'F') ? ' sisters, ' : ' brothers, ') .
 										conjunction(map { $_->given_names() } @siblings_living_with);
+								} elsif(scalar(@siblings_living_with) == 2) {
+									# Living with one brother and one sister
+									my $brother;
+									my $sister;
+									if($siblings_living_with[0]->sex() eq 'M') {
+										$brother = $siblings_living_with[0];
+										$sister = $siblings_living_with[1];
+									} else {
+										$sister = $siblings_living_with[0];
+										$brother = $siblings_living_with[1];
+									}
+									$residencestring .= i18n(' brother ') .
+										$brother->given_names() .
+										i18n(' and ') .
+										i18n('sister ') .
+										$sister->given_names();
 								} else {
-									die 'TODO: ', $person->as_string(include_years => 1), ' lliving with siblings of differing genders';
+									die 'TODO: ', $person->as_string(include_years => 1), ' living with ', scalar(@siblings_living_with), ' siblings of differing genders';
 								}
+							}
+							if($first) {
+								$residencestring .= ')';
+								$first = 0;
 							}
 							$printed_sibling = 1;
 						}
