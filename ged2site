@@ -5259,7 +5259,7 @@ sub print_person
 									$residencestring .= i18n(($sex eq 'F') ? ' sisters, ' : ' brothers, ') .
 										conjunction(map { $_->given_names() } @siblings_living_with);
 								} else {
-									die 'TODO: living with siblings of differing genders';
+									die 'TODO: ', $person->as_string(include_years => 1), ' living with ', scalar(@siblings_living_with), ' siblings of differing genders';
 								}
 							}
 							$printed_sibling = 1;
