@@ -134,7 +134,7 @@ but I strongly advise you don't do that.
 [Library](https://github.com/nigelhorne/lib) - library of code common with
 [gedcom](https://github.com/nigelhorne/gedcom).
 
-On FreeBSD you'll need to "pkg install pkgconf gdlib"
+On FreeBSD you'll need to "sudo pkg install pkgconf gdlib ImageMagick7"
 
 Ancestry on Windows
 ===================
