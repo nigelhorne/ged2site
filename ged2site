@@ -30,6 +30,7 @@
 # TODO: Can I make use of the Chart module?
 # TODO: consider Data::Dumper::Names instead of Data::Dumper
 # TODO: investigate User::Identity
+# TODO: use Geo::Coder::Abreviate->normalize once that's completed
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
