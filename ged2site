@@ -4834,12 +4834,18 @@ sub print_person
 
 				print __LINE__, ": count = $count\n" if($opts{'v'});
 
-				if(defined($rdate) && ($rdate =~ /^\s*(.+\d\d)\s*\-\s*(.+\d\d)\s*$/)) {
-					my $start = $1;
-					my $end = $2;
-					if($end !~ /^\d\d\-\d\d$/) {
-						complain({ person => $person, warning => "Changing date '$rdate' to 'bet $start and $end'" });
-						$rdate = "bet $start and $end";
+				if(defined($rdate)) {
+					if($rdate =~ /^0/) {
+						complain({ person => $person, warning => "Removing leading 0 from residence date '$rdate'" });
+						$rdate =~ s/^0//;
+					}
+					if($rdate =~ /^\s*(.+\d\d)\s*\-\s*(.+\d\d)\s*$/) {
+						my $start = $1;
+						my $end = $2;
+						if($end !~ /^\d\d\-\d\d$/) {
+							complain({ person => $person, warning => "Changing date '$rdate' to 'bet $start and $end'" });
+							$rdate = "bet $start and $end";
+						}
 					}
 				}
 
