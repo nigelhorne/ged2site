@@ -4820,8 +4820,8 @@ sub print_person
 			my %printed_dates;
 
 			print "Sanity checking the residences\n" if($opts{'v'});
-			# Create a list of residence strings
 
+			# Create a list of residence strings
 			my @residencestringarray;
 			my $printed_father_same_place;
 			my $printed_mother_same_place;
@@ -4837,7 +4837,8 @@ sub print_person
 				if(defined($rdate)) {
 					if($rdate =~ /^0/) {
 						complain({ person => $person, warning => "Removing leading 0 from residence date '$rdate'" });
-						$rdate =~ s/^0//;
+						# FIXME: Don't do this - it won't print this residence if you do
+						# $rdate =~ s/^0//;
 					}
 					if($rdate =~ /^\s*(.+\d\d)\s*\-\s*(.+\d\d)\s*$/) {
 						my $start = $1;
