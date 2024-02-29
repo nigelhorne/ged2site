@@ -30,7 +30,6 @@
 # TODO: Can I make use of the Chart module?
 # TODO: consider Data::Dumper::Names instead of Data::Dumper
 # TODO: investigate User::Identity
-# TODO: use Geo::Coder::Abreviate->normalize once that's completed
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -68,7 +67,7 @@ BEGIN {
 		'Genealogy::Gedcom::Date',
 		# 'Geo::Coder::DataScienceToolkit',
 		# 'Geo::Coder::Free::OpenAddresses',
-		'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
+		'Geo::Coder::Abbreviations', 'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Lingua::EN::ABC', 'Lingua::String',
 		'Geo::Parser::Text', 'GIS::Distance',
@@ -229,7 +228,7 @@ my $language = get_language();
 
 print "Language = $language\n" if($opts{'v'});
 
-my @modules = ('NJH::Normalize');
+my @modules = ();
 @needfull = ();
 
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
@@ -910,6 +909,7 @@ my $ca_en = Locale::CA->new(lang => 'en');
 my $ca_fr = Locale::CA->new(lang => 'fr');
 my $us = Locale::US->new();
 my $dtl = DateTime::Locale->load($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'});
+my $abbr = Geo::Coder::Abbreviations->new();
 my $obituaries;
 my $wills;
 
@@ -11244,10 +11244,10 @@ sub places_are_the_same
 		$place1 = "$1 USA";
 	}
 	if(my $address = $record1->address()) {
-		$place1 = NJH::Normalize::normalize($address) . ", $place1";
+		$place1 = $abbr->normalize($address) . ", $place1";
 	}
 	if(my $address = $record2->address()) {
-		$place2 = NJH::Normalize::normalize($address) . ", $place2";
+		$place2 = $abbr->normalize($address) . ", $place2";
 	}
 	if($place2 =~ /(.+?)\s*United States$/i) {
 		if($person) {
