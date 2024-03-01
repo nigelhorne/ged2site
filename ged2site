@@ -4894,12 +4894,7 @@ sub print_person
 					if($rdate && (my $rdate_dt = date_to_datetime($rdate))) {
 						my $year = $rdate_dt->year();
 						my $strftime = $rdate_dt->strftime('%x');
-						my $place = place({
-							person => $person,
-							record => $residence,
-							nopreposition => 1,
-						});
-						if($place) {
+						if(my $place = place({ person => $person, record => $residence, nopreposition => 1 })) {
 							if(my $location = get_location($place)) {
 								push @{$all_locations{$year}}, {
 									'residence' => $residence,
