@@ -5711,10 +5711,6 @@ sub print_person
 									year(date => $date);
 								$spdeath_dt = undef;
 							}
-							if($phrase->length()) {
-								push @phrases, $phrase;
-								$phrase = Data::Text->new();
-							}
 						}
 					}
 				}
@@ -5727,6 +5723,7 @@ sub print_person
 					}
 					push @residencestringarray, $residencestring;
 					$residencestring =~ s/\sand$//;
+					$residencestring =~ s/,$//;
 					$printed_residence = 1;
 				}
 			}
@@ -5851,7 +5848,9 @@ sub print_person
 					$bio .= '. ';
 					$end_of_sentence = 1;
 
-					push @phrases, $phrase;
+					if($phrase->length()) {
+						push @phrases, $phrase;
+					}
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 					$phrase = Data::Text->new();
 					@phrases = ();
