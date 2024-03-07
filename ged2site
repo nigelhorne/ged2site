@@ -5927,7 +5927,7 @@ sub print_person
 		if($events[0]->type() ne $events[1]->type()) {
 			# Simple case - one journey made
 			my $s = journey({ person => $person, arrival => $arrival, departure => $departure, spouses => \@spouses, children => \@children }) . '. ';
-			$bio->append($s);
+			$bio .= $s;
 			$bio_dt->append($s);
 		} else {
 			my $date1 = year(record => $events[0]);
