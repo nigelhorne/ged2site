@@ -5927,32 +5927,39 @@ sub print_person
 		if($events[0]->type() ne $events[1]->type()) {
 			# Simple case - one journey made
 			my $s = journey({ person => $person, arrival => $arrival, departure => $departure });
-			if($spouses[0] && ($opts{'l'} || !is_alive(person => $spouses[0]))) {
-				$s .= i18n(' with ') .
+			if($arrival->date()) {
+				my $with_spouse;
+				if($spouses[0] && ($opts{'l'} || !is_alive(person => $spouses[0])) &&
+				   (my $sarrival = arrival({ person => $spouses[0] }))) {
+					$s .= i18n(' with ') .
 					lcfirst($person->possessive()) . ' ' .
 					(($sex eq 'M') ? 'wife' : 'husband') .
 					', ' . $spouse->given_names();
-			}
-			my @childnames;
-			foreach my $child(@children) {
-				if(($opts{'l'} || !is_alive(person => $child))) {
-					push(@childnames, $child->given_names());
+					$with_spouse++;
 				}
-			}
-			if(scalar(@childnames)) {
-				$s .= i18n(' and ');
-				if(scalar(@childnames) == scalar(@children)) {
-					$s .= 'all of ' .
-						lcfirst($person->possessive()) .
-						i18n(' children');
-				} elsif(scalar(@childnames) == 1) {
-					$s .= lcfirst($person->possessive()) .
-						i18n(' child ') .
-						$childnames[0];
-				} elsif(scalar(@childnames) > 1) {
-					$s .= lcfirst($person->possessive()) .
-						i18n(' children') . ': ' .
-						conjunction(@childnames);
+				my @childnames;
+				foreach my $child(@children) {
+					if(($opts{'l'} || !is_alive(person => $child))) {
+						my $given_names = $child->given_names();
+						$given_names =~ s/\.$//;
+						push(@childnames, $given_names);
+					}
+				}
+				if(scalar(@childnames)) {
+					$s .= i18n(($with_spouse) ? ' and ' : ' with ');
+					if(scalar(@childnames) == scalar(@children)) {
+						$s .= 'all of ' .
+							lcfirst($person->possessive()) .
+							i18n(' children');
+					} elsif(scalar(@childnames) == 1) {
+						$s .= lcfirst($person->possessive()) .
+							i18n(' child ') .
+							$childnames[0];
+					} elsif(scalar(@childnames) > 1) {
+						$s .= lcfirst($person->possessive()) .
+							i18n(' children') . ': ' .
+							conjunction(@childnames);
+					}
 				}
 			}
 			$s = '.  ';
@@ -12277,7 +12284,7 @@ sub journey
 
 	if($doa && ($doa =~ /(\d{3,4})$/)) {
 		$yoa = $1;
-		$doa =~ s/\s?\d{3,4}//;
+		$doa =~ s/\s+?\d{3,4}//;
 		if($dod && ($dod =~ /(\d{3,4})$/)) {
 			$yod = $1;
 			$dod =~ s/\s?\d{3,4}//;
@@ -12308,6 +12315,11 @@ sub journey
 			$rc = "En $year " . lc($rc);
 		} else {
 			$rc = "In $year " . lc($rc);
+		}
+		if($year eq $doa) {
+			# Nothing more to print, avoid "In 1914 he arrived in 1914"
+			# But keep "In 1914 he arrived on 1 Jul"
+			undef $doa;
 		}
 	} else {
 		die 'TODO: ', $person->as_string(), ': handle departure only record';
@@ -12362,7 +12374,9 @@ sub journey
 		return "$rc, departing $dod";
 	}
 
-	return "$rc, arriving $doa";
+	if(defined($doa)) {
+		return "$rc, arriving $doa";
+	}
 }
 
 # Compare two dates. Approximate dates are compared.
