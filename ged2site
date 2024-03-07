@@ -5926,43 +5926,7 @@ sub print_person
 		my $departure = ($events[0]->type() eq 'Departure') ? $events[0] : $events[1];
 		if($events[0]->type() ne $events[1]->type()) {
 			# Simple case - one journey made
-			my $s = journey({ person => $person, arrival => $arrival, departure => $departure });
-			if($arrival->date()) {
-				my $with_spouse;
-				if($spouses[0] && ($opts{'l'} || !is_alive(person => $spouses[0])) &&
-				   (my $sarrival = arrival({ person => $spouses[0] }))) {
-					$s .= i18n(' with ') .
-					lcfirst($person->possessive()) . ' ' .
-					(($sex eq 'M') ? 'wife' : 'husband') .
-					', ' . $spouse->given_names();
-					$with_spouse++;
-				}
-				my @childnames;
-				foreach my $child(@children) {
-					if(($opts{'l'} || !is_alive(person => $child))) {
-						my $given_names = $child->given_names();
-						$given_names =~ s/\.$//;
-						push(@childnames, $given_names);
-					}
-				}
-				if(scalar(@childnames)) {
-					$s .= i18n(($with_spouse) ? ' and ' : ' with ');
-					if(scalar(@childnames) == scalar(@children)) {
-						$s .= 'all of ' .
-							lcfirst($person->possessive()) .
-							i18n(' children');
-					} elsif(scalar(@childnames) == 1) {
-						$s .= lcfirst($person->possessive()) .
-							i18n(' child ') .
-							$childnames[0];
-					} elsif(scalar(@childnames) > 1) {
-						$s .= lcfirst($person->possessive()) .
-							i18n(' children') . ': ' .
-							conjunction(@childnames);
-					}
-				}
-			}
-			$s = '.  ';
+			my $s = journey({ person => $person, arrival => $arrival, departure => $departure, spouses => \@spouses, children => \@children }) . '. ';
 			$bio->append($s);
 			$bio_dt->append($s);
 		} else {
@@ -12270,6 +12234,8 @@ sub journey
 	my $person = $params{'person'};
 	my $arrival = $params{'arrival'};
 	my $departure = $params{'departure'};
+	my @spouses = @{$params{'spouses'}} if($params{'spouses'});
+	my @children = @{$params{'children'}} if($params{'children'});
 
 	my $yod;
 	my $yoa;
@@ -12369,14 +12335,54 @@ sub journey
 
 	if(defined($dod) && !$only_have_departure_year) {
 		if($language eq 'French') {
-			return "$rc, partant $dod";
+			$rc .= ", partant $dod";
+		} else {
+			$rc .= ", departing $dod";
 		}
-		return "$rc, departing $dod";
 	}
 
 	if(defined($doa)) {
-		return "$rc, arriving $doa";
+		$rc .= ", arriving $doa";
 	}
+
+	if($arrival->date()) {
+		my $with_spouse;
+		if($spouses[0] && ($opts{'l'} || !is_alive(person => $spouses[0])) &&
+		   (my $sarrival = arrival({ person => $spouses[0] }))) {
+			if($sarrival->date() eq $arrival->date()) {
+				$rc .= i18n(' with ') .
+					lcfirst($person->possessive()) . ' ' .
+					((get_value({ person => $person, value => 'sex' }) eq 'M') ? 'wife' : 'husband') .
+					', ' . $spouses[0]->given_names();
+				$with_spouse++;
+			}
+		}
+		my @childnames;
+		foreach my $child(@children) {
+			if(($opts{'l'} || !is_alive(person => $child))) {
+				my $given_names = $child->given_names();
+				$given_names =~ s/\.$//;
+				push(@childnames, $given_names);
+			}
+		}
+		if(scalar(@childnames)) {
+			$rc .= (i18n(($with_spouse) ? ' and ' : ' with '));
+			if(scalar(@childnames) == scalar(@children)) {
+				$rc .= 'all of ' .
+					lcfirst($person->possessive()) .
+					i18n(' children');
+			} elsif(scalar(@childnames) == 1) {
+				$rc .= lcfirst($person->possessive()) .
+					i18n(' child ') .
+					$childnames[0];
+			} elsif(scalar(@childnames) > 1) {
+				$rc .= lcfirst($person->possessive()) .
+					i18n(' children') .
+					': ' . conjunction(@childnames);
+			}
+		}
+	}
+	return $rc
 }
 
 # Compare two dates. Approximate dates are compared.
