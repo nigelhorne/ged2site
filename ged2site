@@ -5926,8 +5926,38 @@ sub print_person
 		my $departure = ($events[0]->type() eq 'Departure') ? $events[0] : $events[1];
 		if($events[0]->type() ne $events[1]->type()) {
 			# Simple case - one journey made
-			$bio .= journey({ person => $person, arrival => $arrival, departure => $departure }) . '.';
-			$bio_dt->append(journey({ person => $person, arrival => $arrival, departure => $departure }) . '.');
+			my $s = journey({ person => $person, arrival => $arrival, departure => $departure });
+			if($spouses[0] && ($opts{'l'} || !is_alive(person => $spouses[0]))) {
+				$s .= i18n(' with ') .
+					lcfirst($person->possessive()) . ' ' .
+					(($sex eq 'M') ? 'wife' : 'husband') .
+					', ' . $spouse->given_names();
+			}
+			my @childnames;
+			foreach my $child(@children) {
+				if(($opts{'l'} || !is_alive(person => $child))) {
+					push(@childnames, $child->given_names());
+				}
+			}
+			if(scalar(@childnames)) {
+				$s .= i18n(' and ');
+				if(scalar(@childnames) == scalar(@children)) {
+					$s .= 'all of ' .
+						lcfirst($person->possessive()) .
+						i18n(' children');
+				} elsif(scalar(@childnames) == 1) {
+					$s .= lcfirst($person->possessive()) .
+						i18n(' child ') .
+						$childnames[0];
+				} elsif(scalar(@childnames) > 1) {
+					$s .= lcfirst($person->possessive()) .
+						i18n(' children') . ': ' .
+						conjunction(@childnames);
+				}
+			}
+			$s = '.  ';
+			$bio->append($s);
+			$bio_dt->append($s);
 		} else {
 			my $date1 = year(record => $events[0]);
 			my $date2 = year(record => $events[1]);
@@ -12204,6 +12234,25 @@ sub get_all_occupations
 	}
 
 	return @rc;
+}
+
+# Return the arrival record of the given person, or undef if none or more than one
+sub arrival
+{
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
+	my $person = $params{'person'};
+
+	my @events = $person->event();
+	my $rc;
+
+	foreach my $event(@events) {
+		if($event->type() eq 'Arrival') {
+			return if($rc);
+			$rc = $event;
+		}
+	}
+	return $rc
 }
 
 # Document a complete journey when both a departure and an arrival record exist
