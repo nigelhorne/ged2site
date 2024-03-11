@@ -234,7 +234,7 @@ my @modules = ();
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 	push @modules, 'File::Spec', 'XML::Hash';
 
-	if(!$ENV{'CACHEDIR'}) {
+	if(!$ENV{'CACHE_DIR'}) {
 		push @modules, 'File::HomeDir';
 	}
 
@@ -509,7 +509,7 @@ my $freegeocoder;
 my $browser;
 
 my $cachedir;
-if(my $e = $ENV{'CACHEDIR'}) {
+if(my $e = $ENV{'CACHE_DIR'}) {
 	$cachedir = File::Spec->catfile($e, 'lwp-cache');
 } else {
 	# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', 'lwp');
@@ -543,7 +543,7 @@ if($opts{'m'} || $opts{'w'}) {
 
 	# my $geocoder = Geo::Coder::List->new(cache => CHI->new(driver => 'Memcached', servers => [ '192.168.1.15:11211', '127.0.0.1:11211' ]));
 	my $cachedir;
-	if(my $e = $ENV{'CACHEDIR'}) {
+	if(my $e = $ENV{'CACHE_DIR'}) {
 		$cachedir = File::Spec->catfile($e, basename($0));
 	} else {
 		# $cachedir = File::Spec->catfile(File::Spec->tmpdir(), 'cache', basename($0));
@@ -874,7 +874,7 @@ if($opts{'d'} || $opts{'m'}) {
 	$browser->env_proxy(1);
 	$browser->conn_cache->total_capacity(undef);
 
-	my $cachedir = $ENV{'CACHEDIR'};
+	my $cachedir = $ENV{'CACHE_DIR'};
 	if($cachedir) {
 		mkdir $cachedir, 0700 if(!-d $cachedir);
 		$cachedir = File::Spec->catfile($cachedir, 'http-cache-transparent');
@@ -5836,7 +5836,7 @@ sub print_person
 						if($notes = notes({ person => $person, record => $death, note_locations => \@note_locations })) {
 							$notes =~ tr/\r//;
 							$notes =~ tr/\n/ /;
-							$notes =~ s/\.$//;
+							$notes =~ s/[\.,]$//;
 							$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 							$bio .= " ($notes)";
 							$phrase->append(" ($notes)");

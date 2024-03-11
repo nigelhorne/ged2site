@@ -135,7 +135,7 @@ but I strongly advise you don't do that.
 [gedcom](https://github.com/nigelhorne/gedcom).
 
 On FreeBSD you'll need to
-"sudo pkg install pkgconf gdlib ImageMagick7;
+"sudo pkg install pkgconf gdlib graphviz ImageMagick7;
 cd /usr/local/lib;
 sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so"
 
