@@ -26,8 +26,8 @@ sub new {
 	my $info = $args{info} || CGI::Info->new();
 
 	my $path;
-	if($ENV{'CONFIG_DIRECTORY'}) {
-		$path = $ENV{'CONFIG_DIRECTORY'};
+	if($ENV{'CONFIG_DIR'}) {
+		$path = $ENV{'CONFIG_DIR'};
 	} else {
 		$path = File::Spec->catdir(
 				$info->script_dir(),
