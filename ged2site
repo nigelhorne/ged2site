@@ -5849,7 +5849,6 @@ sub print_person
 					$end_of_sentence = 1;
 
 					if($phrase->length()) {
-						$phrase =~ s/,$//;
 						push @phrases, $phrase;
 					}
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
