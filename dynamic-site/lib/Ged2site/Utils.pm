@@ -25,7 +25,7 @@ sub create_disc_cache {
 	my $logger = $args{'logger'};
 	my $driver = $config->{disc_cache}->{driver};
 	unless(defined($driver)) {
-		my $root_dir = $args{'root_dir'} || $config->{disc_cache}->{root_dir};
+		my $root_dir = $args{'root_dir'} || $ENV{'root_dir'} || $config->{disc_cache}->{root_dir} || $config->{'root_dir'};
 		throw Error::Simple('root_dir is not optional') unless($root_dir);
 
 		if($logger) {
