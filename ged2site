@@ -5721,9 +5721,9 @@ sub print_person
 					} else {
 						$residencestring =~ s/(.+), (his|her) /$1 and $2 /;
 					}
-					push @residencestringarray, $residencestring;
 					$residencestring =~ s/\sand$//;
 					$residencestring =~ s/,$//;
+					push @residencestringarray, $residencestring;
 					$printed_residence = 1;
 				}
 			}
