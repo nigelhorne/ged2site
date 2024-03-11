@@ -23,5 +23,7 @@ dynamic-site/visjs.html
 dynamic-site/timeline.xml
 dynamic-site/data
 dynamic-site/img
-static-site
+static-site/
 local/
+thumbs/
+changes.psv
