@@ -2427,7 +2427,7 @@ sub print_person
 		# Calculate the average age of adults death on both sides of the family
 		if((my $age = $age_at_death->years()) >= 20) {
 			my $fr;
-		   	my $mr;
+			my $mr;
 			if(my $mother = $me->mother()) {
 				if($mr = $mother->relationship($person)) {
 					$facts->{'mothers_side'}->{'age'} += $age;
@@ -2465,6 +2465,10 @@ sub print_person
 	my %place_records;
 
 	if($placeofbirth) {
+		if(!defined($birth->place())) {
+			complain({ person => $person, warning => "Birthplace is set to $placeofbirth but birth->place is empty" });
+			$birth->set('place', $placeofbirth);
+		}
 		$place_records{'Birth'} = $birth;
 	}
 	if($placeofbaptism) {
@@ -2478,6 +2482,10 @@ sub print_person
 		$place_records{'Marriage'} = $marriage;
 	}
 	if($placeofdeath) {
+		if(!defined($death->place())) {
+			complain({ person => $person, warning => "Deathplace is set to $placeofdeath but death->place is empty" });
+			$death->set('place', $placeofdeath);
+		}
 		$place_records{'Death'} = $death;
 	}
 	if($placeofburial) {
@@ -5250,7 +5258,7 @@ sub print_person
 								$residencestring =~ s/^\s//;
 							}
 							if(scalar(@siblings_living_with) == 1) {
-								$residencestring .= 
+								$residencestring .=
 									i18n(($sex eq 'F') ? ' sister, ' : ' brother, ') .
 									$siblings_living_with[0]->given_names();
 							} else {
@@ -5794,7 +5802,7 @@ sub print_person
 					my $deathplace = place({ person => $person, record => $death });
 					my $lastdate = $lastresidence->date();
 					$lastresidence = place({ person => $person, record => $lastresidence });
-					if(defined($lastdate) && defined($lastresidence) && ($deathplace eq $lastresidence)) {
+					if(defined($lastdate) && defined($lastresidence) && defined($deathplace) && ($deathplace eq $lastresidence)) {
 						my $p = lcfirst($pronoun);
 						if($language eq 'French') {
 							$bio .= " c'est o\N{U+00F9} $p est mort";
@@ -8268,7 +8276,8 @@ sub print_person
 		if($opts{'w'}) {
 			while(my($key, $value) = each %place_records) {
 				if(!defined(place({ person => $person, record => $value, nopreposition => 1 }))) {
-					die "BUG: ", $person->as_string(), ": $key ($value) uecord has no location";
+					print STDERR __LINE__, ': ', ref($value), ': ', Data::Dumper->new([$value])->Dump();
+					die "BUG: ", $person->as_string(), ": $key (", $value->place(), ') record has no location';
 				}
 			}
 		}
@@ -14174,7 +14183,7 @@ sub newspaper
 	my $event = $params{'event'};
 
 	my $rc = Class::Simple->new();
-	
+
 	if(my $date = $event->date()) {
 		$date =~ s/^0//;
 		$rc->date($date);
