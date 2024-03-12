@@ -8268,7 +8268,7 @@ sub print_person
 		if($opts{'w'}) {
 			while(my($key, $value) = each %place_records) {
 				if(!defined(place({ person => $person, record => $value, nopreposition => 1 }))) {
-					die "BUG: ", $person->as_string(), ": $key record has no location";
+					die "BUG: ", $person->as_string(), ": $key ($value) uecord has no location";
 				}
 			}
 		}
@@ -8407,6 +8407,8 @@ sub print_person
 	} else {
 		print $csv '!!';
 	}
+
+	undef %place_records;
 
 	if($birth_dt && ($opts{'l'} || !$is_alive)) {
 		print $csv $birth_dt->strftime('%Y/%m/%d');
