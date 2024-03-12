@@ -8268,7 +8268,7 @@ sub print_person
 		if($opts{'w'}) {
 			while(my($key, $value) = each %place_records) {
 				if(!defined(place({ person => $person, record => $value, nopreposition => 1 }))) {
-					die "BUG: $key record has no location";
+					die "BUG: ", $person->as_string(), ": $key record has no location";
 				}
 			}
 		}
