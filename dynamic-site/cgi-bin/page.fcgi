@@ -60,7 +60,7 @@ my $tmpdir = $info->tmpdir();
 if($ENV{'HTTP_USER_AGENT'}) {
 	# open STDERR, ">&STDOUT";
 	close STDERR;
-	open(STDERR, '>>', "$tmpdir/$script_name.stderr");
+	open(STDERR, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"));
 }
 
 Log::WarnDie->filter(\&filter);
@@ -312,7 +312,7 @@ sub doit
 	$logger->debug('In doit - domain is ', $info->domain_name());
 
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
-	$config ||= Ged2site::Config->new({ logger => $logger, info => $info });
+	$config ||= Ged2site::Config->new({ logger => $logger, info => $info, debug => $params{'debug'} });
 	$infocache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
 
 	my $options = {
@@ -390,7 +390,8 @@ sub doit
 
 	my $fb = FCGI::Buffer->new()->init($args);
 
-	my $cachedir = $params{'cachedir'} || $config->{disc_cache}->{root_dir} || "$tmpdir/cache";
+	my $cachedir = $params{'cachedir'} || $config->{disc_cache}->{root_dir} || File::Spec->catfile($tmpdir, 'cache');
+
 	if($fb->can_cache()) {
 		$buffercache ||= create_disc_cache(config => $config, logger => $logger, namespace => $script_name, root_dir => $cachedir);
 		$fb->init(
@@ -469,6 +470,7 @@ sub doit
 	if(defined($display)) {
 		# Pass in handles to the databases
 		print $display->as_string({
+			cachedir => $cachedir,
 			people => $people,
 			censuses => $censuses,
 			locations => $locations,
@@ -480,7 +482,6 @@ sub doit
 			surname_date => $surname_date,
 			twins => $twins,
 			military => $military,
-			cachedir => $cachedir,
 			databasedir => $database_dir
 		});
 	} elsif($invalidpage) {
@@ -506,7 +507,8 @@ sub doit
 				"Pragma: no-cache\n\n";
 
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "Access Denied\n";
+				print "Software error - contact the webmaster\n",
+					"$error\n";
 			}
 		} else {
 			# No permission to show this page
