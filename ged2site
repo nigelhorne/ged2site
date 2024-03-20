@@ -1782,7 +1782,7 @@ sub print_person
 		} elsif($dateofbirth =~ /^(.+)\s*\?/i) {
 			$dateofbirth = "ABT$1";
 		}
-		if(length($dateofbirth) && ($dateofbirth !~ /^[\d\sA-Z\/]+$/i) && ($dateofbirth !~ /^Abt\./)) {
+		if(($dateofbirth !~ /^[\d\sA-Z\/]+$/i) && ($dateofbirth !~ /^Abt\./)) {
 			if($dateofbirth =~ /(\d{4})\s*(.+)/) {
 				my $d = $1;
 				my $t = $2;
