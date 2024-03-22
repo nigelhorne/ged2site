@@ -12994,7 +12994,7 @@ sub parse_date
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			}
-			die "BUG: handle '$date' on ", $person->as_string();
+			die 'BUG: handle "', $params{'date'}, ' on ', $person->as_string();
 		}
 		if($about) {
 			$date = "abt $date";
