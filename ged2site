@@ -11697,6 +11697,10 @@ sub make_filename_from_person
 	utf8::decode($rc);
 	$rc = Unicode::Diacritic::Strip::strip_diacritics($rc);
 
+	if($rc =~ /[^[:ascii:]]/) {
+		die "$rc.html";
+	}
+
 	return "$rc.html";
 }
 
