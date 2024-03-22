@@ -11653,6 +11653,15 @@ sub is_alive
 	my $dob = dateofbirth($person);
 
 	if(!defined($dob)) {
+		# If the residences of this person was some time ago, they should be dead by now
+		foreach my $event(get_all_residences($person)) {
+			if(my $edate = $event->date()) {
+				if(my $eyear = get_year_from_date($edate)) {
+					die $person->as_string, ": TODO: determine if $eyear is long enough ago this person cannot be alive"
+					# complain that the death date is missing
+				}
+			}
+		}
 		return 0;	# Err on the side of caution
 				# TODO: Look at children's lifespan for a clue
 	}
