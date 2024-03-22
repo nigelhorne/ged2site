@@ -12051,6 +12051,9 @@ sub get_all_occupations
 	while($occupations[0] && ($occupations[0] =~ /Unpaid domestic duties/i)) {
 		shift @occupations;
 	}
+	while($occupations[0] && ($occupations[0] =~ /home duties/i)) {
+		shift @occupations;
+	}
 	while($occupations[0] && ($occupations[0] eq 'Retired')) {
 		shift @occupations;
 	}
