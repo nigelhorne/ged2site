@@ -2425,7 +2425,7 @@ sub print_person
 		}
 
 		# Calculate the average age of adults death on both sides of the family
-		if((my $age = $age_at_death->years()) >= 20) {
+		if($me && ((my $age = $age_at_death->years()) >= 20)) {
 			my $fr;
 			my $mr;
 			if(my $mother = $me->mother()) {
@@ -8663,7 +8663,7 @@ sub print_person
 		}
 	}
 
-	if(($birth_country ne '') && $birth_dt && $death_dt) {
+	if($me && ($birth_country ne '') && $birth_dt && $death_dt) {
 		my $age_at_death = $death_dt - $birth_dt;
 		# Calculate the average age of adults death on both sides of the family
 		if($age_at_death->years() >= 20) {
