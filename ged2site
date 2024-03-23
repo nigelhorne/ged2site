@@ -11657,8 +11657,10 @@ sub is_alive
 		foreach my $event(get_all_residences($person)) {
 			if(my $edate = $event->date()) {
 				if(my $eyear = get_year_from_date($edate)) {
-					die $person->as_string, ": TODO: determine if $eyear is long enough ago this person cannot be alive"
-					# complain that the death date is missing
+					if($eyear <= 1900) {
+						complain({ person => $person, warning => "Was alive in $eyear, can't find death information" });
+						return 0;
+					}
 				}
 			}
 		}
