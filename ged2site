@@ -1631,8 +1631,12 @@ if($opts{'w'}) {
 					$summary = 'Consecutive commas found in place name';
 				} elsif($warning =~ /assuming country of death is USA/) {
 					$summary = 'Assuming country of death is USA';
-				} elsif($warning =~ /Location for military service /) {
+				} elsif($warning =~ /Location for.+military service /) {
 					$summary = 'Missing Location for Military Service';
+				} elsif($warning =~ /^Removing leading 0 from/) {
+					$summary = 'Removing Leading Zero';
+				} elsif($warning =~ /^Unknown event type/) {
+					$summary = 'Unhandled Event Type';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
@@ -7587,7 +7591,7 @@ sub print_person
 								# TODO: Add pointer to image
 								$censuses{$census}->{$person->as_string(include_years => 1)} = $person;
 							} elsif($title !~ /^Archive reference: RG/) {	# FMP has these
-								complain({ person => $person, warning => "Add $title to censusmaps" });
+								complain({ person => $person, warning => "Add '$title' to censusmaps" });
 							}
 						}
 					}
@@ -10454,7 +10458,7 @@ sub place {
 							complain({ person => $params{'person'}, warning => 'Location for "' . lcfirst($params{'record'}->type()) . "\" on $date is empty" });
 						}
 					} else {
-						complain({ person => $params{'person'}, warning => 'Location is empty' });
+						complain({ person => $params{'person'}, warning => 'Location is Empty' });
 					}
 				}
 				return;
@@ -11658,7 +11662,7 @@ sub is_alive
 			if(my $edate = $event->date()) {
 				if(my $eyear = get_year_from_date($edate)) {
 					if($eyear <= 1900) {
-						complain({ person => $person, warning => "Was alive in $eyear, can't find death information" });
+						complain({ person => $person, warning => "Was alive in $eyear but can't find death information" });
 						return 0;
 					}
 				}
