@@ -12579,6 +12579,8 @@ sub chronicling_america
 		die $person->as_string(), ': BUG: state "', $chronicling_params->{'state'}, '" too short';
 	}
 
+	return;	# FIXME: Too many false positives for now
+
 	print Data::Dumper->new([$chronicling_params])->Dump() if($opts{'v'});
 
 	if(my $loc = Genealogy::ChroniclingAmerica->new($chronicling_params)) {
