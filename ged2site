@@ -13392,13 +13392,7 @@ sub between
 {
 	if(my $phrase = shift) {
 		if($phrase =~ /^fro?m (.+) to (.+)/i) {
-			if($language eq 'French') {
-				return "entre $1 et $2";
-			}
-			if($language eq 'German') {
-				return "zwischen $1 und $2";
-			}
-			return "between $1" . i18n(' and ') . $2;
+			return i18n('between ') . conjunction($1, $2);
 		}
 		return $phrase;
 	}
@@ -14261,6 +14255,7 @@ and::and
 arrived::arrived
 at::at
 before %s::before %s
+between::between
 birthplace::birthplace
 both with %s::both with %s
 brother::brother
@@ -14335,6 +14330,7 @@ arrived:M:est arrivé
 arrived:F:est arrivée
 at::à
 before %s::avant le %s
+between::entre
 birthplace::ville natal
 both with %s::tous les deux avec %s
 brother::frère
@@ -14414,6 +14410,7 @@ and::und
 arrived::kam
 at::in der
 before %s::vor %s
+between::zwischen
 birthplace::Geburtsort
 both with %s::beide mit %s
 brother::Bruder
