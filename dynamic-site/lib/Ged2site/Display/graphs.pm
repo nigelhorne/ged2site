@@ -1128,7 +1128,12 @@ sub _birth_countries
 		}
 		$fdata .= "]\n}\n";
 
-		return { mdata => $mdata, fdata => $fdata };
+		my $datapoints = (
+			'M' => $mdata,
+			'F' => $fdata
+		);
+
+		return { datapoints => $datapoints }
 	}
 	return { error => "Can't open $json_file" };
 }

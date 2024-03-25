@@ -40,6 +40,8 @@
 			[% SET title = 'Number of Children by Women' %]
 		[% ELSE %]
 			[% SET title = 'Family Tree Analytics' %]
+		[% ELSIF graph == 'birth_countries' %]
+			[% SET title = 'Country of Birth' %]
 		[% END %]
 		<title>[% title %]</title>
 		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A ged2site webpage">

@@ -27,6 +27,8 @@
 			[% SET title = 'Percentage of people alive who died' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Moyen distance entre les lieux du n&eacute;ssance et mort' %]
+		[% ELSIF graph == 'birth_countries' %]
+			[% SET title = 'Country of Birth' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]

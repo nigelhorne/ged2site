@@ -26,6 +26,8 @@
 			[% SET title = 'Percentage of people alive who died' %]
 		[% ELSIF graph == 'dist' %]
 			[% SET title = 'Average distance between places of birth and death' %]
+		[% ELSIF graph == 'birth_countries' %]
+			[% SET title = 'Country of Birth' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
