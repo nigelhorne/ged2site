@@ -1128,10 +1128,10 @@ sub _birth_countries
 		}
 		$fdata .= "]\n}\n";
 
-		my $datapoints = (
+		my $datapoints = {
 			'M' => $mdata,
 			'F' => $fdata
-		);
+		};
 
 		return { datapoints => $datapoints }
 	}
