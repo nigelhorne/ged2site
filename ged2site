@@ -3101,9 +3101,9 @@ sub print_person
 	} elsif($spouserelationship) {
 		if((!$is_alive) || $opts{'l'}) {
 			if($sex eq 'F') {
-				print $html '(the wife of';
+				print $html ', the wife of';
 			} else {
-				print $html '(the husband of';
+				print $html ', the husband of';
 			}
 		} else {
 			if($sex eq 'F') {
@@ -3136,24 +3136,22 @@ sub print_person
 		}
 		print $html ' <a href="', make_filename_from_person(person => $spouse), '">',
 			wide_to_html($s),
-			"</a>, the $spouserelationship of ",
+			"</a>(the $spouserelationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
 			wide_to_html($me->as_string(nee => 1)),
-			'</a>';
+			'</a>)';
 		$phrase->append(' <a href="?page=people&entry=' . $spouse->xref() . '">' .
-			"$s</a>, the $spouserelationship of " .
+			"$s</a>(the $spouserelationship of " .
 			'<a href="?page=people&home=1">' .
 			$me->as_string(nee => 1) .
-			'</a>');
+			'</a>)');
 		# print $xml ' &lt;a href="?page=people&amp;entry=', $spouse->xref(), '"&gt;',
 			# wide_to_xml($s),
 			# "$s&lt;/a&gt; the $spouserelationship of ",
 			# '&lt;a href="?page=people&amp;home=1"&gt;',
 			# wide_to_xml($me->as_string(nee => 1)),
 			# '&lt;/a&gt;';
-		if((!$is_alive) || $opts{'l'}) {
-			$phrase->append(') ');
-		} elsif($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
+		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
 			print $html ',';
 			print $xml ',';
 		}
