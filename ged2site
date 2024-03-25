@@ -13395,7 +13395,10 @@ sub between
 			if($language eq 'French') {
 				return "entre $1 et $2";
 			}
-			return "between $1 and $2";
+			if($language eq 'German') {
+				return "zwischen $1 und $2";
+			}
+			return "between $1" . i18n(' and ') . $2;
 		}
 		return $phrase;
 	}
