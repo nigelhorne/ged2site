@@ -1607,7 +1607,8 @@ if($opts{'w'}) {
 					# FIXME: Lots of false positives
 					next;
 				} elsif(($warning =~ /^Check out https:\/\/mlarchives.rootsweb.com\/listindexes\/emails?listname=gen-obit/) ||
-					($warning =~ /^Check out https:\/\/www.freelists.org\/post\/obitdailytimes\/Obituary-Daily-Times-v/)) {
+					($warning =~ /^Check out https:\/\/www.freelists.org\/post\/obitdailytimes\/Obituary-Daily-Times-v/) ||
+					($warning =~ /^Check out https:\/\/https:\/\/wayback-archive\.org\/20669\/20231102044925\/https:\/\/mlarchives.rootsweb.com\/listindexes/)) {
 					$summary = 'Check out Obituary Daily Times';
 				} elsif($warning =~ /^Check out .*mrawson/) {
 					$summary = 'Check out Kent Wills Transcription';
