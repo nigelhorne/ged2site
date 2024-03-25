@@ -11,7 +11,7 @@
 		<meta name="Author" content="Nigel Horne">
 		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne, all rights reserved">
 		[% IF graph == 'ageatdeath' %]
-			[% SET title = 'Adult Life Expectancy' %]
+			[% SET title = 'Lebenserwartung' %]
 		[% ELSIF graph == 'birthmonth' %]
 			[% SET title = 'Month of Birth' %]
 		[% ELSIF graph == 'marriagemonth' %]
@@ -124,7 +124,7 @@
 			<li><a href="?page=graphs&graph=ageatfirstchild">Age of Parents on birth of first child</a></li>
 			<li><a href="?page=graphs&graph=ageatlastchild">Age of Parents on birth of last child</a></li>
 			<li><a href="?page=graphs&graph=familysizetime">How family size changes over time</a></li>
-			<li><a href="?page=graphs&graph=motherchildren">Number of children by women</a></li>
+			<li><a href="?page=graphs&amp;graph=motherchildren">Number of children by women</a></li>
 			<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
 			<li><a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a></li>
 		</ul>

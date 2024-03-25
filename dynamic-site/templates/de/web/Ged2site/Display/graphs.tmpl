@@ -1,26 +1,16 @@
 <!DOCTYPE HTML>
 <html lang="en" dir="ltr">
 	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-		<meta http-equiv="Content-Language" content="en">
-		<meta name="robots" content="INDEX,FOLLOW">
-		<meta name="language" content="ENGLISH">
-		<meta name="object" content="Index">
-		<meta name="owner" content="Nigel Horne">
-		<meta name="Author" content="Nigel Horne">
-		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A ged2site webpage">
-		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
 		[% IF graph == 'ageatdeath' %]
-			[% SET title = 'Adult Life Expectancy' %]
+			[% SET title = 'Lebenserwartung' %]
 		[% ELSIF graph == 'birthmonth' %]
-			[% SET title = 'Mois de Naissance' %]
+			[% SET title = 'Month of Birth' %]
 		[% ELSIF graph == 'marriagemonth' %]
-			[% SET title = 'Mois de Marriage' %]
+			[% SET title = 'Month of Marriage' %]
 		[% ELSIF graph == 'deathmonth' %]
-			[% SET title = 'Mois de Death' %]
+			[% SET title = 'Month of Death' %]
 		[% ELSIF graph == 'ageatmarriage' %]
-			[% SET title = 'Moyen &Acirc;ge &aacute; Premi&egrave;re Mariage' %]
+			[% SET title = 'Average Age at First Marriage' %]
 		[% ELSIF graph == 'infantdeaths' %]
 			[% SET title = 'Infant Deaths' %]
 		[% ELSIF graph == 'firstborn' %]
@@ -28,19 +18,21 @@
 		[% ELSIF graph == 'sex' %]
 			[% SET title = 'Sex of people born in each year' %]
 		[% ELSIF graph == 'ageatfirstchild' %]
-			[% SET title = '&Acirc;ge de Parents at Birth of First Child' %]
+			[% SET title = 'Age of Parents at Birth of First Child' %]
 		[% ELSIF graph == 'ageatlastchild' %]
-			[% SET title = '&Acirc;ge de Parents at Birth of Last Child' %]
+			[% SET title = 'Age of Parents at Birth of Last Child' %]
 		[% ELSIF graph == 'dist' %]
-			[% SET title = 'Moyen distance entre les lieux du n&eacute;ssance et mort' %]
+			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSIF graph == 'distcount' %]
 			[% SET title = 'Distance between places of birth and death' %]
 		[% ELSIF graph == 'familysizetime' %]
 			[% SET title = 'How Family Size Changes over Time' %]
 		[% ELSIF graph == 'motherchildren' %]
-			[% SET title = 'Nombre des enfants par femmes' %]
+			[% SET title = 'Number of Children by Women' %]
 		[% ELSIF graph == 'percentagedying' %]
 			[% SET title = 'Percentage of people alive who died' %]
+		[% ELSIF graph == 'birth_countries' %]
+			[% SET title = 'Country of Birth' %]
 		[% ELSIF graph == 'name_date' %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'First Name Popularity' %]
@@ -49,7 +41,7 @@
 			[% SET title = 'Surname Popularity' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
-			[% SET title = 'Choisisez un graph' %]
+			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<title>[% title %]</title>
 		[% IF twitter %]
@@ -59,6 +51,8 @@
 		<!--
 			<meta http-equiv="Content-Language" content="English">
 		-->
+		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A ged2site webpage">
+		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
 		<style type="text/css">
 			/* Two columns */
 			.column {
@@ -73,8 +67,10 @@
 				clear: both;
 			}
 		</style>
+		</head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+		<!-- <script type="text/javascript" src="https://cdn.canvasjs.com/canvasjs.min.js"></script> -->
 		[% IF datapoints.M %]
-			<script src="//cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
 			window.onload = function () {
@@ -87,7 +83,7 @@
 					axisY: {
 						[% IF graph == 'ageatdeath' %]
 							includeZero: false,
-							title: '&Acirc;ge at Death',
+							title: 'Age at Death',
 						[% ELSIF graph == 'percentagedying' %]
 							title: 'Percentage',
 						[% END %]
@@ -158,7 +154,7 @@
 					axisY: {
 						[% IF graph == 'ageatdeath' %]
 							includeZero: false,
-							title: '&Acirc;ge at Death',
+							title: 'Age at Death',
 						[% END %]
 						gridThickness: 0
 					},
@@ -223,7 +219,6 @@
 			}
 			</script>
 		[% ELSIF datapoints %]
-			<script src="//cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
 			window.onload = function () {
@@ -236,14 +231,14 @@
 						[% IF graph == 'dist' %]
 							title: '[% units %]',
 						[% ELSIF graph == 'familysizetime' %]
-							title: "Nombre des enfants",
+							title: "Number of Children",
 						[% ELSIF graph == 'motherchildren' %]
-							title: "Nombre des mères",
+							title: "Number of Mothers",
 							includeZero: false,
 						[% ELSIF graph == 'infantdeaths' %]
 							title: 'Percentage',
 						[% ELSIF graph == 'distcount' %]
-							title: "Nombres des gens",
+							title: "Number of People",
 						[% END %]
 						gridThickness: 0
 					},
@@ -251,7 +246,7 @@
 						axisX: {
 							title: "Months",
 							interval: 6,
-							intervalType: "mois"
+							intervalType: "month"
 						},
 						zoomEnabled: true,
 					[% ELSIF graph == 'dist' %]
@@ -263,7 +258,7 @@
 						},
 					[% ELSIF graph == 'motherchildren' %]
 						axisX: {
-							title: "Nombre des enfants",
+							title: "Number of Children",
 						},
 					[% END %]
 					animationEnabled: true,	// change to false
@@ -284,8 +279,31 @@
 				chart.render();
 			}
 			</script>
+		[% ELSIF mdata && fdata %]
+			<script type="text/javascript">
+
+			window.onload = function () {
+				var chartM = new CanvasJS.Chart("chartContainerM", {
+					theme: "theme1",	//theme2
+					title:{
+						text: "[% title %] (Mother's side)"
+					},
+					animationEnabled: true,	// change to false
+					data: [ [% mdata %] ]
+				});
+				var chartF = new CanvasJS.Chart("chartContainerF", {
+					theme: "theme1",	//theme2
+					title:{
+						text: "[% title %] (Father's side)
+					},
+					animationEnabled: true,	// change to false
+					data: [ [% fdata %] ]
+				});
+				chartF.render();
+				chartM.render();
+			}
+			</script>
 		[% ELSIF mdatapoints && fdatapoints %]
-			<script src="//cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
 			window.onload = function () {
@@ -365,10 +383,10 @@
 	</head>
 
 	<body>
-		[% UNLESS name_date || surname_date %]
+		[% UNLESS name_date || surname_date  %]
 			<center>
-				[ <a href="?page=home">Accueil</a> ] |
-				[ <a href="?page=censuses">Index des Recensements</a> |
+				[ <a href="?page=people&amp;home=1">Home</a> ] |
+				[ <a href="?page=censuses">Census Index</a> ] |
 				[ <a href="?page=surnames">Surname Index</a> ] |
 				[ <a href="?page=history">Family History</a> ] |
 				[ <a href="?page=todo">To Do</a> ] |
@@ -376,8 +394,8 @@
 				[% IF graph %]
 					[ <a href="?page=graphs">Analytics</a> ] |
 				[% END %]
-				[ <a href="?page=emmigrants">Emigr&eacute;s</a> ] |
-				[ <a href="/visjs.html">L'axe Chronologique</a> ]
+				[ <a href="?page=emmigrants">Emigrants</a> ] |
+				[ <a href="/visjs.html">Timeline</a> ]
 			</center>
 			[% IF error %]
 				<p><font color="red" size="+2">[% error %]</font></p>
@@ -445,7 +463,7 @@
 		[% ELSIF graph == 'dist' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data from 5 year periods that contain at least 10 births.</p>
-			<p>People who moved much further away than most (tels l&eacute;migrants emigrants) are not included so that the graph more reflects the norm.</p>
+			<p>People who moved much further away than most (for example emigrants) are not included so that the graph more reflects the norm.</p>
 			<p>Select an area to zoom in.</p>
 		[% ELSIF graph == 'ageatfirstchild' || graph == 'ageatlastchild' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
@@ -463,6 +481,12 @@
 				are assuming to be missing a death record.
 				These differences could cause anomolies.
 			</p>
+		[% ELSIF graph == 'birth_countries' %]
+			<p>
+				Shows the countries of birth on both sides of the family of all adults in the tree.
+			<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
 		[% ELSIF name_date %]
 			<div id="header_container">
 				<center>
@@ -471,7 +495,7 @@
 			</div>
 			<div id="container">
 				<center>
-					[ <a href="?page=people&amp;home=1">Accueil</a> ] |
+					[ <a href="?page=people&amp;home=1">Home</a> ] |
 					[ <a href="?page=censuses">Census Index</a> ] |
 					[ <a href="?page=surnames">Surname Index</a> ] |
 					[ <a href="?page=history">Family History</a> ] |
@@ -496,7 +520,7 @@
 			</div>
 			<div id="container">
 				<center>
-					[ <a href="?page=people&amp;home=1">Accueil</a> ] |
+					[ <a href="?page=people&amp;home=1">Home</a> ] |
 					[ <a href="?page=censuses">Census Index</a> ] |
 					[ <a href="?page=surnames">Surname Index</a> ] |
 					[ <a href="?page=history">Family History</a> ] |
@@ -515,36 +539,37 @@
 			</div>
 		[% ELSE %]
 			<div id="container">
-				<h2>Choisissez un Graph</h2>
+				<h2>Choose a Graph</h2>
 				<br>
 				<ul id="nav">
-					<li><a href="?page=graphs&amp;graph=birthmonth">Mois de naissance</a></li>
-					<li><a href="?page=graphs&amp;graph=marriagemonth">Mois de marriage</a></li>
-					<li><a href="?page=graphs&amp;graph=deathmonth">Mois de death</a></li>
+					<li><a href="?page=graphs&amp;graph=birthmonth">Month of birth</a></li>
+					<li><a href="?page=graphs&amp;graph=marriagemonth">Month of marriage</a></li>
+					<li><a href="?page=graphs&amp;graph=deathmonth">Month of death</a></li>
 					<li><a href="?page=graphs&amp;graph=infantdeaths">Infant deaths</a></li>
-					<li><a href="?page=graphs&amp;graph=ageatmarriage">Moyen &Acirc;ge &aacute; Premi&egrave;re Mariage</a></li>
-					<li><a href="?page=graphs&amp;graph=ageatdeath">Le moyen &acirc;ge &agrave; la morth</a></li>
-					<li><a href="?page=graphs&amp;graph=firstborn">Mois de marriage before first child</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatmarriage">Average age at marriage</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatdeath">Average age at death</a></li>
+					<li><a href="?page=graphs&amp;graph=firstborn">Months of marriage before first child</a></li>
 					<li><a href="?page=graphs&amp;graph=sex">Sex of people born in each year</a></li>
-					<li><a href="?page=graphs&amp;graph=dist">Moyen distance entre les lieux du n&eacute;ssance et mort</a></li>
+					<li><a href="?page=graphs&amp;graph=dist">Average distance between birth and death</a></li>
 					<li><a href="?page=graphs&amp;graph=distcount">Distance count</a></li>
-					<li><a href="?page=graphs&amp;graph=ageatfirstchild">&Acirc;ge of parents at birth of first child</a></li>
-					<li><a href="?page=graphs&amp;graph=ageatlastchild">&Acirc;ge de parents at birth of last child</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatfirstchild">Age of parents at birth of first child</a></li>
+					<li><a href="?page=graphs&amp;graph=ageatlastchild">Age of parents at birth of last child</a></li>
 					<li><a href="?page=graphs&amp;graph=familysizetime">How family size changes over time</a></li>
-					<li><a href="?page=graphs&amp;graph=motherchildren">Nombre des enfants par femmes</a></li>
+					<li><a href="?page=graphs&amp;graph=motherchildren">Number of children by women</a></li>
 					<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
 					<li><a href="?page=graphs&amp;graph=name_date">First Name Popularity</a></li>
 					<li><a href="?page=graphs&amp;graph=surname_date">Surname Popularity</a></li>
+					<li><a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a></li>
 				</ul>
 			</div>
 		[% END %]
 
 		<p align="right">
 			<i>
-			Cette site web a &eacute;t&eacute; cr&eacute;&eacute; par <a href="//github.com/nigelhorne/ged2site">ged2site</a>.
+			This website was generated by <a href="https://github.com/nigelhorne/ged2site">ged2site</a>.
 			[% IF updated %]
 				[% USE date %]
-				Derni&egrave;re modification le [% date.format(time = updated, format = '%d %b %Y', locale = lingua.language_code_alpha2) %]
+				Last updated on [% date.format(time = updated, format = '%d %b %Y', locale = lingua.language_code_alpha2) %]
 			[% END %]
 			</i>
 		</p>
