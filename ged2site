@@ -3191,7 +3191,7 @@ sub print_person
 
 		print "all_children_are_alive = $all_children_are_alive\n" if($opts{'v'});
 
-		if(($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism)) {
+		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {
 			if($dateofbirth || $placeofbirth) {
 				# print $html ',' if($print_sibling_count && (!$opts{'a'}) && !$opts{'p'});
 
@@ -3500,6 +3500,7 @@ sub print_person
 				@phrases = ();
 			}
 		} elsif($dateofbaptism || $placeofbaptism) {
+		die;	# I don't this code can be reached
 			if($language eq 'French') {
 				if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 					$bio .= " $pronoun y a \N{U+00E9}t\N{U+00E9} ";	# a été
