@@ -7526,6 +7526,7 @@ sub print_person
 	my $profile_thumbnail;
 
 	if($opts{'l'} || !$is_alive) {
+		# Output the citations field
 		if($opts{'c'} && $citationcount) {
 			print "Create $citationcount citations\n" if($opts{'v'});
 			print $html '<h2>Citations</h2><ol>';
@@ -7756,7 +7757,7 @@ sub print_person
 			}
 		}
 
-		print $csv '!';
+		print $csv '!';	# Separator between citations and notes fields
 
 		# my $printed_notes;
 		# if($death && (my $notes = notes({ person => $person, record => $death, paragraph => 1 }))) {
@@ -7775,6 +7776,10 @@ sub print_person
 			print $html $notes;
 			my $n = notes({ person => $person, record => $person, note_locations => \@note_locations, encode => 0 });
 			$n =~ s/"/&quot;/g;
+			if($n =~ /a href=&quot;/) {
+				# Reverse that encoding for hrefs
+				$n =~ s/<a href=&quot;(.+)&quot;>/<a href="$1">/g;
+			}
 			print $csv $n;
 			$notes =~ s/&pound;/&#163;/g;
 			# $notes =~ s/</&lt;/g;
