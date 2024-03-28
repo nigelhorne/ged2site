@@ -2916,8 +2916,6 @@ sub print_person
 				my $f = wide_to_html($father->as_string());
 				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
 					"$f</a>");
-				$bio = '<a href="?page=people&entry=' . $father->xref() . '">' .
-					"$f</a>";
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
 					"$f</a>";
 				# print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
@@ -6462,9 +6460,10 @@ sub print_person
 
 					if(defined($phrase) && ($phrase->length() > 0)) {
 						push @phrases, $phrase;
-						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 						$phrase = Data::Text->new();
-						@phrases = ();
+						print Data::Dumper->new([\@phrases])->Dump();
+						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+						undef @phrases;
 					}
 				} elsif($type eq 'Departure') {
 					if(!defined($event->place())) {
@@ -6532,20 +6531,24 @@ sub print_person
 							$bio .= '. ';
 						}
 
-						push @phrases, $phrase;
-						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-						$phrase = Data::Text->new();
-						@phrases = ();
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$phrase = Data::Text->new();
+						}
+						if(scalar(@phrases)) {
+							$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+							undef @phrases;
 
-						$notes =~ s/\.$//;
-						# TODO:  Do this if the notes doesn't include a date
-						# if(my $date = year(record => $event)) {
-							# $bio .= ' ' . ucfirst($notes) . " $date. ";
-						# } else {
-							$bio .= ' ' . ucfirst($notes) . '. ';
-							$bio_dt->append( ' ' . ucfirst($notes) . '. ');
-						# }
-						$end_of_sentence = 1;
+							# TODO:  Do this if the notes doesn't include a date
+							# $notes =~ s/\.$//;
+							# if(my $date = year(record => $event)) {
+								# $bio .= ' ' . ucfirst($notes) . " $date. ";
+							# } else {
+								$bio .= ' ' . ucfirst($notes) . '. ';
+								$bio_dt->append( ' ' . ucfirst($notes) . '. ');
+							# }
+							$end_of_sentence = 1;
+						}
 					}
 				} elsif($type eq 'Court') {
 					$bio .= '. ' if(!$end_of_sentence);
