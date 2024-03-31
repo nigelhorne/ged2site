@@ -1128,7 +1128,7 @@ sub _birth_countries
 		}
 		$fdata .= "]\n}\n";
 
-		return { mdata => $mdata, fdata => $data }
+		return { mdata => $mdata, fdata => $fdata }
 	}
 	return { error => "Can't open $json_file" };
 }
