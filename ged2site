@@ -9721,7 +9721,7 @@ sub Gedcom::Individual::relationship_up
 				);
 				my %de_male_relationships = (
 					1 << 24 | 1 => 'Brude',
-					1 << 24 | 2 => 'nephew',
+					1 << 24 | 2 => 'Neffe',
 					1 << 24 | 3 => 'great-nephew',
 					1 << 24 | 4 => 'great-great-nephew',
 					2 << 24 | 1 => 'Onkle',
