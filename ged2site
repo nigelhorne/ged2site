@@ -1258,13 +1258,12 @@ if(scalar(%all_locations)) {
 		print $locations_xml "\t\t<map>\n\t\t\t<year>$year</year>\n\t\t\t<head>$head\n\t\t\t</head>\n\t\t</map>\n";
 	}
 	# close $csv;
+	undef %all_locations;
 
 	$body =~ s/</&lt;/g;
 	$body =~ s/>/&gt;/g;
 	print $locations_xml "\t</maps>\n\t<body>$body</body>\n</locations>\n";
 	close $locations_xml;
-
-	undef %all_locations;
 }
 
 if(scalar(%all_military)) {
@@ -4913,8 +4912,7 @@ sub print_person
 									'residence' => $residence,
 									'person' => $person,
 									'date' => $strftime,
-									'latitude' => $location->lat(),
-									'longitude' => $location->long()
+									'location' => $location
 								};
 							}
 						}
@@ -5539,7 +5537,7 @@ sub print_person
 						my @people_near_p2;
 						my $p3;	# previous place
 
-						my @sorted_locations = sort { $a->{'latitude'} <=> $b->{'latitude'} } @{$all_locations{$year}};
+						my @sorted_locations = sort { $a->{'location'}->latitude() <=> $b->{'location'}->latitude() } @{$all_locations{$year}};
 
 						# $Data::Dumper::Maxdepth = 2;
 						my $iterator = Array::Iterator->new({ __array__ => \@sorted_locations });
