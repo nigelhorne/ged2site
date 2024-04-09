@@ -1200,8 +1200,9 @@ if(scalar(%censuses)) {
 if(scalar(%all_locations)) {
 	print "Creating locations database\n";
 
-	open($csv, '>', 'dynamic-site/data/locations.csv');
-	print $csv "entry!location!person!year!date\n";
+	# I don't think I ever used this, so I'm removing it for now
+	# open($csv, '>', 'dynamic-site/data/locations.csv');
+	# print $csv "entry!location!person!year!date\n";
 
 	$index = 1;
 
@@ -1214,10 +1215,10 @@ if(scalar(%all_locations)) {
 			my $place = place(record => $l->{'residence'}, nopreposition => 1);
 			$place =~ s/^\s*//;
 			push @{$markers{$place}}, $l;
-			print $csv "$index!$place!",
-				$l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
-				"$year!",
-				$l->{'date'}, "\n";
+			# print $csv "$index!$place!",
+				# $l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
+				# "$year!",
+				# $l->{'date'}, "\n";
 			$index++;
 		}
 
@@ -1256,7 +1257,7 @@ if(scalar(%all_locations)) {
 		$head =~ s/>/&gt;/g;
 		print $locations_xml "\t\t<map>\n\t\t\t<year>$year</year>\n\t\t\t<head>$head\n\t\t\t</head>\n\t\t</map>\n";
 	}
-	close $csv;
+	# close $csv;
 
 	$body =~ s/</&lt;/g;
 	$body =~ s/>/&gt;/g;
