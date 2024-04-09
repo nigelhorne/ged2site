@@ -7,23 +7,6 @@ our @ISA = ('Database::Abstraction');
 
 # The database associated with the locations template file
 
-sub new {
-	my $proto = shift;
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
-
-	my $class = ref($proto) || $proto;
-
-	die "$class: where are the files?" unless($directory || $args{'directory'});
-	# init(\%args);
-
-	return bless {
-		logger => $args{'logger'} || $logger,
-		directory => $args{'directory'} || $directory,	# The directory conainting the tables in XML, SQLite or CSV format
-		cache => $args{'cache'} || $cache,
-		table => $args{'table'}	# The name of the file containing the table, defaults to the class name
-	}, $class;
-}
-
 sub locations {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -52,6 +35,7 @@ sub head {
 	}
 }
 
+# Ensure we open locations.xml not the locations.csv file
 sub _open {
 	my $self = shift;
 
@@ -61,8 +45,9 @@ sub _open {
 
 		my @statb = stat($xmlfile);
 		$self->{'_updated'} = $statb[9];
+	} else {
+		croak("Can't open $xmlfile");
 	}
-	throw Error::DB::Open('-file' => $xmlfile);
 }
 
 1;
