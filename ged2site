@@ -1209,7 +1209,8 @@ if(scalar(%all_locations)) {
 	open(my $locations_xml, '>', 'dynamic-site/data/locations.xml');
 	print $locations_xml "<locations>\n\t<maps>\n";
 	my ($head, $body);
-	foreach my $year(sort keys(%all_locations)) {
+	# Sort numerically: https://www.oreilly.com/library/view/perl-cookbook/1565922433/ch04s15.html
+	foreach my $year(sort { $a <=> $b } keys(%all_locations)) {
 		my %markers;
 		foreach my $l(@{$all_locations{$year}}) {
 			my $place = place(record => $l->{'record'}, nopreposition => 1);
@@ -4905,6 +4906,7 @@ sub print_person
 					}
 					if($rdate && (my $rdate_dt = date_to_datetime($rdate))) {
 						my $year = $rdate_dt->year();
+						$year =~ s/^0+//;	# Strip leading zeros
 						my $strftime = $rdate_dt->strftime('%x');
 						if(my $place = place({ person => $person, record => $residence, nopreposition => 1 })) {
 							if(my $location = get_location($place)) {
@@ -5531,6 +5533,7 @@ sub print_person
 						#	flag, or when producing a PDF book, since it relies on having found data
 						#	on people beforehand
 						my $year = $dt->year();
+						$year =~ s/^0+//;	# Strip leading zeros
 						my $printed_person = 0;
 						my $gis = GIS::Distance->new('MathTrig');
 						my $p2 = place({ record => $residence, nopreposition => 1 });
@@ -13226,6 +13229,7 @@ sub get_year_from_date($)
 		return $year;
 	}
 	if(my $year = UnixDate(ParseDate($string), '%Y')) {	# Date::Manip
+		$year =~ s/^0+//;	# Strip leading zeros
 		return $year;
 	}
 	complain("Can't parse string '$string'");

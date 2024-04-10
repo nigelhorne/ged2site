@@ -15,7 +15,7 @@ sub html {
 	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'locations',
-		'year' => qr/^\d{4}$/,
+		'year' => qr/^\d{3,4}$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
 	};
