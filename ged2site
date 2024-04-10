@@ -1212,7 +1212,7 @@ if(scalar(%all_locations)) {
 	foreach my $year(sort keys(%all_locations)) {
 		my %markers;
 		foreach my $l(@{$all_locations{$year}}) {
-			my $place = place(record => $l->{'residence'}, nopreposition => 1);
+			my $place = place(record => $l->{'record'}, nopreposition => 1);
 			$place =~ s/^\s*//;
 			push @{$markers{$place}}, $l;
 			# print $csv "$index!$place!",
@@ -1253,9 +1253,9 @@ if(scalar(%all_locations)) {
 		($head, $body) = $map->onload_render();
 		$head =~ s/\n\n*/\n/g;
 		$head =~ s/http:/https:/;
-		$head =~ s/</&lt;/g;
-		$head =~ s/>/&gt;/g;
-		print $locations_xml "\t\t<map>\n\t\t\t<year>$year</year>\n\t\t\t<head>$head\n\t\t\t</head>\n\t\t</map>\n";
+		print $locations_xml "\t\t<map>\n\t\t\t<year>$year</year>\n\t\t\t<head>",
+			wide_to_xml($head),
+			"\n\t\t\t</head>\n\t\t</map>\n";
 	}
 	# close $csv;
 	undef %all_locations;
@@ -4909,7 +4909,7 @@ sub print_person
 						if(my $place = place({ person => $person, record => $residence, nopreposition => 1 })) {
 							if(my $location = get_location($place)) {
 								push @{$all_locations{$year}}, {
-									'residence' => $residence,
+									'record' => $residence,
 									'person' => $person,
 									'date' => $strftime,
 									'location' => $location
@@ -4926,7 +4926,7 @@ sub print_person
 									if(($l->{'person'}->xref() eq $spouses[0]->xref()) &&
 									   ($l->{'date'} eq $strftime)) {
 										my $r1 = place(record => $residence, nopreposition => 1);
-										my $r2 = place(record => $l->{'residence'}, nopreposition => 1);
+										my $r2 = place(record => $l->{'record'}, nopreposition => 1);
 										if($r1 ne $r2) {
 											$r1 =~ s/^\s+//;
 											$r2 =~ s/^\s+//;
@@ -5548,7 +5548,7 @@ sub print_person
 							   (my $relationship = $person->relationship($l->{'person'})) &&
 							    ((stepsabove($l->{'person'}, $person, 0) <= 3) &&
 							     (stepsabove($person, $l->{'person'}, 0) <= 3)))) {
-								my $p1 = place({ record => $l->{'residence'}, nopreposition => 1 });
+								my $p1 = place({ record => $l->{'record'}, nopreposition => 1 });
 								# This stops verbosity when the list is:
 								#	high street, 33 high street, high street
 								next unless($p1 =~ /^\s?\d/);
@@ -5557,7 +5557,7 @@ sub print_person
 								next if($peek && ($peek->{'person'}->xref() eq $l->{'person'}->xref()));
 
 								my $close_relative;
-								my $distance = $gis->distance($l->{'latitude'}, $l->{'longitude'}, $latitude, $longitude);
+								my $distance = $gis->distance($l->{'location'}->latitude(), $l->{'location'}->longitude(), $latitude, $longitude);
 								# print "p1: $p1\n\tp2 $p2\n";
 								# print "\t", $distance->yards(), '/', $distance->miles(), "\n";
 
@@ -8785,6 +8785,14 @@ sub print_person
 					"\n\t\t\t\t<long>", $location->long(), '</long>',
 					"\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">", $location->long(), $location->lat(), '</point>';
 				print $xml "\n\t\t\t</birth>";
+				if($dateofbirth) {
+					push @{$all_locations{get_year_from_date($dateofbirth)}}, {
+						'record' => $birth,
+						'person' => $person,
+						'date' => $dateofbirth,
+						'location' => $location
+					}
+				};
 			} else {
 				complain({ person => $person, warning => "Unknown birth location $placeofbirth" });
 			}
