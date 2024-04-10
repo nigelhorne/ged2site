@@ -12784,10 +12784,9 @@ sub dateofbirth {
 		if($d[1] =~ /(\d{3,4})/) {
 			$year2 = $1;
 		}
-		if(defined($year1) && defined($year2)) {
-			if(abs($year1 - $year2) > 30) {
-				complain({ person => $person, warning => 'More than one date of birth separated by many years' });
-			}
+
+		if((defined($year1) && defined($year2)) && (abs($year1 - $year2) > 30)) {
+			complain({ person => $person, warning => 'More than one date of birth separated by many years' });
 		}
 
 		# Get the primary date.
@@ -12848,6 +12847,10 @@ sub dateofbirth {
 		if($dateofbirth =~ /\s$/) {
 			complain({ person => $person, warning => "Removing trailing spaces from date of birth '$dateofbirth'" });
 			$dateofbirth =~ s/\s+$//;
+		}
+		if($dateofbirth =~ /^0\d{3}/) {
+			complain({ person => $person, warning => "Removing leading zeroes from date of birth '$dateofbirth'" });
+			$dateofbirth =~ s/^0+//;
 		}
 		return parse_date({ date => $dateofbirth, type => 'Birth', person => $person });
 	}
