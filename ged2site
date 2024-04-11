@@ -2739,15 +2739,16 @@ sub print_person
 		@person_twins = twins({ birth_dt => $birth_dt, siblings => \@siblings });
 
 		if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
-			if(scalar(@occupations)) {
+			if((scalar(@phrases) > 0) && ($phrase->length == 0)) {
 				if(!$printed_comma) {
 					$bio .= ', ';
 				}
 				if($phrase->length()) {
 					push @phrases, $phrase;
 				}
-				$phrase = Data::Text->new('twin of ' . $person_twins[0]->{'sibling'}->given_names());
-				$bio .= 'twin of ' . $person_twins[0]->{'sibling'}->given_names();
+				my $s = i18n({ person => $person, format => 'twin of' });
+				$phrase = Data::Text->new("$s " . $person_twins[0]->{'sibling'}->given_names());
+				$bio .= "$s " . $person_twins[0]->{'sibling'}->given_names();
 			} else {
 				if($phrase->length()) {
 					push @phrases, $phrase;
@@ -14328,6 +14329,7 @@ to::to
 today::today
 tomorrow::tomorrow
 twice::twice
+twin of::twin of
 was::was
 was buried::was buried
 was born::was born
@@ -14408,6 +14410,8 @@ to::à
 today::aujourd'hui
 tomorrow::demain
 twice::deux fois
+twin of:F:jumelle de
+twin of:M:jumeau de
 was::était
 was buried:M:a été inhumé
 was buried:F:a été inhumée
