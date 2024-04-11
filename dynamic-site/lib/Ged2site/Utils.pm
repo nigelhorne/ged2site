@@ -25,7 +25,7 @@ sub create_disc_cache {
 	my $logger = $args{'logger'};
 	my $driver = $config->{disc_cache}->{driver};
 	unless(defined($driver)) {
-		my $root_dir = $args{'root_dir'} || $ENV{'root_dir'} || $config->{disc_cache}->{root_dir} || $config->{'root_dir'};
+		my $root_dir = $ENV{'root_dir'} || $args{'root_dir'} || $config->{disc_cache}->{root_dir} || $config->{'root_dir'};
 		throw Error::Simple('root_dir is not optional') unless($root_dir);
 
 		if($logger) {
@@ -85,7 +85,7 @@ sub create_disc_cache {
 		);
 		$chi_args{'redis_options'} = \%redis_options;
 	} elsif($driver ne 'Null') {
-		$chi_args{'root_dir'} = $args{'root_dir'} || $config->{disc_cache}->{root_dir};
+		$chi_args{'root_dir'} = $ENV{'root_dir'} || $args{'root_dir'} || $config->{disc_cache}->{root_dir};
 		throw Error::Simple('root_dir is not optional') unless($chi_args{'root_dir'});
 		if($logger) {
 			$logger->debug("root_dir: $chi_args{root_dir}");
@@ -152,7 +152,7 @@ sub create_memory_cache {
 			$chi_args{'max_size'} = $max_size;
 		}
 	} elsif(($driver ne 'Null') && ($driver ne 'Memory')) {
-		$chi_args{'root_dir'} = $args{'root_dir'} || $config->{memory_cache}->{root_dir} || $config->{'root_dir'};
+		$chi_args{'root_dir'} = $ENV{'root_dir'} || $args{'root_dir'} || $config->{memory_cache}->{root_dir} || $config->{'root_dir'};
 		throw Error::Simple('root_dir is not optional') unless($chi_args{'root_dir'});
 		if($logger) {
 			$logger->debug("root_dir: $chi_args{root_dir}");
@@ -183,6 +183,8 @@ sub distance {
 	}
 	return ($dist);
 }
+
+my $pi = atan2(1,1) * 4;
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #:::  This function get the arccos function using arctan function   :::
