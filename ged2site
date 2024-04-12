@@ -12930,6 +12930,11 @@ sub dateofmarriage
 			complain({ person => $person, warning => "Removing trailing spaces from date of marriage '$dateofmarriage'" });
 			$dateofmarriage =~ s/\s+$//;
 		}
+		if($opts{'w'} && ($dateofmarriage =~ /\d{3,4}$/) && (my $dateofbirth = dateofbirth($person))) {
+			if(($dateofbirth =~ /\d{3,4}$/) && (datecmp($dateofmarriage, $dateofbirth) <= 0)) {
+				complain({ person => $person, warning => "Date of marriage ($dateofmarriage) is before date of birth ($dateofbirth)" });
+			}
+		}
 		return parse_date({ date => $dateofmarriage, type => 'Marriage', person => $person });
 	}
 	return;	# return undef
