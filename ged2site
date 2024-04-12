@@ -5583,7 +5583,7 @@ sub print_person
 
 								if($p1 eq $p2) {
 									$close_relative = 1;
-								} elsif(($l->{'location'}->latitude() == $latitude) && ($l->{'location'}->longtitude() == $longitude)) {
+								} elsif(($l->{'location'}->latitude() == $latitude) && ($l->{'location'}->longitude() == $longitude)) {
 									complain({
 										person => $person,
 										warning => [ $l->{'person'}->as_string(nee => 1), " residence is same location probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
@@ -5604,7 +5604,7 @@ sub print_person
 									# p1 is the place of the relative we're considering ($l)
 									# p2 is the place of the current person
 									# p3 is the place of the previous relative we're considering
-									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
+									if($p3 && $peek && (place({ record => $peek->{'record'}, nopreposition => 1 }) eq $p3)) {
 										if((!defined($people_near_p2[0])) || ($people_near_p2[0]->{'person'}->xref() ne $l->{'person'}->xref())) {
 											push @people_near_p2, $l;
 										}
@@ -5681,7 +5681,7 @@ sub print_person
 											$residencestring .= ' who was living';
 										}
 									}
-									$residencestring .= place({ record => $l->{'residence'}, there => $p2, places_printed => \%places_printed });
+									$residencestring .= place({ record => $l->{'record'}, there => $p2, places_printed => \%places_printed });
 									$residencestring .= ' -' if($printed_person);
 									$printed_person = 1;
 								}
