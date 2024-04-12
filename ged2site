@@ -2283,6 +2283,9 @@ sub print_person
 		complain({ person => $person, warning => "Removing leading 0 from baptism date '$dateofbaptism'" });
 		$dateofbaptism =~ s/^0//;
 	}
+	if($dateofbaptism && $dateofbirth && (datecmp($dateofbaptism, $dateofbirth) > 0)) {
+		complain({ person => $person, warning => "Date of baptism ($dateofbaptism) before date of birth ($dateofbirth)" });
+	}
 	my $placeofbaptism = get_value({ person => $person, value => 'baptism place' });
 	if((!$placeofbaptism) && $baptism) {
 		$placeofbaptism = $baptism->place();
