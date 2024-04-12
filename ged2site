@@ -5583,7 +5583,7 @@ sub print_person
 
 								if($p1 eq $p2) {
 									$close_relative = 1;
-								} elsif(($l->{'latitude'} == $latitude) && ($l->{'longitude'} == $longitude)) {
+								} elsif(($l->{'location'}->latitude() == $latitude) && ($l->{'location'}->longtitude() == $longitude)) {
 									complain({
 										person => $person,
 										warning => [ $l->{'person'}->as_string(nee => 1), " residence is same location probably should be recorded as the same address ('$p1'/'$p2') in $year" ]
