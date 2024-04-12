@@ -3878,7 +3878,7 @@ sub print_person
 						if($opts{'w'} && $yob && (my $cdob = dateofbirth($child))) {
 							my $age = get_year_from_date($cdob) - $yob;
 							if($age <= 14) {
-								complain({ person => $person, "Only $age years old at time of birth of their child " . $child->as_string() });
+								complain({ person => $person, warning => "Only $age years old at time of birth of their child " . $child->as_string() });
 							}
 						}
 					}
