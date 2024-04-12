@@ -2283,7 +2283,7 @@ sub print_person
 		complain({ person => $person, warning => "Removing leading 0 from baptism date '$dateofbaptism'" });
 		$dateofbaptism =~ s/^0//;
 	}
-	if($dateofbaptism && $dateofbirth && (datecmp($dateofbaptism, $dateofbirth) <= 0)) {
+	if($dateofbaptism && $dateofbirth && ($dateofbaptism !~ /^bet \d{3,4} and \d{3,4}$/) && (datecmp($dateofbaptism, $dateofbirth) <= 0)) {
 		complain({ person => $person, warning => "Date of baptism ($dateofbaptism) before date of birth ($dateofbirth)" });
 	}
 	my $placeofbaptism = get_value({ person => $person, value => 'baptism place' });
@@ -12515,7 +12515,7 @@ sub datecmp($$)
 				while((my @call_details = caller($i++))) {
 					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 				}
-				die "Date parse failure: ($left)";
+				die "Date parse failure: left = ($left)";
 			}
 			my @l = $dfg->parse_datetime($left);
 			my $rc = $l[1] || $l[0];
@@ -12524,7 +12524,7 @@ sub datecmp($$)
 				while((my @call_details = caller($i++))) {
 					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 				}
-				die "Date parse failure: ($left)";
+				die "Date parse failure: left = ($left)";
 			}
 			$left = $rc;
 		}
