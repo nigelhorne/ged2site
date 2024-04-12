@@ -2623,7 +2623,7 @@ sub print_person
 			if($dateofdeath && (my $cdob = dateofbirth($child))) {
 				if(($cdob =~ /\d{3,4}$/) && (datecmp($cdob, $dateofdeath) > 0)) {
 					complain({ person => $person,
-						"Date of birth $pronoun child " . $child->as_string() . " ($cdob) is later than " . ($sex eq 'M' ? 'his' : 'her') . " own date of death ($dateofdeath)"
+						warning => "Date of birth $pronoun child " . $child->as_string() . " ($cdob) is later than " . ($sex eq 'M' ? 'his' : 'her') . " own date of death ($dateofdeath)"
 					})
 				}
 			}
