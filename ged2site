@@ -4890,7 +4890,7 @@ sub print_person
 						$count++;
 						next;
 					}
-					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence})) {
+					if($birth && places_are_the_same({ person => $person, first => $birth, second => $residence })) {
 						$residencestring = i18n(' at ');
 						if($language eq 'French') {
 							$residencestring .= 'sa';
