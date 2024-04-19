@@ -1806,6 +1806,8 @@ sub print_person
 				$dateofbirth = undef;
 			}
 		}
+	} else {
+		undef $dateofbirth;
 	}
 
 	print 'Processing ', $person->as_string({ include_years => 1 }), "\n" if($opts{'v'});
@@ -1889,13 +1891,9 @@ sub print_person
 
 	my $yob;	# Year of birth
 	if($dateofbirth) {
-		if(($dateofbirth eq 'UNKNOWN') || ($dateofbirth eq '?')) {
-			$dateofbirth = undef;
-		} else {
-			$yob = get_year_from_date($dateofbirth);
-			if(!defined($yob)) {
-				complain({ person => $person, warning => "Invalid date of birth $dateofbirth" });
-			}
+		$yob = get_year_from_date($dateofbirth);
+		if(!defined($yob)) {
+			complain({ person => $person, warning => "Invalid date of birth $dateofbirth" });
 		}
 	}
 
