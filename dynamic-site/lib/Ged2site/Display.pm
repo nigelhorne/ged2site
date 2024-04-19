@@ -10,13 +10,12 @@ use Ged2site::Config;
 use Ged2site::Allow;
 use CGI::Info;
 use Error;
-use Fatal qw(:void open);
-use File::pfopen;
-
 use Template::Filters;
 use Template::Plugin::EnvHash;
 use Template::Plugin::Math;
 use HTML::SocialMedia;
+use Fatal qw(:void open);
+use File::pfopen;
 
 our $sm;
 our $smcache;
