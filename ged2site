@@ -5811,6 +5811,7 @@ sub print_person
 					$s = 'was living';
 				}
 
+				print Data::Dumper->new([\@residencestringarray])->Dump() if($opts{'v'});
 				Lingua::Conjunction->separator_phrase(';');
 				Lingua::Conjunction->penultimate(1);
 				$bio .= ', ' . lcfirst($pronoun) . i18n(" $s ") . conjunction(@residencestringarray);
