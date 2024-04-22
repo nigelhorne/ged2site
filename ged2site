@@ -5120,7 +5120,7 @@ sub print_person
 						}
 						my $this_date = year({ person => $person, date => $rdate });
 						if($prev_residence && (year(record => $prev_residence) eq $this_date)) {
-							if(place(record => $prev_residence) ne place(record => $residence)) {
+							if(!places_are_the_same({ person => $person, first => $prev_residence, second => $residence })) {
 								complain({ person => $person, warning => "Two residence records for $rdate differ in location" });
 							}
 						} else {
@@ -5132,11 +5132,10 @@ sub print_person
 							} elsif((!defined($residencestring)) && (my $p = pop(@residencestringarray))) {
 								if($language eq 'French') {
 									$p =~ s/ et /, /g;
-									$residencestring = "$p et $this_date";
 								} else {
 									$p =~ s/ and /, /g;
-									$residencestring = "$p and $this_date";
 								}
+								$residencestring = conjunction($p, $this_date);
 								# We could just added a comma after a sibling's name
 								$residencestring =~ s/,,/,/g;
 							} else {
