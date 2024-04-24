@@ -13519,8 +13519,7 @@ sub weather
 
 	if((my $d = $dfg->parse_datetime(date => $date)) &&
 	   (my $location = get_location($record->place()))) {
-		my $date = $d->strftime('%F');
-		my $weather = $meteo->weather($location, $date);
+		my $weather = $meteo->weather($location, $d->strftime('%F'));
 
 		return unless(defined($weather));
 
