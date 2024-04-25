@@ -4529,7 +4529,7 @@ sub print_person
 		} elsif($numberofchildren) {
 			# Neither date nor place of marriage is known
 			if($end_of_sentence) {
-				$bio .= " $pronoun";
+				$bio .= " $pronoun ";
 			} elsif(scalar(@residences) == 0) {
 				$bio .= i18n(' and');
 			}
@@ -4540,10 +4540,10 @@ sub print_person
 				$phrase = Data::Text->new();
 			}
 			if(is_alive(person => $person)) {
-				$bio .= ' has';
+				$bio .= 'has';
 				$phrase->append('has ');
 			}
-			$bio .= i18n(' had ');
+			$bio .= i18n('had ');
 			$phrase->append(i18n('had '));
 			if($language eq 'French') {
 				$bio .= (($numberofchildren == 1) ? '1 enfant' : "$numberofchildren enfants");
@@ -7055,11 +7055,11 @@ sub print_person
 						}
 						$phrase->append(' following ' .
 							($person->pronoun() eq 'She' ? 'her' : 'his') .
-							i18n(' funeral ') .
+							i18n(' funeral') .
 							$place);
 						$bio .= ' following ' .
 							($person->pronoun() eq 'She' ? 'her' : 'his') .
-							i18n(' funeral ') .
+							i18n(' funeral') .
 							$place;
 					} elsif($place = place({ person => $person, record => $record, nopreposition => 1 })) {
 						if(my $weather = weather({ person => $person, record => $record, meteo => $meteo })) {
