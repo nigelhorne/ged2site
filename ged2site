@@ -6795,9 +6795,16 @@ sub print_person
 				$phrase->append(($type eq 'burial') ? i18n({ person => $person, format => ' was buried' }) : ' was cremated');
 				$bio .= year({ person => $person, date => $dateofburial });
 				$phrase->append(year({ person => $person, date => $dateofburial }));
-				if(my $city = ($placeofburial // $placeofcremation)) {
+
+				# Neither burial nor cremation could be set if we guessed information from the funeral
+				if(($burial || $cremation) && (my $city = ($placeofburial // $placeofcremation))) {
 					if($placeofbirth && places_are_the_same(first => $city, second => $placeofbirth)) {
-						if(my $address = $burial->address()) {
+						if($burial) {
+							if(my $address = $burial->address()) {
+								$bio .= " at $address";
+								$phrase->append(" at $address");
+							}
+						} elsif(my $address = $cremation->address()) {
 							$bio .= " at $address";
 							$phrase->append(" at $address");
 						}
