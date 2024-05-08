@@ -4861,6 +4861,7 @@ sub print_person
 			while(my $residence = $iterator->get_next()) {
 				my $rdate = $residence->date();
 				my $residencestring;
+				my %living_with;
 				my $latitude;
 				my $longitude;
 
@@ -5228,6 +5229,11 @@ sub print_person
 										# false positives when only a city is known
 										if(($place =~ /^\s\d/ && (my $ssp = place({ person => $ss, record => $ssr, nopreposition => 1 })))) {
 											if($ssp eq $place) {
+												if($ss->sex() eq 'F') {
+													$living_with{'sister-in-law'} = $ss
+												} else {
+													$living_with{'brother-in-law'} = $ss
+												}
 												if($first) {
 													$residencestring .= i18n(' when ') . i18n(lc($person->pronoun())) .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
@@ -5271,15 +5277,21 @@ sub print_person
 						if(scalar(@siblings_living_with)) {
 							# Print out all the siblings this person was living with
 							# as an adult
+							$living_with{'siblings'} = \@siblings_living_with;
 							if($first) {
-								$residencestring .= ' (' . i18n('with ') . ($person->pronoun() eq 'She' ? 'her' : 'his');
+								$residencestring .= ' (' .
+									i18n('when ') .
+									i18n(($sex eq 'M') ? 'he' : 'she') .
+									i18n(' was living') .
+									i18n(' with ') .
+									($sex eq 'M' ? 'his' : 'her');
 							} else {
 								$residencestring =~ s/^\s//;
 							}
 							if(scalar(@siblings_living_with) == 1) {
 								$residencestring .=
 									i18n(($sex eq 'F') ? ' sister, ' : ' brother, ') .
-									$siblings_living_with[0]->given_names();
+									$siblings_living_with[0]->given_names() . ',';
 							} else {
 								my $sex = $siblings_living_with[0]->sex();
 								foreach my $sibling(@siblings_living_with) {
@@ -5343,6 +5355,7 @@ sub print_person
 									# if(($p =~ /^\s\d/) && ($p eq $place)) {
 									if($p eq $place) {
 										if($mdate eq $rdate) {
+											$living_with{'mother'} = $mother;
 											$with_mother++;
 											last;
 										} else {
@@ -5379,6 +5392,7 @@ sub print_person
 									# if(($p =~ /^\s\d/) && ($p eq $place)) {
 									if($p eq $place) {
 										if($fdate eq $rdate) {
+											$living_with{'father'} = $father;
 											$with_father++;
 											last;
 										} else {
@@ -5711,6 +5725,11 @@ sub print_person
 									if((ref($event) eq 'Gedcom::Record') &&
 									   $event->date() && ($event->date() eq $rdate) &&
 									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
+									   	if($child->sex() eq 'F') {
+											push @{$living_with{'daughter'}}, $child;
+										} else {
+											push @{$living_with{'son'}}, $child;
+										}
 										$residencestring .= i18n(' when ') .
 											lcfirst(i18n($person->pronoun())) .
 											' was living with ' .
@@ -5751,6 +5770,7 @@ sub print_person
 					}
 					$residencestring =~ s/\sand$//;
 					$residencestring =~ s/,$//;
+					print __LINE__, ": adding '$residencestring' to residencestringarray\n" if($opts{'v'});
 					push @residencestringarray, $residencestring;
 					$printed_residence = 1;
 				}
@@ -5764,7 +5784,11 @@ sub print_person
 					push @phrases, $phrase;
 				}
 				if(scalar(@phrases)) {
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+					my $text = conjunction(map { $_->as_string() } @phrases);
+					if(!defined($text)) {
+						die $person->as_string({ include_years => 1 }), ': BUG: residencestring array is unexpectedly empty';
+					}
+					$bio_dt->append("$text. ");
 					$phrase = Data::Text->new();
 					@phrases = ();
 				}
