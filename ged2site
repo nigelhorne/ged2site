@@ -7304,10 +7304,10 @@ sub print_person
 											if($cp eq $place) {
 												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('child '), $child->as_string();
+													i18n('child ') . $child->as_string();
 												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('child '), $child->as_string());
+													i18n('child ') . $child->as_string());
 												last;
 											}
 										}
@@ -7327,10 +7327,10 @@ sub print_person
 											if($fp eq $place) {
 												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('father '), $father->as_string();
+													i18n('father ') . $father->as_string();
 												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('father '), $father->as_string());
+													i18n('father ') . $father->as_string());
 												last;
 											}
 										}
@@ -7349,10 +7349,10 @@ sub print_person
 											if($mp eq $place) {
 												$bio .= i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('mother '), $mother->as_string();
+													i18n('mother ') . $mother->as_string();
 												$phrase->append(i18n(' when ') . ($person->pronoun() eq 'She' ? 'her' : 'his') .
 													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-													i18n('mother '), $mother->as_string());
+													i18n('mother ') . $mother->as_string());
 												last;
 											}
 										}
