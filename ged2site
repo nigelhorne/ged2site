@@ -4130,11 +4130,6 @@ sub print_person
 						$phrase->append('e');
 					}
 				} else {
-					$bio .= i18n(' and') if((!$printed_and) && ($numberofchildren > 0));
-					if($phrase->length()) {
-						push @phrases, $phrase;
-						$phrase = Data::Text->new();
-					}
 					$bio .= ' was married';
 					$phrase->append('was married');
 				}
@@ -7165,8 +7160,8 @@ sub print_person
 						$phrase->append("$b ");
 					}
 					if($dateofburial) {
-						$bio .= ' ' . year({ person => $person, date => $dateofburial });
-						$phrase->append(' ' . year({ person => $person, date => $dateofburial }));
+						$bio .= year({ person => $person, date => $dateofburial });
+						$phrase->append(year({ person => $person, date => $dateofburial }));
 					}
 					$weather = weather({ person => $person, record => $burial, meteo => $meteo });
 				} else {
@@ -10532,7 +10527,7 @@ sub place {
 				return;
 			}
 		}
-	} elsif(ref($address) eq 'Gedcom::Record') {
+	} elsif(ref($address)) {
 		$place = getaddress($address);
 		$address = undef;
 	}
@@ -10552,6 +10547,7 @@ sub place {
 	my $on_road;
 	if($address) {
 		$address =~ s/\xc3\xb1/\N{U+00F1}/g;	# ñ
+		$address =~ s/\xc3\xa9/\N{U+00E9}/g;	# é
 		if($address =~ /(.+)\sSt\.?$/) {
 			$address = "$1 Street";
 			$on_road = 1;
