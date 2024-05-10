@@ -4573,12 +4573,6 @@ sub print_person
 		}
 	}
 
-	my $printed_residence = 0;
-	my %citationnotes;
-	my @note_locations;
-	my @residencelist;
-	my $diedathome;
-
 	my $military_location;
 
 	if((scalar(@residences) == 1) && (scalar(@events) == 1) &&
@@ -4589,6 +4583,13 @@ sub print_person
 		# so put them together: "in 1970 he was living in London when he was serving in the military"
 		$military_location = 1;
 	}
+
+	my $printed_residence = 0;
+	my %citationnotes;
+	my @note_locations;
+	my @residencelist;
+	my $diedathome;
+	my $living_alone = 1;
 
 	if($opts{'l'} || !$is_alive) {
 		if(scalar(@childrenunknownparent)) {
@@ -4852,6 +4853,7 @@ sub print_person
 			my @residencestringarray;
 			my $printed_father_same_place;
 			my $printed_mother_same_place;
+
 			my $iterator = Array::Iterator::BiDirectional->new({ __array__ => \@residencelist });
 			while(my $residence = $iterator->get_next()) {
 				my $rdate = $residence->date();
@@ -5768,6 +5770,11 @@ sub print_person
 					print __LINE__, ": adding '$residencestring' to residencestringarray\n" if($opts{'v'});
 					push @residencestringarray, $residencestring;
 					$printed_residence = 1;
+					if(scalar(keys %living_with)) {
+						$Data::Dumper::Maxdepth = 2;
+						print __LINE__, ": TODO ($rdate): ", Data::Dumper->new([\%living_with])->Dump();
+						$living_alone = 0;
+					}
 				}
 			}
 
@@ -5905,7 +5912,14 @@ sub print_person
 				}
 			}
 		}
-	} else {
+	}
+
+	# FIXME - these start and end dates for censuses should depend on countries
+	if($living_alone && $yob && $yod && (($yod - $yob) > 10) && ($yob >= 1842) && ($yob <= 1920)) {
+		# Age at death > 10 years - should have at least appeared on one census
+		complain({ person => $person, warning => 'No records of living with anyone' });
+	}
+	if(scalar(@residences) == 0) {
 		print $csv '.';
 		# print $xml '.';
 		$phrase->append('XXXXXXXXXXXXXXXXXXXXXX');
