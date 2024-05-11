@@ -5328,7 +5328,8 @@ sub print_person
 							$printed_sibling = 1;
 						}
 						# FIXME: only checks when there are @siblings
-						if(($bdiff->in_units('years') >= 30) || ($bdiff->in_units('years') < 16)) {
+						# if(($bdiff->in_units('years') >= 30) || ($bdiff->in_units('years') < 16)) {
+						if(1) {
 							my $with_mother;
 							my $same_road_as_mother = 0;
 							my $road = $residence->address();
