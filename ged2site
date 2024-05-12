@@ -5724,7 +5724,7 @@ sub print_person
 									   $event->date() && ($event->date() eq $rdate) &&
 									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
 										if($child->sex() eq 'F') {
-											push @{$living_with{'daughter'}}, $child;
+											push @{$living_with{'daughters'}}, $child;
 										} else {
 											push @{$living_with{'son'}}, $child;
 										}
@@ -5766,16 +5766,30 @@ sub print_person
 					} else {
 						$residencestring =~ s/(.+), (his|her) /$1 and $2 /;
 					}
+					if(scalar(keys %living_with)) {
+						$Data::Dumper::Maxdepth = 2;
+						print STDERR __LINE__, ": TODO ($rdate): ", Data::Dumper->new([\%living_with])->Dump();
+						if($living_with{'daughters'}) {
+							# TODO: more than one daughter
+							my @daughters = @{$living_with{'daughters'}};
+							$residencestring .= '((((((((((((' . i18n('when ') .
+								lcfirst(i18n($person->pronoun())) .
+								' was living with ' .
+								lcfirst($person->possessive()) .
+								i18n((scalar(@daughters) > 1) ? ' daughters, ' : ' daughter ') .
+								conjunction(map { $_->given_names() } @daughters) . ',' .
+								i18n(' following the death of ') .
+								(($sex eq 'M') ? 'his wife ' : 'her husband ') .
+								year(date => dateofdeath($spouses[0])) . '))))))))))))';
+							delete $living_with{'daughters'};
+						}
+						$living_alone = 0;
+					}
 					$residencestring =~ s/\sand$//;
 					$residencestring =~ s/,$//;
 					print __LINE__, ": adding '$residencestring' to residencestringarray\n" if($opts{'v'});
 					push @residencestringarray, $residencestring;
 					$printed_residence = 1;
-					if(scalar(keys %living_with)) {
-						$Data::Dumper::Maxdepth = 2;
-						print __LINE__, ": TODO ($rdate): ", Data::Dumper->new([\%living_with])->Dump();
-						$living_alone = 0;
-					}
 				}
 			}
 
