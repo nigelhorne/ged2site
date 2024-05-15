@@ -5728,16 +5728,6 @@ sub print_person
 										} else {
 											push @{$living_with{'son'}}, $child;
 										}
-										$residencestring .= i18n(' when ') .
-											lcfirst(i18n($person->pronoun())) .
-											' was living with ' .
-											lcfirst($person->possessive()) .
-											(i18n(($child->sex() eq 'F') ? ' daughter, ' : ' son, ')) .
-											$child->given_names() . ',' .
-											i18n(' following the death of ') .
-											(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-											year(date => dateofdeath($spouses[0]));
-										$residencestring .= ',' if($iterator->peek());
 										$spdeath_dt = undef;
 										last CHILD;
 									}
@@ -5772,7 +5762,7 @@ sub print_person
 						if($living_with{'daughters'}) {
 							# TODO: more than one daughter
 							my @daughters = @{$living_with{'daughters'}};
-							$residencestring .= '((((((((((((' . i18n('when ') .
+							$residencestring .= i18n('when ') .
 								lcfirst(i18n($person->pronoun())) .
 								' was living with ' .
 								lcfirst($person->possessive()) .
