@@ -12592,6 +12592,9 @@ sub datecmp($$)
 		}
 		if($right =~ /^(Abt|ca?)\.?\s+(.+)/i) {
 			$right = $2;
+		} elsif(($right =~ /\//) && ($right =~ /^[a-z\/]+\s+(.+)/i)) {
+			# e.g. "Oct/Nov/Dec 1950"
+			$right = $1;
 		}
 		if($right =~ /^\d{3,4}$/) {
 			if(ref($left)) {
