@@ -5770,7 +5770,7 @@ sub print_person
 								conjunction(map { $_->given_names() } @daughters) . ',' .
 								i18n(' following the death of ') .
 								(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-								year(date => dateofdeath($spouses[0])) . '))))))))))))';
+								year(date => dateofdeath($spouses[0]));
 							delete $living_with{'daughters'};
 						}
 						$living_alone = 0;
