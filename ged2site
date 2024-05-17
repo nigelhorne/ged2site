@@ -5201,7 +5201,7 @@ sub print_person
 						$bdiff = $dfn->parse_datetime($rdate) - $birth_dt;
 					}
 					# Find if they are an adult living with an adult sibling or in-law
-					if($all_residences_have_date && scalar(@siblings) && $birth_dt) {
+					if($all_residences_have_date && $birth_dt) {
 						my $printed_sibling = 0;
 						my $r = $residence;
 						next if($r->date() ne $rdate);
@@ -5324,7 +5324,6 @@ sub print_person
 							}
 							$printed_sibling = 1;
 						}
-						# FIXME: only checks when there are @siblings
 						# if(($bdiff->in_units('years') >= 30) || ($bdiff->in_units('years') < 16)) {
 						if(1) {
 							my $with_mother;
@@ -5487,9 +5486,12 @@ sub print_person
 										}
 									}
 								}
-							} elsif(($mother || $father) && ($bdiff->in_units('years') < 16) && !($with_mother || $with_father)) {
-								complain({ person => $person, warning => [ 'Not living with either parent in childhood when aged ', $bdiff->in_units('years') ] });
-							} elsif($father_date) {
+							} elsif(($mother || $father) && ($bdiff->in_units('years') < 16)) {
+								if(!($with_mother || $with_father)) {
+									complain({ person => $person, warning => [ 'Not living with either parent in childhood when aged ', $bdiff->in_units('years') ] });
+								}
+								$living_alone = 0;
+							} elsif($father_date && (datecmp($rdate, $father_date) >= 0)) {
 								# FIXME: This test never succeeds,
 								#	perhaps Array:Iterator:BiDirectional doesn't work as I expect?
 								#	https://rt.cpan.org/Ticket/Display.html?id=143344&results=af04c74d05626a62cf0c32f2953f3e4f
@@ -5510,6 +5512,8 @@ sub print_person
 									}
 									if(datecmp($rdate, $father_date) > 0) {
 										$residencestring .= 'had been';
+									} elsif($printed_mother_same_place) {
+										$residencestring .= 'were';
 									} else {
 										$residencestring .= 'was';
 									}
@@ -5518,7 +5522,7 @@ sub print_person
 										')';
 								# }
 								$printed_father_same_place = 1;
-							} elsif($mother_date) {
+							} elsif($mother_date && (datecmp($rdate, $mother_date) >= 0)) {
 								$residencestring .= ' (the same place as ' .
 									($person->pronoun() eq 'She' ? 'her' : 'his') . i18n(' mother ');
 								if(datecmp($rdate, $mother_date) > 0) {
@@ -6304,7 +6308,7 @@ sub print_person
 						if(my $notes = notes(record => $event)) {
 							if($notes =~ /Navy/i) {
 								$service = 'navy';
-							} elsif(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i)) {
+							} elsif(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i) || ($notes =~ /\sregiment/i)) {
 								$service = 'army';
 							}
 						}
