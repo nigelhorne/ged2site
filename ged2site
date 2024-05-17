@@ -5075,9 +5075,6 @@ sub print_person
 									if($relationship) {
 										complain({ person => $person, warning => 'Census information not used to determine a parent' });
 									}
-								} elsif(!$found_parent) {
-									# FIXME: both parents could be dead
-									complain({ person => $person, warning => "Residence information in $yoe, but no residence information found for either parent" });
 								}	# TODO: else warn if both parents locations are different
 							} elsif($numberofchildren && ($rdate !~ /^bet\s/i) && ($rdate !~ /\d{4}, \d{4}/)) {
 								# Look if a young child isn't with this parent
@@ -5353,16 +5350,19 @@ sub print_person
 									# if(($p =~ /^\s\d/) && ($p eq $place)) {
 									if($p eq $place) {
 										if($mdate eq $rdate) {
-											$living_with{'mother'} = $mother;
 											$with_mother++;
+											$living_alone = 0;
 											last;
-										} else {
+										} elsif(!$printed_mother_same_place) {
 											$mother_date = $mdate;
 										}
 									}
 
 									if(($rdate eq $mdate) && $road && ($mr->place() eq $residence->place())) {
 										if(my $mroad = $mr->address()) {
+											if($mroad eq $road) {
+												$living_with{'mother'} = $mother;
+											}
 											if($mroad =~ /,\s*(.+)/) {
 												$mroad = $1;
 											}
@@ -5390,16 +5390,19 @@ sub print_person
 									# if(($p =~ /^\s\d/) && ($p eq $place)) {
 									if($p eq $place) {
 										if($fdate eq $rdate) {
-											$living_with{'father'} = $father;
 											$with_father++;
+											$living_alone = 0;
 											last;
-										} else {
+										} elsif(!$printed_father_same_place) {
 											$father_date = $fdate;
 										}
 									}
 
 									if(($rdate eq $fdate) && $road && ($fr->place() eq $residence->place())) {
 										if(my $froad = $fr->address()) {
+											if($froad eq $road) {
+												$living_with{'father'} = $father;
+											}
 											if($froad =~ /,\s*(.+)/) {
 												$froad = $1;
 											}
@@ -5413,7 +5416,7 @@ sub print_person
 									}
 								}
 							}
-							if($with_mother || $with_father) {
+							if($living_with{'mother'} || $living_with{'father'}) {
 								if($bdiff->in_units('years') >= 30) {
 									$residencestring .= ' ';
 									if($first) {
@@ -5466,10 +5469,10 @@ sub print_person
 										$residencestring .= i18n(' parents');
 										@r = get_all_residences(person => $father);
 									} elsif($same_road_as_mother) {
-										$residencestring .= ' mother';
+										$residencestring .= i18n(' mother');
 										@r = get_all_residences(person => $mother);
 									} else {
-										$residencestring .= ' father';
+										$residencestring .= i18n(' father');
 										@r = get_all_residences(person => $father);
 									}
 									foreach my $r(@r) {
@@ -5484,7 +5487,7 @@ sub print_person
 										}
 									}
 								}
-							} elsif(($mother || $father) && ($bdiff->in_units('years') < 16)) {
+							} elsif(($mother || $father) && ($bdiff->in_units('years') < 16) && !($with_mother || $with_father)) {
 								complain({ person => $person, warning => [ 'Not living with either parent in childhood when aged ', $bdiff->in_units('years') ] });
 							} elsif($father_date) {
 								# FIXME: This test never succeeds,
@@ -5720,15 +5723,22 @@ sub print_person
 									if(($type !~ /Census/) && ($type ne 'Register UK 1939')) {
 										next EVENT;
 									}
+									if($opts{'v'} && $event->date() && ($event->date() eq $rdate)) {
+										print __LINE__, ">> check if living with children\n",
+										print "\t$type, ", ref($event), "\n",
+										"\t", $event->date(), " $rdate ", $residence->address(), "\n";
+									}
 									if((ref($event) eq 'Gedcom::Record') &&
 									   $event->date() && ($event->date() eq $rdate) &&
-									   places_are_the_same({ person => $child, first => $residence, second => $event })) {
+									   $residence->address() &&
+									   places_are_the_same({ person => $child, first => $residence, second => $event, exact => 1 })) {
 										if($child->sex() eq 'F') {
 											push @{$living_with{'daughters'}}, $child;
+											$spdeath_dt = undef;
 										} else {
-											push @{$living_with{'son'}}, $child;
+											push @{$living_with{'sons'}}, $child;
+											$spdeath_dt = undef;
 										}
-										$spdeath_dt = undef;
 										last CHILD;
 									}
 								}
@@ -11313,6 +11323,7 @@ sub person_line_csv
 	return wide_to_html($person->given_names());
 }
 
+# Are two places the same? exact => 1 means must be equal, otherwise use fuzzy logic
 sub places_are_the_same
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -11378,6 +11389,8 @@ sub places_are_the_same
 		# $place2 = "$1 Road";
 	# }
 	return 1 if(lc($place1) eq lc($place2));
+	return 1 if(place(record => $record1) eq place(record => $record2));
+	return 0 if($params{'exact'});
 	if(compare($place1, $place2) > 0.5) {
 		if($person) {
 			complain({ $person => $person, warning => "The places '$place1' and '$place2' seem similar; is there a typo?" });
