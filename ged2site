@@ -3090,22 +3090,27 @@ sub print_person
 
 	my $haveprintedspousename;
 	if($relationship) {
-		print $html " the $relationship of ",
+		my $article;
+		if($relationship =~ /^cousin/) {
+			$article = ' a';
+		} else {
+			$article = ' the';
+		}
+		my $myname = $me->as_string(nee => 1);
+		print $html "$article $relationship of ",
 			'<a href="', make_filename_from_person(person => $me), '">',
-			wide_to_html($me->as_string(nee => 1)),
+			wide_to_html($myname),
 			'</a>';
 		# print $xml " the $relationship of ",
 			# '&lt;a href="?page=people&amp;home=1"&gt;',
 			# $me->as_string(nee => 1),
 			# '&lt;/a&gt;';
-		$bio = " the $relationship of " .
+		$bio = "$article $relationship of " .
 			'<a href="?page=people&home=1">' .
-			$me->as_string(nee => 1) .
-			'</a>';
-		$phrase->append(" the $relationship of " .
+			"$myname</a>";
+		$phrase->append("$article $relationship of " .
 			'<a href="?page=people&home=1">' .
-			$me->as_string(nee => 1) .
-			'</a>');
+			"$myname</a>");
 	} elsif($spouserelationship) {
 		if((!$is_alive) || $opts{'l'}) {
 			if($sex eq 'F') {
