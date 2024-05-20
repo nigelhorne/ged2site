@@ -9,8 +9,7 @@
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
 		<link rel="stylesheet" href="/css/sprite.css" type="text/css">
-		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
-		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
 		<title>[% SiteTitle.join(' ') %]</title>
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
@@ -28,17 +27,6 @@
 				<h1>[% SiteTitle.join(' ') %]</h1>
 				<div class="social_media">
 					<div class="non-printable">
-						<!-- pop-up code from http://www.quackit.com/html/codes/html_popup_window_code.cfm -->
-						<script type="text/javascript">
-							// Popup window code
-							var popupWindow = null;
-							function centeredPopup(url,winName,w,h,scroll) {
-								LeftPosition = (screen.width) ? (screen.width-w)/2 : 0;
-								TopPosition = (screen.height) ? (screen.height-h)/2 : 0;
-								settings = 'height='+h+',width='+w+',top='+TopPosition+',left='+LeftPosition+',scrollbars='+scroll+',resizable'
-								popupWindow = window.open(url,winName,settings)
-							}
-						</script>
 						<!-- images from http://www.socicon.com/generator.php -->
 						<!-- code from https://simplesharebuttons.com/html-share-buttons/ -->
 						[% USE env = EnvHash %]
@@ -123,12 +111,5 @@
 			[% END %]
 			</i>
 		</p>
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-		<script src="//cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
-		<script>
-			\$(document).ready(function() {
-			  \$('.popup-link').magnificPopup({type:'image'});
-			});
-		</script>
 	</body>
 </html>
