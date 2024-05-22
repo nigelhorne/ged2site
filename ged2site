@@ -14344,7 +14344,8 @@ sub newspaper
 		$source = $event->tag_record('SOUR');
 		$rc->url($source->tag_record('REF')->value());
 
-		if(my $page = $source->tag_record('PAGE')->value()) {
+		if(my $page = $source->tag_record('PAGE')) {
+			$page = $page->value();
 			$page =~ s/^0+//;
 			$rc->page($page);
 		}
