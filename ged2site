@@ -12761,6 +12761,8 @@ sub wills
 {
 	my %params;
 
+	return if(!defined($wills));
+
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
 	} elsif(scalar(@_) % 2 == 0) {
