@@ -5379,6 +5379,9 @@ sub print_person
 										}
 									}
 								}
+								if($with_mother && !$living_with{'mother'}) {
+									complain({ person => $person, warning => "May have been living with mother on $rdate, but the addresses don't match or aren't detailed enough to be sure" });
+								}
 							}
 							my $with_father;
 							my $same_road_as_father = 0;
@@ -5418,6 +5421,9 @@ sub print_person
 											}
 										}
 									}
+								}
+								if($with_father && !$living_with{'father'}) {
+									complain({ person => $person, warning => "May have been living with father on $rdate, but the addresses don't match or aren't detailed enough to be sure" });
 								}
 							}
 							if($living_with{'mother'} || $living_with{'father'}) {
