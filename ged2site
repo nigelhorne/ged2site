@@ -5785,12 +5785,13 @@ sub print_person
 						}
 						if(my $in_law = $living_with{'brother-in-law'}) {
 							# TODO: brothers-in-law
+							# FIXME: this link will not work on static pages
 							$residencestring .= i18n(' when ') .
 								lcfirst(i18n($person->pronoun())) .
 								' was living with ' .
 								lcfirst($person->possessive()) .
 								i18n(' brother-in-law, ') .
-								$in_law->given_names();
+								'<a href="?page=people&entry=' . $in_law->xref() . '">"' . wide_to_html($in_law->as_string()) . '</a>';
 							delete $living_with{'brother-in-law'};
 						}
 						$living_alone = 0;
