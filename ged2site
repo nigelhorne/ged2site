@@ -5219,6 +5219,7 @@ sub print_person
 							if(my $ss = $sibling->spouse()) {
 								next if($bdiff->in_units('years') < 20);
 								# If they are living with an in-law, assume both are adults
+								$ss = Class::Simple::Readonly::Cached->new({ object => $ss, cache => {}, quiet => 1 });
 								my @ssr = get_all_residences(person => $ss);
 								foreach my $ssr(@ssr) {
 									if(my $d = $ssr->date()) {
@@ -5233,27 +5234,7 @@ sub print_person
 												} else {
 													$living_with{'brother-in-law'} = $ss
 												}
-												if($first) {
-													$residencestring .= i18n(' when ') . i18n(lc($person->pronoun())) .
-													' was living with ' . ($person->pronoun() eq 'She' ? 'her ' : 'his ') .
-														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
-														$ss->as_string();
-													$first = 0;
-												} elsif($language eq 'French') {
-													$residencestring .= ' et ' .
-														(($ss->sex() eq 'F') ? "belle-s\N{U+0153}er, " : "beau-fr\N{U+00E8}re, ") .
-														$ss->as_string();
-												} else {
-													# FIXME: If possible, should say
-													#	sisters-in-law or
-													#	brothers-in-law
-													$residencestring .= ' and ' .
-														(($ss->sex() eq 'F') ? 'sister-in-law, ' : 'brother-in-law, ') .
-														$ss->as_string();
-												}
 												$printed_sibling = 1;
-												# May be removed later
-												$residencestring .= i18n(' and');
 												last;
 											}
 										}
@@ -5801,6 +5782,16 @@ sub print_person
 								(($sex eq 'M') ? 'his wife ' : 'her husband ') .
 								year(date => dateofdeath($spouses[0]));
 							delete $living_with{'daughters'};
+						}
+						if(my $in_law = $living_with{'brother-in-law'}) {
+							# TODO: brothers-in-law
+							$residencestring .= i18n(' when ') .
+								lcfirst(i18n($person->pronoun())) .
+								' was living with ' .
+								lcfirst($person->possessive()) .
+								i18n(' brother-in-law, ') .
+								$in_law->given_names();
+							delete $living_with{'brother-in-law'};
 						}
 						$living_alone = 0;
 					}
@@ -14388,6 +14379,7 @@ between::between
 birthplace::birthplace
 both with %s::both with %s
 brother::brother
+brother-in-law::brother-in-law
 brothers::brothers
 check out %s::check out %s
 child::child
@@ -14425,6 +14417,7 @@ on the mother's side::on the mother's side
 parents::parents
 she::she
 sister::sister
+sister-in-law::sister-in-law
 sisters::sisters
 son::son
 the same day as::the same day as
@@ -14467,6 +14460,7 @@ between::entre
 birthplace::ville natal
 both with %s::tous les deux avec %s
 brother::frère
+brother-in-law::beau-frère
 check out %s::visitez %s
 child::enfant
 children::enfants
@@ -14505,6 +14499,7 @@ on the mother's side::du côté de la mère
 parents::parents
 she::elle
 sister::sœur
+sister-in-law::belle-sœur
 sisters::sœurs
 son::fils
 the same day as::le même jour comme
