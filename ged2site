@@ -6315,7 +6315,7 @@ sub print_person
 						if(my $notes = notes(record => $event)) {
 							if($notes =~ /Navy/i) {
 								$service = 'navy';
-							} elsif(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i) || ($notes =~ /\sregiment/i)) {
+							} elsif(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i) || ($notes =~ /\sregiment/i) || ($notes =~ /soldier/i)) {
 								$service = 'army';
 							}
 						}
