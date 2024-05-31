@@ -5336,7 +5336,10 @@ sub print_person
 									next unless($p);
 
 									if(($rdate eq $mdate) && $road && ($mr->place() eq $residence->place())) {
-										if(my $mroad = $mr->address()) {
+										if($p eq $place) {
+											$living_with{'mother'} = $mother;
+											last;
+										} elsif(my $mroad = $mr->address()) {
 											if($mroad eq $address) {
 												$living_with{'mother'} = $mother;
 											}
@@ -5350,10 +5353,8 @@ sub print_person
 												$same_road_as_mother = $rdate;
 											}
 										}
-									}
-
-									# if(($p =~ /^\s\d/) && ($p eq $place)) {
-									if($p eq $place) {
+									} elsif($p eq $place) {
+										# if(($p =~ /^\s\d/) && ($p eq $place)) {
 										if($mdate eq $rdate) {
 											$with_mother++;
 											$living_alone = 0;
@@ -5378,10 +5379,12 @@ sub print_person
 
 									my $p = place({ person => $father, record => $fr, nopreposition => 1 });
 									next unless($p);
-									# if(($p =~ /^\s\d/) && ($p eq $place)) {
 
 									if(($rdate eq $fdate) && $road && ($fr->place() eq $residence->place())) {
-										if(my $froad = $fr->address()) {
+										if($p eq $place) {
+											$living_with{'father'} = $father;
+											last;
+										} elsif(my $froad = $fr->address()) {
 											if($froad eq $address) {
 												$living_with{'father'} = $father;
 											}
@@ -5395,9 +5398,8 @@ sub print_person
 												$same_road_as_father = $rdate;
 											}
 										}
-									}
-
-									if($p eq $place) {
+									} elsif($p eq $place) {
+										# if(($p =~ /^\s\d/) && ($p eq $place)) {
 										if($fdate eq $rdate) {
 											$with_father++;
 											$living_alone = 0;
