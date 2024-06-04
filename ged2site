@@ -12581,7 +12581,14 @@ sub datecmp($$)
 			$left = $1;
 		}
 
-		if($left !~ /^\d{3,4}$/) {
+		# e.g. "1802 or 1803"
+		if($left =~ /^(\d{3,4})\sor\s(\d{3,4})$/) {
+			my($start, $end) = ($1, $2);
+			if($start == $end) {
+				complain("the years are the same '$left'");
+			}
+			$left = $start
+		} elsif($left !~ /^\d{3,4}$/) {
 			if(($left !~ /[a-z]/i) || ($left =~ /[a-z]$/)) {
 				my $i = 0;
 				while((my @call_details = caller($i++))) {
@@ -12622,6 +12629,7 @@ sub datecmp($$)
 			# e.g. "Oct/Nov/Dec 1950"
 			$right = $1;
 		}
+
 		if($right =~ /^\d{3,4}$/) {
 			if(ref($left)) {
 				return $left->year() <=> $right;
