@@ -1782,7 +1782,7 @@ sub print_person
 		#	brackets
 		$dateofbirth =~ s/\(.+$//;	# some people put information in brackets after the date
 		if($dateofbirth =~ /^About[:\s](.+)/i) {
-			$dateofbirth = "ABT$1";
+			$dateofbirth = "ABT $1";
 		} elsif($dateofbirth =~ /^Bet\s[a-z]{3}.+([a-z]{3}\s+.*)/i) {	# Bet Jun-Jul 1860
 			$dateofbirth = "ABT $1";
 		} elsif($dateofbirth =~ /^(.+)\s*\?/i) {
@@ -13030,6 +13030,9 @@ sub dateofmarriage
 		if($dateofmarriage =~ /\s$/) {
 			complain({ person => $person, warning => "Removing trailing spaces from date of marriage '$dateofmarriage'" });
 			$dateofmarriage =~ s/\s+$//;
+		}
+		if($dateofmarriage =~ /^About[:\s](.+)/i) {
+			$dateofmarriage = "ABT $1";
 		}
 		if($opts{'w'} && ($dateofmarriage =~ /\d{3,4}$/) && (my $dateofbirth = dateofbirth($person))) {
 			if(($dateofbirth =~ /\d{3,4}$/) && (datecmp($dateofmarriage, $dateofbirth) <= 0)) {
