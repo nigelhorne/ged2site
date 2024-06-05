@@ -93,11 +93,11 @@ BEGIN {
 		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
 
-	# I can't get Marpa::R2 versions 10 and 12 to build on OS/X or Solaris.
+	# I can't get Marpa::R2 versions 10 and 12 to build on Solaris.
 	# It's used by Genealogy::Gedcom::Date, so force version 8
 	eval 'use Marpa::R2';
 	if($@) {
-		if(($^O eq 'solaris') || ($^O eq 'darwin')) {
+		if($^O eq 'solaris') {
 			push @needfull, 'JKEGL/Marpa-R2-8.000000.tar.gz'
 		} else {
 			push @needfull, 'Marpa::R2';
