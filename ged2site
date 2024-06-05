@@ -6541,7 +6541,7 @@ sub print_person
 					if(defined($phrase) && ($phrase->length() > 0)) {
 						push @phrases, $phrase;
 						$phrase = Data::Text->new();
-						print Data::Dumper->new([\@phrases])->Dump();
+						print Data::Dumper->new([\@phrases])->Dump() if($opts{'v'});
 						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 						undef @phrases;
 					}
