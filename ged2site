@@ -7504,7 +7504,7 @@ sub print_person
 		@phrases = ();
 	}
 
-	if($language eq 'English') {
+	if(($language eq 'English') && defined($bio)) {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			$bio = Lingua::EN::ABC::b2a($bio);
 			$bio_dt->set(Lingua::EN::ABC::b2a($bio_dt->as_string()));
@@ -12559,14 +12559,18 @@ sub datecmp($$)
 	return 0 if($left eq $right);
 
 	if(!ref($left)) {
-		if($left =~ /^bef/i) {
+		if(($left =~ /^bef/i) || ($left =~ /^aft/i)) {
 			if($right =~ /^\d+$/) {
 				# For example, comparing bef 1 Jun 1965 <=> 1939
 				if($left =~ /\s(\d+)$/) {
-					return $1 <=> $right;
+					# Easy comparison for different years
+					if($1 != $right) {
+						return $1 <=> $right;
+					}
+					# FIXME: same year
 				}
 			}
-			print STDERR "$left <=> $right: Before not handled\n";
+			print STDERR "$left <=> $right: not handled yet\n";
 			my $i = 0;
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
