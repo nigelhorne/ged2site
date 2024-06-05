@@ -244,11 +244,10 @@ if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 			'Genealogy::ChroniclingAmerica', 'Locale::Country';
 	}
 }
-if($opts{'d'}) {
-	push @modules, 'Weather::Meteo', 'DateTime::Format::Text';
-
-	if($opts{'m'}) {
-		push @modules, 'HTTP::Cache::Transparent';
+if($opts{'m'} || $opts{'d'}) {
+	push @modules, 'HTTP::Cache::Transparent';
+	if($opts{'d'}) {
+		push @modules, 'Weather::Meteo', 'DateTime::Format::Text';
 	}
 }
 if($opts{'m'} || $opts{'w'}) {
