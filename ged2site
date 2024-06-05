@@ -3096,17 +3096,14 @@ sub print_person
 			$article = ' the';
 		}
 		my $myname = $me->as_string(nee => 1);
-		print $html "$article $relationship of ",
-			'<a href="', make_filename_from_person(person => $me), '">',
-			wide_to_html($myname),
+		$bio = "$article $relationship of " .
+			'<a href="' . make_filename_from_person(person => $me) . '">' .
+			wide_to_html($myname) .
 			'</a>';
 		# print $xml " the $relationship of ",
 			# '&lt;a href="?page=people&amp;home=1"&gt;',
 			# $me->as_string(nee => 1),
 			# '&lt;/a&gt;';
-		$bio = "$article $relationship of " .
-			'<a href="?page=people&home=1">' .
-			"$myname</a>";
 		$phrase->append("$article $relationship of " .
 			'<a href="?page=people&home=1">' .
 			"$myname</a>");
@@ -5772,8 +5769,10 @@ sub print_person
 						$residencestring =~ s/(.+), (his|her) /$1 and $2 /;
 					}
 					if(scalar(keys %living_with)) {
-						$Data::Dumper::Maxdepth = 2;
-						print STDERR __LINE__, ": TODO ($rdate): ", Data::Dumper->new([\%living_with])->Dump();
+						if($opts{'w'}) {
+							$Data::Dumper::Maxdepth = 2;
+							print STDERR __LINE__, ": TODO ($rdate): ", Data::Dumper->new([\%living_with])->Dump();
+						}
 						if($living_with{'daughters'}) {
 							# TODO: more than one daughter
 							my @daughters = @{$living_with{'daughters'}};
@@ -11176,7 +11175,7 @@ sub notes
 
 	$ufinder->find(\$rc);
 
-	if(($language eq 'English') && defined($rc)) {
+	if($language eq 'English') {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			return Lingua::EN::ABC::b2a($rc);
 		} elsif($ENV{'LANG'} =~ /^en_CA/) {
