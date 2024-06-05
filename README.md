@@ -1,8 +1,6 @@
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://x.com/intent/tweet?text=A+utility+for+creating+a+family+history+website+from+a+gedcoms+file+#genealogy&url=https://github.com/nigelhorne/ged2site&via=nigelhorne)
 
-# gedcom
-ged2site
-========
+# ged2site
 
 Convert a Gedcom file to HTML to create a family tree website.
 
@@ -56,8 +54,7 @@ since they contain cached copies of pages that will be inconsistent with the new
 
 Finally, for the dynamic site, set-up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
 
-Installation and Pre-Requisites
-===============================
+## Installation and Pre-Requisites
 
 Ged2site uses many CPAN modules which it will try to install if they are not
 on your system.
@@ -85,8 +82,7 @@ On FreeBSD you'll need to
 cd /usr/local/lib;
 sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so"
 
-Runtime Options
-===============
+## Runtime Options
 
 The options to ged2site are:
 
@@ -127,8 +123,7 @@ people.xml,
 of parsed output which you can use in querying software,
 so it also works as a Gedcom to XML converter.
 
-Ancestry on Windows
-===================
+## Ancestry on Windows
 
 I use FindMyPast on Linux, because export of images is better on FMP and
 because Linux.  I recognise that many folks use Ancestry on Windows, so I
@@ -162,8 +157,7 @@ when trying to call Graphviz from ged2site.  This may be because ged2site
 pipes output to Graphviz, perhaps it would work if it used a temporary file
 as input.
 
-.htaccess
-=========
+## .htaccess
 I strongly suggest adding this to your .htaccess file:
 
 ```
@@ -188,8 +182,7 @@ ExpiresByType text/javascript "access plus 1 day"
 </IfModule>
 ```
 
-Environment Variables
-=====================
+## Environment Variables
 
 For compatibility with other code, these environment variables are honoured:
 
@@ -200,8 +193,7 @@ For compatibility with other code, these environment variables are honoured:
     OPENADDR_HOME: directory of data from http://results.openaddresses.io/
     REDIS_SERVER: ip:port pair of where to cache geo-coding data
 
-Debugging and Developing
-========================
+## Debugging and Developing
 
 Because the dynamic ged2site site uses VWF,
 it is possible to run the scripts from the command
@@ -219,8 +211,7 @@ To see the environment of the system to help with debugging
 
     https://localhost/cgi-bin/page.fcgi?page=meta-data
 
-Bugs
-====
+## Bugs
 
 If you see this message in your log file:
 ```
@@ -245,8 +236,7 @@ please e-mail me or add a bug report to github.com/nigelhorne/ged2site.
 
 Profile pictures are not handled with output from Ancestry.  Findmypast is handled correctly.
 
-Acknowledgements
-================
+## Acknowledgements
 
 https://fullcalendar.io for the calendar view
 
@@ -270,7 +260,7 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 * [gedcmp](https://github.com/nigelhorne/gedcmp) - compare two Gedcoms
 * [lib](https://github.com/nigelhorne/lib) - library of routines used by this package
 
-# LICENSE AND COPYRIGHT
+## LICENSE AND COPYRIGHT
 
 Copyright 2015-2024 Nigel Horne.
 
