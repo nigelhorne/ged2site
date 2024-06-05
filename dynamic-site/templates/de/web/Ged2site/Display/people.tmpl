@@ -1,0 +1,259 @@
+<!DOCTYPE HTML>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="x-ua-compatible" content="ie=edge">
+		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
+		<link rel="stylesheet" href="/css/sprite.css" type="text/css">
+		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
+		[% IF person %]
+			<title>[% person.title %]</title>
+			<meta name="description" content="About [% person.title %] - A ged2site webpage">
+		[% ELSIF home %]
+			<title>[% SiteTitle.join(' ') %]</title>
+		[% ELSE %]
+			<title>[% SiteTitle.join(' ') %]</title>
+			<script language="JavaScript">
+				<!--HIDE
+				function time() {
+					// setTimeout("window.location.replace('page.fcgi?page=home')", 100)
+					setTimeout("window.location.replace('page.fcgi?page=home')", 100)
+				}
+				//STOP HIDING-->
+			</script>
+			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=home">
+			<meta name="description" content="[% SiteTitle.join(' ') %] - A ged2site webpage">
+		[% END %]
+		[% IF person.map_head %]
+			[% decode_base64url(person.map_head) %]
+		[% END %]
+		[% IF twitter %]
+			<meta name="twitter:site" content="@[% twitter %]">
+			[% IF SiteTitle %]
+				<meta name="twitter:title" content="[% SiteTitle.join(' ') %]">
+			[% END %]
+		[% END %]
+		<!--
+			<meta name="msvalidate.01" content="deadbeef" />
+		-->
+	</head>
+	[% IF person.map_body %]
+		<body onload="html_googlemaps_initialize()">
+	[% ELSE %]
+		<body>
+	[% END %]
+		[% IF person %]
+			<div id="header_container">
+				<center>
+					<h1>[% person.title %]</h1>
+					<div class="social_media">
+						<div class="non-printable">
+							<!-- pop-up code from http://www.quackit.com/html/codes/html_popup_window_code.cfm -->
+							<script type="text/javascript">
+								// Popup window code
+								var popupWindow = null;
+								function centeredPopup(url,winName,w,h,scroll) {
+									LeftPosition = (screen.width) ? (screen.width-w)/2 : 0;
+									TopPosition = (screen.height) ? (screen.height-h)/2 : 0;
+									settings = 'height='+h+',width='+w+',top='+TopPosition+',left='+LeftPosition+',scrollbars='+scroll+',resizable'
+									popupWindow = window.open(url,winName,settings)
+								}
+							</script>
+							<!-- images from http://www.socicon.com/generator.php -->
+							<!-- code from https://simplesharebuttons.com/html-share-buttons/ -->
+							[% USE env = EnvHash %]
+							<!-- Facebook -->
+							<a href="//www.facebook.com/sharer.php?u=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<!--
+								<img src="/images/socicon.com/facebook.png" alt="Facebook" height="50" width="50">
+								-->
+								<img class="spr-images-facebook" src="/images/transparent.gif" height="1" width="1" alt="facebook"></a>
+							<!-- Twitter -->
+							[% IF twitter %]
+								<!-- use the twitter value from the configuration file -->
+								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% person.title | replace('\s+', '%20') %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+							[% ELSE %]
+								<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% person.title | replace('\s+', '%20') %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+							[% END %]
+								<!--
+									<img src="/images/socicon.com/twitter.png" alt="Twitter" height="50" width="50">
+								-->
+								<img class="spr-images-twitter" src="/images/transparent.gif" height="1" width="1" alt="twitter"></a>
+							<!-- Google Plus -->
+							<!--
+								<img src="/images/socicon.com/googleplus.png" alt="Google Plus" width="50" height="50">
+							-->
+							<!--
+							<a href="//plus.google.com/share?url=[% env.SCRIPT_URI %]%3Fpage=people%26[% info.as_string %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+								<img class="spr-images-googleplus" src="/images/transparent.gif" height="1" width="1" alt="google plus"></a>
+							-->
+							<!-- Print this page -->
+							<a href="#" onclick="window.print(); return false;">
+								<!--
+									<img src="/images/printer.png" alt="Print Button" height="32" width="32">
+								-->
+								<img class="spr-images-printer" src="/images/transparent.gif" height="1" width="1" alt="print">
+							</a>
+						</div>
+					</div>
+					[% IF error %]
+						<p><font color="red" size="+2">[% error %]</font></p>
+					[% END %]
+				</center>
+			</div>
+			<div id="container">
+				<div class="non-printable">
+					<center>
+						[ <a href="?page=home">Home</a> ] |
+						[% IF person.children && !person.alive %]
+							[ <a href="?page=descendants&amp;entry=[% entry %]">Descendants</a> ] |
+						[% END %]
+						[ <a href="?page=censuses">Census Index</a> ] |
+						[ <a href="?page=surnames">Surname Index</a> ] |
+						[ <a href="?page=history">Familiengeschichte</a> ] |
+						[ <a href="?page=calendar">Calendar</a> ] |
+						[ <a href="?page=reports">Reports</a> ] |
+						[ <a href="/visjs.html">Timeline</a> ]
+					</center>
+				</div>
+				<h2>Biography</h2>
+				<div class="printable">
+					<p>[% person.bio %]</p>
+				</div>
+				[% IF person.father || person.mother %]
+					<div class="non-printable">
+						<h2>Parents</h2>
+						<ol>
+						[% IF person.father %]
+							<li>[% person.father %]</li>
+						[% END %]
+						[% IF person.mother %]
+							<li>[% person.mother %]</li>
+						[% END %]
+						</ol>
+					</div>
+				[% END %]
+				[% IF person.children %]
+					<div class="non-printable">
+						<h2>Kinder</h2>
+						<ol>
+							[% FOREACH child IN person.children.split('----') %]
+								<li>[% child %]</li>
+							[% END %]
+						</ol>
+					</div>
+				[% END %]
+				[% IF person.notes %]
+					<h2>Notes</h2>
+					<div class="printable">
+						[% FOREACH note IN person.notes.split('----') %]
+							<p>[% note %]</p>
+						[% END %]
+					</div>
+				[% END %]
+				[% IF person.media %]
+					<div class="non-printable">
+						<h2>Media</h2>
+						[% offset = 0 %]
+						[% FOREACH object IN person.media.split('----') %]
+							[% IF (offset % 4) == 0 %]
+								<p>
+							[% END %]
+							[% IF object.split('---').2 %]
+								[% IF object.split('---').1 %]
+									<h3>[% object.split('---').1 %]</h3>
+									<center>
+								[% ELSIF (offset % 4) == 0 %]
+									<center>
+								[% END %]
+								<a class="popup-link" href="[% object.split('---').0 %]" title="[% object.split('---').1 %]">
+									<img src="[% object.split('---').0 %]" alt="[% object.split('---').1 %]"
+										width="175"
+										height="[% object.split('---').2 %]"
+									>
+								</a>
+								[% IF object.split('---').1 %]
+									</center>
+									[% offset = 0 %]
+								[% ELSE %]
+									[% offset = offset + 1 %]
+									[% IF (offset % 4) == 0 %]
+										</center>
+									[% END %]
+								[% END %]
+							[% ELSE %]
+								<p>
+									<a href="[% object.split('---').0 %]" target="_blank">[% object.split('---').0 %]</a>
+								</p>
+								[% offset = 0 %]
+							[% END %]
+						[% END %]
+						[% IF (offset % 4) != 0 %]
+							</center>
+						[% END %]
+					</div>
+				[% END %]
+				[% IF person.family_tree %]
+					<h2>Family Tree</h2>
+					<center>
+						<img src="[% person.family_tree.split('---').0 %]" [% person.family_tree.split('---').1 %] usemap="#family" alt="Family Tree">
+						[% person.family_tree.split('---').2 %]
+					</center>
+				[% END %]
+				[% IF person.map_body %]
+					<div class="non-printable">
+						<h2>Map</h2>
+						<center>
+							[% decode_base64url(person.map_body) %]
+						</center>
+					</div>
+				[% END %]
+				[% IF person.citations %]
+					<div class="printable">
+						<h2>Citations</h2>
+						<ol>
+							[% FOREACH citation IN person.citations.split('----') %]
+								<li>[% citation %]</li>
+							[% END %]
+						</ol>
+					</div>
+				[% END %]
+				[% IF person.warnings %]
+					<div class="printable">
+						<h2>To be done</h2>
+						[% person.warnings %]
+					</div>
+				[% END %]
+			</div>
+		[% ELSIF home %]
+			<h1>[% SiteTitle.join(' ') %]</h1>
+			<p><font color="red" size="+2">Home record not found - probably '-h' flag wasn't set given to ged2site</font></p>
+		[% ELSE %]
+			<h1>[% SiteTitle.join(' ') %]</h1>
+			<center><img src="/images/page-loader.gif" height="300" width="300" alt="loading icon"></center>
+		[% END %]
+
+		<p align="right">
+			[% IF contact %]
+				Please send your comments and corrections to
+				<a href="?page=mailto">[% contact.name.join(' ') %]</a>
+				<br>
+			[% END %]
+			<i>
+			<a href="https://github.com/nigelhorne/ged2site">Ged2site</a> hat diese Internetseite erstellt.
+			[% IF updated %]
+				[% USE date %]
+				Last updated on [% date.format(time = updated, format = '%d %b %Y', locale = lingua.language_code_alpha2) %]
+			[% END %]
+			</i>
+		</p>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
+		<script>
+			\$(document).ready(function() {
+			  \$('.popup-link').magnificPopup({type:'image'});
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,32 @@
+/* =========================================
+	> 500px
+========================================= */
+@media screen and (max-width: 500px){
+	.timeline h2 	{width: 80%;}
+
+	.ss-container:before{
+	    background: transparent;
+	}
+	.ss-left, .ss-right	{width: 100%;}
+	.ss-right 			{padding-left: 0;}
+	.ss-left 			{float: left;}
+	.bolleke 			{display: none;}
+	.jaartal{
+		text-align: center;
+	}
+	.timeline .ss-right h3:after {
+		border-color: rgba(7, 3, 2, 0);
+		border-bottom-color: #070302;
+		border-width: 10px;
+		margin-right: -40px;
+		margin-top: -36px;
+	}
+
+	.timeline .ss-left h3:after {
+		border-color: rgba(7, 3, 2, 0);
+		border-top-color: #070302;
+		border-width: 10px;
+		margin-left: -40px;
+		margin-top: 18px;
+	}
+}

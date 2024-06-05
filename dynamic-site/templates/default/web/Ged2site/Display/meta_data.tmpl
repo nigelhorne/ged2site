@@ -1,0 +1,34 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+		<meta http-equiv="Content-Language" content="en">
+		<meta name="robots" content="INDEX,FOLLOW">
+		<meta name="language" content="ENGLISH">
+		<meta name="object" content="Index">
+		<meta name="owner" content="Nigel Horne">
+		<meta name="Author" content="Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
+		<title>[% SiteTitle %]: Meta Data</title>
+		[% IF keywords %]
+			<meta name="keywords" content="[% keywords %]" />
+		[% END %]
+		<link rel="stylesheet" type="text/css" href="/css/style.css" />
+	</head>
+
+	<body>
+		[% IF info %]
+			<H1>Info</H1>
+			domain_name: [% info.domain_name() %]<br>
+			browser_type: [% info.browser_type() %]
+		[% END %]
+		[% IF lingua %]
+			<H1>Lingua</H1>
+			country: [% lingua.country() %]<br>
+			requested_language: [% lingua.requested_language() %]<br>
+			language_code_alpha2: [% lingua.language_code_alpha2() %]
+		[% END %]
+	</body>
+</html>
