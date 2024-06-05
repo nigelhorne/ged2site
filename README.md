@@ -24,7 +24,7 @@ Typical usage:
     ged2site -cFdh 'Your Name' gedfile.ged
 
 You will then have two sites created in sub directories
-- static-site is static HTML,
+- static-site is static HTML (no CGI),
 - dynamic-site is a [VWF](//github.com/nigelhorne/vwf) based website which uses templates to support more than one
 language and present different content to mobile/web/search-engine clients. This is much more easily customisable
 by you to create the look and feel of the website that you want.
