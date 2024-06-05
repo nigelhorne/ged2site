@@ -2797,16 +2797,21 @@ sub print_person
 							complain({ person => $sibling, warning => 'Removing trailing spaces from date of birth' });
 							$dob =~ s/\s+$//;
 						}
-						if(!date_parser_cached(date => $dob)) {
-							complain({
-								person => $sibling,
-								warning => "has an invalid date of birth: $dob"
-							});
-							$all_siblings_have_dob = 0;
-							last;
-						}
-						if(($dob !~ /^\d/) || ($dob =~ /[a-z]$/i) ||
-						   ($dob =~ /[\/\-]/)) {
+						if($dob =~ /\d{3,4}$/) {
+							if(!date_parser_cached(date => $dob)) {
+								complain({
+									person => $sibling,
+									warning => "has an invalid date of birth: $dob"
+								});
+								$all_siblings_have_dob = 0;
+								last;
+							}
+							if(($dob !~ /^\d/) || ($dob =~ /[a-z]$/i) ||
+							   ($dob =~ /[\/\-]/)) {
+								$all_siblings_have_dob = 0;
+								last;
+							}
+						} else {
 							$all_siblings_have_dob = 0;
 							last;
 						}
