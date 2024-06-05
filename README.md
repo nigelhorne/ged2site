@@ -56,6 +56,38 @@ since they contain cached copies of pages that will be inconsistent with the new
 
 Finally, for the dynamic site, set-up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
 
+Installation and Pre-Requisites
+===============================
+
+Ged2site uses many CPAN modules which it will try to install if they are not
+on your system.
+If it doesn't have the necessary privilege to install the modules it will
+fail on starting up with "permission denied" errors.
+This is most likely because you're not running as root
+(which is of course how it should be)
+and you're not using [local::lib](https://metacpan.org/pod/local::lib),
+or [Perlbrew](https://perlbrew.pl/).
+
+Running the program for the first time with no
+arguments should install them,
+of course that will fail if you don't have the privilege,
+in which case you'll need to add them by hand.
+To install by hand you'll either have to use local::lib or perlbrew.
+Of course you could also run ged2site as root,
+but I strongly advise you don't do that.
+
+You'll also need to install
+[Library](https://github.com/nigelhorne/lib) - library of code common with
+[gedcom](https://github.com/nigelhorne/gedcom).
+
+On FreeBSD you'll need to
+"sudo pkg install pkgconf gdlib graphviz ImageMagick7;
+cd /usr/local/lib;
+sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so"
+
+Runtime Options
+===============
+
 The options to ged2site are:
 
 | Flag | Meaning |
@@ -94,53 +126,6 @@ ged2site also creates an XML file,
 people.xml,
 of parsed output which you can use in querying software,
 so it also works as a Gedcom to XML converter.
-
-Debugging and Developing
-========================
-
-Because the dynamic ged2site site uses VWF,
-it is possible to run the scripts from the command
-line simulating different environments and thus test the look and feel of your
-site before you deploy. Be aware that you will also see debugging messages.
-
-    cd dynamic-site/bin && ./tosqlite
-    cd ../cgi-bin
-    ./page.fcgi page=people home=1 # Look at your home entry from the -h option
-    ./page.fcgi page=surnames surname=horne # List people whose surname is Horne
-    ./page.fcgi page=surnames surname=horne lang=fr # List people whose surname is Horne, in French
-    ./page.fcgi --mobile page=surnames surname=horne # List people whose surname is Horne, as it would appear on a smart-phone
-
-To see the environment of the system to help with debugging
-
-    https://localhost/cgi-bin/page.fcgi?page=meta-data
-
-Pre-Requisites
-==============
-
-Ged2site uses many CPAN modules which it will try to install if they are not
-on your system.
-If it doesn't have the necessary privilege to install the modules it will
-fail on starting up with "permission denied" errors.
-This is most likely because you're not running as root
-(which is of course how it should be)
-and you're not using [local::lib](https://metacpan.org/pod/local::lib),
-or [Perlbrew](https://perlbrew.pl/).
-
-Running the program for the first time with no
-arguments should install them,
-of course that will fail if you don't have the privilege,
-in which case you'll need to add them by hand.
-To install by hand you'll either have to use local::lib or perlbrew.
-Of course you could also run ged2site as root,
-but I strongly advise you don't do that.
-
-[Library](https://github.com/nigelhorne/lib) - library of code common with
-[gedcom](https://github.com/nigelhorne/gedcom).
-
-On FreeBSD you'll need to
-"sudo pkg install pkgconf gdlib graphviz ImageMagick7;
-cd /usr/local/lib;
-sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so"
 
 Ancestry on Windows
 ===================
@@ -215,6 +200,25 @@ For compatibility with other code, these environment variables are honoured:
     OPENADDR_HOME: directory of data from http://results.openaddresses.io/
     REDIS_SERVER: ip:port pair of where to cache geo-coding data
 
+Debugging and Developing
+========================
+
+Because the dynamic ged2site site uses VWF,
+it is possible to run the scripts from the command
+line simulating different environments and thus test the look and feel of your
+site before you deploy. Be aware that you will also see debugging messages.
+
+    cd dynamic-site/bin && ./tosqlite
+    cd ../cgi-bin
+    ./page.fcgi page=people home=1 # Look at your home entry from the -h option
+    ./page.fcgi page=surnames surname=horne # List people whose surname is Horne
+    ./page.fcgi page=surnames surname=horne lang=fr # List people whose surname is Horne, in French
+    ./page.fcgi --mobile page=surnames surname=horne # List people whose surname is Horne, as it would appear on a smart-phone
+
+To see the environment of the system to help with debugging
+
+    https://localhost/cgi-bin/page.fcgi?page=meta-data
+
 Bugs
 ====
 
@@ -268,7 +272,7 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 # LICENSE AND COPYRIGHT
 
-Copyright 2015-2023 Nigel Horne.
+Copyright 2015-2024 Nigel Horne.
 
 This program is released under the following licence: GPL2 for personal use on
 a single computer.
