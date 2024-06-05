@@ -3482,8 +3482,12 @@ sub print_person
 						$phrase->append(($sex eq 'M' ? 'his' : 'her') . ' twin ' .
 							i18n(($ssex eq 'F') ? 'sister ' : 'brother '));
 					}
-					$bio .= $sibling->given_names();
-					$phrase->append($sibling->given_names());
+					if(my $given = $sibling->given_names()) {
+						# Avoid end of sentences such as "with his twin sister Jane E.."
+						$given =~ s/\.$//;
+						$bio .= $given;
+						$phrase->append($given);
+					}
 					if($dateofbaptism || $placeofbaptism) {
 						$bio .= ',';
 						push @phrases, $phrase;
@@ -7504,7 +7508,7 @@ sub print_person
 		@phrases = ();
 	}
 
-	if(($language eq 'English') && defined($bio)) {
+	if(($language eq 'English') && $bio_dt->length()) {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			$bio = Lingua::EN::ABC::b2a($bio);
 			$bio_dt->set(Lingua::EN::ABC::b2a($bio_dt->as_string()));
@@ -11172,7 +11176,7 @@ sub notes
 
 	$ufinder->find(\$rc);
 
-	if($language eq 'English') {
+	if(($language eq 'English') && defined($rc)) {
 		if($ENV{'LANG'} =~ /^en_US/) {
 			return Lingua::EN::ABC::b2a($rc);
 		} elsif($ENV{'LANG'} =~ /^en_CA/) {
