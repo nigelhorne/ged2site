@@ -12607,7 +12607,7 @@ sub datecmp($$)
 				while((my @call_details = caller($i++))) {
 					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 				}
-				die "Date parse failure: left = ($left)";
+				die "Date parse failure: left = '$left' ($left <=> $right)";
 			}
 			my @l = $dfg->parse_datetime($left);
 			my $rc = $l[1] || $l[0];
@@ -12616,7 +12616,7 @@ sub datecmp($$)
 				while((my @call_details = caller($i++))) {
 					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 				}
-				die "Date parse failure: left = ($left)";
+				die "Date parse failure: left = '$left' ($left <=> $right)";
 			}
 			$left = $rc;
 		}
@@ -12659,8 +12659,9 @@ sub datecmp($$)
 		# }
 		my @r = $dfg->parse_datetime($right);
 		if(!defined($r[0])) {
-			if($right =~ /\s(\d{4})$/) {
+			if($right =~ /[\s\/](\d{4})$/) {
 				# e.g. cmp "1891 <=> Oct/Nov/Dec 1892"
+				# or 5/27/1872
 				my $year = $1;
 				if(ref($left)) {
 					if($left->year() != $year) {
