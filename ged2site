@@ -1382,13 +1382,18 @@ print $csv "entry!surname!person\n";
 $index = 1;
 
 foreach my $surname(sort keys %{$surnames}) {
-	my $filename = $surname;
-	if($filename eq '') {
-		$filename = 'UNKNOWN';
+	my $name = $surname;
+
+	if($name eq '') {
+		$name = 'UNKNOWN';
 	}
-	$filename =~ s/^&scaron;/&Scaron;/;
-	$filename =~ s/'/&apos;/g;	# https://github.com/nigelhorne/ged2site/issues/117
-	print $html "<li><a href=\"$filename.html\">$filename</a> (";
+	$name =~ s/^&scaron;/&Scaron;/;
+	my $filename = $name;
+
+	# https://github.com/nigelhorne/ged2site/issues/117
+	$filename =~ s/&apos;/APOS/g;
+
+	print $html "<li><a href=\"$filename.html\">$name</a> (";
 	# FIXME: "Implicit scalar context for hash in null operation"
 	my $count = scalar(keys %{$surnames->{$surname}});
 	if($count == 1) {
