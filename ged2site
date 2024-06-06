@@ -1963,7 +1963,6 @@ sub print_person
 
 	print "Starting output\n" if($opts{'v'});
 
-	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
 	my $xtitle = wide_to_xml($title);
 
 	print $xml "\n\t\t<xref>", $person->xref(),
@@ -1997,6 +1996,7 @@ sub print_person
 		print $csv '0!';
 	}
 
+	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
 	if($opts{'m'}) {
 		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>";
 	} else {
