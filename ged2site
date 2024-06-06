@@ -12569,6 +12569,15 @@ sub datecmp($$)
 	return 0 if($left eq $right);
 
 	if(!ref($left)) {
+		if((!ref($right)) && ($left =~ /(^|[\s\/])\d{4}$/) && ($right =~ /(^|[\s\/])(\d{4})$/)) {
+			my $ryear = $2;
+			$left =~ /(^|[\s\/])(\d{4})$/;
+			my $lyear = $2;
+			if($lyear != $ryear) {
+				# Easy comparison for different years
+				return $lyear <=> $ryear;
+			}
+		}
 		if(($left =~ /^bef/i) || ($left =~ /^aft/i)) {
 			if($right =~ /^\d+$/) {
 				# For example, comparing bef 1 Jun 1965 <=> 1939
