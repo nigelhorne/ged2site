@@ -1420,7 +1420,7 @@ foreach my $surname(sort keys %{$surnames}) {
 		# print "\t$person maps to ", $surnames->{$surname}->{$person}, "\n";
 		print $shtml '<li>',
 			'<a href="', make_filename_from_person(person => $surnames->{$surname}->{$person}), "\">",
-			HTML::Entities::encode($person),
+			wide_to_html($person),
 			'</a></li>';
 		print $csv "$index!$filename!", $surnames->{$surname}->{$person}->xref(), "\n";
 		$index++;
