@@ -11657,7 +11657,7 @@ sub print_graphviz
 
 	if(!$is_alive || $opts{'l'}) {
 		if($params{'format'} eq 'dynamic') {
-			print $fout 'href="?page=people&entry=', $person->xref(), '",';
+			print $fout 'href="?page=people&amp;entry=', $person->xref(), '",';
 		} else {
 			print $fout 'href="', make_filename_from_person(person => $person), '",';
 		}
@@ -11669,7 +11669,9 @@ sub print_graphviz
 	if($is_alive && !$opts{'l'}) {
 		$label = 'Living';
 	} else {
-		$label = wide_to_html($person->as_string());
+		# https://github.com/nigelhorne/ged2site/issues/117
+		# $label = wide_to_html($person->as_string());
+		$label = HTML::Entities::decode($person->as_string());
 		$dob = dateofbirth($person);
 		$dod = dateofdeath($person);
 	}
