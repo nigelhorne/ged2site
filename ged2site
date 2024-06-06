@@ -1392,6 +1392,8 @@ foreach my $surname(sort keys %{$surnames}) {
 
 	# https://github.com/nigelhorne/ged2site/issues/117
 	$filename =~ s/&apos;/APOS/g;
+	$filename =~ s/&ccaron;/CCARON/gi;
+	$filename =~ s/&scaron;/SCARON/gi;
 
 	print $html "<li><a href=\"$filename.html\">$name</a> (";
 	# FIXME: "Implicit scalar context for hash in null operation"
@@ -8230,9 +8232,12 @@ sub print_person
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', '/bin/cat')) {
+				# We're using UTF-8 for the graphviz encoding
 				binmode($fout, ':utf8');
+
 				# print $fout 'digraph family { graph [rankdir=LR];';
 				print $fout 'digraph family {',
+					' charset="UTF-8"',
 					' subgraph parents { rank="min"; ';
 				if($father) {
 					print_graphviz({ person => $father, fout => $fout, format => 'static' });
@@ -8294,10 +8299,14 @@ sub print_person
 			$filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', '/bin/cat')) {
+				# We're using UTF-8 for the graphviz encoding
+				binmode($fout, ':utf8');
+	
 				# print $fout 'digraph family { graph [rankdir=LR];';
 				# Best to agree with the colour in css/web.css
 				# print $fout 'digraph family { bgcolor="#d6d6d6"',
 				print $fout 'digraph family {',
+					' charset="UTF-8"',
 					' subgraph parents { rank="min"; ';
 				if($father) {
 					print_graphviz({ person => $father, fout => $fout, format => 'dynamic' });
@@ -11669,9 +11678,20 @@ sub print_graphviz
 	if($is_alive && !$opts{'l'}) {
 		$label = 'Living';
 	} else {
+		# We're using UTF-8 for the graphviz encoding
+
 		# https://github.com/nigelhorne/ged2site/issues/117
 		# $label = wide_to_html($person->as_string());
 		$label = HTML::Entities::decode($person->as_string());
+		$label =~ s/\N{U+00E4}/ä/g;
+		$label =~ s/\xc3\xa4/ä/g;
+		$label =~ s/\N{U+010D}/č/g;
+		$label =~ s/\xc4\x8d/č/g;
+		$label =~ s/\N{U+0160}/Š/g;
+		$label =~ s/\xc5\xa0/Š/g;
+		$label =~ s/\N{U+0161}/š/g;
+		$label =~ s/\xc5\xa1/š/g;
+
 		$dob = dateofbirth($person);
 		$dod = dateofdeath($person);
 	}
@@ -13794,6 +13814,7 @@ sub wide_to_html
 
 	$string = HTML::Entities::decode($string);
 	# $string =~ s/ & / &amp; /g;
+	$string =~ s/&ccaron;/č/g;	# I don't think HTML::Entities does this
 	$string =~ s/&/&amp;/g;
 
 	unless($params{'keep_hrefs'}) {
@@ -13982,6 +14003,7 @@ sub wide_to_xml
 	# print STDERR __LINE__, ": ($string)\n";
 
 	# $string =~ s/&amp;/&/g;
+	$string =~ s/&ccaron;/č/g;	# I don't think HTML::Entities does this
 	$string =~ s/&/&amp;/g;
 
 	unless($params{'keep_hrefs'}) {
