@@ -1387,6 +1387,7 @@ foreach my $surname(sort keys %{$surnames}) {
 		$filename = 'UNKNOWN';
 	}
 	$filename =~ s/^&scaron;/&Scaron;/;
+	$filename =~ s/'/&apos;/g;	# https://github.com/nigelhorne/ged2site/issues/117
 	print $html "<li><a href=\"$filename.html\">$filename</a> (";
 	# FIXME: "Implicit scalar context for hash in null operation"
 	my $count = scalar(keys %{$surnames->{$surname}});
