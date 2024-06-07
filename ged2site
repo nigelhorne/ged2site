@@ -1394,6 +1394,7 @@ foreach my $surname(sort keys %{$surnames}) {
 	$filename =~ s/&apos;/APOS/g;
 	$filename =~ s/&ccaron;/CCARON/gi;
 	$filename =~ s/&scaron;/SCARON/gi;
+	$filename =~ s/&zcaron;/ZCARON/gi;
 
 	print $html "<li><a href=\"$filename.html\">$name</a> (";
 	# FIXME: "Implicit scalar context for hash in null operation"
@@ -5962,11 +5963,11 @@ sub print_person
 		# Age at death > 10 years - should have at least appeared on one census
 		complain({ person => $person, warning => 'No records of living with anyone' });
 	}
-	if(scalar(@residences) == 0) {
-		print $csv '.';
+	# if(scalar(@residences) == 0) {
+		# print $csv '.';
 		# print $xml '.';
-		$phrase->append('XXXXXXXXXXXXXXXXXXXXXX');
-	}
+		# $phrase->append('XXXXXXXXXXXXXXXXXXXXXX');
+	# }
 
 	# $bio =~ s/,;/;/g;
 	# $bio =~ s/;$//;
@@ -8297,6 +8298,7 @@ sub print_person
 			$png = "dynamic-site/img/" . make_filename_from_object(object => $person) . '.png';
 			$tmp = File::Temp->new();
 			$filename = $tmp->filename();
+			binmode($tmp, ':utf8');
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
 			# if(open(my $fout, '|-', '/bin/cat')) {
 				# We're using UTF-8 for the graphviz encoding
@@ -8364,12 +8366,13 @@ sub print_person
 				print $xml "\n\t\t<family_tree>";
 				foreach my $line(<$tmp>) {
 					chomp $line;
-					print $csv $line;
+					print $csv wide_to_html({ string => $line, keep_hrefs => 1 });
 					$line =~ s/</&lt;/g;
 					$line =~ s/>/&gt;/g;
 					$line =~ s/&/&amp;/g;
 					$line =~ s/&amp;amp;/&amp;/g;
 					print $xml wide_to_xml($line);
+					print wide_to_xml($line) if($person->xref() eq 'I_1801019868');
 				}
 				print $xml '</family_tree>';
 			}
@@ -11683,6 +11686,8 @@ sub print_graphviz
 		# https://github.com/nigelhorne/ged2site/issues/117
 		# $label = wide_to_html($person->as_string());
 		$label = HTML::Entities::decode($person->as_string());
+
+		# Fields which HTML::Entities doesn't decode
 		$label =~ s/\N{U+00E4}/ä/g;
 		$label =~ s/\xc3\xa4/ä/g;
 		$label =~ s/\N{U+010D}/č/g;
@@ -11691,6 +11696,8 @@ sub print_graphviz
 		$label =~ s/\xc5\xa0/Š/g;
 		$label =~ s/\N{U+0161}/š/g;
 		$label =~ s/\xc5\xa1/š/g;
+		$label =~ s/\xc5\xbe/ž/g;
+		$label =~ s/\N{U+017E}/ž/g;
 
 		$dob = dateofbirth($person);
 		$dod = dateofdeath($person);
@@ -13815,6 +13822,7 @@ sub wide_to_html
 	$string = HTML::Entities::decode($string);
 	# $string =~ s/ & / &amp; /g;
 	$string =~ s/&ccaron;/č/g;	# I don't think HTML::Entities does this
+	$string =~ s/&zcaron;/ž/g;	# I don't think HTML::Entities does this
 	$string =~ s/&/&amp;/g;
 
 	unless($params{'keep_hrefs'}) {
@@ -14004,6 +14012,7 @@ sub wide_to_xml
 
 	# $string =~ s/&amp;/&/g;
 	$string =~ s/&ccaron;/č/g;	# I don't think HTML::Entities does this
+	$string =~ s/&zcaron;/ž/g;	# I don't think HTML::Entities does this
 	$string =~ s/&/&amp;/g;
 
 	unless($params{'keep_hrefs'}) {
@@ -14150,8 +14159,7 @@ sub wide_to_xml
 	$string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
-	if($string =~ \^Josef \(Jo/) {
-		# # print STDERR (unpack 'H*', $string);
+		# print STDERR (unpack 'H*', $string);
 		# print STDERR __LINE__, ': ';
 		# print STDERR (sprintf '%v02X', $string);
 		# print STDERR "\n";
@@ -14159,7 +14167,7 @@ sub wide_to_xml
 		# while((my @call_details = caller($i++))) {
 			# print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		# }
-		# # die $string;
+		# die $string;
 	# }
 
 	# print STDERR __LINE__, ": ($string)\n";
