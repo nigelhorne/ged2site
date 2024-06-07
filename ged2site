@@ -11016,6 +11016,10 @@ sub notes
 		if($note) {
 			if(ref($note) eq 'Gedcom::Record') {
 				$note = $note->full_value();	# Include CONC records
+				# https://github.com/nigelhorne/ged2site/issues/114
+				if(my $n = $ged->resolve_xref($note)) {
+					$note = $n->full_value();
+				}
 			# } else {
 				# complain("Note record is just description ($note), information may have been lost");
 			}
