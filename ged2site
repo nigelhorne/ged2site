@@ -12605,7 +12605,7 @@ sub datecmp($$)
 				return $lyear <=> $ryear;
 			}
 		}
-		if(($left =~ /^bef/i) || ($left =~ /^aft/i)) {
+		if($left =~ /^(bef|aft)/i) {
 			if($right =~ /^\d+$/) {
 				# For example, comparing bef 1 Jun 1965 <=> 1939
 				if($left =~ /\s(\d+)$/) {
