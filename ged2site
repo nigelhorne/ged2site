@@ -8372,7 +8372,6 @@ sub print_person
 					$line =~ s/&/&amp;/g;
 					$line =~ s/&amp;amp;/&amp;/g;
 					print $xml wide_to_xml($line);
-					print wide_to_xml($line) if($person->xref() eq 'I_1801019868');
 				}
 				print $xml '</family_tree>';
 			}
@@ -11857,7 +11856,13 @@ sub make_filename_from_person
 
 	die if(!defined($person));
 
-	my $rc = $person->as_string(include_years => 1);
+	my $rc = $person->as_string({ middle_names => 1, include_years => 1 });
+	if(!defined($rc)) {
+		$rc = $person->as_string({ middle_names => 1, include_years => 1 });
+		if(defined($rc)) {
+			complain({ person => $person, warning => 'BUG: caching not working on as_string' });
+		}
+	}
 	$rc =~ tr/ /-/s;
 	$rc =~ tr/ /-/s;
 	$rc =~ tr/"/'/s;
@@ -11868,8 +11873,19 @@ sub make_filename_from_person
 
 	utf8::decode($rc);
 	$rc = Unicode::Diacritic::Strip::strip_diacritics($rc);
-	$rc =~ s/[Þð]/th/g;
+	$rc =~ tr/[Þð]/th/;
 	$rc =~ s/ø/oe/g;
+	$rc =~ tr/é/e/;
+	$rc =~ s/\xc3\xa9/e/g;
+	$rc =~ tr/[čç]/c/;
+	$rc =~ s/\xc4\x8d/c/g;
+	$rc =~ s/\xc3\xa7/c/g;
+	$rc =~ tr/[šŠ]/s/;
+	$rc =~ s/\xc5\xa0/s/g;
+	$rc =~ s/\xc5\xa1/s/g;
+	$rc =~ tr/[âä]/a/;
+	$rc =~ s/\xc3\xa2/a/g;
+	$rc =~ s/\xc3\xa4/a/g;
 	$rc =~ tr/”/"/s;
 	$rc =~ tr/“/"/s;
 
