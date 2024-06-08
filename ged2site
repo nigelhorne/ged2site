@@ -14462,6 +14462,26 @@ sub newspaper
 	return $rc;
 }
 
+# Avoid end of sentences such as "with his twin sister Jane E.."
+sub given_names
+{
+	my %params;
+
+	if(ref($_[0]) eq 'HASH') {
+		%params = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%params = @_;
+	} elsif(scalar(@_) == 1) {
+		$params{'person'} = shift;
+	}
+
+	my $person = $params{'person'};
+	if(my $given = $person->given_names()) {
+		$given =~ s/\.$//;
+		return $given;
+	}
+}
+
 # Must all be in lower case
 __DATA__
 @@ English
