@@ -3493,9 +3493,7 @@ sub print_person
 						$phrase->append(($sex eq 'M' ? 'his' : 'her') . ' twin ' .
 							i18n(($ssex eq 'F') ? 'sister ' : 'brother '));
 					}
-					if(my $given = $sibling->given_names()) {
-						# Avoid end of sentences such as "with his twin sister Jane E.."
-						$given =~ s/\.$//;
+					if(my $given = given_names($sibling)) {
 						$bio .= $given;
 						$phrase->append($given);
 					}
@@ -4436,9 +4434,7 @@ sub print_person
 							$phrase->append(' with an unknown ' . i18n(($sex eq 'M') ? 'mother' : 'father'));
 						}
 						# TODO: make hyperlink to the person's record, unless surviving
-						if(my $given = $children[0]->given_names()) {
-							# Avoid end of sentences such as "Jane E.."
-							$given =~ s/\.$//;
+						if(my $given = given_names($children[0])) {
 							$bio .= ", $given";
 							$phrase->append(", $given");
 						}
@@ -14475,8 +14471,7 @@ sub given_names
 		$params{'person'} = shift;
 	}
 
-	my $person = $params{'person'};
-	if(my $given = $person->given_names()) {
+	if(my $given = $params{'person'}->given_names()) {
 		$given =~ s/\.$//;
 		return $given;
 	}
