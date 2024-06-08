@@ -1145,9 +1145,23 @@ if(!$opts{'w'}) {
 
 if(scalar(%censuses)) {
 	print "Creating census index\n";
+
 	open(my $html, '>', 'static-site/censuses.html');
 	print $html "<html><head><title>Censuses in the Family Tree $html_name</title>",
-		"</head><body><center><h1>Censuses in the Family Tree $html_name</h1></center><br><ul>";
+		"</head><body><center><h1>Censuses in the Family Tree $html_name</h1>";
+
+	if($me) {
+		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	}
+	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]';
+	if($opts{'w'}) {
+		print $html ' | [ <a href="todo.html">Errors</a> ]';
+	}
+	if($gedcal) {
+		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
+	}
+	print $html ' | [ <a href="history.html">Family History</a> ]</center>',
+		'<br><ul>';
 
 	open($csv, '>', 'dynamic-site/data/censuses.psv');
 	print $csv "entry|census|person\n";
