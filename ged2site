@@ -53,6 +53,8 @@ use warnings;
 
 no lib '.';
 
+use	constant	ASSUME_NOT_LIVING => 120;
+
 my @needfull;
 
 # Install Pre-requisites
@@ -3929,7 +3931,7 @@ sub print_person
 								$phrase->append('with whom ' . lcfirst($pronoun));
 							}
 						}
-						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + 100))) {
+						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + ASSUME_NOT_LIVING))) {
 							if(is_alive(person => $person)) {
 								$bio .= ' has';
 								$phrase->append('has ');
@@ -11845,7 +11847,7 @@ sub is_alive
 	my $year = (localtime)[5];
 	$year += 1900 if($year < 1900);
 
-	if(($dob =~ /^\d{3,4}$/) && ($dob < ($year - 100))) {
+	if(($dob =~ /^\d{3,4}$/) && ($dob < ($year - ASSUME_NOT_LIVING))) {
 		return 0;
 	}
 	if($dob =~ /^abt (\d{4})$/i) {
@@ -11854,7 +11856,7 @@ sub is_alive
 	if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
 		if(my $d = date_parser_cached(date => $dob)) {
 			$d = $dfn->parse_datetime($d->{'canonical'});
-			if($d->strftime('%Y') < ($year - 120)) {
+			if($d->strftime('%Y') < ($year - ASSUME_NOT_LIVING)) {
 				return 0;
 			}
 		}
