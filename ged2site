@@ -1796,10 +1796,15 @@ sub print_person
 
 	# $fetcher = Data::Fetch->new();	# Throw away old values from the cache
 
-	my $dateofbirth = dateofbirth($person);
+	my $dateofbirth;
+
+	# https://github.com/nigelhorne/ged2site/compare/master...jhannah:ged2site:115-bday-of-living-is-private?expand=1
+	if(!is_alive($person)) {
+		$dateofbirth = dateofbirth($person);
+	}
 
 	# ACOM starts approximate dates with "Abt." instead of "ABT".
-	if(defined($dateofbirth) && length($dateofbirth) && ($dateofbirth ne '?')) {
+	if(defined($dateofbirth) && length($dateofbirth)) {
 		$dateofbirth =~ tr/\.\-/  /;
 		$dateofbirth =~ s/\s{2,}/ /gs;
 		# FIXME: ../../../gedcoms/gl120368.ged puts dates *inside*
@@ -2020,7 +2025,11 @@ sub print_person
 		print $csv '0!';
 	}
 
-	open(my $html, '>', 'static-site/' . make_filename_from_person(person => $person));
+	my $filename = File::Spec->catfile('static-site', make_filename_from_person(person => $person));
+	if(-e $filename) {
+		die "FIXME: ensure filenames are unique ($filename)";
+	}
+	open(my $html, '>', $filename);
 	if($opts{'m'}) {
 		print $html "<html><head><title>$title</title></head><body onload=\"html_googlemaps_initialize()\"><center><h1>$title</h1>";
 	} else {
@@ -3933,7 +3942,7 @@ sub print_person
 						}
 						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + ASSUME_NOT_LIVING))) {
 							if(is_alive(person => $person)) {
-								$bio .= ' has';
+								$bio .= 'has ';
 								$phrase->append('has ');
 							}
 							$bio .= ' had ';
@@ -9215,6 +9224,7 @@ sub all_records_have_date
 	return 1;
 }
 
+# nee: Born, used to denote a woman's maiden name (e.g., Anne Gibson nee West)
 sub Gedcom::Individual::as_string
 {
 	my $self = shift;
@@ -11872,13 +11882,25 @@ sub make_filename_from_person
 
 	die if(!defined($person));
 
-	my $rc = $person->as_string({ middle_names => 1, include_years => 1 });
+	return $person->xref() . '.html';
+
+	# OLD CODE
+	my $args = { middle_names => 1 };
+	if(!is_alive(person => $person)) {
+		$args->{'include_years'} = 1;
+	}
+
+	my $rc = $person->as_string($args);
 	if(!defined($rc)) {
-		$rc = $person->as_string({ middle_names => 1, include_years => 1 });
+		$rc = $person->as_string($args);
 		if(defined($rc)) {
 			complain({ person => $person, warning => 'BUG: caching not working on as_string' });
 		}
 	}
+	if($rc eq '') {
+		return $person->xref() . '.html';
+	}
+
 	$rc =~ tr/ /-/s;
 	$rc =~ tr/ /-/s;
 	$rc =~ tr/"/'/s;
@@ -13041,6 +13063,9 @@ sub dateofbirth {
 		$dateofbirth = $birth->date();
 	}
 	if(defined($dateofbirth)) {
+		if($dateofbirth eq '?') {
+			return undef;
+		}
 		if($dateofbirth =~ /\s$/) {
 			complain({ person => $person, warning => "Removing trailing spaces from date of birth '$dateofbirth'" });
 			$dateofbirth =~ s/\s+$//;
