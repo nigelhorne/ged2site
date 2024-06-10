@@ -3842,7 +3842,7 @@ sub print_person
 						# print $xml $bio;
 
 						$fullbio .= $bio . $spouses[0]->as_string();
-						$bio = '';
+						undef $bio;
 
 						if($opts{'l'} || !$is_alive) {
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
@@ -3977,8 +3977,6 @@ sub print_person
 								$bio .= ',';
 								$phrase->append(',');
 							}
-							$bio .= ' ';
-							$phrase->append(' ');
 						} else {
 							if($all_children_are_alive) {
 								$bio .= "$numberofchildrenwiththisspouse surviving children";
@@ -3990,10 +3988,10 @@ sub print_person
 									$bio .= ':';
 									$phrase->append(':');
 								}
-								$bio .= ' ';
-								$phrase->append(' ');
 							}
 						}
+						$bio .= ' ';
+						$phrase->append(' ');
 						if((!$placeofmarriage) && !$dateofmarriage) {
 							if(length(my $spouse_name = $spouse->as_string({ middle_names => 1, title => 1 }))) {
 								$bio .= i18n({ format => 'with %s', args => $spouse_name });
@@ -4199,7 +4197,7 @@ sub print_person
 				# print $xml $bio;
 
 				$fullbio .= $bio;
-				$bio = '';
+				undef $bio;
 
 				# Sort the order of the marriages by date
 				my $all_marriages_have_date = 1;
@@ -4363,7 +4361,7 @@ sub print_person
 					# print $xml $bio;
 
 					$fullbio .= $bio;
-					$bio = '';
+					undef $bio;
 				}
 				if(scalar(@names)) {
 					$phrase->append(' (' . i18n('to ') . conjunction(@names) . ')');
@@ -4562,7 +4560,7 @@ sub print_person
 					}
 				}
 			}
-			if($bio =~ /\.$/) {
+			if(defined($bio) && ($bio =~ /\.$/)) {
 				$end_of_sentence = 1;
 			} else {
 				$end_of_sentence = 0;
@@ -4725,7 +4723,7 @@ sub print_person
 						red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
 					}
 				}
-				if(ref($event) eq 'Gedcom::Record') {
+				if($event->can('type')) {
 					my $type = $event->type();
 					if(!defined($type)) {
 						red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
@@ -6122,7 +6120,7 @@ sub print_person
 				$bio_dt->append(' ' . ucfirst($event) . '. ');
 			}
 		}
-		if(ref($event) eq 'Gedcom::Record') {
+		if($event->can('type')) {
 			my $type = $event->type();
 			if(!defined($type)) {
 				red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
@@ -11071,6 +11069,7 @@ sub notes
 			# FIXME: a lot of duplicated code here
 			if(defined($rc)) {
 				if($rc ne $note) {
+					$rc =~ s/\s$//g;
 					if($paragraph) {
 						if($encode) {
 							$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
@@ -12305,6 +12304,8 @@ sub get_all_occupations
 		$occupation =~ tr/\n/ /;
 		$occupation =~ s/\.+$//;
 		$occupation =~ s/[\(\)]//g;
+		$occupation =~ s/\s\s/ /g;
+		$occupation =~ s/\./;/g;
 
 		$occupation =~ s/\s+Own Account//i;
 		$occupation =~ s/^Formerly //i;
