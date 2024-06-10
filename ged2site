@@ -3780,10 +3780,12 @@ sub print_person
 
 			if(scalar(@spouses) == 1) {
 				if(!$printed_and) {
-					$bio .= i18n(' and');
+					$bio .= i18n(' and') if(!$end_of_sentence);
 					$printed_and = 1;
+					$end_of_sentence = 0;
 				}
-				if($phrase->length() && (scalar(@phrases) > 0)) {
+				if(($phrase->length() > 3) && (scalar(@phrases) > 0)) {
+					# Don't create a new phrase if it's just the pronoun
 					push @phrases, $phrase;
 					$phrase = Data::Text->new();
 				}
