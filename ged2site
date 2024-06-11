@@ -10687,7 +10687,6 @@ sub place {
 	# $place =~ s/\xc3\xa9/é/g;
 	$place =~ s/\xc3\xa9/\N{U+00E9}/g;
 
-warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq 'I_418560157'));
 	if(($place =~ /(.+?)\s*United States$/i) || ($place =~ /(.+?)\s*United States of America$/i)) {
 		$place = "$1 USA";
 		$rc->en($place);
@@ -10768,7 +10767,6 @@ warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq '
 		}
 	}
 
-warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq 'I_418560157'));
 	if($params{'person'}) {
 		validate_place({ person => $params{'person'}, place => $rc });
 	}
@@ -10831,7 +10829,6 @@ warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq '
 		return ' in the USA';
 	}
 
-warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq 'I_418560157'));
 	if($address) {
 		# utf8::decode($address);
 		if($params{'nopreposition'}) {
@@ -10858,9 +10855,7 @@ warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq '
 	}
 	$rc->set({ lang => $lang, string => $place });
 
-warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq 'I_418560157'));
 	if(my $places_printed = $params{'places_printed'}) {
-warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq 'I_418560157'));
 		if(($language eq 'French') && ($place =~ /(.+), London, England/)) {
 			$place = "$1, Londres, Angleterre";
 			$rc->fr($place);
@@ -10880,6 +10875,7 @@ warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq '
 				}
 				my $road = $1;
 				my $town = $2;
+				my $country = $4;
 				if(($town !~ /,/) || !defined($address)) {
 					if($language eq 'French') {
 						return "$road \N{U+00E0}$town";
@@ -10887,6 +10883,10 @@ warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq '
 					# Avoid "in in Paris"
 					$road =~ s/^\s*in//;
 					$road =~ s/\s+$//;
+					$town =~ s/\s+$//;
+					if(($road eq '') && ($town eq '')) {
+						return "in$country";
+					}
 					return "$road in$town";
 				}
 				return $address;
@@ -10924,7 +10924,6 @@ warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq '
 	}
 
 	if($lcm) {
-warn "rc = $rc ($place)" if($params{'person'} && ($params{'person'}->xref() eq 'I_418560157'));
 		$rc->set({ lang => $lang, string => $place });
 		if($place =~ /(.*),\s+([A-Z\s]+)$/i) {
 			my $c = $2;
