@@ -11738,6 +11738,8 @@ sub print_graphviz
 		$label =~ s/\xc5\xa1/š/g;
 		$label =~ s/\xc5\xbe/ž/g;
 		$label =~ s/\N{U+017E}/ž/g;
+		$label =~ s/\xc3\xa7/ç/g;
+		$label =~ s/\N{U+00E7}/ç/g;
 
 		$dob = dateofbirth($person);
 		$dod = dateofdeath($person);
@@ -12174,7 +12176,7 @@ sub get_all_residences
 				$event = $e;
 			}
 		}
-		next if(ref($event) ne 'Gedcom::Record');
+		next if(!$event->can('type'));
 		my $type = $event->type();
 		next if(!defined($type));
 		# if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939') || ($type eq 'Hospitalisation')) {
