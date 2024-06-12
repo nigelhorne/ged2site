@@ -12011,7 +12011,7 @@ sub date_parser_cached
 		while((my @call_details = caller($i++))) {
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
-		die "BUG: illegal '$date' should have been trapped by now";
+		die "BUG: date_parser_cached($date) illegal date should have been trapped by now";
 	}
 	print "Parse date $date\n" if($opts{'v'});
 	my $d;
