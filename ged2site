@@ -4616,8 +4616,8 @@ sub print_person
 					}
 				}
 				if($all_children_have_names) {
-					$bio .= ', ' . conjunction(map { $_->given_names() } @children);
-					$phrase->append(', ' . conjunction(map { $_->given_names() } @children));
+					$bio .= ', ' . conjunction(map { given_names($_) } @children);
+					$phrase->append(', ' . conjunction(map { given_names($_) } @children));
 				}
 			}
 			$end_of_sentence = 0;
