@@ -6186,8 +6186,9 @@ sub print_person
 				if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 					$notes = lcfirst($notes);
 					$notes =~ s/\.$//;
+					$bio =~ s/\s$//;
 					$bio .= " ($notes)";
-					$phrase->append(" ($notes)");
+					$phrase->rtrim()->append(" ($notes)");
 				}
 				$bio .= '. ';
 				$end_of_sentence = 1;
@@ -6327,7 +6328,8 @@ sub print_person
 				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 					$notes = ucfirst($notes);
 					$bio .= " ($notes)";
-					$phrase->append(" ($notes)");
+					$bio =~ s/\s$//;
+					$phrase->rtrim()->append(" ($notes)");
 					$end_of_sentence = 0;
 				}
 			}
@@ -6345,6 +6347,7 @@ sub print_person
 					$event = $e;
 				} else {
 					red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
+					$bio =~ s/\s$//;
 					$bio .= ' ' . ucfirst($event) . '.';
 
 					push @phrases, $phrase;
@@ -6592,8 +6595,9 @@ sub print_person
 					}
 					if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 						$notes = lcfirst($notes);
+						$bio =~ s/\s$//;
 						$bio .= " ($notes)";
-						$phrase->append(" ($notes)");
+						$phrase->rtrim()->append(" ($notes)");
 					}
 					$bio .= '.';
 					$end_of_sentence = 1;
@@ -6656,8 +6660,9 @@ sub print_person
 					}
 					if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 						$notes = lcfirst($notes);
+						$bio =~ s/\s$//;
 						$bio .= " ($notes)";
-						$phrase->append(" ($notes)");
+						$phrase->rtrim()->append(" ($notes)");
 					}
 					$bio .= '.';
 					$end_of_sentence = 1;
@@ -6802,6 +6807,7 @@ sub print_person
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes =~ s/[\s\.]+$//;
 						my $date = year(record => $event);
+						$bio =~ s/\s$//;
 						if($end_of_sentence) {
 							if($date) {
 								$bio .= ' ' . ucfirst($notes) . " $date. ";
@@ -6817,7 +6823,7 @@ sub print_person
 							}
 							$end_of_sentence = 0;
 						}
-						if($phrase->length()) {
+						if($phrase->rtrim()->length()) {
 							$notes = lcfirst($notes);
 							if($date) {
 								$phrase->append(" ($date, $notes)");
