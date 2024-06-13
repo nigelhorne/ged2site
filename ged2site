@@ -1939,7 +1939,7 @@ sub print_person
 
 	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
 		# $firstname = $1;
-		$firstname = ucfirst(lc(wide_to_html($person->given_names()))); # RT109786
+		$firstname = ucfirst(lc(wide_to_html(given_names($person)))); # RT109786
 		if(!defined($surname)) {
 			$surname = $2;
 		}
@@ -1966,7 +1966,7 @@ sub print_person
 	if($yob) {
 		my $bucket = floor($yob / 25);
 		# Ensure last name isn't used if the first name isn't known
-		if($firstname && $person->given_names()) {
+		if($firstname && given_names($person)) {
 			push @{$name_date{$bucket}{$firstname}}, $person->xref();
 		}
 		if($surname) {
@@ -1977,7 +1977,7 @@ sub print_person
 	my $is_alive = is_alive(person => $person);
 	my $title;
 	if($is_alive && !$opts{'l'}) {
-		print $csv $person->xref(), '!', $person->given_names(), '!';
+		print $csv $person->xref(), '!', given_names($person), '!';
 			# $person->as_string({ middle_names => 1, title => 1 }), '!';
 		$title = wide_to_html($firstname);
 	} else {
@@ -2801,16 +2801,16 @@ sub print_person
 					push @phrases, $phrase;
 				}
 				my $s = i18n({ person => $person, format => 'twin of' });
-				$phrase = Data::Text->new("$s " . $person_twins[0]->{'sibling'}->given_names());
-				$bio .= "$s " . $person_twins[0]->{'sibling'}->given_names();
+				$phrase = Data::Text->new("$s " . given_names($person_twins[0]->{'sibling'}));
+				$bio .= "$s " . given_names($person_twins[0]->{'sibling'});
 			} else {
 				if($phrase->length()) {
 					push @phrases, $phrase;
 				}
 				$phrase = Data::Text->new('The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
-					i18n(' of ') . $person_twins[0]->{'sibling'}->given_names());
+					i18n(' of ') . given_names($person_twins[0]->{'sibling'}));
 				$bio .= 'The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
-					i18n(' of ') . $person_twins[0]->{'sibling'}->given_names();
+					i18n(' of ') . given_names($person_twins[0]->{'sibling'});
 			}
 			$printed_comma = 0;
 			$twins{$person->xref()} = $person_twins[0]->{'sibling'}->xref();
@@ -3041,13 +3041,13 @@ sub print_person
 		} else {
 			if($father) {
 				print $html '<a href="', make_filename_from_person(person => $father), '">',
-					$father->given_names(),
+					given_names($father),
 					'</a>';
 				# print $xml '&lt;a href="?page=people&amp;entry=', $father->xref(), '"&gt;',
 					# $father->given_names(),
 					# '&lt;/a&gt;';
 				$phrase->append('<a href="?page=people&entry=' . $father->xref() . '">' .
-					$father->given_names() .
+					given_names($father) .
 					'</a>');
 				if($mother) {
 					print $html i18n(' and ');
@@ -3056,13 +3056,13 @@ sub print_person
 			}
 			if($mother) {
 				print $html '<a href="', make_filename_from_person(person => $mother), '">',
-					$mother->given_names(),
+					given_names($mother),
 					'</a>';
 				# print $xml '&lt;a href="?page=people&amp;entry=', $mother->xref(), '"&gt;',
 					# $mother->given_names(),
 					# '&lt;/a&gt;';
 				$phrase->append('<a href="?page=people&entry=' . $mother->xref() . '">' .
-					$mother->given_names() .
+					given_names($mother) .
 					'</a>');
 			}
 		}
@@ -3870,13 +3870,13 @@ sub print_person
 								'</a>');
 						} else {
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
-								$spouses[0]->given_names(),
+								given_names($spouses[0]),
 								'</a>';
 							# print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								# $spouses[0]->given_names(),
 								# '&lt;/a&gt;';
 							$phrase->append('<a href="?page=people&entry=' . $spouses[0]->xref() . '">' .
-								$spouses[0]->given_names() .
+								given_names($spouses[0]) .
 								'</a>');
 						}
 						$haveprintedspousename = 1;
@@ -4043,7 +4043,7 @@ sub print_person
 							# Construct the list for the static pages
 							my $childnames = join(', ', map {
 								'<a href="' . make_filename_from_person(person => $_) . '">' .
-									$_->given_names() . '</a>'
+									given_names($_) . '</a>'
 							} @childrenofthisspouse);
 							substr($childnames, rindex($childnames, ', '), 2, ' and ');
 							$bio .= $childnames;
@@ -4053,9 +4053,7 @@ sub print_person
 							my $alive_children = 0;
 							foreach my $child(@childrenofthisspouse) {
 								if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
-									my $cgiven = $child->given_names();
-									# Remove the '.' from an initial
-									$cgiven =~ s/[\.\s]+$//;
+									my $cgiven = given_names($child);
 									if(length($cgiven)) {
 										push @childlist,
 											'<a href="?page=people&entry=' . $child->xref() . '">' .
@@ -4356,13 +4354,13 @@ sub print_person
 								$death_of_first_spouse =~ s/\s+$//;
 							}
 							$bio .= i18n('following the death of ') .
-								$spouses[0]->given_names() . ' ' .
+								given_names($spouses[0]) . ' ' .
 								year({
 									person => $spouses[0],
 									record => $death_of_first_spouse,
 								});
 							$name .= i18n('following the death of ') .
-								$spouses[0]->given_names() . ' ' .
+								given_names($spouses[0]) . ' ' .
 								year({
 									person => $spouses[0],
 									record => $death_of_first_spouse,
@@ -4505,7 +4503,7 @@ sub print_person
 								# '<a href="' . make_filename_from_person(person => $_) . '">' .
 									# $_->given_names() . '</a>'
 							# } @children);
-							my $decoded = conjunction(map { $_->given_names() } @children);
+							my $decoded = conjunction(map { given_names($_) } @children);
 							$bio .= ": $decoded";
 							$phrase->append(": $decoded");
 						} else {
@@ -4525,7 +4523,7 @@ sub print_person
 								foreach my $child(@children) {
 									if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
 										if(my $mother = $child->mother()) {
-											push @{$childmap{$mother->given_names()}}, $child;
+											push @{$childmap{given_names($mother)}}, $child;
 										} else {
 											push @{$childmap{'unknown mother'}}, $child;
 										}
@@ -4537,7 +4535,7 @@ sub print_person
 								foreach my $child(@children) {
 									if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
 										if(my $father = $child->father()) {
-											push @{$childmap{$father->given_names()}}, $child;
+											push @{$childmap{given_names($father)}}, $child;
 										} else {
 											push @{$childmap{'unknown father'}}, $child;
 										}
@@ -4550,7 +4548,7 @@ sub print_person
 							my @childnames;
 							while(my ($key, $value) = each %childmap) {
 								push @childnames,
-									conjunction(map { $_->given_names() } @{$value}) .
+									conjunction(map { given_names($_) } @{$value}) .
 									i18n(' with ') .
 									$key;
 							}
@@ -4609,8 +4607,7 @@ sub print_person
 				$phrase->append((($numberofchildren == 1) ? '1 child' : "$numberofchildren children"));
 			}
 			if($numberofchildren == 1) {
-				if(my $first_name = $children[0]->given_names()) {
-					$first_name =~ s/\.$//;
+				if(my $first_name = given_names($children[0])) {
 					$bio .= ", $first_name";
 					$phrase->append(", $first_name");
 				}
@@ -4620,7 +4617,7 @@ sub print_person
 				# $bio .= ", $childnames";
 				my $all_children_have_names = 1;
 				foreach my $child(@children) {
-					if(length($child->given_names()) == 0) {
+					if(length(given_names($child)) == 0) {
 						$all_children_have_names = 0;
 						last;
 					}
@@ -4675,11 +4672,11 @@ sub print_person
 				$bio .= i18n('children, ');
 				$phrase->append(i18n('children, '));
 			}
-			$bio .= conjunction(map { $_->given_names() } @childrenunknownparent) .
+			$bio .= conjunction(map { given_names($_) } @childrenunknownparent) .
 				', whose ' .
 				(($sex eq 'F') ? 'father' : 'mother') .
 				' is unknown';
-			$phrase->append(conjunction(map { $_->given_names() } @childrenunknownparent) .
+			$phrase->append(conjunction(map { given_names($_) } @childrenunknownparent) .
 				', whose ' .
 				(($sex eq 'F') ? 'father' : 'mother') .
 				' is unknown');
@@ -5211,7 +5208,9 @@ sub print_person
 					  ($count <= (scalar(@residencelist) - 1)) &&
 					  ($residencecitations{$residence})) {
 						my $peek = $iterator->peek();
-						if($peek && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
+						if($peek &&
+						   places_are_the_same({ person => $person, first => $residence, second => $peek }) &&
+						   $residencecitations{$peek}) {
 							push @citationlist, $residencecitations{$peek};
 						}
 					}
@@ -5327,7 +5326,7 @@ sub print_person
 							if(scalar(@siblings_living_with) == 1) {
 								$residencestring .=
 									i18n(($sex eq 'F') ? ' sister, ' : ' brother, ') .
-									$siblings_living_with[0]->given_names() . ',';
+									given_names($siblings_living_with[0]) . ',';
 							} else {
 								my $sex = $siblings_living_with[0]->sex();
 								foreach my $sibling(@siblings_living_with) {
@@ -5339,7 +5338,7 @@ sub print_person
 								if($sex) {
 									# living with more than one sibling all of the same gender
 									$residencestring .= i18n(($sex eq 'F') ? ' sisters, ' : ' brothers, ') .
-										conjunction(map { $_->given_names() } @siblings_living_with);
+										conjunction(map { given_names($_) } @siblings_living_with);
 								} elsif(scalar(@siblings_living_with) == 2) {
 									# Living with one brother and one sister
 									my $brother;
@@ -5352,10 +5351,10 @@ sub print_person
 										$brother = $siblings_living_with[1];
 									}
 									$residencestring .= i18n(' brother ') .
-										$brother->given_names() .
+										given_names($brother) .
 										i18n(' and ') .
 										i18n('sister ') .
-										$sister->given_names();
+										given_names($sister);
 								} else {
 									die 'TODO: ', $person->as_string(include_years => 1), ' living with ', scalar(@siblings_living_with), ' siblings of differing genders';
 								}
@@ -5501,9 +5500,9 @@ sub print_person
 									if($with_mother && $with_father) {
 										$residencestring .= i18n(' parents');
 									} elsif($with_mother) {
-										$residencestring .= i18n(' mother, ') . $mother->given_names();
+										$residencestring .= i18n(' mother, ') . given_names($mother);
 									} elsif($with_father) {
-										$residencestring .= i18n(' father, ') . $father->given_names();
+										$residencestring .= i18n(' father, ') . given_names($father);
 									}
 									if($first) {
 										$residencestring .= ')';
@@ -5601,11 +5600,11 @@ sub print_person
 										if($language eq 'French') {
 											$residencestring .= ($printed_sibling ? ' et ' : ' avec ') .
 												($person->pronoun() eq 'She' ? 'son futur mari, ' : 'sa futur femme, ') .
-												$spouse->given_names();
+												given_names($spouse);
 										} else {
 											$residencestring .= i18n($printed_sibling ? ' and ' : ' with ') .
 												($person->pronoun() eq 'She' ? 'her future husband, ' : 'his future wife, ') .
-												$spouse->given_names();
+												given_names($spouse);
 										}
 										last;
 									}
@@ -5718,7 +5717,7 @@ sub print_person
 											" $relationship ";
 									}
 									if($l->{'person'}->surname() eq $surname) {
-										$first_string .= $l->{'person'}->given_names();
+										$first_string .= given_names($l->{'person'});
 									} else {
 										$first_string .= $l->{'person'}->as_string();
 									}
@@ -5837,7 +5836,7 @@ sub print_person
 								' was living with ' .
 								lcfirst($person->possessive()) .
 								i18n((scalar(@daughters) > 1) ? ' daughters, ' : ' daughter ') .
-								conjunction(map { $_->given_names() } @daughters) . ',' .
+								conjunction(map { given_names($_) } @daughters) . ',' .
 								i18n(' following the death of ') .
 								(($sex eq 'M') ? 'his wife ' : 'her husband ') .
 								year(date => dateofdeath($spouses[0]));
@@ -6174,11 +6173,11 @@ sub print_person
 								$bio .= i18n(' with ') .
 									lcfirst($person->possessive()) . ' ' .
 									(($sex eq 'M') ? 'wife' : 'husband') .
-									' ' . $spouse->given_names();
+									' ' . given_names($spouse);
 								$phrase->append(i18n(' with ') .
 									lcfirst($person->possessive()) . ' ' .
 									(($sex eq 'M') ? 'wife' : 'husband') .
-									' ' . $spouse->given_names());
+									' ' . given_names($spouse));
 							}
 						}
 					}
@@ -9359,7 +9358,7 @@ sub Gedcom::Individual::as_string
 	if($first_name) {
 		$rc .= $first_name;
 	} else {
-		$rc .= $self->given_names();
+		$rc .= given_names($self);
 	}
 
 	if($args{'middle_names'}) {
@@ -11394,17 +11393,17 @@ sub person_line_html
 	if($opts{'l'} || !is_alive(%params)) {
 		if(my $dob = dateofbirth($person)) {
 			return '<a href="' . make_filename_from_person(person => $person) . '">' .
-				wide_to_html($person->given_names()) .
+				wide_to_html(given_names($person)) .
 				'</a> was born ' .
 				year({ person => $person, date => $dob });
 		} elsif(my $bd = get_value({ person => $person, value => 'baptism date' })) {
 			return '<a href="' . make_filename_from_person(person => $person) . '">' .
-				wide_to_html($person->given_names()) . "</a> was born c. $bd";
+				wide_to_html(given_names($person)) . "</a> was born c. $bd";
 		}
 		return '';
 	}
 	return '<a href="' . make_filename_from_person(person => $person) . '">' .
-		wide_to_html($person->given_names()) .
+		wide_to_html(given_names($person)) .
 		'</a>';
 }
 
@@ -11417,19 +11416,19 @@ sub person_line_csv
 	if($opts{'l'} || !is_alive(%params)) {
 		if(my $dob = dateofbirth($person)) {
 			return '<a href="?page=people&entry=' . $person->xref() . '">' .
-				wide_to_html($person->given_names()) .
+				wide_to_html(given_names($person)) .
 				'</a> was born ' .
 				year({ person => $person, date => $dob });
 		} elsif(my $bd = get_value({ person => $person, value => 'baptism date' })) {
 			return '<a href="?page=people&entry=' . $person->xref() . '">' .
-				wide_to_html($person->given_names()) . "</a> was born c. $bd";
+				wide_to_html(given_names($person)) . "</a> was born c. $bd";
 		}
 		return '';
 	}
 	# return '<a href="?page=people&entry=' . $person->xref() . '">' .
 		# $person->given_names() .
 		# '</a>';
-	return wide_to_html($person->given_names());
+	return wide_to_html(given_names($person));
 }
 
 # Are two places the same? exact => 1 means must be equal, otherwise use fuzzy logic
@@ -11555,9 +11554,9 @@ sub sibling_baptism_string
 			i18n(($onsameday[0]->sex() eq 'M' ? 'brothers ' : 'sisters ')) .
 			conjunction(map {
 				if($opts{'l'} || !is_alive($_)) {
-					'<a href="?page=people&entry=' . $_->xref() . '">' . $_->given_names() . '</a>'
+					'<a href="?page=people&entry=' . $_->xref() . '">' . given_names($_) . '</a>'
 				} else {
-					$_->given_names()
+					given_names($_)
 				}
 			} @onsameday);
 	}
@@ -11581,7 +11580,7 @@ sub sibling_baptism_string
 			}
 		}
 		$baptism .= i18n(($sibling->sex() eq 'M' ? 'brother ' : 'sister ')) .
-			$sibling->given_names();
+			given_names($sibling);
 		push @baptisms, $baptism;
 	}
 	return ', ' . i18n('the same day as ') . conjunction(@baptisms);
@@ -12157,6 +12156,16 @@ sub cite
 	my @citations = @{$params{'citations'}};
 	return '' unless($citations[0]);
 	return '' unless(scalar(@citations));
+	return '<span class="citation">' . $citations[0] . '</span>' if(scalar(@citations) == 1);
+
+	if(!defined($citations[1])) {
+		print STDERR "BUG: cite() called with undefined citation\n";
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		die Data::Dumper->new([\@citations])->Dump();
+	}
 
 	return '<span class="citation">' . join(',', List::Util::uniq(sort { $a <=> $b } (@citations))) . '</span>';
 }
@@ -12651,16 +12660,14 @@ sub journey
 				$rc .= i18n(' with ') .
 					lcfirst($person->possessive()) . ' ' .
 					((get_value({ person => $person, value => 'sex' }) eq 'M') ? 'wife' : 'husband') .
-					', ' . $spouses[0]->given_names();
+					', ' . given_names($spouses[0]);
 				$with_spouse++;
 			}
 		}
 		my @childnames;
 		foreach my $child(@children) {
 			if(($opts{'l'} || !is_alive(person => $child))) {
-				my $given_names = $child->given_names();
-				$given_names =~ s/\.$//;
-				push(@childnames, $given_names);
+				push(@childnames, given_names($child));
 			}
 		}
 		if(scalar(@childnames)) {
@@ -14327,7 +14334,7 @@ sub dbpedia
 	$name =~ s/\///g;
 	$nameparser->parse($name);
 	my %name_components = $nameparser->components();
-	my $firstname = $name_components{'given_name_1'} // $person->given_names // $name_components{'initials_1'};
+	my $firstname = $name_components{'given_name_1'} // $person->given_names() // $name_components{'initials_1'};
 	if($firstname) {
 		$firstname =~ s/\'/\\\'/g;
 		$firstname = Unicode::Diacritic::Strip::strip_diacritics($firstname);
