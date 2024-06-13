@@ -6208,8 +6208,8 @@ sub print_person
 				}
 			} elsif($type eq 'Departure') {
 				$phrase->set($pronoun);
-
 				$bio .= $pronoun;
+
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$bio .= ' traveled';
 					$phrase->append(' traveled');
@@ -6625,8 +6625,9 @@ sub print_person
 						}
 						$previous = undef;
 					} else {
-						$bio .= ' ' . ucfirst(i18n($person->pronoun()));
-						$phrase->append(' ' . ucfirst(i18n($person->pronoun())));
+						$bio .= ucfirst(i18n($person->pronoun()));
+						$phrase->append(ucfirst(i18n($person->pronoun())));
+
 						if($ENV{'LANG'} =~ /^en_US/) {
 							$bio .= ' traveled';
 							$phrase->append(' traveled');
@@ -10648,6 +10649,7 @@ sub place {
 	}
 
 	$place =~ s/\.$//;
+	$place =~ s/\s\s+/ /;
 
 	return if(lc($place) eq 'unknown');
 

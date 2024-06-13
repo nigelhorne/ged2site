@@ -1,12 +1,14 @@
+#!/usr/bin/env bash
+
+set -ex
+
 unset GMAP_KEY
 for i in ~/gedcoms/*; do
-	echo $i
 	rm -rf dynamic-site/data dynamic-site/img static-site/
-	set -e
 	./ged2site -cFd "$i"
 	weblint static-site/*html
 	xmllint dynamic-site/data/people.xml > /dev/null
 	# xmllint dynamic-site/data/locations.xml > /dev/null
-	set +e
-	grep ' ' static-site/*.html
+	grep '  ' static-site/*.html && exit 1
+	grep 'etravel' static-site/*.html && exit 1
 done
