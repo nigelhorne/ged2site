@@ -13290,6 +13290,12 @@ sub parse_date
 			if($date =~ /from (.+) to (.+)/i) {
 				return "bet $1 and $2";
 			}
+			if($date =~ /^(\d{3,4})\s([A-Z]{3,})\s(\d{1,2})$/i) {
+				# 1942 June 9
+				my $rc = "$3 " . ucfirst(lc(substr($2, 0, 3))) . " $1";
+				complain({ person => $person, warning => "$date changed to $rc" });
+				return $rc;
+			}
 			if($date =~ /(.*\d{4})\s+(.+)/) {
 				complain({ person => $person, warning => "$type date: removing trailing text '$2'" });
 				$date = $1;
@@ -13311,7 +13317,7 @@ sub parse_date
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			}
-			die 'BUG: handle "', $params{'date'}, ' on ', $person->as_string();
+			die 'BUG: parse_date(): handle "', $params{'date'}, '" on ', $person->as_string();
 		}
 		if($about) {
 			$date = "abt $date";
