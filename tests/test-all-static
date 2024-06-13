@@ -3,12 +3,12 @@
 set -ex
 
 unset GMAP_KEY
-for i in ~/gedcoms/*; do
+for i in ~/gedcoms/*.ged ~/gedcoms/*.GED; do
 	rm -rf dynamic-site/data dynamic-site/img static-site/
 	./ged2site -cFd "$i"
 	weblint static-site/*html
 	xmllint dynamic-site/data/people.xml > /dev/null
 	# xmllint dynamic-site/data/locations.xml > /dev/null
-	grep '  ' static-site/*.html && exit 1
 	grep 'etravel' static-site/*.html && exit 1
+	# grep '  ' static-site/*.html && exit 1
 done

@@ -10213,7 +10213,7 @@ sub Gedcom::Individual::relationship_up
 					my $myfather = $self->father();
 					my $mymother = $self->mother();
 					if($myfather && (stepsabove($myfather, $person2, 0) > 0)) {
-						if($me && ($self eq $me)) {
+						if($me && ($self->xref() eq $me->xref())) {
 							$rc .= i18n(" on the father's side");
 						} else {
 							$rc .= ' on ' .
@@ -10221,7 +10221,7 @@ sub Gedcom::Individual::relationship_up
 								" father's side";
 						}
 					} elsif($mymother && (stepsabove($mymother, $person2, 0) > 0)) {
-						if($me->xref() && ($self->xref() eq $me->xref())) {
+						if($me && ($self->xref() eq $me->xref())) {
 							$rc .= i18n(" on the mother's side");
 						} else {
 							$rc .= ' on ' .
@@ -13088,7 +13088,7 @@ sub dateofbirth {
 		$dateofbirth = $d[0];
 	} elsif(scalar(@d)) {
 		# More than one date - are they all the same?
-		while(defined($d[1]) && ($d[1] !~ /\sor\s/) && (datecmp($d[0], $d[1]) == 0)) {
+		while(defined($d[1]) && ($d[1] !~ /\sor\s/) && ($d[1] !~ /^About/) && (datecmp($d[0], $d[1]) == 0)) {
 			shift @d;
 		}
 		if(scalar(@d) == 1) {
@@ -13203,7 +13203,10 @@ sub dateofmarriage
 				complain({ person => $person, warning => "Date of marriage ($dateofmarriage) is before date of birth ($dateofbirth)" });
 			}
 		}
-		return parse_date({ date => $dateofmarriage, type => 'Marriage', person => $person });
+		if($dateofmarriage =~ /d/) {
+			return parse_date({ date => $dateofmarriage, type => 'Marriage', person => $person });
+		}
+		complain({ person => $person, warning => "'$dateofmarriage' is not a valid date of marriage" });
 	}
 	return;	# return undef
 }
@@ -13294,7 +13297,13 @@ sub parse_date
 			$about = 1;
 		}
 		if($date =~ /[A-Z]{4,}/i) {
-			complain({ person => $person, warning => "$type month '$date' should be 3 letters" });
+			if($date =~ /^(\d{1,2})\s([A-Z]{3,})(\d{3,4})/i) {
+				# 22 October1996
+				complain({ person => $person, warning => "Changing date '$date' to '$1 $2 $3'" });
+				return $1 . ucfirst(lc(substr($2, 0, 3))) . " $3";
+			} else {
+				complain({ person => $person, warning => "$type month '$date' should be 3 letters" });
+			}
 			if($date =~ /from (.+) to (.+)/i) {
 				return "bet $1 and $2";
 			}
@@ -13321,6 +13330,7 @@ sub parse_date
 				complain({ person => $person, warning => "$date changed to $rc" });
 				return $rc;
 			}
+			print __LINE__, ": $date\n";
 			my $i = 0;
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
