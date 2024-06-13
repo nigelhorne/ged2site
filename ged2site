@@ -7583,14 +7583,16 @@ sub print_person
 ########################
 
 	if($opts{'l'} || !$is_alive) {
-		# print $csv $bio;
-		my $s = $bio_dt->as_string();
-		# utf8::decode($copy);
-		print $csv wide_to_html({ string => $s, keep_hrefs => 1 });
-		# utf8::decode($s);
-		$s = wide_to_xml($s);
-		$s =~ s/\s\s+/ /g;
-		print $xml "$s\n\t\t\t</en>\n\t\t</bio>";
+		if(my $s = $bio_dt->as_string()) {
+			# print $csv $bio;
+			# utf8::decode($copy);
+			print $csv wide_to_html({ string => $s, keep_hrefs => 1 });
+			# utf8::decode($s);
+			$s = wide_to_xml($s);
+			$s =~ s/\s\s+/ /g;
+			print $xml $s;
+		}
+		print $xml "\n\t\t\t</en>\n\t\t</bio>";
 	}
 	print $csv '!';
 
