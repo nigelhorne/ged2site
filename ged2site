@@ -1153,9 +1153,9 @@ if(scalar(%censuses)) {
 		"</head><body><center><h1>Censuses in the Family Tree $html_name</h1>";
 
 	if($me) {
-		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
 	}
-	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]';
+	print $html '[ <a href="surnames.html">Surnames Index</a> ]';
 	if($opts{'w'}) {
 		print $html ' | [ <a href="todo.html">Errors</a> ]';
 	}
@@ -1723,9 +1723,9 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	print $fout "<html><head><title>Family History $html_name</title></head>",
 		"<body><center><h1>Family History $html_name</h1>";
 	if($me) {
-		print $fout '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		print $fout '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
 	}
-	print $fout ' | [ <a href="surnames.html">Surnames Index</a> ]',
+	print $fout '[ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="censuses.html">Census Index</a> ]';
 	if($opts{'w'}) {
 		print $fout ' | [ <a href="todo.html">Errors</a> ]';
@@ -2004,26 +2004,32 @@ sub print_person
 		print $xml "\n\t\t<surname>", wide_to_xml($surname), '</surname>';
 	}
 
+	open(my $index_html, '>', 'static-site/index.html');
+	print $index_html '<html>';
 	if($me && ($person->xref() eq $me->xref())) {
 		my $name = wide_to_html($person->as_string(nee => 1));
 
-		open(my $html, '>', 'static-site/index.html');
-		print $html "<html><head><title>The Family Tree $name</title>",
+		print $index_html "<head><title>The Family Tree $name</title>",
 			'<meta http-equiv="Refresh" content="1;URL=', make_filename_from_person(person => $person), '">';
 		if(my $lang = $ENV{'LANG'}) {
 			$lang =~ s/\.UTF-8//;
 			$lang =~ tr/_/-/;
 			$lang = lc($lang);
-			print $html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
+			print $index_html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
 		}
-		print $html '</head>',
-			"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body></html>";
-		close $html;
+		print $index_html '</head>',
+			"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body>";
 		print $xml "\n\t\t<home>1</home>";
 		print $csv '1!';
 	} else {
+		print $index_html "<head><title>The Family Tree $name</title>",
+			'<meta http-equiv="Refresh" content="1;URL=/history.html">',
+			'</head>',
+			"<body><h1>Family History</h1><a href=\"/history.html\">Family History</a></body>";
 		print $csv '0!';
 	}
+	print $index_html '</html>';
+	close $index_html;
 
 	my $filename = File::Spec->catfile('static-site', make_filename_from_person(person => $person));
 	if(-e $filename) {
@@ -2872,7 +2878,8 @@ sub print_person
 							complain({ person => $sibling, warning => 'Removing trailing spaces from date of birth' });
 							$dob =~ s/\s+$//;
 						}
-						if(my $d = date_parser_cached(date => $dob)) {
+						if(($dob =~ /\d{3,4}$/) &&
+						   (my $d = date_parser_cached(date => $dob))) {
 							$d = $dfn->parse_datetime($d->{'canonical'});
 							if($opts{'w'} &&
 							  ($dob =~ /^\d/) && ($dob !~ /[a-z]$/i) &&
@@ -4022,12 +4029,15 @@ sub print_person
 							$phrase->append(': ');
 						}
 						if($numberofchildrenwiththisspouse == 1) {
-							if(my $first_name = $children[0]->given_names()) {
-								$bio .= $first_name;
-								$phrase->append($first_name);
-							} else {
-								$bio .= 'whose first name is unknown';
-								$phrase->append('whose first name is unknown');
+							my $child = $children[0];
+							if($opts{'l'} || (!is_alive(person => $child)) || (defined($me) && ($child->xref() eq $me->xref()))) {
+								if(my $first_name = given_names($child)) {
+									$bio .= $first_name;
+									$phrase->append($first_name);
+								} else {
+									$bio .= 'whose first name is unknown';
+									$phrase->append('whose first name is unknown');
+								}
 							}
 						} elsif($numberofchildrenwiththisspouse > 1) {
 							# Construct the list for the static pages
