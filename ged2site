@@ -13210,7 +13210,7 @@ sub dateofmarriage
 				complain({ person => $person, warning => "Date of marriage ($dateofmarriage) is before date of birth ($dateofbirth)" });
 			}
 		}
-		if($dateofmarriage =~ /d/) {
+		if($dateofmarriage =~ /\d/) {
 			return parse_date({ date => $dateofmarriage, type => 'Marriage', person => $person });
 		}
 		complain({ person => $person, warning => "'$dateofmarriage' is not a valid date of marriage" });
