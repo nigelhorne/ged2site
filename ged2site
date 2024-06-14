@@ -8838,7 +8838,7 @@ sub print_person
 			complain({ person => $person, warning => 'Assuming country of birth is Canada' });
 			$birth_country = 'Canada';
 			$placeofbirth .= ', Canada';
-		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland') || ($c eq 'London')) {
+		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland') || ($c eq 'London') || ($c eq 'Lancashire')) {
 			$birth_country = 'United Kingdom';
 			complain({ person => $person, warning => 'Assuming country of birth is UK' });
 		} elsif($c =~ 'England,?\sUK') {
@@ -13355,7 +13355,15 @@ sub parse_date
 		} elsif($date =~ /^abt\s+(.+)/i) {
 			$date = $1;
 			$about = 1;
+		} elsif($date =~ /^About:(\d.+)/) {
+			# About:1907-00-00
+			$date = $1;
+			$about = 1;
+			if($date =~ /^(\d+)\-00\-00$/) {
+				$date = $1
+			}
 		}
+
 		if($date =~ /[A-Z]{4,}/i) {
 			if($date =~ /^(\d{1,2})\s([A-Z]{3,})(\d{3,4})/i) {
 				# 22 October1996
@@ -13973,6 +13981,7 @@ sub person_in_residence_record
 # keep_hrefs => 1 means ensure hyperlinks still work
 # keep_apos => 1 means keep apostraphes, useful within <script>
 # TODO: don't transform anything within <script>...</script>
+# TODO: a lot of this should be table driven
 sub wide_to_html
 {
 	my %params;
@@ -14053,8 +14062,9 @@ sub wide_to_html
 	$string =~ s/\xc3\xae/&icirc;/g;
 	$string =~ s/\xc3\xb1/&ntilde;/g;	# ñ
 	$string =~ s/\xc3\xbb/&ucirc;/g;
-	$string =~ s/\xc5\x9b/&sacute;/g;
+	$string =~ s/\xc3\xad/&iacute/g;	# í
 	$string =~ s/\xc3\x9f/&szlig;/g;	# ß
+	$string =~ s/\xc5\x9b/&sacute;/g;
 	$string =~ s/\xc5\xa0/&Scaron;/g;
 	$string =~ s/\xe2\x80\x93/&ndash;/g;
 	$string =~ s/\xe2\x80\x9c/&quot;/g;
@@ -14074,6 +14084,7 @@ sub wide_to_html
 	$string =~ s/\N{U+00E4}/&auml;/g;
 	$string =~ s/\N{U+00E8}/&egrave;/g;
 	$string =~ s/\N{U+00E9}/&eacute;/g;
+	$string =~ s/\N{U+00ED}/&iacute;/g;	# í
 	$string =~ s/\N{U+00EE}/&icirc;/g;
 	$string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
 	$string =~ s/\N{U+00F4}/&ocirc;/g;	# ô
@@ -14146,6 +14157,7 @@ sub wide_to_html
 	$string =~ s/ç/&ccedil;/g;
 	$string =~ s/ê/&ecirc;/g;
 	$string =~ s/ë/&euml;/g;
+	$string =~ s/í/&iacute;/g;
 	$string =~ s/©/&copy;/g;
 	$string =~ s/®/&reg;/g;
 	$string =~ s/ó/&oacute;/g;
@@ -14255,6 +14267,7 @@ sub wide_to_xml
 	$string =~ s/&euml;/&#x0EB;/g;	# euml
 	$string =~ s/&Eacute;/&#x0C9;/g;
 	$string =~ s/&szlig;/&#x0DF;/g;	# ß
+	$string =~ s/&iacute;/&#xED;/g;	# í
 	$string =~ s/&icirc;/&#x0EE;/g;
 	$string =~ s/&uuml;/&#x0FC;/g;
 	$string =~ s/&scaron;/&#x161;/g;
@@ -14287,6 +14300,7 @@ sub wide_to_xml
 	$string =~ s/\xc3\x96/&#x0D6;/g;	# Ö
 	$string =~ s/\xc3\x9f/&#x0DF;/g;	# ß
 	$string =~ s/\xc3\xa2/&#x0E2;/g;	# â
+	$string =~ s/\xc3\xad/&#x0ED;/g;	# í
 	$string =~ s/\xc3\xa4/&#x0E4;/g;	# ä
 	$string =~ s/\xc3\xa7/&#x0E7;/g;	# ç
 	$string =~ s/\xc3\xb3/&#x0F3;/g;	# ó
@@ -14316,6 +14330,7 @@ sub wide_to_xml
 	$string =~ s/\N{U+00AE}/&#x0AE;/g;	# ®
 	$string =~ s/\N{U+00E4}/&#x0E4;/g;	# ä
 	$string =~ s/\N{U+00EA}/&#x0EA;/g;
+	$string =~ s/\N{U+00ED}/&#x0ED;/g;
 	$string =~ s/\N{U+00EE}/&#x0EE;/g;
 	$string =~ s/\N{U+00C9}/&#x0C9;/g;
 	$string =~ s/\N{U+017E}/&#x17E;/g;	# ž
@@ -14370,7 +14385,7 @@ sub wide_to_xml
 	# print STDERR "\n";
 
 	# utf8::decode($string);
-
+	
 	$string =~ s/['\x98]/&#039;/g;
 	$string =~ s/©/&#x0A9;/g;
 	$string =~ s/®/&#x0AE;/g;
@@ -14388,6 +14403,7 @@ sub wide_to_xml
 	$string =~ s/é/&#x0E9;/g;
 	$string =~ s/ê/&#x0EA;/g;
 	$string =~ s/ë/&#x0EB;/g;
+	$string =~ s/í/&#x0ED;/g;
 	$string =~ s/û/&#x0FB;/g;
 	$string =~ s/ñ/&#x0F1;/g;
 	$string =~ s/ü/&#x0FC;/g;
