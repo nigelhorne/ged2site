@@ -7948,7 +7948,7 @@ sub print_person
 			print $html '<h2>Notes</h2>';
 
 			print $html $notes;
-			my $n = notes({ person => $person, record => $person, note_locations => \@note_locations, encode => 0 });
+			my $n = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations, encode => 0 });
 			$n =~ s/"/&quot;/g;
 			if($n =~ /a href=&quot;/) {
 				# Reverse that encoding for hrefs
@@ -11065,7 +11065,7 @@ sub getaddress {
 	return $rc;
 }
 
-# paragraph => 1: ignore spacing and put it all into one paragraph
+# paragraph => 0: ignore spacing and put it all into one paragraph
 sub notes
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -11106,10 +11106,13 @@ sub notes
 			}
 			$note =~ s/\r//g;
 			next if($note =~ /^\s*$/);
-			$note =~ s/\s\s+/ /g;
-			if(!$paragraph) {
+			$note =~ s/ \n/\n/g;
+			if($paragraph) {
+				$note =~ s/\n+/<\/p><p>/g;
+			} else {
 				$note =~ s/\n+/; /g;
 			}
+			$note =~ s/\s\s+/ /g;
 			$note =~ s/\s+$//g;
 			$note =~ s/\.$//;
 			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
@@ -11127,9 +11130,7 @@ sub notes
 					if($paragraph) {
 						if($encode) {
 							$rc .= '<p>' . HTML::Entities::encode($note) . '.</p>';
-							if($paragraph) {
-								$note =~ s/\n+/<\/p><p>/g;
-							}
+							$rc =~ s/\n+/<\/p><p>/g;
 						} else {
 							$rc .= "<p>$note.</p>";
 						}
@@ -11151,9 +11152,7 @@ sub notes
 				if($paragraph) {
 					if($encode) {
 						$rc = '<p>' . HTML::Entities::encode($note) . '.</p>';
-						if($paragraph) {
-							$note =~ s/\n+/<\/p><p>/g;
-						}
+						$rc =~ s/\n+/<\/p><p>/g;
 					} else {
 						$rc = "<p>$note.</p>";
 					}
@@ -11173,6 +11172,7 @@ sub notes
 		return;
 	}
 	$rc =~ s/([\.:]); /$1 /g;
+	$rc =~ s/&lt;\/p&gt;&lt;p&gt;/<\/p><p>/g;	# avoid double encoding
 
 	my @matches;
 
