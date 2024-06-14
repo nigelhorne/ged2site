@@ -1385,16 +1385,15 @@ open(my $html, '>', 'static-site/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree $html_name</title>",
 	"</head><body><center><h1>Surnames in the Family Tree $html_name</h1>";
 if($me) {
-	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
 }
-print $html ' | [ <a href="surnames.html">Surnames Index</a> ]';
 if(-r 'static-site/censuses.html') {
-	print $html ' | [ <a href="censuses.html">Census Index</a> ]';
+	print $html '[ <a href="censuses.html">Census Index</a> ] | ';
 }
 if($opts{'w'}) {
-	print $html ' | [ <a href="todo.html">Errors</a> ]';
+	print $html '[ <a href="todo.html">Errors</a> ] | ';
 }
-print $html ' | [ <a href="calendar/index.html">Calendar</a> ]',
+print $html '[ <a href="calendar/index.html">Calendar</a> ]',
 	' | [ <a href="history.html">Family History</a> ]</center><br><ul>';
 
 open($csv, '>', 'dynamic-site/data/surnames.csv');
@@ -11117,11 +11116,12 @@ sub notes
 			$note =~ s/\.$//;
 			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
 			$note =~ s/\xe2\x80\x9d/"/g;	# right quotation
-			$note =~ s/\x80"/"/g;
 			$note =~ s/\xe2\x80\x99/\'/g;
 			$note =~ s/[\x93\x94]/"/g;
 			$note =~ s/[\x91\x92]/'/g;
-			$note =~ s/[\xc2\xe2]//g;
+			$note =~ s/\xe2\x80\xa6/... /g;
+			$note =~ s/…/... /g;
+			$note =~ s/\N{U+2026}/... /g;
 
 			# FIXME: a lot of duplicated code here
 			if(defined($rc)) {
@@ -14054,8 +14054,9 @@ sub wide_to_html
 	$string =~ s/\xc3\x9f/&szlig;/g;	# ß
 	$string =~ s/\xc5\xa0/&Scaron;/g;
 	$string =~ s/\xe2\x80\x93/&ndash;/g;
-	$string =~ s/\xe2\x80\x9c/-/g;
-	$string =~ s/\xe2\x80\x9d/-/g;
+	$string =~ s/\xe2\x80\x9c/&quot;/g;
+	$string =~ s/\xe2\x80\x9d/&quot;/g;
+	$string =~ s/\xe2\x80\xa6/.../g;	# …
 
 	$string =~ s/\N{U+00A9}/&copy;/g;
 	$string =~ s/\N{U+00AE}/&reg;/g;
@@ -14082,8 +14083,9 @@ sub wide_to_html
 	$string =~ s/\N{U+00FB}/&ucirc;/g;
 	$string =~ s/\N{U+0160}/&Scaron;/g;
 	$string =~ s/\N{U+2013}/&ndash;/g;
-	$string =~ s/\N{U+201C}/-/g;
-	$string =~ s/\N{U+201D}/-/g;
+	$string =~ s/\N{U+201C}/&quot;/g;
+	$string =~ s/\N{U+201D}/&quot;/g;
+	$string =~ s/\N{U+2026}/.../g;	# …
 
 	# utf8::encode($string);
 	# $string =~ s/š/&scaron;/g;
@@ -14152,9 +14154,10 @@ sub wide_to_html
 	$string =~ s/ß/&szlig;/g;
 	$string =~ s/–/&ndash;/g;
 	$string =~ s/ñ/&ntilde;/g;
-	$string =~ s/“/-/g;
-	$string =~ s/”/-/g;
-	$string =~ tr/\x80/ /;
+	$string =~ s/“/&quot;/g;
+	$string =~ s/”/&quot;/g;
+	$string =~ s/…/.../g;
+	# $string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
@@ -14295,8 +14298,9 @@ sub wide_to_xml
 	$string =~ s/\xc5\x9b/&#x15B;/g;	# ś - sacute
 	$string =~ s/\xc5\xa0/&#x160;/g;
 	$string =~ s/\xe2\x80\x93/-/g;
-	$string =~ s/\xe2\x80\x9c/-/g;
-	$string =~ s/\xe2\x80\x9d/-/g;
+	$string =~ s/\xe2\x80\x9c/&quot;/g;
+	$string =~ s/\xe2\x80\x9d/&quot;/g;
+	$string =~ s/\xe2\x80\xa6/.../g;
 	# $string =~ s/\xe4\x8d/&#x10D;/g;	# ? ACOM strangeness
 	# $string =~ s/\N{U+0161}/&#x161;/g;
 	# $string =~ s/\N{U+010D}/&#x10D;/g;
@@ -14338,8 +14342,9 @@ sub wide_to_xml
 	# print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
 	$string =~ s/\N{U+2013}/-/g;
-	$string =~ s/\N{U+201C}/-/g;
-	$string =~ s/\N{U+201D}/-/g;
+	$string =~ s/\N{U+201C}/&quot;/g;
+	$string =~ s/\N{U+201D}/&quot;/g;
+	$string =~ s/\N{U+2026}/.../g;	# …
 
 	# utf8::encode($string);
 	# $string =~ s/š/&s#x161;/g;
@@ -14381,9 +14386,10 @@ sub wide_to_xml
 	$string =~ s/û/&#x0FB;/g;
 	$string =~ s/ñ/&#x0F1;/g;
 	$string =~ s/ü/&#x0FC;/g;
-	$string =~ s/“/-/g;
-	$string =~ s/”/-/g;
-	$string =~ tr/\x80/ /;
+	$string =~ s/“/&quot;/g;
+	$string =~ s/”/&quot;/g;
+	$string =~ s/…/.../g;
+	# $string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
 		# print STDERR (unpack 'H*', $string);
