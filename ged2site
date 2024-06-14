@@ -9370,8 +9370,11 @@ sub Gedcom::Individual::as_string
 
 	if($first_name) {
 		$rc .= $first_name;
-	} else {
-		$rc .= given_names($self);
+	} elsif(my $given = $self->given_names()) {
+		# https://github.com/nigelhorne/ged2site/issues/120
+		$rc .= $given;	# safe as it won't end a sentence
+	} elsif($args{'print_unknown'}) {
+		$rc .= ' UNKNOWN';
 	}
 
 	if($args{'middle_names'}) {
