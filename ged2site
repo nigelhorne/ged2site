@@ -9374,7 +9374,7 @@ sub Gedcom::Individual::as_string
 		# https://github.com/nigelhorne/ged2site/issues/120
 		$rc .= $given;	# safe as it won't end a sentence
 	} elsif($args{'print_unknown'}) {
-		$rc .= ' UNKNOWN';
+		$rc .= 'UNKNOWN';
 	}
 
 	if($args{'middle_names'}) {
