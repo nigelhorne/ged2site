@@ -1430,12 +1430,12 @@ foreach my $surname(sort keys %{$surnames}) {
 		'</head>',
 		"<body><center><h1>The Family Tree $html_name - $surname</h1>";
 	if($me) {
-		print $shtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		print $shtml '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
 	}
 	if($gedcal) {
-		print $shtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
+		print $shtml '[ <a href="calendar/index.html">Calendar</a> ] | ';
 	}
-	print $shtml ' | [ <a href="surnames.html">Surnames Index</a> ]',
+	print $shtml '[ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="history.html">Family History</a> ]';
 	if($opts{'w'}) {
 		print $shtml ' | [ <a href="todo.html">Errors</a> ]';
