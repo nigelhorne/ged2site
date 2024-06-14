@@ -1188,8 +1188,10 @@ if(scalar(%censuses)) {
 		if($gedcal) {
 			print $chtml ' | [ <a href="calendar/index.html">Calendar</a> ]';
 		}
-		print $chtml ' | [ <a href="censuses.html">Census Index</a> ]',
-			' | [ <a href="history.html">Family History</a> ]</center><br>',
+		if(-r 'static-site/censuses.html') {
+			print $chtml ' | [ <a href="censuses.html">Census Index</a> ]';
+		}
+		print $chtml ' | [ <a href="history.html">Family History</a> ]</center><br>',
 			'<ul>';
 
 		foreach my $name(sort keys %{$censuses{$census}}) {
@@ -1385,13 +1387,15 @@ print $html "<html><head><title>Surnames in the Family Tree $html_name</title>",
 if($me) {
 	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 }
-print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
-	' | [ <a href="censuses.html">Census Index</a> ]',
-	' | [ <a href="calendar/index.html">Calendar</a> ]';
+print $html ' | [ <a href="surnames.html">Surnames Index</a> ]';
+if(-r 'static-site/censuses.html') {
+	print $html ' | [ <a href="censuses.html">Census Index</a> ]';
+}
 if($opts{'w'}) {
 	print $html ' | [ <a href="todo.html">Errors</a> ]';
 }
-print $html ' | [ <a href="history.html">Family History</a> ]</center><br><ul>';
+print $html ' | [ <a href="calendar/index.html">Calendar</a> ]',
+	' | [ <a href="history.html">Family History</a> ]</center><br><ul>';
 
 open($csv, '>', 'dynamic-site/data/surnames.csv');
 print $csv "entry!surname!person\n";
@@ -1437,8 +1441,10 @@ foreach my $surname(sort keys %{$surnames}) {
 	if($opts{'w'}) {
 		print $shtml ' | [ <a href="todo.html">Errors</a> ]';
 	}
-	print $shtml ' | [ <a href="censuses.html">Census Index</a> ]</center><br>',
-		'<ul>';
+	if(-r 'static-site/censuses.html') {
+		print $shtml ' | [ <a href="censuses.html">Census Index</a> ]';
+	}
+	print $shtml '</center><br><ul>';
 
 	foreach my $person(sort keys %{$surnames->{$surname}}) {
 		# print "\t$person maps to ", $surnames->{$surname}->{$person}, "\n";
@@ -1516,9 +1522,11 @@ if($opts{'w'}) {
 	if($me) {
 		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
 	}
-	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
-		' | [ <a href="censuses.html">Census Index</a> ]',
-		' | [ <a href="calendar/index.html">Calendar</a> ]',
+	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]';
+	if(-r 'static-site/censuses.html') {
+		print $html ' | [ <a href="censuses.html">Census Index</a> ]';
+	}
+	print $html ' | [ <a href="calendar/index.html">Calendar</a> ]',
 		' | [ <a href="history.html">Family History</a> ]</center><br>';
 
 	open(my $csv, '>', 'dynamic-site/data/todo.csv');
@@ -1692,10 +1700,12 @@ if($gedcal) {
 		if($me) {
 			print $fout '[ <a href="../', make_filename_from_person(person => $me), '">Home</a> ]';
 		}
-		print $fout ' | [ <a href="../surnames.html">Surnames Index</a> ]',
-			' | [ <a href="../censuses.html">Census Index</a> ]';
+		print $fout ' | [ <a href="../surnames.html">Surnames Index</a> ]';
+		if(-r 'static-site/censuses.html') {
+			print $fout ' | [ <a href="../censuses.html">Census Index</a> ]';
+		}
 		if($opts{'w'}) {
-			print $fout ' | [ <a href="todo.html">Errors</a> ]';
+			print $fout ' | [ <a href="../todo.html">Errors</a> ]';
 		}
 		print $fout ' | [ <a href="../history.html">Family History</a> ]</center><br><ul>';
 		my $pr = String::ProgressBar->new(max => 12, length => 60);
@@ -1725,8 +1735,10 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	if($me) {
 		print $fout '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
 	}
-	print $fout '[ <a href="surnames.html">Surnames Index</a> ]',
-		' | [ <a href="censuses.html">Census Index</a> ]';
+	print $fout '[ <a href="surnames.html">Surnames Index</a> ]';
+	if(-r 'static-site/censuses.html') {
+		print $fout ' | [ <a href="censuses.html">Census Index</a> ]';
+	}
 	if($opts{'w'}) {
 		print $fout ' | [ <a href="todo.html">Errors</a> ]';
 	}
@@ -2057,8 +2069,10 @@ sub print_person
 	if($gedcal) {
 		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
-	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]',
-		' | [ <a href="censuses.html">Census Index</a> ]';
+	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]';
+	if(-r 'static-site/censuses.html') {
+		print $html ' | [ <a href="censuses.html">Census Index</a> ]';
+	}
 	if($opts{'w'}) {
 		print $html ' | [ <a href="todo.html">Errors</a> ]';
 	}
@@ -11017,6 +11031,8 @@ sub place {
 			}
 		}
 	}
+
+	$rc =~ s/\.$//;
 
 	if($params{'encode'}) {
 		$rc->encode();
