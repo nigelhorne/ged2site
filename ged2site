@@ -14058,6 +14058,7 @@ sub wide_to_html
 	$string =~ s/\xe2\x80\x9d/&quot;/g;
 	$string =~ s/\xe2\x80\xa6/.../g;	# …
 
+	$string =~ s/\N{U+00A0}/ /g;
 	$string =~ s/\N{U+00A9}/&copy;/g;
 	$string =~ s/\N{U+00AE}/&reg;/g;
 	$string =~ s/\N{U+0161}/&scaron;/g;
@@ -14157,7 +14158,7 @@ sub wide_to_html
 	$string =~ s/“/&quot;/g;
 	$string =~ s/”/&quot;/g;
 	$string =~ s/…/.../g;
-	# $string =~ tr/\x80/ /;
+	$string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
 		# # print STDERR (unpack 'H*', $string);
@@ -14307,6 +14308,7 @@ sub wide_to_xml
 	# $string =~ s/\N{U+00E9}/&#x0E9;/g;
 	# $string =~ s/\N{U+017E}/&#x17E;/g;
 
+	$string =~ s/\N{U+00A0}/ /g;
 	$string =~ s/\N{U+010D}/&#x10D;/g;
 	$string =~ s/\N{U+00AE}/&#x0AE;/g;	# ®
 	$string =~ s/\N{U+00E4}/&#x0E4;/g;	# ä
@@ -14389,7 +14391,7 @@ sub wide_to_xml
 	$string =~ s/“/&quot;/g;
 	$string =~ s/”/&quot;/g;
 	$string =~ s/…/.../g;
-	# $string =~ tr/\x80/ /;
+	$string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
 		# print STDERR (unpack 'H*', $string);
