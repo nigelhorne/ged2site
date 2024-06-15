@@ -7373,12 +7373,13 @@ sub print_person
 				$phrase->append(" aussi o\N{U+00F9} " . lcfirst($pronoun));
 			} else {
 				if($end_of_sentence) {
+					$bio =~ s/\s$//;
 					$bio .= ' That';
 				} else {
 					$bio .= ', which';
 				}
 				if(scalar(@phrases) == 0) {
-					$phrase->set(' That');
+					$phrase->set('That');
 				} else {
 					$phrase->append(', which');
 				}
