@@ -3874,7 +3874,7 @@ sub print_person
 
 						if($opts{'l'} || !$is_alive) {
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
-								$spouses[0]->as_string(),
+								wide_to_html($spouses[0]->as_string()),
 								'</a>';
 							# print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								# $spouses[0]->as_string(),
@@ -3884,7 +3884,7 @@ sub print_person
 								'</a>');
 						} else {
 							print $html '<a href="', make_filename_from_person(person => $spouses[0]), '">',
-								given_names($spouses[0]),
+								wide_to_html(given_names($spouses[0])),
 								'</a>';
 							# print $xml '&lt;a href="?page=people&amp;entry=', $spouses[0]->xref(), '"&gt;',
 								# $spouses[0]->given_names(),
