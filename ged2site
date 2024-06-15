@@ -1991,6 +1991,9 @@ sub print_person
 	if($is_alive && !$opts{'l'}) {
 		print $csv $person->xref(), '!', given_names($person), '!';
 			# $person->as_string({ middle_names => 1, title => 1 }), '!';
+		if(!defined($firstname)) {
+			$firstname = 'Alive';
+		}
 		$title = wide_to_html($firstname);
 	} else {
 		$title = wide_to_html($person->as_string({
@@ -14012,7 +14015,7 @@ sub wide_to_html
 		while((my @call_details = caller($i++))) {
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
-		die 'BUG: string not set';
+		die 'BUG: wide_to_html() string not set';
 	}
 
 	# print STDERR __LINE__, ": ($string)";
