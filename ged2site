@@ -1992,7 +1992,7 @@ sub print_person
 		print $csv $person->xref(), '!', given_names($person), '!';
 			# $person->as_string({ middle_names => 1, title => 1 }), '!';
 		if(!defined($firstname)) {
-			$firstname = 'Alive';
+			$firstname = 'Living Person';
 		}
 		$title = wide_to_html($firstname);
 	} else {
