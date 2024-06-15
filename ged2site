@@ -1804,6 +1804,7 @@ sub print_person
 
 	# Gather the information on this person
 	my $person = $params{'person'};
+	# return unless($person->xref() eq 'I_415355352');
 
 	# $fetcher = Data::Fetch->new();	# Throw away old values from the cache
 
@@ -6145,8 +6146,9 @@ sub print_person
 				$event = $e;
 			} else {
 				red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
-				$bio .= ' ' . ucfirst($event) . '. ';
-				$bio_dt->append(' ' . ucfirst($event) . '. ');
+				$bio .= ' ' . ucfirst($event) . '.';
+				$bio_dt->append(' ' . ucfirst($event) . '.');
+				$end_of_sentence = 1;
 			}
 		}
 		if($event->can('type') || $event->isa('Class::Simple::Readonly::Cached')) {
@@ -6154,7 +6156,12 @@ sub print_person
 			if(!defined($type)) {
 				red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
 			} elsif($type eq 'Arrival') {
-				$bio .= i18n($person->pronoun()) . i18n({ person => $person, format => ' arrived' });
+				if($end_of_sentence) {
+					$bio .= ' ' unless($bio =~ /\s$/);
+				} else {
+					$bio .= '. ';
+				}
+				$bio .= " $pronoun" . i18n({ person => $person, format => ' arrived' });
 				if((scalar(@phrases) == 0) && ($phrase->length() == 0)) {
 					$phrase->set($pronoun);
 				} else {
@@ -6221,7 +6228,12 @@ sub print_person
 				}
 			} elsif($type eq 'Departure') {
 				$phrase->set($pronoun);
-				$bio .= $pronoun;
+				if($end_of_sentence) {
+					$bio .= ' ' unless($bio =~ /\s$/);
+				} else {
+					$bio .= '. ';
+				}
+				$bio .= " $pronoun";
 
 				if($ENV{'LANG'} =~ /^en_US/) {
 					$bio .= ' traveled';
