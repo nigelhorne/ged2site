@@ -6321,27 +6321,28 @@ sub print_person
 					$end_of_sentence = 0;
 				}
 			} elsif($type eq 'Newspaper') {
-				# die $i->page();
 				if($phrase->length()) {
 					push @phrases, $phrase;
+					$phrase = Data::Text->new();
 				}
-				my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $event });
+				if(scalar(@phrases) == 0) {
+					$phrase->set($firstname // $pronoun)->append(' ');
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases));
+				}
 				$bio .= '. ' if(!$end_of_sentence);
-				my $s = " $pronoun appeared in a newspaper ";
+				$bio .= "$pronoun appeared in a newspaper ";
+				$phrase->append('appeared in a newspaper');
+				my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $event });
 				if(my $date = $newspaper->date()) {
-					$s .= " on $date";
+					$phrase->append(" on $date");
+					$bio .= " on $date";
 				}
 				my $url = $newspaper->url();
-				$s .= " ($url)";
+				$phrase->append(" ($url)");
+				$bio .= " ($url)";
+				$bio_dt->append($phrase)->append('. ');
 
-				$bio .= " $s";
 				# die $i->page();
-
-				if(scalar(@phrases)) {
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-					$phrase = Data::Text->new($firstname // $pronoun)->set($s);
-					@phrases = ();
-				}
 			} elsif($type eq 'Funeral') {
 				$funeral = $event;
 			# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
@@ -6784,23 +6785,26 @@ sub print_person
 						$end_of_sentence = 0;
 					}
 				} elsif($type eq 'Newspaper') {
-					# FIMXE: duplicate code with one event
+					# FIXME: duplicate code with one event
 					# This is a non-standard thing that FMP has evented.
+					# FIXME: handle more than one newspaper
 					if($phrase->length()) {
 						push @phrases, $phrase;
 					}
 					my $s;
 					if((!defined($prev_type)) || ($prev_type ne 'Newspaper')) {
 						$bio .= '. ' if(!$end_of_sentence);
-						$s = $firstname // $pronoun . ' ';
+						$s = ($firstname // $pronoun) . ' ';
 						$s .= 'appeared ';
+					} else {
+						$s = ' ';
 					}
 					my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $event });
 					my $title = $newspaper->title();
 					if($title =~ /^https?:\/\//) {
 						$s = "<a href=\"$title\">$title</a>";
 					}
-					$s .= "in $title ";
+					$s .= "in $title";
 					if(my $date = $newspaper->date()) {
 						$s .= " on $date";
 					}
