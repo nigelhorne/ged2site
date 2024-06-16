@@ -2081,10 +2081,8 @@ sub print_person
 	}
 	print $html ' | [ <a href="history.html">Family History</a> ]</center><p>';
 
-	my $bio;
 	my $fullbio;
 
-	my $bio_dt = Data::Text->new();
 	my $phrase = Data::Text->new();
 	my @phrases;
 
@@ -2774,7 +2772,7 @@ sub print_person
 	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
 
 	my $same_occupation_as_father;
-	my $printed_comma = 0;
+	my $bio;
 
 	if($occupations[0]) {
 		my @foccupations;
@@ -2792,16 +2790,11 @@ sub print_person
 				$article = 'a';
 			}
 
-			$bio = ucfirst(i18n({
+			$phrase->set(ucfirst(i18n({
 				person => $person,
 				format => "$article %s",
 				args => lc(conjunction(@occupations))
-			}));
-			$phrase->set($bio);
-			if(!($father || $mother || $spouserelationship)) {
-				$bio .= ', ';
-				$printed_comma = 1;
-			}
+			})));
 		}
 	}
 
@@ -2811,25 +2804,18 @@ sub print_person
 
 		if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
 			if((scalar(@phrases) > 0) && ($phrase->length == 0)) {
-				if(!$printed_comma) {
-					$bio .= ', ';
-				}
 				if($phrase->length()) {
 					push @phrases, $phrase;
 				}
 				my $s = i18n({ person => $person, format => 'twin of' });
 				$phrase = Data::Text->new("$s " . given_names($person_twins[0]->{'sibling'}));
-				$bio .= "$s " . given_names($person_twins[0]->{'sibling'});
 			} else {
 				if($phrase->length()) {
 					push @phrases, $phrase;
 				}
 				$phrase = Data::Text->new('The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
 					i18n(' of ') . given_names($person_twins[0]->{'sibling'}));
-				$bio .= 'The twin ' . i18n((($person->sex() eq 'M') ? 'brother' : 'sister')) .
-					i18n(' of ') . given_names($person_twins[0]->{'sibling'});
 			}
-			$printed_comma = 0;
 			$twins{$person->xref()} = $person_twins[0]->{'sibling'}->xref();
 		}
 	}
@@ -2838,11 +2824,6 @@ sub print_person
 
 	if(($father || $mother) &&
 	   ((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() eq $me->xref()))) {
-		if(scalar(@occupations) || scalar(@person_twins)) {
-			$bio .= ' and the ';
-		} else {
-			$bio = 'The ';
-		}
 		if($phrase->length()) {
 			$phrase->append(' and the ');
 		} elsif(scalar(@phrases) == 0) {
@@ -2920,75 +2901,57 @@ sub print_person
 				}
 				if($all_siblings_have_dob) {
 					if($language eq 'French') {
-						$bio .= 'e ';
 						$phrase->append('e ');
 					}
 					if(scalar(@siblings) && ($age_index == (scalar(@siblings) + 1))) {
 						if($language eq 'French') {
-							$bio .= ($sex eq 'M') ? 'dernier' : "derni\N{U+00E8}re";
 							$phrase->append(($sex eq 'M') ? 'dernier' : "derni\N{U+00E8}re");
 						} else {
-							$bio .= ((scalar(@siblings) > 1) ? 'youngest' : 'younger');
 							$phrase->append(((scalar(@siblings) > 1) ? 'youngest' : 'younger'));
 						}
 					} elsif(scalar(@siblings) && ($age_index == 1)) {
 						if(scalar(@siblings) > 1) {
-							$bio .= i18n({ person => $person, format => 'eldest' });
 							$phrase->append(i18n({ person => $person, format => 'eldest' }));
 						} else {
-							$bio .= i18n({ person => $person, format => 'older' });
 							$phrase->append(i18n({ person => $person, format => 'older' }));
 						}
 					} elsif($language eq 'French') {
-						$bio .= Lingua::FR::Numbers::Ordinate::ordinate($age_index);
 						$phrase->append(Lingua::FR::Numbers::Ordinate::ordinate($age_index));
 					} else {
-						$bio .= ordinate($age_index);
 						$phrase->append(ordinate($age_index));
 					}
 					if($language eq 'French') {
-						$bio .= ' de ' . (scalar(@siblings) + 1) . ' enfants';
 						$phrase->append(' de ' . (scalar(@siblings) + 1) . ' enfants');
 					} else {
-						$bio .= i18n(' of ') . (scalar(@siblings) + 1) . ' children';
 						$phrase->append(i18n(' of ') . (scalar(@siblings) + 1) . ' children');
 					}
 				} else {
 					if($language eq 'French') {
-						$bio .= "'enfant";
 						$phrase->append("'enfant");
 					} else {
-						$bio .= i18n('child');
 						$phrase->append(i18n('child'));
 					}
 				}
 			} else {
-				# $bio .= ' only child of';
-				$bio .= i18n('child');
 				$phrase->append(i18n('child'));
 			}
 			if($language eq 'French') {
-				$bio =~ s/^Le a/L'a/;
 				$phrase->replace({ 'Le a' => "L'a" });
 			}
 		} else {
-			$bio .= i18n('child');
 			$phrase->append(i18n('child'));
 		}
 
 		if(($language eq 'French') && ($father->as_string =~ /^[aehiou]/i)) {
-			$bio .= " d'";
 			$phrase->append(" d'");
 		} else {
-			$bio .= i18n(' of ');
 			$phrase->append(i18n(' of '));
 		}
 
-		print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
-		$bio =~ s/&eacute;/&#233;/g;
+		print $html wide_to_html({ string => $phrase, keep_hrefs => 1 });
+		# $bio =~ s/&eacute;/&#233;/g;
 
-		$fullbio = $bio;
-		$bio = undef;
+		$fullbio = $phrase->as_string();
 
 		if($opts{'l'} || !$is_alive) {
 			if($father) {
@@ -3083,14 +3046,13 @@ sub print_person
 					'</a>');
 			}
 		}
-		$printed_comma = 0;
 	}
 
 	if($firstname) {
 		if((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() ne $me->xref())) {
 			if($opts{'l'} || $is_alive) {
 				if($relationship) {
-					$bio .= ', ' if(($mother || $father) && !$printed_comma);
+					$bio .= ', ' if($mother || $father);
 					if($phrase->length()) {
 						$phrase->append(', ');
 					}
@@ -3108,9 +3070,6 @@ sub print_person
 					}
 				}
 			} else {
-				if($father || $mother || $occupations[0]) {
-					$bio .= ', ' if(!$printed_comma);
-				}
 				if($phrase->length()) {
 					$phrase->append(', ');
 				}
@@ -3147,15 +3106,17 @@ sub print_person
 		$phrase->append($pronoun);
 	}
 
-	if($bio) {
+	if(defined($bio) && (length($bio) > 0)) {
 		print $html $bio;
 		# my $encoded = HTML::Entities::encode($bio);
 		# $encoded =~ s/&euml;/&#235;/g;
 		# print $xml HTML::Entities::encode($encoded);
 
 		$fullbio .= $bio;
+		undef $bio;
 	}
-	$bio = '';
+
+	my $bio_dt = Data::Text->new();
 
 	my $haveprintedspousename;
 	if($relationship) {
