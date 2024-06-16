@@ -2951,6 +2951,7 @@ sub print_person
 		print $html wide_to_html({ string => $phrase, keep_hrefs => 1 });
 		# $bio =~ s/&eacute;/&#233;/g;
 
+		$bio = ', ';
 		$fullbio = $phrase->as_string();
 
 		if($opts{'l'} || !$is_alive) {

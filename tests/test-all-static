@@ -13,4 +13,5 @@ for i in ~/gedcoms/*.GED ~/gedcoms/*.ged; do
 	fi
 	grep 'etravel' static-site/*.html && exit 1
 	# grep '  ' static-site/*.html && exit 1
+	# grep '  ' dynamic-site/data/people.csv && exit 1
 done
