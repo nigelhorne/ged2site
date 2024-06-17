@@ -8025,7 +8025,9 @@ sub print_person
 						warn $obje->{"_date"}, "\n" if($obje->{'_date'});
 						# warn $obje->tag(), "\n" if($obje->tag());
 						my $title = $obje->title() || $obje->tag_record('TITL', 1);
-						$title =~ s/\s\s+/ /g;
+						if(defined($title)) {
+							$title =~ s/\s\s+/ /g;
+						}
 						my $form = $obje->form();
 						if((!$form) && $obje->items()) {
 							# Family Tree Maker does this
@@ -11260,6 +11262,11 @@ sub notes
 				complain({ person => $person, warning => "$orig_uri: in notes is not found" });
 			}
 			$uri =~ s/:$//;
+			if($uri =~ /^mailto:/) {
+				$uri = $u->path();
+				$uri =~ s/\@/ AT /;
+				return $uri;
+			}
 			return "<a href=\"$uri\">" .
 				$u->host() .
 				'</a>';
@@ -11990,6 +11997,8 @@ sub make_filename_from_object
 	$rc =~ tr/'/-/s;
 	$rc =~ tr/\//-/s;
 	$rc =~ s/--+/-/g;
+	$rc =~ tr/\(/-/s;
+	$rc =~ tr/\)/-/s;
 	# $rc =~ s/--/-/g;
 	$rc =~ s/-$//;
 
@@ -14026,6 +14035,7 @@ sub wide_to_html
 	$string =~ s/\xc2\xa3/&pound;/g;
 	$string =~ s/\xc2\xa9/&copy;/g;
 	$string =~ s/\xc2\xae/&reg;/g;
+	$string =~ s/\xc3\x83/&Icirc;/g;	# Î
 	$string =~ s/\xc3\xa1/&aacute;/g;
 	$string =~ s/\xc3\xa2/&acirc;/g;
 	$string =~ s/\xc3\xa4/&auml;/g;
@@ -14059,6 +14069,7 @@ sub wide_to_html
 	$string =~ s/\N{U+00A3}/&pound;/g,
 	$string =~ s/\N{U+00A9}/&copy;/g;
 	$string =~ s/\N{U+00AE}/&reg;/g;
+	$string =~ s/\N{U+00CE}/&Icirc;/g;	# Î
 	$string =~ s/\N{U+0161}/&scaron;/g;
 	$string =~ s/\N{U+010D}/&ccaron;/g;
 	$string =~ s/\N{U+017E}/&zcaron;/g;
@@ -14144,6 +14155,7 @@ sub wide_to_html
 	$string =~ s/ê/&ecirc;/g;
 	$string =~ s/ë/&euml;/g;
 	$string =~ s/í/&iacute;/g;
+	$string =~ s/Î/&Iicrc;/g;
 	$string =~ s/©/&copy;/g;
 	$string =~ s/®/&reg;/g;
 	$string =~ s/ó/&oacute;/g;
@@ -14251,6 +14263,7 @@ sub wide_to_xml
 	$string =~ s/&eacute;/&#x0E9;/g;
 	$string =~ s/&ecirc;/&#x0EA;/g;
 	$string =~ s/&euml;/&#x0EB;/g;	# euml
+	$string =~ s/&Icirc;/&#x0CE;/g;	# Î
 	$string =~ s/&Eacute;/&#x0C9;/g;
 	$string =~ s/&szlig;/&#x0DF;/g;	# ß
 	$string =~ s/&iacute;/&#xED;/g;	# í
@@ -14278,6 +14291,7 @@ sub wide_to_xml
 	$string =~ s/\xc2\xa3/&#x0A3;/g;	# £
 	$string =~ s/\xc2\xa9/&#x0A9;/g;
 	$string =~ s/\xc2\xae/&#x0AE;/g;
+	$string =~ s/\xc3\x8e/&#x0CE;/g;	# Î
 	$string =~ s/\xc3\xa1/&#x0E1;/g;
 	$string =~ s/\xc3\xa9/&#x0E9;/g;
 	$string =~ s/\xc3\xb1/&#x0F1;/g;	# ntilde
@@ -14315,6 +14329,7 @@ sub wide_to_xml
 	$string =~ s/\N{U+00A0}/ /g;
 	$string =~ s/\N{U+010D}/&#x10D;/g;
 	$string =~ s/\N{U+00AE}/&#x0AE;/g;	# ®
+	$string =~ s/\N{U+00CE}/&#x0CE;/g;	# Î
 	$string =~ s/\N{U+00E4}/&#x0E4;/g;	# ä
 	$string =~ s/\N{U+00EA}/&#x0EA;/g;
 	$string =~ s/\N{U+00ED}/&#x0ED;/g;
@@ -14391,6 +14406,7 @@ sub wide_to_xml
 	$string =~ s/ê/&#x0EA;/g;
 	$string =~ s/ë/&#x0EB;/g;
 	$string =~ s/í/&#x0ED;/g;
+	$string =~ s/Î/&#x0CE;/g;	# Î
 	$string =~ s/û/&#x0FB;/g;
 	$string =~ s/ñ/&#x0F1;/g;
 	$string =~ s/ü/&#x0FC;/g;
