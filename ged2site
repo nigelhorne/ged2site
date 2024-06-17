@@ -1992,7 +1992,7 @@ sub print_person
 		print $csv $person->xref(), '!', given_names($person), '!';
 			# $person->as_string({ middle_names => 1, title => 1 }), '!';
 		if(!defined($firstname)) {
-			$firstname = 'Living Person';
+			$firstname = sortoutcase(i18n('living person'));
 		}
 		$title = wide_to_html($firstname);
 	} else {
@@ -13506,7 +13506,7 @@ sub dump_geocoder_log
 	}
 }
 
-# Capitalise the first character
+# Capitalise the first character of each word
 sub sortoutcase {
 	my $field = lc(shift);
 
@@ -14760,6 +14760,7 @@ is::is
 is buried::is buried
 is married to::is married to
 later that same year::later that same year
+living person::living person
 married::married
 mother::mother
 of::of
@@ -14841,6 +14842,7 @@ is buried:F:est inhumée
 is married to:M:est marié à
 is married to:F:est mariée à
 later that same year::plus tard la même année
+living person::vivant
 married::a marié
 mother::mère
 of::de
