@@ -9539,7 +9539,7 @@ sub Gedcom::Individual::relationship {
 	}
 	# if($me && ($me->xref() eq $other->xref()) && ($me->xref() eq $self->spouse()->xref())) {
 		# my $sex = $other->sex() || get_value({ person => $other, value => 'sex' });
-		# die $sex;
+		# die $self->as_string(), ": $sex";
 	# }
 
 	return $self->relationship_down($other) || $self->relationship_up($other);
