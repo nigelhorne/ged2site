@@ -264,7 +264,7 @@ if($opts{'F'}) {
 	my $magick;
 	if($^O eq 'linux') {
 		# Debian lacks ImageMagick-7
-		$magick = 'Image::Magick 6.9.12-98';
+		$magick = 'Image::Magick 6.9.13-6';
 	} else {
 		$magick = 'Image::Magick';
 	}
@@ -13965,6 +13965,8 @@ sub person_in_residence_record
 }
 
 # Encode to HTML whatever the non-ascii encoding scheme has been chosen
+# Can't use HTML:Entities::encode since that doesn't seem to cope with
+#	all encodings and misses some characters
 #
 # See https://www.compart.com/en/unicode/U+0161 etc.
 #	https://www.compart.com/en/unicode/U+00EB
@@ -14036,13 +14038,16 @@ sub wide_to_html
 	$string =~ s/\xc2\xa9/&copy;/g;
 	$string =~ s/\xc2\xae/&reg;/g;
 	$string =~ s/\xc3\x83/&Icirc;/g;	# Î
+	$string =~ s/\xc3\x9e/&THORN;/g;	# Þ
 	$string =~ s/\xc3\xa1/&aacute;/g;
 	$string =~ s/\xc3\xa2/&acirc;/g;
 	$string =~ s/\xc3\xa4/&auml;/g;
 	$string =~ s/\xc3\xa9/&eacute;/g;
 	$string =~ s/\xc3\xad/&iacute;/g;	# í
+	$string =~ s/\xc3\xb0/&eth;/g;	# ð
 	$string =~ s/\xc3\xb4/&ocirc;/g;	# ô
 	$string =~ s/\xc3\xb6/&ouml;/g;
+	$string =~ s/\xc3\xb8/&oslash;/g;	# ø
 	$string =~ s/\xc5\xa1/&scaron;/g;
 	$string =~ s/\xc4\x8d/&ccaron;/g;
 	$string =~ s/\xc5\xbe/&zcaron;/g;
@@ -14058,9 +14063,11 @@ sub wide_to_html
 	$string =~ s/\xc3\xae/&icirc;/g;
 	$string =~ s/\xc3\xbb/&ucirc;/g;
 	$string =~ s/\xc3\xbc/&uuml;/g; # ü
+	$string =~ s/\xc3\xbe/&thorn;/g;	# þ
 	$string =~ s/\xc5\x9b/&sacute;/g;
 	$string =~ s/\xc5\xa0/&Scaron;/g;
 	$string =~ s/\xe2\x80\x93/&ndash;/g;
+	$string =~ s/\xe2\x80\x94/&mdash;/g;
 	$string =~ s/\xc3\xb1/&ntilde;/g;	# ñ
 	$string =~ s/\xe2\x80\x9c/&quot;/g;
 	$string =~ s/\xe2\x80\x9d/&quot;/g;
@@ -14071,6 +14078,7 @@ sub wide_to_html
 	$string =~ s/\N{U+00A9}/&copy;/g;
 	$string =~ s/\N{U+00AE}/&reg;/g;
 	$string =~ s/\N{U+00CE}/&Icirc;/g;	# Î
+	$string =~ s/\N{U+00DE}/&THORN;/g;	# Þ
 	$string =~ s/\N{U+0161}/&scaron;/g;
 	$string =~ s/\N{U+010D}/&ccaron;/g;
 	$string =~ s/\N{U+017E}/&zcaron;/g;
@@ -14085,9 +14093,12 @@ sub wide_to_html
 	$string =~ s/\N{U+00ED}/&iacute;/g;	# í
 	$string =~ s/\N{U+00EE}/&icirc;/g;
 	$string =~ s/\N{U+00E7}/&ccedil;/g;	# ç
+	$string =~ s/\N{U+00F0}/&eth;/g;	# ð
 	$string =~ s/\N{U+00F4}/&ocirc;/g;	# ô
 	$string =~ s/\N{U+00F6}/&ouml;/g;
+	$string =~ s/\N{U+00F8}/&oslash;/g;	# ø
 	$string =~ s/\N{U+00FC}/&uuml;/g;	# ü
+	$string =~ s/\N{U+00FE}/&thorn;/g;	# þ
 	$string =~ s/\N{U+00C9}/&Eacute;/g;
 	$string =~ s/\N{U+00CA}/&ecirc;/g;
 	$string =~ s/\N{U+00EB}/&euml;/g;
@@ -14096,6 +14107,7 @@ sub wide_to_html
 	$string =~ s/\N{U+00FB}/&ucirc;/g;
 	$string =~ s/\N{U+0160}/&Scaron;/g;
 	$string =~ s/\N{U+2013}/&ndash;/g;
+	$string =~ s/\N{U+2014}/&mdash;/g;
 	$string =~ s/\N{U+201C}/&quot;/g;
 	$string =~ s/\N{U+201D}/&quot;/g;
 	$string =~ s/\N{U+2026}/.../g;	# …
@@ -14157,6 +14169,7 @@ sub wide_to_html
 	$string =~ s/ç/&ccedil;/g;
 	$string =~ s/ê/&ecirc;/g;
 	$string =~ s/ë/&euml;/g;
+	$string =~ s/ð/&eth;/g;
 	$string =~ s/í/&iacute;/g;
 	$string =~ s/Î/&Iicrc;/g;
 	$string =~ s/©/&copy;/g;
@@ -14164,12 +14177,16 @@ sub wide_to_html
 	$string =~ s/ó/&oacute;/g;
 	$string =~ s/ô/&ocirc;/g;
 	$string =~ s/ö/&ouml;/g;
+	$string =~ s/ø/&oslash;/g;
 	$string =~ s/ś/&sacute;/g;
+	$string =~ s/Þ/&THORN;/g;
+	$string =~ s/þ/&thorn;/g;
 	$string =~ s/û/&ucirc;/g;
 	$string =~ s/ü/&uuml;/g;
 	$string =~ s/£/&pound;/g;
 	$string =~ s/ß/&szlig;/g;
 	$string =~ s/–/&ndash;/g;
+	$string =~ s/—/&mdash;/g;
 	$string =~ s/ñ/&ntilde;/g;
 	$string =~ s/“/&quot;/g;
 	$string =~ s/”/&quot;/g;
@@ -14197,6 +14214,9 @@ sub wide_to_html
 		while((my @call_details = caller($i++))) {
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
+		complain("TODO: wide_to_html($string)");
+		warn "TODO: wide_to_html($string)";
+		$string =~ s/[^[:ascii:]]/XXXXX/g;
 		die "BUG: wide_to_html($string)";
 	}
 	return $string;
@@ -14272,16 +14292,21 @@ sub wide_to_xml
 	$string =~ s/&szlig;/&#x0DF;/g;	# ß
 	$string =~ s/&iacute;/&#xED;/g;	# í
 	$string =~ s/&icirc;/&#x0EE;/g;
+	$string =~ s/&eth;/&#x0F0;/g;	# ð
 	$string =~ s/&uuml;/&#x0FC;/g;
 	$string =~ s/&scaron;/&#x161;/g;
 	$string =~ s/&ucirc;/&#x0F4;/g;
 	$string =~ s/&ouml;/&#x0F6;/g;
+	$string =~ s/&oslash;/&#x0F8;/g;	# ø
 	$string =~ s/&zcaron;/&#x17E;/g;
 	$string =~ s/&Scaron;/&#x160;/g;
+	$string =~ s/&THORN;/&#x0DE;/g;	# Þ
+	$string =~ s/&thorn;/&#x0FE;/g;	# þ
 	$string =~ s/&copy;/&#x0A9;/g;
 	$string =~ s/&reg;/&#x0AE;/g;
 	$string =~ s/&pound;/&#163;/g;
 	$string =~ s/&ntilde;/&#x0F1;/g;
+	$string =~ s/&mdash;/-/g;
 	$string =~ s/&ndash;/-/g;
 
 	if($string !~ /[^[:ascii:]]/) {
@@ -14297,20 +14322,24 @@ sub wide_to_xml
 	$string =~ s/\xc2\xae/&#x0AE;/g;
 	$string =~ s/\xc3\x8e/&#x0CE;/g;	# Î
 	$string =~ s/\xc3\xa1/&#x0E1;/g;
-	$string =~ s/\xc5\xa5/&#x0E5;/g;	# å
+	$string =~ s/\xc3\xa5/&#x0E5;/g;	# å
 	$string =~ s/\xc3\xa9/&#x0E9;/g;
 	$string =~ s/\xc3\xb1/&#x0F1;/g;	# ntilde
 	$string =~ s/\xc5\xa1/&#x161;/g;
 	$string =~ s/\xc4\x8d/&#x10D;/g;
 	$string =~ s/\xc5\xbe/&#x17E;/g;	# ž
 	$string =~ s/\xc3\x96/&#x0D6;/g;	# Ö
+	$string =~ s/\xc3\x9e/&#x0DE;/g;	# Þ
 	$string =~ s/\xc3\x9f/&#x0DF;/g;	# ß
 	$string =~ s/\xc3\xa2/&#x0E2;/g;	# â
 	$string =~ s/\xc3\xad/&#x0ED;/g;	# í
 	$string =~ s/\xc3\xa4/&#x0E4;/g;	# ä
 	$string =~ s/\xc3\xa7/&#x0E7;/g;	# ç
+	$string =~ s/\xc3\xb0/&#x0F0;/g;	# ð
 	$string =~ s/\xc3\xb3/&#x0F3;/g;	# ó
+	$string =~ s/\xc3\xb8/&#x0F8;/g;	# ø
 	$string =~ s/\xc3\xbc/&#x0FC;/g;	# ü
+	$string =~ s/\xc3\xbe/&#x0FE;/g;	# þ
 	$string =~ s/\xc3\xa8/&#x0E8;/g;	# è
 	$string =~ s/\xc3\xee/&#x0EE;/g;
 	$string =~ s/\xc3\xb4/&#x0F4;/g;	# ô
@@ -14322,6 +14351,7 @@ sub wide_to_xml
 	$string =~ s/\xc5\x9b/&#x15B;/g;	# ś - sacute
 	$string =~ s/\xc5\xa0/&#x160;/g;
 	$string =~ s/\xe2\x80\x93/-/g;
+	$string =~ s/\xe2\x80\x94/-/g;
 	$string =~ s/\xe2\x80\x9c/&quot;/g;
 	$string =~ s/\xe2\x80\x9d/&quot;/g;
 	$string =~ s/\xe2\x80\xa6/.../g;
@@ -14335,11 +14365,13 @@ sub wide_to_xml
 	$string =~ s/\N{U+010D}/&#x10D;/g;
 	$string =~ s/\N{U+00AE}/&#x0AE;/g;	# ®
 	$string =~ s/\N{U+00CE}/&#x0CE;/g;	# Î
+	$string =~ s/\N{U+00DE}/&#x0DE;/g;	# Þ
 	$string =~ s/\N{U+00E4}/&#x0E4;/g;	# ä
 	$string =~ s/\N{U+00E5}/&#x0E5;/g;	# å
 	$string =~ s/\N{U+00EA}/&#x0EA;/g;
 	$string =~ s/\N{U+00ED}/&#x0ED;/g;
 	$string =~ s/\N{U+00EE}/&#x0EE;/g;
+	$string =~ s/\N{U+00FE}/&#x0FE;/g;	# þ
 	$string =~ s/\N{U+00C9}/&#x0C9;/g;
 	$string =~ s/\N{U+017E}/&#x17E;/g;	# ž
 	$string =~ s/\N{U+00D6}/&#x0D6;/g;	# Ö
@@ -14347,10 +14379,12 @@ sub wide_to_xml
 	$string =~ s/\N{U+00E1}/&#x0E1;/g;	# á - aacute
 	$string =~ s/\N{U+00E2}/&#x0E2;/g;
 	$string =~ s/\N{U+00E8}/&#x0E8;/g;	# è
+	$string =~ s/\N{U+00F0}/&#x0F0;/g;	# ð
 	$string =~ s/\N{U+00F1}/&#x0F1;/g;	# ñ
 	$string =~ s/\N{U+00F3}/&#x0F3;/g;	# ó
 	$string =~ s/\N{U+00F4}/&#x0F4;/g;	# ô
 	$string =~ s/\N{U+00F6}/&#x0F6;/g;	# ö
+	$string =~ s/\N{U+00F8}/&#x0F8;/g;	# ø
 	$string =~ s/\N{U+00FC}/&#x0FC;/g;	# ü
 	$string =~ s/\N{U+015B}/&#x15B;/g;	# ś
 	# print STDERR __LINE__, ": ($string)";
@@ -14370,6 +14404,7 @@ sub wide_to_xml
 	# print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
 	$string =~ s/\N{U+2013}/-/g;
+	$string =~ s/\N{U+2014}/-/g;
 	$string =~ s/\N{U+201C}/&quot;/g;
 	$string =~ s/\N{U+201D}/&quot;/g;
 	$string =~ s/\N{U+2026}/.../g;	# …
@@ -14414,11 +14449,16 @@ sub wide_to_xml
 	$string =~ s/ë/&#x0EB;/g;
 	$string =~ s/í/&#x0ED;/g;
 	$string =~ s/Î/&#x0CE;/g;	# Î
+	$string =~ s/Þ/&#x0DE;/g;	# Þ
+	$string =~ s/ð/&#x0F0;/g;	# ð
+	$string =~ s/ø/&#x0F8;/g;	# ø
 	$string =~ s/û/&#x0FB;/g;
 	$string =~ s/ñ/&#x0F1;/g;
 	$string =~ s/ü/&#x0FC;/g;
+	$string =~ s/þ/&#x0FE;/g;	# þ
 	$string =~ s/“/&quot;/g;
 	$string =~ s/”/&quot;/g;
+	$string =~ s/—/-/g;
 	$string =~ s/…/.../g;
 	$string =~ tr/\x80/ /;
 
@@ -14436,7 +14476,7 @@ sub wide_to_xml
 
 	# print STDERR __LINE__, ": ($string)\n";
 	if($string =~ /[^[:ascii:]]/) {
-		die "BUG: wide_to_html($string)";
+		die "BUG: wide_to_xml($string)";
 	}
 	return $string;
 }
