@@ -14046,6 +14046,7 @@ sub wide_to_html
 	$string =~ s/\xc5\xa1/&scaron;/g;
 	$string =~ s/\xc4\x8d/&ccaron;/g;
 	$string =~ s/\xc5\xbe/&zcaron;/g;
+	$string =~ s/\xc3\xa5/&aring;/g;	# å
 	$string =~ s/\xc3\xa7/&ccedil;/g;
 	$string =~ s/\xc3\xb3/&oacute;/g;
 	$string =~ s/\xc3\x96/&Ouml;/g; # Ö
@@ -14078,6 +14079,7 @@ sub wide_to_html
 	$string =~ s/\N{U+00E1}/&aacute;;/g;
 	$string =~ s/\N{U+00E2}/&acirc;/g;
 	$string =~ s/\N{U+00E4}/&auml;/g;
+	$string =~ s/\N{U+00E5}/&aring;/g;	# å
 	$string =~ s/\N{U+00E8}/&egrave;/g;
 	$string =~ s/\N{U+00E9}/&eacute;/g;
 	$string =~ s/\N{U+00ED}/&iacute;/g;	# í
@@ -14143,6 +14145,7 @@ sub wide_to_html
 	# $string =~ s/\N{U+0160}/&Scaron;/g;	# FIXME: also above
 	# $string =~ s/\N{U+2013}/-/g;
 
+	$string =~ s/å/&aring;/g;
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/Š/&Scaron;/g;
 	$string =~ s/č/&ccaron;/g;
@@ -14254,6 +14257,7 @@ sub wide_to_xml
 	$string =~ s/‘/&apos;/g;
 	$string =~ s/\x98/&apos;/g;
 
+	$string =~ s/&aring;/&#x0E5;/g;	# å
 	$string =~ s/&ccaron;/&#x10D;/g;
 	$string =~ s/&aacute;/&#x0E1;/g;	# á
 	$string =~ s/&acirc;/&#x0E2;/g;		# â
@@ -14293,6 +14297,7 @@ sub wide_to_xml
 	$string =~ s/\xc2\xae/&#x0AE;/g;
 	$string =~ s/\xc3\x8e/&#x0CE;/g;	# Î
 	$string =~ s/\xc3\xa1/&#x0E1;/g;
+	$string =~ s/\xc5\xa5/&#x0E5;/g;	# å
 	$string =~ s/\xc3\xa9/&#x0E9;/g;
 	$string =~ s/\xc3\xb1/&#x0F1;/g;	# ntilde
 	$string =~ s/\xc5\xa1/&#x161;/g;
@@ -14331,6 +14336,7 @@ sub wide_to_xml
 	$string =~ s/\N{U+00AE}/&#x0AE;/g;	# ®
 	$string =~ s/\N{U+00CE}/&#x0CE;/g;	# Î
 	$string =~ s/\N{U+00E4}/&#x0E4;/g;	# ä
+	$string =~ s/\N{U+00E5}/&#x0E5;/g;	# å
 	$string =~ s/\N{U+00EA}/&#x0EA;/g;
 	$string =~ s/\N{U+00ED}/&#x0ED;/g;
 	$string =~ s/\N{U+00EE}/&#x0EE;/g;
@@ -14391,6 +14397,7 @@ sub wide_to_xml
 	$string =~ s/['\x98]/&#039;/g;
 	$string =~ s/©/&#x0A9;/g;
 	$string =~ s/®/&#x0AE;/g;
+	$string =~ s/å/&#x0E5;/g;
 	$string =~ s/š/&#x161;/g;
 	$string =~ s/č/&#x10D;/g;
 	$string =~ s/ž/&#x17E;/g;
