@@ -5,7 +5,8 @@ set -ex
 unset GMAP_KEY
 for i in ~/gedcoms/*.GED ~/gedcoms/*.ged; do
 	rm -rf dynamic-site/data dynamic-site/img static-site/
-	./ged2site -cFd "$i"
+	perl -MDevel::Hide=Geo::libpostal \
+		./ged2site -cFd "$i"
 	weblint static-site/*html
 	xmllint dynamic-site/data/people.xml > /dev/null
 	if [ -r dynamic-site/data/locations.xml ]; then

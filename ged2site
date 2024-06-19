@@ -285,6 +285,7 @@ if($ENV{'GMAP_KEY'}) {
 if($ENV{BMAP_KEY}) {
 	push @modules, 'Geo::Coder::Bing';
 }
+
 if($ENV{'GEONAMES_USER'}) {
 	push @modules, 'Geo::GeoNames';
 }
@@ -387,6 +388,7 @@ my %changes;	# If the -x option is given, tracks changes between the previous ru
 my $facts;
 my %intermarriages;	# People who've married a relative
 my %all_residences;
+my $geonames;
 # my $pi = atan2(1,1) * 4;
 
 if($opts{'W'} && !$opts{'w'}) {
@@ -8756,7 +8758,7 @@ sub print_person
 		print $xml "\n\t\t<sex>$sex</sex>";
 	}
 
-	my $birth_country = '';
+	my $birth_country;
 
 	if($placeofbirth && ($placeofbirth =~ /(.+[a-z]) USA$/i)) {
 		complain({ person => $person, warning => "Comma missing before USA in birth location '$placeofbirth'" });
@@ -8846,7 +8848,7 @@ sub print_person
 		}
 	}
 
-	if($me && ($birth_country ne '') && $birth_dt && $death_dt) {
+	if($me && defined($birth_country) && $birth_dt && $death_dt) {
 		my $age_at_death = $death_dt - $birth_dt;
 		# Calculate the average age of adults death on both sides of the family
 		if($age_at_death->years() >= 20) {
@@ -8863,7 +8865,7 @@ sub print_person
 		}
 	}
 
-	my $death_country = '';
+	my $death_country;
 
 	if($placeofdeath && ($placeofdeath =~ /(.+[a-z]) USA$/)) {
 		complain({ person => $person, warning => "Comma missing before USA in death location '$placeofdeath'" });
@@ -8923,6 +8925,16 @@ sub print_person
 		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
 			# Country is found
 			$death_country = $b->name();
+		} elsif(my $user = $ENV{'GEONAMES_USER'}) {
+			$geonames //= Geo::GeoNames->new(username => $user);
+			$geonames->ua($cached_browser);
+			my $result = $geonames->search(q => $placeofdeath, style => 'FULL');
+			$result = @{$result}[0];
+			if($death_country = $result->{'countryName'}) {
+				complain({ person => $person, warning => "$c: Assuming country of death is $death_country" });
+			} else {
+				complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
+			}
 		} else {
 			complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
 		}
@@ -8931,7 +8943,7 @@ sub print_person
 	if($opts{'w'} && defined($death_country) && ($death_country eq 'Canada') && defined($yod) && ($yod < 1500)) {
 		complain ({ person => $person, warning => "Canada did not exist in $yod, check place of death ($placeofdeath)" });
 		$placeofdeath = undef;
-		$death_country = '';
+		undef $death_country;
 	}
 
 	# TODO:  use known_locations array
@@ -9086,6 +9098,12 @@ sub print_person
 		print $csv '!!';
 	}
 
+	if(!defined($birth_country)) {
+		$birth_country = '';
+	}
+	if(!defined($death_country)) {
+		$death_country = '';
+	}
 	print $csv "$birth_country!$death_country!";
 
 	# Print out all of the warnings from this entry
