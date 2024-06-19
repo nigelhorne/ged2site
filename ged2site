@@ -4757,7 +4757,7 @@ sub print_person
 						}
 					}
 				}
-				if(ref($residence) eq 'Gedcom::Record') {
+				if($residence->can('place') || $residence->isa('Class::Simple::Readonly::Cached')) {
 					my $place = $residence->place();
 					if(my $address = $residence->address()) {
 						if(ref($address) eq 'Gedcom::Record') {
@@ -4824,7 +4824,7 @@ sub print_person
 							red_warning({ person => $person, warning => 'Residence record contains no type' });
 						}
 					} else {
-						red_warning({ person => $person, warning => 'Residence record contains no date' });
+						red_warning({ person => $person, warning => 'Residence record contains no date or place' });
 					}
 				}
 			}
@@ -5652,7 +5652,7 @@ sub print_person
 									# p1 is the place of the relative we're considering ($l)
 									# p2 is the place of the current person
 									# p3 is the place of the previous relative we're considering
-									if($p3 && $peek && (place({ record => $peek->{'residence'}, nopreposition => 1 }) eq $p3)) {
+									if($p3 && $peek && (place({ record => $peek->{'record'}, nopreposition => 1 }) eq $p3)) {
 										if((!defined($people_near_p2[0])) || ($people_near_p2[0]->{'person'}->xref() ne $l->{'person'}->xref())) {
 											push @people_near_p2, $l;
 										}
@@ -5729,7 +5729,10 @@ sub print_person
 											$residencestring .= ' who was living';
 										}
 									}
-									$residencestring .= place({ record => $l->{'residence'}, there => $p2, places_printed => \%places_printed });
+									$Data::Dumper::Maxdepth = 2;
+									print STDERR Data::Dumper->new([$l])->Dump() if($opts{'v'});
+									die Data::Dumper->new([$l])->Dump() if(!defined($l->{'record'}));
+									$residencestring .= place({ record => $l->{'record'}, there => $p2, places_printed => \%places_printed });
 									$residencestring .= ' -' if($printed_person);
 									$printed_person = 1;
 								}
@@ -7833,6 +7836,10 @@ sub print_person
 						person => $person,
 						warning => "The census for the year $year has been cited, but its information has not been used as a residence"
 					});
+					foreach my $residence(@residencelist) {
+						warn $residence->date();
+					}
+					die Data::Dumper->new([\%unused_censuses])->Dump();
 				}
 				foreach my $event(@events) {
 					if(ref($event) eq 'Gedcom::Record') {
@@ -12226,7 +12233,7 @@ sub get_all_residences
 				$event = $e;
 			}
 		}
-		next if($event->can('type') || $event->isa('Class::Simple::Readonly::Cached'));
+		next if(!($event->can('type')) && !$event->isa('Class::Simple::Readonly::Cached'));
 		my $type = $event->type();
 		next if(!defined($type));
 		# if(($type =~ /^Census U[KS] \d{4}$/) || ($type eq 'Register UK 1939') || ($type eq 'Hospitalisation')) {
