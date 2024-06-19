@@ -4527,7 +4527,7 @@ sub print_person
 							my @childnames;
 							while(my ($key, $value) = each %childmap) {
 								push @childnames,
-									conjunction(map { given_names($_) } @{$value}) .
+									conjunction(map { given_names($_) || 'Unknown' } @{$value}) .
 									i18n(' with ') .
 									$key;
 							}
