@@ -13378,6 +13378,13 @@ sub parse_date
 			if($date =~ /^(\d+)\-00\-00$/) {
 				$date = $1
 			}
+		} elsif($date =~ /^about(\d.+)/) {
+			# about1883
+			$date = $1;
+			$about = 1;
+			if($date =~ /^(\d+)\-00\-00$/) {
+				$date = $1
+			}
 		}
 
 		if($date =~ /[A-Z]{4,}/i) {
