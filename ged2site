@@ -13415,7 +13415,7 @@ sub parse_date
 				# FIXME: assumes the months are in English
 				return $1 . ucfirst(lc(substr($2, 0, 3))) . " $3";
 			}
-			if($date =~ /^([A-Z]{3,})\s+(\d+),?\s+([\d\/]+)$/i) {	# U.S. format - Jul 4 instead of 4 Jul
+			if($date =~ /^([A-Z]{3,})\s+(\d+),?\s*([\d\/]+)$/i) {	# U.S. format - Jul 4 instead of 4 Jul
 				# FIXME: assumes the months are in English
 				my $rc = "$2 " . ucfirst(lc(substr($1, 0, 3))) . " $3";
 				complain({ person => $person, warning => "$date changed to $rc" });
