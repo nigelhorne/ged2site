@@ -6299,9 +6299,10 @@ sub print_person
 					push @phrases, $phrase;
 					$phrase = Data::Text->new();
 				}
-				if(scalar(@phrases) == 0) {
-					$phrase->set($firstname // $pronoun)->append(' ');
+				if(scalar(@phrases) > 0) {
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases));
+				} else {
+					$phrase->set($firstname // $pronoun)->append(' ');
 				}
 				$bio .= '. ' if(!$end_of_sentence);
 				$bio .= "$pronoun appeared in a newspaper ";
