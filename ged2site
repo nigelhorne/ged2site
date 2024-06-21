@@ -10924,7 +10924,9 @@ sub place {
 		}
 		if($places_printed->{$place} && ($place =~ /^(.+?),/)) {
 			# Only print the town if the location has already been printed
-			return $1;
+			$place = $1;
+			$place =~ s/\.$//g;	# https://github.com/nigelhorne/ged2site/issues/112
+			return $place;
 		}
 		if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
 			my $str = "$2,$3,$4";
