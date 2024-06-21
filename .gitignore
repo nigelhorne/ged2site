@@ -19,6 +19,7 @@ nytprof.out
 *.bs
 /_eumm/
 .*.swp
+*.ged.index
 dynamic-site/visjs.html
 dynamic-site/timeline.xml
 dynamic-site/data
