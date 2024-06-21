@@ -1,0 +1,46 @@
+0 HEAD
+1 SOUR GEDitCOM II
+0 @I1703@ INDI
+1 NAME Mary Jane /Seaton/
+1 SEX F
+1 BIRT
+2 DATE 28 DEC 1852
+2 PLAC nr. Cincinnati, Ohio
+1 DEAT
+2 DATE 31 AUG 1924
+2 PLAC Arkansas City, Cowley Co., Kansas
+1 NOTE @X269@
+1 FAMS @F682@
+0 @I1001@ INDI
+1 NAME Julia Ann /Collins/
+1 SEX F
+1 BIRT
+2 DATE 18 SEP 1847
+2 PLAC Ohio Co. Indiana
+1 DEAT
+2 DATE 4 OCT 1875
+2 PLAC Jackson Twp., Henry Co., IA
+1 FAMS @F378@
+0 @I1600@ INDI
+1 NAME Jonathan Smith /Bunker/
+1 SEX M
+1 BIRT
+2 DATE 3 DEC 1838
+2 PLAC Randolph Co., Indiana
+1 DEAT
+2 DATE 15 MAY 1889
+2 PLAC Jackson Twp., Henry Co., IA
+1 FAMS @F378@
+1 FAMS @F682@
+0 @F682@ FAM
+1 HUSB @I1600@
+1 WIFE @I1703@
+1 MARR
+2 DATE 29 FEB 1880
+2 PLAC Jackson Twp., Henry Co., IA
+0 @F378@ FAM
+1 HUSB @I1600@
+1 WIFE @I1001@
+1 MARR
+2 DATE 24 MAR 1867
+2 PLAC Henry Co., Iowa, USA
