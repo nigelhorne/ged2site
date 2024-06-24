@@ -6305,7 +6305,7 @@ sub print_person
 					$phrase->set($firstname // $pronoun)->append(' ');
 				}
 				$bio .= '. ' if(!$end_of_sentence);
-				$bio .= "$pronoun appeared in a newspaper ";
+				$bio .= "$pronoun appeared in a newspaper";
 				$phrase->append('appeared in a newspaper');
 				my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $event });
 				if(my $date = $newspaper->date()) {
@@ -6313,6 +6313,9 @@ sub print_person
 					$bio .= " on $date";
 				}
 				my $url = $newspaper->url();
+				if(my $title = $newspaper->title()) {
+					$url = "<a href=\"$title\">$url</a>";
+				}
 				$phrase->append(" ($url)");
 				$bio .= " ($url)";
 				$bio_dt->append($phrase)->append('. ');
@@ -6763,45 +6766,49 @@ sub print_person
 					# FIXME: duplicate code with one event
 					# This is a non-standard thing that FMP has evented.
 					# FIXME: handle more than one newspaper
+					my $s;
 					if($phrase->length()) {
 						push @phrases, $phrase;
+						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+						$phrase = Data::Text->new();
+						@phrases = ();
 					}
-					my $s;
 					if((!defined($prev_type)) || ($prev_type ne 'Newspaper')) {
 						$bio .= '. ' if(!$end_of_sentence);
 						$s = ($firstname // $pronoun) . ' ';
-						$s .= 'appeared ';
-					} else {
-						$s = ' ';
+						$s .= 'appeared';
 					}
+					$s .= ' ';
 					my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $event });
 					my $title = $newspaper->title();
-					if($title =~ /^https?:\/\//) {
-						$s = "<a href=\"$title\">$title</a>";
+					my $url = $newspaper->url();
+					if(defined($title) && ($title =~ /^https?:\/\//)) {
+						if($url) {
+							$s .= "<a href=\"$url\">$title</a>";
+						} else {
+							$s .= "<a href=\"$title\">$title</a>";
+						}
 					}
-					$s .= "in $title";
+
+					if($title) {
+						$s .= "in $title";
+					} else {
+						$s .= 'in a newspaper'
+					}
 					if(my $date = $newspaper->date()) {
 						$s .= " on $date";
 					}
 					if(my $page = $newspaper->page()) {
 						$s .= " on page $page";
 					}
-					if(my $url = $newspaper->url()) {
-						$s .= " ($url)";
+					if((!defined($title)) && defined($url)) {
+						$s .= " (<a href=\"$url\">$url</a>)";
 					}
 					$bio .= $s;
+					$phrase->append($s);
 
 					$previous = $event;
 					$prev_type = 'Newspaper';
-
-					if(scalar(@phrases)) {
-						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-						$phrase = Data::Text->new($firstname // $pronoun)->set($s);
-						@phrases = ();
-					} else {
-						$phrase->append($s);
-					}
-
 				} elsif($type eq 'Funeral') {
 					$funeral = $event;
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
@@ -14781,7 +14788,7 @@ sub newspaper
 	# my $source = $event->source();
 	if(ref(my $source = $event->source())) {
 		$rc->url($source->tag_record('REF')->value());
-		$rc->title('a newspaper');
+		# $rc->title('a newspaper');
 	} else {
 		$source = get_source({ source => $source, %params });
 		if(my $title = $source->title()) {
