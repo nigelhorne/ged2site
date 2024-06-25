@@ -1540,7 +1540,7 @@ if($opts{'w'}) {
 		if($person->{'warnings'}) {
 			print $html '<h2>',
 				'<a href="', make_filename_from_person(person => $person), '">',
-				HTML::Entities::encode($person->as_string(include_years => 1)),
+				HTML::Entities::encode($person->as_string({ middle_names => 1, include_years => 1 })),
 				'</a></h2>',
 				map { HTML::Entities::encode($_) . '<br>' } @{$person->{'warnings'}};
 			my %seen_warnings;
@@ -1550,9 +1550,9 @@ if($opts{'w'}) {
 				if($warning =~ /^\[\d+\]: no citation title/) {
 					$summary = 'Citation Title Missing';
 				} elsif($warning =~ /^(.+) date .+ has no citations/) {
-					$summary = "$1 date without citation";
+					$summary = "$1 Date Without Citation";
 				} elsif($warning =~ /^(.+) place .+ has no citations/) {
-					$summary = "$1 place without citation";
+					$summary = "$1 Place Without Citation";
 				} elsif($warning =~ /^Residence record for .+ contains no citation$/) {
 					$summary = 'Residence Without Citation';
 				} elsif($warning =~ /^Contains a residence .+ without a date/) {
@@ -1569,7 +1569,8 @@ if($opts{'w'}) {
 					$summary = 'Possibly Wrong Gender';
 				} elsif($warning =~ /^Two residence records for/) {
 					$summary = 'Residence Records for the Same Date that Don\'t Match';
-				} elsif($warning =~ /^Year of baptism .+ is before the year of birth /) {
+				} elsif(($warning =~ /^Year of baptism .+ is before the year of birth /) ||
+					($warning =~ /^Date of baptism .+ before date of birth /)) {
 					$summary = 'Baptism before birth';
 				} elsif($warning =~ /^Year of residence .+ is after the year of death /) {
 					$summary = 'Residence after death';
@@ -1605,7 +1606,8 @@ if($opts{'w'}) {
 					$summary = 'Born before Parent was born';
 				} elsif($warning =~ /^Date of residence .+ is after date of death/) {
 					$summary = 'Date of Residence After Date of Death';
-				} elsif($warning =~ /^Location for the event /) {
+				} elsif(($warning =~ /^Location for the event /) ||
+					($warning =~ /^Location for .+ is empty$/)) {
 					$summary = 'Location is Empty';
 				} elsif($warning =~ /^Parent .+ is listed in the residence for .+ but this child is not/) {
 					$summary = 'Parent\'s Location is Known but Child\'s is not';
@@ -2694,7 +2696,7 @@ sub print_person
 			if($dateofdeath && (my $cdob = dateofbirth($child))) {
 				if(($cdob =~ /\d{3,4}$/) && (datecmp($cdob, $dateofdeath) > 0)) {
 					complain({ person => $person,
-						warning => "Date of birth $pronoun child " . $child->as_string() . " ($cdob) is later than " . ($sex eq 'M' ? 'his' : 'her') . " own date of death ($dateofdeath)"
+						warning => 'Date of birth of child ' . $child->as_string() . " ($cdob) is later than " . ($sex eq 'M' ? 'his' : 'her') . " own date of death ($dateofdeath)"
 					})
 				}
 			}
