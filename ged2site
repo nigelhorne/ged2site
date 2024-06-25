@@ -1644,7 +1644,7 @@ if($opts{'w'}) {
 					next;
 				} elsif(($warning =~ /^Check out https:\/\/mlarchives.rootsweb.com\/listindexes\/emails?listname=gen-obit/) ||
 					($warning =~ /^Check out https:\/\/www.freelists.org\/post\/obitdailytimes\/Obituary-Daily-Times-v/) ||
-					($warning =~ /^Check out https:\/\/https:\/\/wayback-archive\.org\/20669\/20231102044925\/https:\/\/mlarchives.rootsweb.com\/listindexes/)) {
+					($warning =~ /^Check out https:\/\/wayback-archive\.org\/20669\/20231102044925\/https:\/\/mlarchives.rootsweb.com\/listindexes/)) {
 					$summary = 'Check out Obituary Daily Times';
 				} elsif($warning =~ /^Check out .*mrawson/) {
 					$summary = 'Check out Kent Wills Transcription';
@@ -7858,10 +7858,11 @@ sub print_person
 					foreach my $residence(@residencelist) {
 						warn $residence->date();
 					}
+					warn Data::Dumper->new([\%census_years])->Dump();
 					die Data::Dumper->new([\%unused_censuses])->Dump();
 				}
 				foreach my $event(@events) {
-					if(ref($event) eq 'Gedcom::Record') {
+					if($event->can('type')) {
 						my $type = $event->type();
 						my $year;
 						if($type =~ /^Census U[KS] (\d{4})$/) {
