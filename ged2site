@@ -1385,6 +1385,7 @@ close $csv;
 print "Creating surname database\n";
 open(my $html, '>', 'static-site/surnames.html');
 print $html "<html><head><title>Surnames in the Family Tree $html_name</title>",
+	'<link rel="stylesheet" href="https://genealogy.nigelhorne.com/css/web.css" type="text/css" media="screen">',
 	"</head><body><center><h1>Surnames in the Family Tree $html_name</h1>";
 if($me) {
 	print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
@@ -1429,6 +1430,7 @@ foreach my $surname(sort keys %{$surnames}) {
 
 	open(my $shtml, '>', "static-site/$filename.html");
 	print $shtml "<html><head><title>The Family Tree $html_name - $surname</title>",
+		'<link rel="stylesheet" href="https://genealogy.nigelhorne.com/css/web.css" type="text/css" media="screen">',
 		'</head>',
 		"<body><center><h1>The Family Tree $html_name - $surname</h1>";
 	if($me) {
