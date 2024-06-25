@@ -1399,7 +1399,7 @@ print $html '[ <a href="calendar/index.html">Calendar</a> ]',
 	' | [ <a href="history.html">Family History</a> ]</center><br><ul>';
 
 open($csv, '>', 'dynamic-site/data/surnames.csv');
-print $csv "entry!surname!person\n";
+print $csv "entry!surname!filename!person\n";
 $index = 1;
 
 foreach my $surname(sort keys %{$surnames}) {
@@ -1453,7 +1453,7 @@ foreach my $surname(sort keys %{$surnames}) {
 			'<a href="', make_filename_from_person(person => $surnames->{$surname}->{$person}), "\">",
 			wide_to_html($person),
 			'</a></li>';
-		print $csv "$index!$filename!", $surnames->{$surname}->{$person}->xref(), "\n";
+		print $csv "$index!$name!$filename!", $surnames->{$surname}->{$person}->xref(), "\n";
 		$index++;
 	}
 
@@ -12765,6 +12765,17 @@ sub datecmp($$)
 
 	return 0 if($left eq $right);
 
+	if((!ref($left)) && (!ref($right)) && ($left =~ /(\d{3,4})$/)) {
+		# Simple year test for fast comparison
+		my $yol = $1;
+		if($right =~ /(\d{3,4})$/) {
+			my $yor = $1;
+			if($yol != $yor) {
+				return $yol <=> $yor;
+			}
+		}
+	}
+
 	if(!ref($left)) {
 		if((!ref($right)) && ($left =~ /(^|[\s\/])\d{4}$/) && ($right =~ /(^|[\s\/,])(\d{4})$/)) {
 			my $ryear = $2;
@@ -15076,5 +15087,6 @@ wife::uxor
 he::él
 father::padre
 is::es
+mother::madre
 she::ella
 __END__

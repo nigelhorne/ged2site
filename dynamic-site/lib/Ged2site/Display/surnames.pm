@@ -13,11 +13,18 @@ sub html {
 
 	my $allowed = {
 		'page' => 'surnames',
+		'filename' => qr/[A-Z\s]+/i,
 		'surname' => qr/[A-Z\s]+/i,
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/
 	};
 	my %params = %{$self->{_info}->params({ allow => $allowed })};
+
+	my $logger = $self->{'_logger'};
+
+	if($logger) {
+		$logger->trace(__PACKAGE__, ': entering html()');
+	}
 
 	delete $params{'page'};
 	delete $params{'lint_content'};
@@ -29,9 +36,10 @@ sub html {
 
 	unless(scalar(keys %params)) {
 		# Display the list of surnames
-		my @s = map {
-			HTML::Entities::decode($_)
-		} $surnames->surname(distinct => 1);
+		if($logger) {
+			$logger->debug(__PACKAGE__, ': calling SUPER::html on the entire database');
+		}
+		my @s = $surnames->execute('SELECT DISTINCT surname, filename');
 		return $self->SUPER::html({ surnames => \@s, updated => $surnames->updated() });
 	}
 
@@ -49,6 +57,9 @@ sub html {
 
 	@people = sort { $a->{'title'} cmp $b->{'title'} } @people;
 
+	if($logger) {
+		$logger->debug(__PACKAGE__, ': calling SUPER::html on the selected parameters');
+	}
 	# TODO: handle situation where look up fails
 	return $self->SUPER::html({ people => \@people, updated => $surnames->updated() });
 }
