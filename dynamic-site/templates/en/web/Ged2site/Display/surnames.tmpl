@@ -68,6 +68,10 @@
 						[% IF surname.surname == 'UNKNOWN' %]
 							[% initial = '?' %]
 						[% ELSE %]
+							<!-- FIXME:
+								if it starts with an entity,
+								initial will be set to '&'
+							-->
 							[% initial = surname.surname.substr(0,1) %]
 						[% END %]
 						<h2>[% initial %]</h2>

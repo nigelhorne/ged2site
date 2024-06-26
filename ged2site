@@ -7857,11 +7857,6 @@ sub print_person
 						person => $person,
 						warning => "The census for the year $year has been cited, but its information has not been used as a residence"
 					});
-					foreach my $residence(@residencelist) {
-						warn $residence->date();
-					}
-					warn Data::Dumper->new([\%census_years])->Dump();
-					die Data::Dumper->new([\%unused_censuses])->Dump();
 				}
 				foreach my $event(@events) {
 					if($event->can('type')) {

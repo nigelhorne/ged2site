@@ -3,8 +3,8 @@
 set -ex
 
 unset GMAP_KEY
-# for i in ~/gedcoms/*.ged ~/gedcoms/*.GED ~/gedcoms/*/*.ged; do
-for i in tests/gedcoms/*.ged; do
+for i in $(find ~/gedcoms/* -name \*ged -o -name \*GED); do
+# for i in tests/gedcoms/*.ged; do
 	rm -rf dynamic-site/data dynamic-site/img static-site/
 	perl -MDevel::Hide=Geo::libpostal \
 		./ged2site -cFd "$i"
