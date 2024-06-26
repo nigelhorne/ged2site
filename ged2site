@@ -1537,6 +1537,8 @@ if($opts{'w'}) {
 	my $index = 1;
 
 	foreach my $person(@everyone) {
+		next if((!$opts{'l'}) && is_alive(person => $person));
+
 		if($person->{'warnings'}) {
 			print $html '<h2>',
 				'<a href="', make_filename_from_person(person => $person), '">',
@@ -1696,6 +1698,7 @@ if($opts{'w'}) {
 }
 
 $ged = undef;
+@everyone = undef;
 
 if($gedcal) {
 	print "Creating calendar\n";
@@ -9122,7 +9125,7 @@ sub print_person
 	print $csv "$birth_country!$death_country!";
 
 	# Print out all of the warnings from this entry
-	if($person->{'warnings'}) {
+	if($person->{'warnings'} && ($opts{'l'} || !is_alive(person => $person))) {
 		print "Create warnings\n" if($opts{'v'});
 		my $ufinder = URI::Find::Schemeless->new(sub {
 			my($uri, $orig_uri) = @_;
