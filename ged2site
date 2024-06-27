@@ -1863,6 +1863,7 @@ sub print_person
 	print 'Processing ', $person->as_string({ include_years => 1 }), "\n" if($opts{'v'});
 
 	my @siblings = $person->siblings();
+	@siblings = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {}, quiet => 1 }) } @siblings;
 	my $mother = $person->mother();
 	my $father = $person->father();
 	if($father) {
