@@ -5301,67 +5301,12 @@ sub print_person
 								next if(!defined($sdate));
 								next if($sdate ne $rdate);
 								if(($place =~ /^\s\d/) && (place({ person => $sibling, record => $sr, nopreposition => 1 }) eq $place)) {
-									push @siblings_living_with, $sibling;
+									push @{$living_with{'siblings'}}, $sibling;
 									last;
 								}
 							}
 						}
-						if(scalar(@siblings_living_with)) {
-							# Print out all the siblings this person was living with
-							# as an adult
-							$living_with{'siblings'} = \@siblings_living_with;
-							if($first) {
-								$residencestring .= ' (' .
-									i18n('when ') .
-									i18n(($sex eq 'M') ? 'he' : 'she') .
-									i18n(' was living') .
-									i18n(' with ') .
-									($sex eq 'M' ? 'his' : 'her');
-							} else {
-								$residencestring =~ s/^\s//;
-							}
-							if(scalar(@siblings_living_with) == 1) {
-								$residencestring .=
-									i18n(($sex eq 'F') ? ' sister, ' : ' brother, ') .
-									given_names($siblings_living_with[0]) . ',';
-							} else {
-								my $sex = $siblings_living_with[0]->sex();
-								foreach my $sibling(@siblings_living_with) {
-									if($sibling->sex() ne $sex) {
-										undef $sex;
-										last;
-									}
-								}
-								if($sex) {
-									# living with more than one sibling all of the same gender
-									$residencestring .= i18n(($sex eq 'F') ? ' sisters, ' : ' brothers, ') .
-										conjunction(map { given_names($_) } @siblings_living_with);
-								} elsif(scalar(@siblings_living_with) == 2) {
-									# Living with one brother and one sister
-									my $brother;
-									my $sister;
-									if($siblings_living_with[0]->sex() eq 'M') {
-										$brother = $siblings_living_with[0];
-										$sister = $siblings_living_with[1];
-									} else {
-										$sister = $siblings_living_with[0];
-										$brother = $siblings_living_with[1];
-									}
-									$residencestring .= i18n(' brother ') .
-										given_names($brother) .
-										i18n(' and ') .
-										i18n('sister ') .
-										given_names($sister);
-								} else {
-									die 'TODO: ', $person->as_string(include_years => 1), ' living with ', scalar(@siblings_living_with), ' siblings of differing genders';
-								}
-							}
-							if($first) {
-								$residencestring .= ')';
-								$first = 0;
-							}
-							$printed_sibling = 1;
-						}
+
 						# if(($bdiff->in_units('years') >= 30) || ($bdiff->in_units('years') < 16)) {
 						if(1) {
 							my $with_mother;
@@ -5852,6 +5797,52 @@ sub print_person
 								i18n(' brother-in-law, ') .
 								'<a href="?page=people&entry=' . $in_law->xref() . '">"' . wide_to_html($in_law->as_string()) . '</a>';
 							delete $living_with{'brother-in-law'};
+						}
+						if($living_with{'siblings'}) {
+							# Print out all the siblings this person was living with
+							# as an adult
+							my @siblings = @{$living_with{'siblings'}};
+							$residencestring .= i18n(' when ') .
+								lcfirst(i18n($person->pronoun())) .
+								' was living with ' .
+								lcfirst($person->possessive());
+
+							my $sex = $siblings[0]->sex();
+							if(scalar(@siblings) == 1) {
+								$residencestring .= i18n(($sex eq 'F') ? ' sister, ' : ' brother, ') .
+									given_names($siblings[0]);
+							} else {
+								foreach my $sibling(@siblings) {
+									if($sibling->sex() ne $sex) {
+										undef $sex;
+										last;
+									}
+								}
+								if($sex) {
+									# living with more than one sibling all of the same gender
+									$residencestring .= i18n(($sex eq 'F') ? ' sisters, ' : ' brothers, ') .
+										conjunction(map { given_names($_) } @siblings);
+								} elsif(scalar(@siblings) == 2) {
+									# Living with one brother and one sister
+									my $brother;
+									my $sister;
+									if($siblings[0]->sex() eq 'M') {
+										$brother = $siblings[0];
+										$sister = $siblings[1];
+									} else {
+										$sister = $siblings[0];
+										$brother = $siblings[1];
+									}
+									$residencestring .= i18n(' brother ') .
+										given_names($brother) .
+										i18n(' and ') .
+										i18n('sister ') .
+										given_names($sister);
+								} else {
+									die 'TODO: ', $person->as_string(include_years => 1), ' living with ', scalar(@siblings), ' siblings of differing genders';
+								}
+							}
+							delete $living_with{'siblings'};
 						}
 						$living_alone = 0;
 					}
