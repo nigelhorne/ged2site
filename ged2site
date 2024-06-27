@@ -5773,76 +5773,73 @@ sub print_person
 							$Data::Dumper::Maxdepth = 2;
 							print STDERR __LINE__, ": TODO ($rdate): ", Data::Dumper->new([\%living_with])->Dump();
 						}
-						if($living_with{'daughters'}) {
-							# TODO: more than one daughter
-							my @daughters = @{$living_with{'daughters'}};
-							$residencestring .= i18n('when ') .
-								lcfirst(i18n($person->pronoun())) .
-								' was living with ' .
-								lcfirst($person->possessive()) .
-								i18n((scalar(@daughters) > 1) ? ' daughters, ' : ' daughter ') .
-								conjunction(map { given_names($_) } @daughters) . ',' .
-								i18n(' following the death of ') .
-								(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-								year(date => dateofdeath($spouses[0]));
-							delete $living_with{'daughters'};
-						}
-						if(my $in_law = $living_with{'brother-in-law'}) {
-							# TODO: brothers-in-law
-							# FIXME: this link will not work on static pages
-							$residencestring .= i18n(' when ') .
-								lcfirst(i18n($person->pronoun())) .
-								' was living with ' .
-								lcfirst($person->possessive()) .
-								i18n(' brother-in-law, ') .
-								'<a href="?page=people&entry=' . $in_law->xref() . '">"' . wide_to_html($in_law->as_string()) . '</a>';
-							delete $living_with{'brother-in-law'};
-						}
-						if($living_with{'siblings'}) {
-							# Print out all the siblings this person was living with
-							# as an adult
-							my @siblings = @{$living_with{'siblings'}};
-							$residencestring .= i18n(' when ') .
+
+						delete $living_with{'mother'};
+						delete $living_with{'father'};
+
+						if(scalar(keys %living_with)) {
+							$residencestring .= ', ' . i18n('when ') .
 								lcfirst(i18n($person->pronoun())) .
 								' was living with ' .
 								lcfirst($person->possessive());
 
-							my $sex = $siblings[0]->sex();
-							if(scalar(@siblings) == 1) {
-								$residencestring .= i18n(($sex eq 'F') ? ' sister, ' : ' brother, ') .
-									given_names($siblings[0]);
-							} else {
-								foreach my $sibling(@siblings) {
-									if($sibling->sex() ne $sex) {
-										undef $sex;
-										last;
-									}
-								}
-								if($sex) {
-									# living with more than one sibling all of the same gender
-									$residencestring .= i18n(($sex eq 'F') ? ' sisters, ' : ' brothers, ') .
-										conjunction(map { given_names($_) } @siblings);
-								} elsif(scalar(@siblings) == 2) {
-									# Living with one brother and one sister
-									my $brother;
-									my $sister;
-									if($siblings[0]->sex() eq 'M') {
-										$brother = $siblings[0];
-										$sister = $siblings[1];
-									} else {
-										$sister = $siblings[0];
-										$brother = $siblings[1];
-									}
-									$residencestring .= i18n(' brother ') .
-										given_names($brother) .
-										i18n(' and ') .
-										i18n('sister ') .
-										given_names($sister);
-								} else {
-									die 'TODO: ', $person->as_string(include_years => 1), ' living with ', scalar(@siblings), ' siblings of differing genders';
-								}
+							if($living_with{'daughters'}) {
+								# TODO: more than one daughter
+								my @daughters = @{$living_with{'daughters'}};
+								$residencestring .= i18n((scalar(@daughters) > 1) ? ' daughters, ' : ' daughter ') .
+									conjunction(map { given_names($_) } @daughters) . ',' .
+									i18n(' following the death of ') .
+									(($sex eq 'M') ? 'his wife ' : 'her husband ') .
+									year(date => dateofdeath($spouses[0]));
+								delete $living_with{'daughters'};
 							}
-							delete $living_with{'siblings'};
+							if(my $in_law = $living_with{'brother-in-law'}) {
+								# TODO: brothers-in-law
+								$residencestring .= i18n(' brother-in-law, ') .
+									$in_law->as_string();
+								delete $living_with{'brother-in-law'};
+							}
+							if($living_with{'siblings'}) {
+								# Print out all the siblings this person was living with
+								# as an adult
+								my @siblings = @{$living_with{'siblings'}};
+								my $sex = $siblings[0]->sex();
+								if(scalar(@siblings) == 1) {
+									$residencestring .= i18n(($sex eq 'F') ? ' sister, ' : ' brother, ') .
+										given_names($siblings[0]);
+								} else {
+									foreach my $sibling(@siblings) {
+										if($sibling->sex() ne $sex) {
+											undef $sex;
+											last;
+										}
+									}
+									if($sex) {
+										# living with more than one sibling all of the same gender
+										$residencestring .= i18n(($sex eq 'F') ? ' sisters, ' : ' brothers, ') .
+											conjunction(map { given_names($_) } @siblings);
+									} elsif(scalar(@siblings) == 2) {
+										# Living with one brother and one sister
+										my $brother;
+										my $sister;
+										if($siblings[0]->sex() eq 'M') {
+											$brother = $siblings[0];
+											$sister = $siblings[1];
+										} else {
+											$sister = $siblings[0];
+											$brother = $siblings[1];
+										}
+										$residencestring .= i18n(' brother ') .
+											given_names($brother) .
+											i18n(' and ') .
+											i18n('sister ') .
+											given_names($sister);
+									} else {
+										die 'TODO: ', $person->as_string(include_years => 1), ' living with ', scalar(@siblings), ' siblings of differing genders';
+									}
+								}
+								delete $living_with{'siblings'};
+							}
 						}
 						$living_alone = 0;
 					}
