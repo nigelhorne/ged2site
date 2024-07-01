@@ -2687,7 +2687,9 @@ sub print_person
 			}
 		}
 	}
-	my @children = map { $_->children() } $person->fams();
+	# my @children = map { $_->children() } $person->fams();
+	my @children = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {}, quiet => 1 }) } 
+		map { $_->children() } $person->fams();
 	my $numberofchildren = scalar(@children);
 
 	if($opts{'w'} && $numberofchildren) {
@@ -5730,7 +5732,7 @@ sub print_person
 										print "\t$type, ", ref($event), "\n",
 										"\t", $event->date(), " $rdate ", $residence->address(), "\n";
 									}
-									if((ref($event) eq 'Gedcom::Record') &&
+									if(($event->can('date') || $event->isa('Class::Simple::Readonly::Cached')) &&
 									   $event->date() && ($event->date() eq $rdate) &&
 									   $residence->address() &&
 									   places_are_the_same({ person => $child, first => $residence, second => $event, exact => 1 })) {
@@ -5792,6 +5794,16 @@ sub print_person
 									(($sex eq 'M') ? 'his wife ' : 'her husband ') .
 									year(date => dateofdeath($spouses[0]));
 								delete $living_with{'daughters'};
+							}
+							if($living_with{'sons'}) {
+								# TODO: more than one son
+								my @sons = @{$living_with{'sons'}};
+								$residencestring .= i18n((scalar(@sons) > 1) ? ' sons, ' : ' son ') .
+									conjunction(map { given_names($_) } @sons) . ',' .
+									i18n(' following the death of ') .
+									(($sex eq 'M') ? 'his wife ' : 'her husband ') .
+									year(date => dateofdeath($spouses[0]));
+								delete $living_with{'sons'};
 							}
 							if(my $in_law = $living_with{'brother-in-law'}) {
 								# TODO: brothers-in-law
@@ -15076,6 +15088,7 @@ mother::mater
 sister::soror
 wife::uxor
 @@ Spanish
+aunt::tia
 he::él
 father::padre
 is::es
