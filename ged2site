@@ -825,6 +825,8 @@ if($opts{'F'}) {
 		$dot = '/usr/local/bin/dot';
 	} elsif(-x '/sw/bin/dot') {
 		$dot = '/sw/bin/dot';
+	} elsif(-x '/opt/homebrew/bin/dot') {
+		$dot = '/opt/homebrew/bin/dot';
 	}
 
 	if(!defined($dot)) {
@@ -5259,10 +5261,12 @@ sub print_person
 					if($birth_dt) {
 						$age = $dfn->parse_datetime($rdate) - $birth_dt;
 						$age = $age->in_units('years');
+					} elsif(defined($yob)) {
+						$age = get_year_from_date($rdate) - $yob;
 					}
 					# Find if they are an adult living with an adult sibling or in-law
 					# if($all_residences_have_date && $birth_dt) {
-					if($all_residences_have_date) {
+					if($all_residences_have_date && defined($age)) {
 						my $printed_sibling = 0;
 						my $r = $residence;
 						next if($r->date() ne $rdate);
