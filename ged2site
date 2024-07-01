@@ -2365,7 +2365,7 @@ sub print_person
 	if(scalar(@events) == 2) {
 		my $event = $events[1];
 		if(!ref($event)) {
-			red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
+			# red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
 			pop @events;
 		}
 	}
