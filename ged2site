@@ -15,6 +15,7 @@
 # TODO: Finish XML, perhaps use XML::Hash for display?
 # TODO: Can I use a kdTree to determine events or residences close by each other?
 # TODO: add male and female average lifespan to the facts
+# TODO: print number of people appearing on both mother's a father's side (this is counted but not used)
 # TODO: finish -x option to create a blog of differences over time of
 #	changes to the tree
 # TODO: look at census records to note the different places that a person's children
@@ -2514,6 +2515,28 @@ sub print_person
 
 		# Calculate the average age of adults death on both sides of the family
 		if($me && ((my $age = $age_at_death->years()) >= 20)) {
+			my $fr;
+			my $mr;
+			if(my $mother = $me->mother()) {
+				if($mr = $mother->relationship($person)) {
+					$facts->{'mothers_side'}->{'age'} += $age;
+					$facts->{'mothers_side'}->{'count'}++;
+				}
+			}
+			if(my $father = $me->father()) {
+				if($fr = $father->relationship($person)) {
+					$facts->{'fathers_side'}->{'age'} += $age;
+					$facts->{'fathers_side'}->{'count'}++;
+				}
+			}
+			if($mr && $fr) {
+				# Keep a tally of the number of people appearing on both sides
+				$facts->{'both_sides'}->{'count'}++;
+			}
+		}
+	} elsif($yob && $yod) {
+		# Calculate the average age of adults death on both sides of the family
+		if($me && ((my $age = ($yod - $yob)) >= 20)) {
 			my $fr;
 			my $mr;
 			if(my $mother = $me->mother()) {
