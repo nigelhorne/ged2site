@@ -35,6 +35,9 @@ sub html {
 		if(my $oa = $facts->{'oldest_age'}) {
 			$oa->{'person'} = $people->fetchrow_hashref(entry => delete $oa->{'xref'});
 		}
+		if(my $mc = $facts->{'most_children'}) {
+			$mc->{'person'} = $people->fetchrow_hashref(entry => delete $mc->{'xref'});
+		}
 		$p->{'facts'} = $facts;
 	} else {
 		$p->{'error'} = "Can't open $json_file";
