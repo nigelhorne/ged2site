@@ -2694,6 +2694,12 @@ sub print_person
 		map { $_->children() } $person->fams();
 	my $numberofchildren = scalar(@children);
 
+	# Most children
+	if((!defined($facts->{'most_children'})) || ($facts->{'most_children'}->{'count'} < $numberofchildren)) {
+		$facts->{'most_children'}->{'count'} = $numberofchildren;
+		$facts->{'most_children'}->{'xref'} = $person->xref();
+	}
+
 	if($opts{'w'} && $numberofchildren) {
 		foreach my $child(@children) {
 			if($child->xref() eq $person->xref()) {
@@ -8388,7 +8394,7 @@ sub print_person
 			# if(open(my $fout, '|-', '/bin/cat')) {
 				# We're using UTF-8 for the graphviz encoding
 				binmode($fout, ':utf8');
-	
+
 				# print $fout 'digraph family { graph [rankdir=LR];';
 				# Best to agree with the colour in css/web.css
 				# print $fout 'digraph family { bgcolor="#d6d6d6"',
@@ -14518,7 +14524,7 @@ sub wide_to_xml
 	# print STDERR "\n";
 
 	# utf8::decode($string);
-	
+
 	$string =~ s/['\x98]/&#039;/g;
 	$string =~ s/©/&#x0A9;/g;
 	$string =~ s/®/&#x0AE;/g;

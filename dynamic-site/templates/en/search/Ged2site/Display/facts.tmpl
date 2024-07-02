@@ -54,6 +54,12 @@
 					<a href="?page=people&amp;entry=[%- facts.oldest_age.person.entry %]">[% facts.oldest_age.person.title %]</a> who lived for [% facts.oldest_age.years %] years
 				</p>
 			[% END %]
+			[% IF facts.most_children %]
+				<p>
+					Person with the most children:
+					<a href="?page=people&amp;entry=[%- facts.most_children.person.entry %]">[% facts.most_children.person.title %]</a> had [% facts.most_children.count %] children
+				</p>
+			[% END %]
 		[% END %]
 		<p>
 			<i>
