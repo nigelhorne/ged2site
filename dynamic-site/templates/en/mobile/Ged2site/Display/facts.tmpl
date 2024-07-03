@@ -25,14 +25,14 @@
 			</p>
                         [% IF facts.fathers_side %]
                                 <p>
-                                        There are [% facts.fathers_side.count %] adults aged 20 or over on the father's side,
+                                        There are [% facts.fathers_side.count %] adults known to have lived to 20 or over on the father's side,
 					of which the average (mean) age at death was [% Math.int(facts.fathers_side.age / facts.fathers_side.count) %].
 
                                 </p>
                         [% END %]
                         [% IF facts.mothers_side %]
                                 <p>
-                                        There are [% facts.mothers_side.count %] adults aged 20 or over on the mother's side,
+                                        There are [% facts.mothers_side.count %] adults known to have lived to 20 or over on the mother's side,
 					of which the average (mean) age at death was [% Math.int(facts.mothers_side.age / facts.mothers_side.count) %].
                                 </p>
                         [% END %]
