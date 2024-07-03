@@ -9123,8 +9123,9 @@ sub print_person
 						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 						$notes =~ s/[\s\.]+$//;
 						$notes =~ s/<br>/ /g;
+						$notes = wide_to_xml($notes);
 						print $xml "\n\t\t\t\t<notes>",
-							"\n\t\t\t\t\t$notes",
+							"\n\t\t\t\t\t", wide_to_xml($notes),
 							"\n\t\t\t\t</notes>";
 						$entry->{'notes'} = $notes;
 					}
