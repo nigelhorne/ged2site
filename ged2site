@@ -13038,9 +13038,6 @@ sub obituaries
 	my $yob = delete $params{'yob'};
 	my $yod = delete $params{'yod'};
 	my $person = delete $params{'person'};
-	if($logger) {
-		$params{'logger'} = $logger;
-	}
 	my @obituaries = $obituaries->search(\%params);
 
 	print scalar(@obituaries), " obituaries found\n" if($opts{'v'});
