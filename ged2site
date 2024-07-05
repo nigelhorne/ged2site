@@ -2072,10 +2072,9 @@ sub print_person
 	print $html '</head>';
 	if($opts{'m'}) {
 		print $html "<body onload=\"html_googlemaps_initialize()\">";
+	} elsif($geolocation_key) {
+		die "$0: -G makes no sense without -m";
 	} else {
-		if($geolocation_key) {
-			die "$0: -G makes no sense without -m";
-		}
 		print $html '<body>';
 	}
 	print $html "<center><h1>$title</h1>";
@@ -2531,6 +2530,7 @@ sub print_person
 			}
 			if($mr && $fr) {
 				# Keep a tally of the number of people appearing on both sides
+				push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
 				$facts->{'both_sides'}->{'count'}++;
 			}
 		}
@@ -2553,6 +2553,7 @@ sub print_person
 			}
 			if($mr && $fr) {
 				# Keep a tally of the number of people appearing on both sides
+				push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
 				$facts->{'both_sides'}->{'count'}++;
 			}
 		}

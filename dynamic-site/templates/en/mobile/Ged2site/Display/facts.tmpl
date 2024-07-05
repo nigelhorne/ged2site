@@ -54,6 +54,19 @@
 					<a href="?page=people&amp;entry=[%- facts.most_children.person.entry %]">[% facts.most_children.person.title %]</a> had [% facts.most_children.count %] children
 				</p>
 			[% END %]
+			[% IF facts.both_sides %]
+				<p>
+					There
+					[% IF facts.both_sides.count == 1 %]
+						is 1 person who appears
+					[% ELSE %]
+						are [% facts.both_sides.count %] people who appear
+					[% END %]
+					on both the father's and mother's side of the tree:
+					[% FOREACH person IN facts.both_sides.people %]
+						<br><a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
+				</p>
+			[% END %]
 		[% END %]
 		<center><font size="+2">
 			[ <a href="?page=people&amp;home=1">Home</a> ]<br>

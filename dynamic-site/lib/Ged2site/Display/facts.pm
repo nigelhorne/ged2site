@@ -38,6 +38,12 @@ sub html {
 		if(my $mc = $facts->{'most_children'}) {
 			$mc->{'person'} = $people->fetchrow_hashref(entry => delete $mc->{'xref'});
 		}
+		if(my $bs = $facts->{'both_sides'}) {
+			foreach my $xref(@{$bs->{'xrefs'}}) {
+				push @{$bs->{'people'}}, $people->fetchrow_hashref(entry => $xref);
+			}
+			delete $bs->{'xrefs'};
+		}
 		$p->{'facts'} = $facts;
 	} else {
 		$p->{'error'} = "Can't open $json_file";
