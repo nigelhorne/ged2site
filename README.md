@@ -103,6 +103,9 @@ The options to ged2site are:
 | -W   | don't colorize warning output |
 | -x f | Given a location of people.xml from a previous run, add to a blog of changes (TODO)
 
+NOTE: when you use the -m option, your Google API key will be included in the output,
+so ensure that you restrict the key's use just to this app on your host's IP.
+
 If [gedcom](https://github.com/nigelhorne/gedcom) is installed,
 ged2site will also create a calendar of births and deaths,
 one page for each month in the current year.
