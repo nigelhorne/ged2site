@@ -2514,7 +2514,6 @@ sub print_person
 
 		# Calculate the average age of adults death on both sides of the family
 		if($me && ((my $age = $age_at_death->years()) >= 20)) {
-			my $fr;
 			my $mr;
 			if(my $mother = $me->mother()) {
 				if($mr = $mother->relationship($person)) {
@@ -2523,21 +2522,20 @@ sub print_person
 				}
 			}
 			if(my $father = $me->father()) {
-				if($fr = $father->relationship($person)) {
+				if(my $fr = $father->relationship($person)) {
 					$facts->{'fathers_side'}->{'age'} += $age;
 					$facts->{'fathers_side'}->{'count'}++;
+					if($mr) {
+						# Keep a tally of the number of people appearing on both sides
+						push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
+						$facts->{'both_sides'}->{'count'}++;
+					}
 				}
-			}
-			if($mr && $fr) {
-				# Keep a tally of the number of people appearing on both sides
-				push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
-				$facts->{'both_sides'}->{'count'}++;
 			}
 		}
 	} elsif($yob && $yod) {
 		# Calculate the average age of adults death on both sides of the family
 		if($me && ((my $age = ($yod - $yob)) >= 20)) {
-			my $fr;
 			my $mr;
 			if(my $mother = $me->mother()) {
 				if($mr = $mother->relationship($person)) {
@@ -2546,15 +2544,15 @@ sub print_person
 				}
 			}
 			if(my $father = $me->father()) {
-				if($fr = $father->relationship($person)) {
+				if(my $fr = $father->relationship($person)) {
 					$facts->{'fathers_side'}->{'age'} += $age;
 					$facts->{'fathers_side'}->{'count'}++;
+					if($mr) {
+						# Keep a tally of the number of people appearing on both sides
+						push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
+						$facts->{'both_sides'}->{'count'}++;
+					}
 				}
-			}
-			if($mr && $fr) {
-				# Keep a tally of the number of people appearing on both sides
-				push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
-				$facts->{'both_sides'}->{'count'}++;
 			}
 		}
 	}
