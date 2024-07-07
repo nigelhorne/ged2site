@@ -2525,8 +2525,14 @@ sub print_person
 				if(my $fr = $father->relationship($person)) {
 					$facts->{'fathers_side'}->{'age'} += $age;
 					$facts->{'fathers_side'}->{'count'}++;
-					if($mr) {
+					if($mr && ($mr ne $fr)) {
 						# Keep a tally of the number of people appearing on both sides
+						#
+						# Ignore entries, for example, that could both be "grandson" which would
+						# make this person the home person's newphew/niece
+						# and would, of course, be on both sides of the tree
+						# FIXME: allow things like both being third cousin four times removed,
+						#	but that's a so very rare edge case
 						push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
 						$facts->{'both_sides'}->{'count'}++;
 					}
@@ -2547,7 +2553,7 @@ sub print_person
 				if(my $fr = $father->relationship($person)) {
 					$facts->{'fathers_side'}->{'age'} += $age;
 					$facts->{'fathers_side'}->{'count'}++;
-					if($mr) {
+					if($mr && ($mr ne $fr)) {
 						# Keep a tally of the number of people appearing on both sides
 						push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
 						$facts->{'both_sides'}->{'count'}++;
