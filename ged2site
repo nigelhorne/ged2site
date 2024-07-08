@@ -20,7 +20,6 @@
 # TODO: look at census records to note the different places that a person's children
 #	were born and note if the residences of the person don't include those places
 # TODO: Create occupations database
-# TODO:	remove date_to_datetime
 # TODO: flag if census locations are XYX and Y is more than (say) 50 miles from X
 # TODO: timeline of each person - like or using timetoast.com
 # TODO: investigate Locale::Geocode
@@ -8190,6 +8189,7 @@ sub print_person
 									copy($localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg');
 								} else {
 									link $localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
+									chmod 0444, $localfile;
 								}
 							}
 							$form = 'JPG';
@@ -12369,7 +12369,10 @@ sub get_all_residences
 		if($all_residences_have_date) {
 			my $prev_year;
 			my $prev_place;
-			foreach my $residence(Sort::Key::keysort { get_year_from_date($_->date()) } @rc) {
+
+			@rc = Sort::Key::keysort { get_year_from_date($_->date()) } @rc;
+
+			foreach my $residence(@rc) {
 				my $date = $residence->date();
 				next unless($date);
 
@@ -12390,6 +12393,34 @@ sub get_all_residences
 					} elsif($place && ($place =~ /^\d/)) {
 						$prev_place = $place;
 						$prev_year = $year;
+					}
+				}
+			}
+			if(scalar(@rc) >= 3) {
+				# Warn if people appear to move away and back again,
+				# there could be a wrong record
+				my $iterator = Array::Iterator->new({ __array__ => \@rc });
+				while(1) {
+					my $current = $iterator->get_next();
+					my $next = $iterator->peek();
+					my $nextnext = $iterator->peek(2);
+					last if(!defined($nextnext));
+					my $place = place({ person => $person, record => $current, nopreposition => 1 });
+					my $nextplace = place({ person => $person, record => $next, nopreposition => 1 });
+					my $nextnextplace = place({ person => $person, record => $nextnext, nopreposition => 1 });
+					if(($nextnextplace eq $place) && ($nextplace ne $place)) {
+						my @locations = get_location($place);
+						my @nextlocations = get_location($nextplace);
+
+						if(my $location = shift @locations) {
+							if((ref($location) eq 'Geo::Location::Point') && (my $nextlocation = shift @nextlocations)) {
+								if(ref($nextlocation) eq 'Geo::Location::Point') {
+									if($location->distance($nextlocation)->mile() >= 30.0) {
+										complain({ person => $person, warning => "Moved from $place to $nextplace and back again - check for incorrect entry" });
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -13573,12 +13604,13 @@ sub get_location($)
 			return $location;
 		}
 		if(defined($location->{geometry}{location}{lat}) && defined($location->{geometry}{location}{lng})) {
-			my $rc = Class::Simple->new();
-			$rc->long($location->{geometry}{location}{lng});
-			$rc->longitude($location->{geometry}{location}{lng});
-			$rc->lat($location->{geometry}{location}{lat});
-			$rc->latitude($location->{geometry}{location}{lat});
-			return $rc;
+			# my $rc = Class::Simple->new();
+			# $rc->long($location->{geometry}{location}{lng});
+			# $rc->longitude($location->{geometry}{location}{lng});
+			# $rc->lat($location->{geometry}{location}{lat});
+			# $rc->latitude($location->{geometry}{location}{lat});
+			# return $rc;
+			return Geo::Location::Point->new({ latitude => $location->{geometry}{location}{lat}, longitude => $location->{geometry}{location}{lng} });
 		}
 		dump_geocoder_log();
 
