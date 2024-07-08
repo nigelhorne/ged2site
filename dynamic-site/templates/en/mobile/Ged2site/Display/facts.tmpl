@@ -67,6 +67,11 @@
 						<br><a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
 				</p>
 			[% END %]
+			[% IF facts.family_size %]
+				<p>
+					The mean family size is [% facts.family_size.mean %] children.
+				</p>
+			[% END %]
 		[% END %]
 		<center><font size="+2">
 			[ <a href="?page=people&amp;home=1">Home</a> ]<br>

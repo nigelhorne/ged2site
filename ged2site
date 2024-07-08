@@ -15,7 +15,6 @@
 # TODO: Finish XML, perhaps use XML::Hash for display?
 # TODO: Can I use a kdTree to determine events or residences close by each other?
 # TODO: add male and female average lifespan to the facts
-# TODO: print number of people appearing on both mother's a father's side (this is counted but not used)
 # TODO: finish -x option to create a blog of differences over time of
 #	changes to the tree
 # TODO: look at census records to note the different places that a person's children
@@ -1804,6 +1803,10 @@ if($facts && open(my $json, '>', 'dynamic-site/data/facts.json')) {
 		$facts->{'oldest_age'}->{'months'} = $oa->months();
 		$facts->{'oldest_age'}->{'days'} = $oa->days();
 	}
+	if(my $fs = $facts->{'family_size'}) {
+		# Average family size
+		$fs->{'mean'} = $fs->{'size'} / $fs->{'count'};
+	}
 	print $json encode_json($facts);
 	close $json;
 
@@ -2726,6 +2729,12 @@ sub print_person
 	if((!defined($facts->{'most_children'})) || ($facts->{'most_children'}->{'count'} < $numberofchildren)) {
 		$facts->{'most_children'}->{'count'} = $numberofchildren;
 		$facts->{'most_children'}->{'xref'} = $person->xref();
+	}
+
+	# Average family size
+	if($numberofchildren) {
+		$facts->{'family_size'}->{'size'} += $numberofchildren;
+		$facts->{'family_size'}->{'count'}++;
 	}
 
 	if($opts{'w'} && $numberofchildren) {

@@ -86,6 +86,11 @@
 							</ul>
 						</li>
 					[% END %]
+					[% IF facts.family_size %]
+						<li>
+							The mean family size is [% facts.family_size.mean %] children.
+						</li>
+					[% END %]
 				</ul>
 			[% END %]
 		</div>

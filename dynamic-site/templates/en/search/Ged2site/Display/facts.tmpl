@@ -61,7 +61,7 @@
 				</p>
 			[% END %]
 			[% IF facts.both_sides %]
-				<li>
+				<p>
 					There
 					[% IF facts.both_sides.count == 1 %]
 						is 1 person who appears
@@ -69,7 +69,12 @@
 						are [% facts.both_sides.count %] people who appear
 					[% END %]
 					on both the father's and mother's side of the tree
-				</li>
+				</p>
+			[% END %]
+			[% IF facts.family_size %]
+				<p>
+					The mean family size is [% facts.family_size.mean %] children.
+				</p>
 			[% END %]
 		[% END %]
 		<p>
