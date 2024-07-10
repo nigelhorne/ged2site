@@ -29,7 +29,6 @@
 # TODO: Can I make use of the Chart module?
 # TODO: consider Data::Dumper::Names instead of Data::Dumper
 # TODO: investigate User::Identity
-# FIXME: youngest and oldest age of marriage should be in years/months/days, not years
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -1808,10 +1807,10 @@ if($facts && open(my $json, '>', 'dynamic-site/data/facts.json')) {
 		$facts->{'oldest_marriage'}->{'months'} = $om->months();
 		$facts->{'oldest_marriage'}->{'days'} = $om->days();
 	}
-	if(my $om = delete $facts->{'youngest_marriage'}->{'age'}) {
-		$facts->{'youngest_marriage'}->{'years'} = $om->years();
-		$facts->{'youngest_marriage'}->{'months'} = $om->months();
-		$facts->{'youngest_marriage'}->{'days'} = $om->days();
+	if(my $ym = delete $facts->{'youngest_marriage'}->{'age'}) {
+		$facts->{'youngest_marriage'}->{'years'} = $ym->years();
+		$facts->{'youngest_marriage'}->{'months'} = $ym->months();
+		$facts->{'youngest_marriage'}->{'days'} = $ym->days();
 	}
 	if(my $fs = $facts->{'family_size'}) {
 		# Average family size
@@ -2358,6 +2357,8 @@ sub print_person
 
 	# $fetcher->prime(object => $person, message => 'sex')->prime(object => $person, message => 'pronoun');
 
+	print "Gathering main dates\n" if($opts{'v'});
+
 	my $baptism = $person->get_record('baptism');
 	my $dateofbaptism = get_value({ person => $person, value => 'baptism date' });
 	if((!$dateofbaptism) && $baptism) {
@@ -2505,45 +2506,47 @@ sub print_person
 	# Don't match date ranges
 	my $death_dt = date_to_datetime(date => $dateofdeath);
 
+	# Add people married at youngest and oldest ages to facts
 	if($birth_dt && $marriage_dt) {
-		if($opts{'w'} && ($marriage_dt < ($birth_dt + $sixteenyears))) {
-			complain({
-				person => $person,
-				warning => 'married when less than 16 years old'
-			});
-		}
-		# Record person married at youngest and oldest ages
-		my $age_at_marriage = $death_dt - $marriage_dt;
-		if(defined($facts->{'oldest_marriage'})) {
-			# FIXME: Handle when there are more than one person with this age
-			# FIXME: add base_datetime argument
-			if(DateTime::Duration->compare($age_at_marriage, $facts->{'oldest_marriage'}->{'age'}) > 0) {
+		if($marriage_dt > $birth_dt) {
+			if($marriage_dt < ($birth_dt + $sixteenyears)) {
+				complain({
+					person => $person,
+					warning => 'married when less than 16 years old'
+				});
+			}
+
+			my $age_at_marriage = $marriage_dt - $birth_dt;
+			if(my $ym = $facts->{'youngest_marriage'}) {
+				# FIXME: Handle when there is more than one person with this age
+				if(DateTime::Duration->compare($age_at_marriage, $ym->{'age'}, $birth_dt) < 0) {
+					$ym->{'age'} = $age_at_marriage;
+					$ym->{'xref'} = $person->xref();
+				}
+			} else {
+				$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;
+				$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
+			}
+			if(defined($facts->{'oldest_marriage'})) {
+				# FIXME: Handle when there are more than one person with this age
+				if(DateTime::Duration->compare($age_at_marriage, $facts->{'oldest_marriage'}->{'age'}, $birth_dt) > 0) {
+					$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;
+					$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
+				}
+			} else {
 				$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;
 				$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
 			}
 		} else {
-			$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;
-			$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
-		}
-		if(defined($facts->{'youngest_marriage'})) {
-			# FIXME: Handle when there are more than one person with this age
-			# FIXME: add base_datetime argument
-			if(DateTime::Duration->compare($age_at_marriage, $facts->{'youngest_marriage'}->{'age'}) < 0) {
-				$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;
-				$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
-			}
-		} else {
-			$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;
-			$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
+			complain({ person => $person, warning => 'Married before they were born' });
 		}
 	}
 
 	if($birth_dt && $death_dt) {
 		my $age_at_death = $death_dt - $birth_dt;
 		if(defined($facts->{'oldest_age'})) {
-			# FIXME: Handle when there are more than one person with this age
-			# FIXME: add base_datetime argument
-			if(DateTime::Duration->compare($age_at_death, $facts->{'oldest_age'}->{'age'}) > 0) {
+			# FIXME: Handle when there is more than one person with this age
+			if(DateTime::Duration->compare($age_at_death, $facts->{'oldest_age'}->{'age'}, $birth_dt) > 0) {
 				$facts->{'oldest_age'}->{'age'} = $age_at_death;
 				$facts->{'oldest_age'}->{'xref'} = $person->xref();
 			}
@@ -3828,7 +3831,7 @@ sub print_person
 			}
 		}
 
-		print "bio so far: $bio\n" if($opts{'v'});
+		print "bio so far: $bio\n" if($opts{'v'} && defined($bio));
 
 		my @education = $person->education();
 
