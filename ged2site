@@ -1803,6 +1803,16 @@ if($facts && open(my $json, '>', 'dynamic-site/data/facts.json')) {
 		$facts->{'oldest_age'}->{'months'} = $oa->months();
 		$facts->{'oldest_age'}->{'days'} = $oa->days();
 	}
+	if(my $om = delete $facts->{'oldest_marriage'}->{'age'}) {
+		$facts->{'oldest_marriage'}->{'years'} = $om->years();
+		$facts->{'oldest_marriage'}->{'months'} = $om->months();
+		$facts->{'oldest_marriage'}->{'days'} = $om->days();
+	}
+	if(my $om = delete $facts->{'youngest_marriage'}->{'age'}) {
+		$facts->{'youngest_marriage'}->{'years'} = $om->years();
+		$facts->{'youngest_marriage'}->{'months'} = $om->months();
+		$facts->{'youngest_marriage'}->{'days'} = $om->days();
+	}
 	if(my $fs = $facts->{'family_size'}) {
 		# Average family size
 		$fs->{'mean'} = $fs->{'size'} / $fs->{'count'};
@@ -2508,22 +2518,22 @@ sub print_person
 			# FIXME: Handle when there are more than one person with this age
 			# FIXME: add base_datetime argument
 			if(DateTime::Duration->compare($age_at_marriage, $facts->{'oldest_marriage'}->{'age'}) > 0) {
-				$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;	# FIXME: use days not years
+				$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;
 				$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
 			}
 		} else {
-			$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;	# FIXME: use days not years
+			$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;
 			$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
 		}
 		if(defined($facts->{'youngest_marriage'})) {
 			# FIXME: Handle when there are more than one person with this age
 			# FIXME: add base_datetime argument
 			if(DateTime::Duration->compare($age_at_marriage, $facts->{'youngest_marriage'}->{'age'}) < 0) {
-				$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;	# FIXME: use days not years
+				$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;
 				$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
 			}
 		} else {
-			$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;	# FIXME: use days not years
+			$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;
 			$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
 		}
 	}
