@@ -76,21 +76,27 @@
 			[% END %]
 			[% IF facts.family_size %]
 				<p>
-					The mean family size is [% facts.family_size.mean %] children.
+					The mean family size is [% facts.family_size.mean %] children
 				</p>
 			[% END %]
 			[% IF facts.youngest_marriage %]
 				<p>
 					The person who married at the youngest age was
 					<a href="?page=people&amp;entry=[%- facts.youngest_marriage.person.entry %]">[% facts.youngest_marriage.person.title %]</a>,
-					aged [% facts.youngest_marriage.years %] years.
+					aged
+					[% facts.youngest_age.years %] years,
+					[% facts.youngest_age.months %] months and
+					[% facts.youngest_age.days %] days
 				</p>
 			[% END %]
 			[% IF facts.oldest_marriage %]
 				<p>
 					The person who married at the oldest age was
 					<a href="?page=people&amp;entry=[%- facts.oldest_marriage.person.entry %]">[% facts.oldest_marriage.person.title %]</a>,
-					aged [% facts.oldest_marriage.years %] years.
+					aged
+					[% facts.oldest_age.years %] years,
+					[% facts.oldest_age.months %] months and
+					[% facts.oldest_age.days %] days
 				</p>
 			[% END %]
 		[% END %]
