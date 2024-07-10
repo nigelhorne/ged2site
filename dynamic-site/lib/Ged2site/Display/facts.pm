@@ -44,6 +44,12 @@ sub html {
 			}
 			delete $bs->{'xrefs'};
 		}
+		if(my $ym = $facts->{'youngest_marriage'}) {
+			$ym->{'person'} = $people->fetchrow_hashref(entry => delete $ym->{'xref'});
+		}
+		if(my $om = $facts->{'oldest_marriage'}) {
+			$om->{'person'} = $people->fetchrow_hashref(entry => delete $om->{'xref'});
+		}
 		$p->{'facts'} = $facts;
 	} else {
 		$p->{'error'} = "Can't open $json_file";

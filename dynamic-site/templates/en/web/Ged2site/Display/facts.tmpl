@@ -91,6 +91,20 @@
 							The mean family size is [% facts.family_size.mean %] children.
 						</li>
 					[% END %]
+					[% IF facts.youngest_marriage %]
+						<li>
+							The person who married at the youngest age was
+							<a href="?page=people&amp;entry=[%- facts.youngest_marriage.person.entry %]">[% facts.youngest_marriage.person.title %]</a>,
+							aged [% facts.youngest_marriage.age %] years.
+						</li>
+					[% END %]
+					[% IF facts.oldest_marriage %]
+						<li>
+							The person who married at the oldest age was
+							<a href="?page=people&amp;entry=[%- facts.oldest_marriage.person.entry %]">[% facts.oldest_marriage.person.title %]</a>,
+							aged [% facts.oldest_marriage.age %] years.
+						</li>
+					[% END %]
 				</ul>
 			[% END %]
 		</div>

@@ -29,6 +29,7 @@
 # TODO: Can I make use of the Chart module?
 # TODO: consider Data::Dumper::Names instead of Data::Dumper
 # TODO: investigate User::Identity
+# FIXME: youngest and oldest age of marriage should be in years/months/days, not years
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -2491,14 +2492,41 @@ sub print_person
 		$marriage_dt = $dfg->parse_datetime(date => $dateofmarriage, quiet => 1);
 	}
 
-	if($birth_dt && $marriage_dt && $opts{'w'} && ($marriage_dt < ($birth_dt + $sixteenyears))) {
-		complain({
-			person => $person,
-			warning => 'married when less than 16 years old'
-		});
-	}
 	# Don't match date ranges
 	my $death_dt = date_to_datetime(date => $dateofdeath);
+
+	if($birth_dt && $marriage_dt) {
+		if($opts{'w'} && ($marriage_dt < ($birth_dt + $sixteenyears))) {
+			complain({
+				person => $person,
+				warning => 'married when less than 16 years old'
+			});
+		}
+		# Record person married at youngest and oldest ages
+		my $age_at_marriage = $death_dt - $marriage_dt;
+		if(defined($facts->{'oldest_marriage'})) {
+			# FIXME: Handle when there are more than one person with this age
+			# FIXME: add base_datetime argument
+			if(DateTime::Duration->compare($age_at_marriage, $facts->{'oldest_marriage'}->{'age'}) > 0) {
+				$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;	# FIXME: use days not years
+				$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
+			}
+		} else {
+			$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;	# FIXME: use days not years
+			$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
+		}
+		if(defined($facts->{'youngest_marriage'})) {
+			# FIXME: Handle when there are more than one person with this age
+			# FIXME: add base_datetime argument
+			if(DateTime::Duration->compare($age_at_marriage, $facts->{'youngest_marriage'}->{'age'}) < 0) {
+				$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;	# FIXME: use days not years
+				$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
+			}
+		} else {
+			$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;	# FIXME: use days not years
+			$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
+		}
+	}
 
 	if($birth_dt && $death_dt) {
 		my $age_at_death = $death_dt - $birth_dt;
@@ -2720,7 +2748,7 @@ sub print_person
 		}
 	}
 	# my @children = map { $_->children() } $person->fams();
-	my @children = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {}, quiet => 1 }) } 
+	my @children = map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {}, quiet => 1 }) }
 		map { $_->children() } $person->fams();
 	my $numberofchildren = scalar(@children);
 
