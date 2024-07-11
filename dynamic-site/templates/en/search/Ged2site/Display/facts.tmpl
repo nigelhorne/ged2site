@@ -17,7 +17,7 @@
 	<body>
 		<center>
 			<h1>Facts for [% SiteTitle.join(' ') %]</h1>
-			[ <a href="?page=people&home=1">Home</a> ] |
+			[ <a href="?page=people&amp;home=1">Home</a> ] |
 			[ <a href="?page=surnames">Surname Index</a> ] |
 			[ <a href="?page=history">Family History</a> ] |
 			[ <a href="?page=calendar">Calendar</a> ]
@@ -97,6 +97,18 @@
 					[% facts.oldest_marriage.years %] years,
 					[% facts.oldest_marriage.months %] months and
 					[% facts.oldest_marriage.days %] days
+				</p>
+			[% END %]
+			[% IF facts.longest_marriage %]
+				<p>
+					The longest marriage,
+					<a href="?page=people&amp;entry=[%- facts.longest_marriage.person.entry %]">[% facts.longest_marriage.person.title %]</a>
+					to
+					<a href="?page=people&amp;entry=[%- facts.longest_marriage.spouse.entry %]">[% facts.longest_marriage.spouse.title %]</a>,
+					lasted
+					[% facts.longest_marriage.years %] years,
+					[% facts.longest_marriage.months %] months and
+					[% facts.longest_marriage.days %] days
 				</p>
 			[% END %]
 		[% END %]

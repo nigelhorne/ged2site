@@ -1812,6 +1812,11 @@ if($facts && open(my $json, '>', 'dynamic-site/data/facts.json')) {
 		$facts->{'youngest_marriage'}->{'months'} = $ym->months();
 		$facts->{'youngest_marriage'}->{'days'} = $ym->days();
 	}
+	if(my $lm = delete $facts->{'longest_marriage'}->{'length'}) {
+		$facts->{'longest_marriage'}->{'years'} = $lm->years();
+		$facts->{'longest_marriage'}->{'months'} = $lm->months();
+		$facts->{'longest_marriage'}->{'days'} = $lm->days();
+	}
 	if(my $fs = $facts->{'family_size'}) {
 		# Average family size
 		$fs->{'mean'} = $fs->{'size'} / $fs->{'count'};
@@ -2507,106 +2512,126 @@ sub print_person
 	my $death_dt = date_to_datetime(date => $dateofdeath);
 
 	# Add people married at youngest and oldest ages to facts
-	if($birth_dt && $marriage_dt) {
-		if($marriage_dt > $birth_dt) {
-			if($marriage_dt < ($birth_dt + $sixteenyears)) {
-				complain({
-					person => $person,
-					warning => 'married when less than 16 years old'
-				});
-			}
-
-			my $age_at_marriage = $marriage_dt - $birth_dt;
-			if(my $ym = $facts->{'youngest_marriage'}) {
-				# FIXME: Handle when there is more than one person with this age
-				if(DateTime::Duration->compare($age_at_marriage, $ym->{'age'}, $birth_dt) < 0) {
-					$ym->{'age'} = $age_at_marriage;
-					$ym->{'xref'} = $person->xref();
+	if($opts{'l'} || !$is_alive) {
+		if($birth_dt && $marriage_dt) {
+			if($marriage_dt > $birth_dt) {
+				if($marriage_dt < ($birth_dt + $sixteenyears)) {
+					complain({
+						person => $person,
+						warning => 'married when less than 16 years old'
+					});
 				}
-			} else {
-				$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;
-				$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
-			}
-			if(defined($facts->{'oldest_marriage'})) {
-				# FIXME: Handle when there are more than one person with this age
-				if(DateTime::Duration->compare($age_at_marriage, $facts->{'oldest_marriage'}->{'age'}, $birth_dt) > 0) {
+
+				my $age_at_marriage = $marriage_dt - $birth_dt;
+				if(my $ym = $facts->{'youngest_marriage'}) {
+					# FIXME: Handle when there is more than one person with this age
+					if(DateTime::Duration->compare($age_at_marriage, $ym->{'age'}, $birth_dt) < 0) {
+						$ym->{'age'} = $age_at_marriage;
+						$ym->{'xref'} = $person->xref();
+					}
+				} else {
+					$facts->{'youngest_marriage'}->{'age'} = $age_at_marriage;
+					$facts->{'youngest_marriage'}->{'xref'} = $person->xref();
+				}
+				if(defined($facts->{'oldest_marriage'})) {
+					# FIXME: Handle when there are more than one person with this age
+					if(DateTime::Duration->compare($age_at_marriage, $facts->{'oldest_marriage'}->{'age'}, $birth_dt) > 0) {
+						$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;
+						$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
+					}
+				} else {
 					$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;
 					$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
 				}
 			} else {
-				$facts->{'oldest_marriage'}->{'age'} = $age_at_marriage;
-				$facts->{'oldest_marriage'}->{'xref'} = $person->xref();
+				complain({ person => $person, warning => 'Married before they were born' });
 			}
-		} else {
-			complain({ person => $person, warning => 'Married before they were born' });
 		}
-	}
 
-	if($birth_dt && $death_dt) {
-		my $age_at_death = $death_dt - $birth_dt;
-		if(defined($facts->{'oldest_age'})) {
-			# FIXME: Handle when there is more than one person with this age
-			if(DateTime::Duration->compare($age_at_death, $facts->{'oldest_age'}->{'age'}, $birth_dt) > 0) {
+		# Longest married couple
+		if($death_dt && $marriage_dt && (scalar(@spouses) == 1) && (my $spdateofdeath = dateofdeath($spouses[0])) && ($death_dt > $marriage_dt)) {
+			if(my $sp_death_dt = date_to_datetime(date => $spdateofdeath)) {
+				my $end_of_marriage = ($sp_death_dt < $death_dt) ? $sp_death_dt : $death_dt;
+				my $marriage_length = $end_of_marriage - $marriage_dt;
+				if(my $lm = $facts->{'longest_marriage'}) {
+					# FIXME: Handle when there is more than one marriage with this length
+					if(DateTime::Duration->compare($marriage_length, $lm->{'length'}, $marriage_dt) > 0) {
+						$lm->{'length'} = $marriage_length;
+						$lm->{'xref'} = $person->xref();
+						$lm->{'spouse_xref'} = $spouses[0]->xref();
+					}
+				} else {
+					$facts->{'longest_marriage'}->{'length'} = $marriage_length;
+					$facts->{'longest_marriage'}->{'xref'} = $person->xref();
+					$facts->{'longest_marriage'}->{'spouse_xref'} = $spouses[0]->xref();
+				}
+			}
+		}
+
+		if($birth_dt && $death_dt) {
+			my $age_at_death = $death_dt - $birth_dt;
+			if(defined($facts->{'oldest_age'})) {
+				# FIXME: Handle when there is more than one person with this age
+				if(DateTime::Duration->compare($age_at_death, $facts->{'oldest_age'}->{'age'}, $birth_dt) > 0) {
+					$facts->{'oldest_age'}->{'age'} = $age_at_death;
+					$facts->{'oldest_age'}->{'xref'} = $person->xref();
+				}
+			} else {
 				$facts->{'oldest_age'}->{'age'} = $age_at_death;
 				$facts->{'oldest_age'}->{'xref'} = $person->xref();
 			}
-		} else {
-			$facts->{'oldest_age'}->{'age'} = $age_at_death;
-			$facts->{'oldest_age'}->{'xref'} = $person->xref();
-		}
 
-		# Calculate the average age of adults death on both sides of the family
-		if($me && ((my $age = $age_at_death->years()) >= 20)) {
-			my $mr;
-			if(my $mother = $me->mother()) {
-				if($mr = $mother->relationship($person)) {
-					$facts->{'mothers_side'}->{'age'} += $age;
-					$facts->{'mothers_side'}->{'count'}++;
+			# Calculate the average age of adults death on both sides of the family
+			if($me && ((my $age = $age_at_death->years()) >= 20)) {
+				my $mr;
+				if(my $mother = $me->mother()) {
+					if($mr = $mother->relationship($person)) {
+						$facts->{'mothers_side'}->{'age'} += $age;
+						$facts->{'mothers_side'}->{'count'}++;
+					}
+				}
+				if(my $father = $me->father()) {
+					if(my $fr = $father->relationship($person)) {
+						$facts->{'fathers_side'}->{'age'} += $age;
+						$facts->{'fathers_side'}->{'count'}++;
+						if($mr && ($mr ne $fr)) {
+							# Keep a tally of the number of people appearing on both sides
+							#
+							# Ignore entries, for example, that could both be "grandson" which would
+							# make this person the home person's newphew/niece
+							# and would, of course, be on both sides of the tree
+							# FIXME: allow things like both being third cousin four times removed,
+							#	but that's a so very rare edge case
+							push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
+							$facts->{'both_sides'}->{'count'}++;
+						}
+					}
 				}
 			}
-			if(my $father = $me->father()) {
-				if(my $fr = $father->relationship($person)) {
-					$facts->{'fathers_side'}->{'age'} += $age;
-					$facts->{'fathers_side'}->{'count'}++;
-					if($mr && ($mr ne $fr)) {
-						# Keep a tally of the number of people appearing on both sides
-						#
-						# Ignore entries, for example, that could both be "grandson" which would
-						# make this person the home person's newphew/niece
-						# and would, of course, be on both sides of the tree
-						# FIXME: allow things like both being third cousin four times removed,
-						#	but that's a so very rare edge case
-						push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
-						$facts->{'both_sides'}->{'count'}++;
+		} elsif($yob && $yod) {
+			# Calculate the average age of adults death on both sides of the family
+			if($me && ((my $age = ($yod - $yob)) >= 20)) {
+				my $mr;
+				if(my $mother = $me->mother()) {
+					if($mr = $mother->relationship($person)) {
+						$facts->{'mothers_side'}->{'age'} += $age;
+						$facts->{'mothers_side'}->{'count'}++;
+					}
+				}
+				if(my $father = $me->father()) {
+					if(my $fr = $father->relationship($person)) {
+						$facts->{'fathers_side'}->{'age'} += $age;
+						$facts->{'fathers_side'}->{'count'}++;
+						if($mr && ($mr ne $fr)) {
+							# Keep a tally of the number of people appearing on both sides
+							push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
+							$facts->{'both_sides'}->{'count'}++;
+						}
 					}
 				}
 			}
 		}
-	} elsif($yob && $yod) {
-		# Calculate the average age of adults death on both sides of the family
-		if($me && ((my $age = ($yod - $yob)) >= 20)) {
-			my $mr;
-			if(my $mother = $me->mother()) {
-				if($mr = $mother->relationship($person)) {
-					$facts->{'mothers_side'}->{'age'} += $age;
-					$facts->{'mothers_side'}->{'count'}++;
-				}
-			}
-			if(my $father = $me->father()) {
-				if(my $fr = $father->relationship($person)) {
-					$facts->{'fathers_side'}->{'age'} += $age;
-					$facts->{'fathers_side'}->{'count'}++;
-					if($mr && ($mr ne $fr)) {
-						# Keep a tally of the number of people appearing on both sides
-						push @{$facts->{'both_sides'}->{'xrefs'}}, $person->xref();
-						$facts->{'both_sides'}->{'count'}++;
-					}
-				}
-			}
-		}
-	}
 
-	if($opts{'l'} || !$is_alive) {
 		# RT114091
 		if($birth_dt && ($birth_dt >= $year_1000)) {
 			$all_events{'B' . $person->xref()} = { person => $person, event => 'Birth', date => $birth_dt };

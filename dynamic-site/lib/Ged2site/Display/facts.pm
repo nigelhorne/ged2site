@@ -50,6 +50,10 @@ sub html {
 		if(my $om = $facts->{'oldest_marriage'}) {
 			$om->{'person'} = $people->fetchrow_hashref(entry => delete $om->{'xref'});
 		}
+		if(my $lm = $facts->{'longest_marriage'}) {
+			$lm->{'person'} = $people->fetchrow_hashref(entry => delete $lm->{'xref'});
+			$lm->{'spouse'} = $people->fetchrow_hashref(entry => delete $lm->{'spouse_xref'});
+		}
 		$p->{'facts'} = $facts;
 	} else {
 		$p->{'error'} = "Can't open $json_file";

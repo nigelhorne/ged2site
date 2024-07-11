@@ -114,6 +114,18 @@
 							[% facts.oldest_marriage.days %] days
 						</li>
 					[% END %]
+					[% IF facts.longest_marriage %]
+						<li>
+							The longest marriage,
+							<a href="?page=people&amp;entry=[%- facts.longest_marriage.person.entry %]">[% facts.longest_marriage.person.title %]</a>
+							to
+							<a href="?page=people&amp;entry=[%- facts.longest_marriage.spouse.entry %]">[% facts.longest_marriage.spouse.title %]</a>,
+							lasted
+							[% facts.longest_marriage.years %] years,
+							[% facts.longest_marriage.months %] months and
+							[% facts.longest_marriage.days %] days
+						</li>
+					[% END %]
 				</ul>
 			[% END %]
 		</div>
