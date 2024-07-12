@@ -80,7 +80,7 @@ BEGIN {
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached',
-		'HTML::GoogleMaps::V3 0.13',
+		'HTML::GoogleMaps::V3 0.13', 'Math::Round',
 		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
 		'URI', 'URI::Find::Schemeless',
@@ -1819,7 +1819,7 @@ if($facts && open(my $json, '>', 'dynamic-site/data/facts.json')) {
 	}
 	if(my $fs = $facts->{'family_size'}) {
 		# Average family size
-		$fs->{'mean'} = $fs->{'size'} / $fs->{'count'};
+		$fs->{'mean'} = nearest(0.001, $fs->{'size'} / $fs->{'count'});
 	}
 	print $json encode_json($facts);
 	close $json;
