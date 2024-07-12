@@ -5430,6 +5430,7 @@ sub print_person
 							my $address = $residence->address();
 							my $road = $address;
 
+							$rdate =~ s/^0//;	# FIXME: this should have been done earlier - see earlier FIXME
 							if($road) {
 								if($road =~ /,\s*(.+)/) {
 									$road = $1;
