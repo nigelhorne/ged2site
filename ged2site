@@ -5602,38 +5602,27 @@ sub print_person
 									complain({ person => $person, warning => "$rdate: Not living with either parent in childhood when aged $age" });
 								}
 								$living_alone = 0;
-							} elsif($father_date && (datecmp($rdate, $father_date) >= 0)) {
-								# FIXME: This test never succeeds,
-								#	perhaps Array:Iterator:BiDirectional doesn't work as I expect?
-								#	https://rt.cpan.org/Ticket/Display.html?id=143344&results=af04c74d05626a62cf0c32f2953f3e4f
-								# if(my $prev_residence = $iterator->look_back()) {
-									# my $pdate = $prev_residence->date();
-									# if(datecmp($pdate, $father_date) == 0) {
-										# die 'TODO: ', $person->as_string(include_years => 1), " change text to 'the same place as $pronoun was living with $pronoun father in $pdate'\n\t$residencestring";
-									# }
-									# die 'Unexpected test pass: ', $person->as_string, " $pdate/$father_date";
-								# } else {
-									$residencestring .= ' (the same place as ' .
-										($person->pronoun() eq 'She' ? 'her' : 'his');
-									if($mother_date && (datecmp($father_date, $mother_date) == 0)) {
-										$residencestring .= i18n(' parents ');
-										$printed_mother_same_place = 1;
-									} else {
-										$residencestring .= i18n(' father ');
-									}
-									if(datecmp($rdate, $father_date) > 0) {
-										$residencestring .= 'had been';
-									} elsif($printed_mother_same_place) {
-										$residencestring .= 'were';
-									} else {
-										$residencestring .= 'was';
-									}
-									$residencestring .= ' living ' .
-										year({ person => $person, string => $father_date }) .
-										')';
-								# }
+							} elsif($father_date && (datecmp($rdate, $father_date) > 0)) {
+								$residencestring .= ' (the same place as ' .
+									($person->pronoun() eq 'She' ? 'her' : 'his');
+								if($mother_date && (datecmp($father_date, $mother_date) == 0)) {
+									$residencestring .= i18n(' parents ');
+									$printed_mother_same_place = 1;
+								} else {
+									$residencestring .= i18n(' father ');
+								}
+								if(datecmp($rdate, $father_date) > 0) {
+									$residencestring .= 'had been';
+								} elsif($printed_mother_same_place) {
+									$residencestring .= 'were';
+								} else {
+									$residencestring .= 'was';
+								}
+								$residencestring .= ' living ' .
+									year({ person => $person, string => $father_date }) .
+									')';
 								$printed_father_same_place = 1;
-							} elsif($mother_date && (datecmp($rdate, $mother_date) >= 0)) {
+							} elsif($mother_date && (datecmp($rdate, $mother_date) > 0)) {
 								$residencestring .= ' (the same place as ' .
 									($person->pronoun() eq 'She' ? 'her' : 'his') . i18n(' mother ');
 								if(datecmp($rdate, $mother_date) > 0) {
