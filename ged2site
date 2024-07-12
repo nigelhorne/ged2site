@@ -4278,10 +4278,24 @@ sub print_person
 						$bio .= cite(($marriagecitation));
 						$phrase->append(cite(($marriagecitation)));
 					}
-					if(defined($marriage) && (my $notes = notes(record => $marriage))) {
-						$notes =~ s/\.$//;
-						$bio .= " ($notes)";
-						$phrase->append(" ($notes)");
+					if(defined($marriage)) {
+						my $do_marriage_notes = 1;
+						if($placeofmarriage && (my $addr = $marriage->address()) && (my $notes = $marriage->get_value())) {
+							if("$addr, $placeofmarriage" =~ /^\Q$notes\E/) {
+								# This can happen with things like this
+								# 1 MARR Ebenezer Chapel, Meeting Street, Ramsgate
+								# 2 _PRIM Y
+								# 2 DATE 10 Dec 1882
+								# 2 PLAC Ramsgate, Kent, England
+								# 2 ADDR Ebenezer Chapel, Meeting Street
+								$do_marriage_notes = 0;
+							}
+						}
+						if($do_marriage_notes && (my $notes = notes(record => $marriage))) {
+							$notes =~ s/\.$//;
+							$bio .= " ($notes)";
+							$phrase->append(" ($notes)");
+						}
 					}
 				}
 			} elsif($opts{'l'} || !$is_alive) {	# scalar(@spouses) > 1
