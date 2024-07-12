@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+# Check that the number of fields in the CSV is correct
+
+use strict;
+use warnings;
+
+if(open(my $fin, '<', '../databases/people.csv')) {
+	my $index = 0;
+	while(my $line = <$fin>) {
+		$index++;
+		my $count = 0;
+		$count++ while ($line =~ m/\!/g);
+		die "$index = $count\n" if($count != 23);
+	}
+}
