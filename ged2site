@@ -6890,7 +6890,7 @@ sub print_person
 					}
 				} elsif($type eq 'Newspaper') {
 					# FIXME: duplicate code with one event
-					# This is a non-standard thing that FMP has evented.
+					# This is a non-standard thing that FMP has evented :-(
 					# FIXME: handle more than one newspaper
 					my $s;
 					if($phrase->length()) {
@@ -6935,6 +6935,11 @@ sub print_person
 
 					$previous = $event;
 					$prev_type = 'Newspaper';
+				} elsif($type eq 'Newspaper Death Notice') {
+					# More non-standard FMP stuff
+					# TODO - difficult to handle because the field is broken
+					my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $event });
+					complain({ person => $person, warning => 'Ignoring Newspaper Death Notice from ' . $newspaper->date() });
 				} elsif($type eq 'Funeral') {
 					$funeral = $event;
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
