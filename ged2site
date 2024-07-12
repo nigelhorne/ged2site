@@ -12478,7 +12478,7 @@ sub get_all_residences
 					my $place = place({ person => $person, record => $current, nopreposition => 1 });
 					my $nextplace = place({ person => $person, record => $next, nopreposition => 1 });
 					my $nextnextplace = place({ person => $person, record => $nextnext, nopreposition => 1 });
-					if(($nextnextplace eq $place) && ($nextplace ne $place)) {
+					if(defined($nextnextplace) && ($nextnextplace eq $place) && ($nextplace ne $place)) {
 						my @locations = get_location($place);
 						my @nextlocations = get_location($nextplace);
 
