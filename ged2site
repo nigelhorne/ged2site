@@ -9072,7 +9072,7 @@ sub print_person
 		undef $death_country;
 	}
 
-	if($me && $birth_dt && &death_dt) {
+	if($me && $birth_dt && $death_dt) {
 		# Calculate the birth and death countries of adults on both sides of the tree
 		my $age_at_death = $death_dt - $birth_dt;
 		if($age_at_death->years() >= 20) {
@@ -12495,6 +12495,7 @@ sub get_all_residences
 					my $nextnext = $iterator->peek(2);
 					last if(!defined($nextnext));
 					my $place = place({ person => $person, record => $current, nopreposition => 1 });
+					next if(!defined($place));
 					my $nextplace = place({ person => $person, record => $next, nopreposition => 1 });
 					my $nextnextplace = place({ person => $person, record => $nextnext, nopreposition => 1 });
 					if(defined($nextnextplace) && ($nextnextplace eq $place) && ($nextplace ne $place)) {
