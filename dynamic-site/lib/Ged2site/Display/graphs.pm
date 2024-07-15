@@ -42,7 +42,8 @@ our $mapper = {
 	'motherchildren' => \&_motherchildren,
 	'percentagedying' => \&_percentagedying,
 	'birth_countries' => \&_birth_countries,
-	'name_date' => \&_name_date,
+	'name_date_m' => \&_name_date_m,
+	'name_date_f' => \&_name_date_f,
 	'surname_date' => \&_surname_date,
 };
 
@@ -1133,13 +1134,22 @@ sub _birth_countries
 	return { error => "Can't open $json_file" };
 }
 
-# Show popularity of firstnames by quarter of a century
-sub _name_date
+# Show male popularity of firstnames by quarter of a century
+sub _name_date_m
 {
 	my $self = shift;
 	my $args = shift;
 
-	return { name_date => create_cloud($args->{'name_date'}) };
+	return { name_date => create_cloud($args->{'name_date'}, 'M') };
+}
+
+# Show female popularity of firstnames by quarter of a century
+sub _name_date_f
+{
+	my $self = shift;
+	my $args = shift;
+
+	return { name_date => create_cloud($args->{'name_date'}, 'F') };
 }
 
 # Show popularity of surnames by quarter of a century
@@ -1154,6 +1164,7 @@ sub _surname_date
 sub create_cloud
 {
 	my $db = shift;	# Which database to bring in
+	my $sex = shift;	# For firstname popularity
 
 	my @rc;
 
@@ -1161,7 +1172,12 @@ sub create_cloud
 	# The key (entry) is the yob / 25, so 60 = 1500, 80 = 2000, so this
 	#	loop displays the years 1500 to 2000
 	for(my $bucket = 60; $bucket <= 80; $bucket++) {
-		my @all = $db->selectall_hash({ entry => $bucket });
+		my @all;
+		if($sex) {
+			@all = $db->selectall_hash({ entry => $bucket, sex => $sex });
+		} else {
+			@all = $db->selectall_hash({ entry => $bucket });
+		}
 
 		# use Data::Dumper;
 		# print Data::Dumper->new([\$all])->Dump();
@@ -1170,7 +1186,7 @@ sub create_cloud
 		foreach my $name(@all) {
 			my $count = $name->{'count'};
 			if($count == 1) {
-				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=people&entry=$name->{people}", 1);
+				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=people&amp;entry=$name->{people}", 1);
 			} else {
 				$cloud->add_static($name->{'name'}, $count);
 			}

@@ -40,6 +40,15 @@
 			[% SET title = 'Number of Children by Women' %]
 		[% ELSE %]
 			[% SET title = 'Family Tree Analytics' %]
+		[% ELSIF graph == 'name_date_m' %]
+			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+			[% SET title = 'Male First Name Popularity' %]
+		[% ELSIF graph == 'name_date_f' %]
+			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+			[% SET title = 'Female First Name Popularity' %]
+		[% ELSIF graph == 'surname_date' %]
+			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+			[% SET title = 'Surname Popularity' %]
 		[% ELSIF graph == 'birth_countries' %]
 			[% SET title = 'Country of Birth' %]
 		[% END %]
@@ -110,6 +119,60 @@
 			<p>
 				Shows the countries of birth on both sides of the family of all adults in the tree.
 			<p>
+		[% ELSIF graph == 'name_date_m' || graph == 'name_date_f %]
+			<div id="header_container">
+				<center>
+					[% IF graph == 'name_date_m' %]
+						<h1>Male First Name Popularity</h1>
+					[% ELSE %]
+						<h1>Female First Name Popularity</h1>
+					[% END %]
+				</center>
+			</div>
+			<div id="container">
+				<center>
+					[ <a href="?page=people&amp;home=1">Home</a> ] |
+					[ <a href="?page=censuses">Census Index</a> ] |
+					[ <a href="?page=surnames">Surname Index</a> ] |
+					[ <a href="?page=history">Family History</a> ] |
+					[ <a href="?page=todo">To Do</a> ] |
+					[ <a href="?page=calendar">Calendar</a> ] |
+					[% IF graph %]
+						[ <a href="?page=graphs">Analytics</a> ] |
+					[% END %]
+					[ <a href="?page=emmigrants">Emigrants</a> ] |
+					[ <a href="/visjs.html">Timeline</a> ]
+				</center>
+				[% FOREACH year IN name_date %]
+					<h2>[% year.year * 25 %]</h2>
+					[% year.data %]
+				[% END %]
+			</div>
+		[% ELSIF surname_date %]
+			<div id="header_container">
+				<center>
+					<h1>Surname Popularity</h1>
+				</center>
+			</div>
+			<div id="container">
+				<center>
+					[ <a href="?page=people&amp;home=1">Home</a> ] |
+					[ <a href="?page=censuses">Census Index</a> ] |
+					[ <a href="?page=surnames">Surname Index</a> ] |
+					[ <a href="?page=history">Family History</a> ] |
+					[ <a href="?page=todo">To Do</a> ] |
+					[ <a href="?page=calendar">Calendar</a> ] |
+					[% IF graph %]
+						[ <a href="?page=graphs">Analytics</a> ] |
+					[% END %]
+					[ <a href="?page=emmigrants">Emigrants</a> ] |
+					[ <a href="/visjs.html">Timeline</a> ]
+				</center>
+				[% FOREACH year IN surname_date %]
+					<h2>[% year.year * 25 %]</h2>
+					[% year.data %]
+				[% END %]
+			</div>
 		[% ELSE %]
 		<h2>Choose a Graph</h2>
 		<ul>
