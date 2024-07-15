@@ -28,6 +28,8 @@
 			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSIF graph == 'birth_countries' %]
 			[% SET title = 'Country of Birth' %]
+		[% ELSIF graph == 'death_countries' %]
+			[% SET title = 'Country of Death' %]
 		[% ELSIF graph == 'name_date_m' %]
 			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 			[% SET title = 'Male First Name Popularity' %]
@@ -192,6 +194,16 @@
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
+		[% ELSIF graph == 'birth_countries' %]
+			<p>Shows the countries of birth on both sides of the family of all adults in the tree.<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'death_countries' %]
+			<p>
+				Shows the countries of death on both sides of the family of all adults in the tree.
+			<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'percentagedying' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
@@ -272,6 +284,12 @@
 				<a href="?page=graphs&amp;graph=percentagedying" class="myButton">Percentage of the people dying</a><br><br>
 				<a href="?page=graphs&graph=ageatfirstchild" class="myButton">Age of Parents at birth of first child</a><br><br>
 				<a href="?page=graphs&graph=ageatlastchild" class="myButton">Age of Parents at birth of last child</a><br><br>
+				<a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a><br><br>
+				<a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a><br><br>
+				<a href="?page=graphs&amp;graph=death_countries">Country of Death</a><br><br>
+				<a href="?page=graphs&amp;graph=name_date_m">Male first name popularity</a><br><br>
+				<a href="?page=graphs&amp;graph=name_date_f">Female first name popularity</a><br><br>
+				<a href="?page=graphs&amp;graph=surname_date">Surname popularity</a><br><br>
 			</center>
 		[% END %]
 		<center><font size="+2">

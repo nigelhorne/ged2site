@@ -40,6 +40,8 @@
 			[% SET title = 'Number of Children by Women' %]
 		[% ELSIF graph == 'birth_countries' %]
 			[% SET title = 'Country of Birth' %]
+		[% ELSIF graph == 'death_countries' %]
+			[% SET title = 'Country of Death' %]
 		[% ELSIF graph == 'name_date_m' %]
 			[% SET title = 'Male First Name Popularity' %]
 		[% ELSIF graph == 'name_date_f' %]
@@ -116,6 +118,10 @@
 			<p>
 				Shows the countries of birth on both sides of the family of all adults in the tree.
 			<p>
+		[% ELSIF graph == 'death_countries' %]
+			<p>
+				Shows the countries of death on both sides of the family of all adults in the tree.
+			<p>
 		[% ELSIF name_date %]
 			<p>Show popularity of first names over the years</p>
 		[% ELSIF surname_date %]
@@ -139,6 +145,10 @@
 			<li><a href="?page=graphs&graph=motherchildren">Number of children by women</a></li>
 			<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
 			<li><a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a></li>
+			<li><a href="?page=graphs&amp;graph=death_countries">Country of Death</a></li>
+			<li><a href="?page=graphs&amp;graph=name_date_m">Male first name popularity</a></li>
+			<li><a href="?page=graphs&amp;graph=name_date_f">Female first name popularity</a></li>
+			<li><a href="?page=graphs&amp;graph=surname_date">Surname popularity</a></li>
 		</ul>
 		[% END %]
 

@@ -1,4 +1,5 @@
-<!DOCTYPE HTML>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en" dir="ltr">
 	<head>
 		[% IF graph == 'ageatdeath' %]
@@ -33,6 +34,8 @@
 			[% SET title = 'Percentage of people alive who died' %]
 		[% ELSIF graph == 'birth_countries' %]
 			[% SET title = 'Country of Birth' %]
+		[% ELSIF graph == 'death_countries' %]
+			[% SET title = 'Country of Death' %]
 		[% ELSIF graph == 'name_date_m' %]
 			<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 			[% SET title = 'Male First Name Popularity' %]
@@ -489,6 +492,12 @@
 			<p>
 			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
 			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'death_countries' %]
+			<p>
+				Shows the countries of death on both sides of the family of all adults in the tree.
+			<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
 		[% ELSIF name_date %]
 			<div id="header_container">
 				<center>
@@ -567,6 +576,7 @@
 					<li><a href="?page=graphs&amp;graph=name_date_f">Female First Name Popularity</a></li>
 					<li><a href="?page=graphs&amp;graph=surname_date">Surname Popularity</a></li>
 					<li><a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a></li>
+					<li><a href="?page=graphs&amp;graph=death_countries">Country of Death</a></li>
 				</ul>
 			</div>
 		[% END %]

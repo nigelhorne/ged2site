@@ -42,6 +42,7 @@ our $mapper = {
 	'motherchildren' => \&_motherchildren,
 	'percentagedying' => \&_percentagedying,
 	'birth_countries' => \&_birth_countries,
+	'death_countries' => \&_death_countries,
 	'name_date_m' => \&_name_date_m,
 	'name_date_f' => \&_name_date_f,
 	'surname_date' => \&_surname_date,
@@ -1103,7 +1104,27 @@ sub _birth_countries
 	my $self = shift;
 	my $args = shift;
 
-	my $json_file = File::Spec->catfile($args->{'databasedir'}, 'facts.json');
+	return $self->_build_countries($args->{'databasedir'}, 'birth_countries');
+}
+
+# Count of in which country folks were born
+# uses https://canvasjs.com/docs/charts/chart-types/html5-bar-chart/
+
+sub _death_countries
+{
+	my $self = shift;
+	my $args = shift;
+
+	return $self->_build_countries($args->{'databasedir'}, 'death_countries');
+}
+
+sub _build_countries
+{
+	my $self = shift;
+	my $databasedir = shift;
+	my $tag = shift;
+
+	my $json_file = File::Spec->catfile($databasedir, 'facts.json');
 
 	if(open(my $json, '<', $json_file)) {
 		my $facts = JSON::MaybeXS->new()->utf8()->decode(<$json>);
@@ -1115,14 +1136,14 @@ sub _birth_countries
 				Data::Dumper->new([$facts->{'mothers_side'}])->Dump());
 		}
 		my $mdata = "{\ntype: \"bar\",\ndataPoints: [\n";
-		if(my $m = $facts->{'mothers_side'}->{'birth_countries'}) {
+		if(my $m = $facts->{'mothers_side'}->{$tag}) {
 			foreach my $country (sort keys %{$m}) {
 				$mdata .= '{ y: ' . $m->{$country} . ", label: \"$country\"},\n";
 			}
 		}
 		$mdata .= "]\n}\n";
 		my $fdata = "{\ntype: \"bar\",\ndataPoints: [\n";
-		if(my $f = $facts->{'fathers_side'}->{'birth_countries'}) {
+		if(my $f = $facts->{'fathers_side'}->{$tag}) {
 			foreach my $country (sort keys %{$f}) {
 				$fdata .= '{ y: ' . $f->{$country} . ", label: \"$country\"},\n";
 			}
@@ -1213,4 +1234,5 @@ sub _date_to_datetime
 
 	return $dfn->parse_datetime(string => $params{'date'});
 }
+
 1;

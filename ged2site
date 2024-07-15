@@ -8991,23 +8991,6 @@ sub print_person
 		}
 	}
 
-	if($me && defined($birth_country) && $birth_dt && $death_dt) {
-		my $age_at_death = $death_dt - $birth_dt;
-		# Calculate the average age of adults death on both sides of the family
-		if($age_at_death->years() >= 20) {
-			if(my $mother = $me->mother()) {
-				if($mother->relationship($person)) {
-					$facts->{'mothers_side'}->{'birth_countries'}->{$birth_country}++;
-				}
-			}
-			if(my $father = $me->father()) {
-				if($father->relationship($person)) {
-					$facts->{'fathers_side'}->{'birth_countries'}->{$birth_country}++;
-				}
-			}
-		}
-	}
-
 	my $death_country;
 
 	if($placeofdeath && ($placeofdeath =~ /(.+[a-z]) USA$/)) {
@@ -9087,6 +9070,37 @@ sub print_person
 		complain ({ person => $person, warning => "Canada did not exist in $yod, check place of death ($placeofdeath)" });
 		$placeofdeath = undef;
 		undef $death_country;
+	}
+
+	if($me && $birth_dt && &death_dt) {
+		# Calculate the birth and death countries of adults on both sides of the tree
+		my $age_at_death = $death_dt - $birth_dt;
+		if($age_at_death->years() >= 20) {
+			if(defined($birth_country)) {
+				if(my $mother = $me->mother()) {
+					if($mother->relationship($person)) {
+						$facts->{'mothers_side'}->{'birth_countries'}->{$birth_country}++;
+					}
+				}
+				if(my $father = $me->father()) {
+					if($father->relationship($person)) {
+						$facts->{'fathers_side'}->{'birth_countries'}->{$birth_country}++;
+					}
+				}
+			}
+			if(defined($death_country)) {
+				if(my $mother = $me->mother()) {
+					if($mother->relationship($person)) {
+						$facts->{'mothers_side'}->{'death_countries'}->{$death_country}++;
+					}
+				}
+				if(my $father = $me->father()) {
+					if($father->relationship($person)) {
+						$facts->{'fathers_side'}->{'death_countries'}->{$death_country}++;
+					}
+				}
+			}
+		}
 	}
 
 	# TODO:  use known_locations array
