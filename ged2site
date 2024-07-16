@@ -810,7 +810,7 @@ if((!defined($home)) && defined($config)) {
 if($home) {
 	$me = $ged->get_individual($home);
 	if((!defined($me)) || !ref($me)) {
-		die "$0: Can't find '$opts{h}' in $ARGV[0]";
+		die "$0: Can't find '$home' in $ARGV[0]";
 	}
 }
 
