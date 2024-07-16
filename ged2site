@@ -8986,6 +8986,16 @@ sub print_person
 			$birth_country = 'Slovenia';
 		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
 			$birth_country = $b->name();
+		} elsif(my $user = $ENV{'GEONAMES_USER'}) {
+			$geonames //= Geo::GeoNames->new(username => $user);
+			$geonames->ua($cached_browser);
+			my $result = $geonames->search(q => $placeofbirth, style => 'FULL');
+			$result = @{$result}[0];
+			if($birth_country = $result->{'countryName'}) {
+				complain({ person => $person, warning => "$c: Assuming country of birth is $birth_country" });
+			} else {
+				complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
+			}
 		} else {
 			complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
 		}

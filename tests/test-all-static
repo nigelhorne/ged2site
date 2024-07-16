@@ -3,6 +3,10 @@
 set -ex
 
 unset GMAP_KEY
+unset REDIS_SERVER
+unset HTTP_PROXY
+unset http_proxy
+
 for i in $(find ~/gedcoms/* -name \*ged -o -name \*GED); do
 # for i in tests/gedcoms/*.ged; do
 	rm -rf dynamic-site/data dynamic-site/img static-site/
