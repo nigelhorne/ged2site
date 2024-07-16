@@ -1679,6 +1679,14 @@ if($opts{'w'}) {
 					$summary = 'Removing Leading Zero';
 				} elsif($warning =~ /^Unknown event type/) {
 					$summary = 'Unhandled Event Type';
+				} elsif($warning =~ /^Census ward number left in location /) {
+					$summary = 'Census Ward Number Left in Location';
+				} elsif($warning =~ /^Changing date .+ to .+/) {
+					$summary = 'Date Format Changed'
+				} elsif($warning =~ /Date of birth of child .+ is later than .+ own date of death/) {
+					$summary = 'Child born before date of death';
+				} elsif($warning =~ / assuming country of birth is /) {
+					$summary = 'Guessed at country of birth';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
