@@ -12530,7 +12530,7 @@ sub get_all_residences
 							if((ref($location) eq 'Geo::Location::Point') && (my $nextlocation = shift @nextlocations)) {
 								if(ref($nextlocation) eq 'Geo::Location::Point') {
 									if($location->distance($nextlocation)->mile() >= 30.0) {
-										complain({ person => $person, warning => "Moved from $place to $nextplace and back again - check for incorrect entry" });
+										complain({ person => $person, warning => "Moved from$place to$nextplace and back again - check for incorrect entry" });
 									}
 								}
 							}
