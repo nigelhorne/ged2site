@@ -24,12 +24,17 @@
 		</center>
 		[% IF facts %]
 			<p>
-				There are [% facts.count %] people in the tree,
+				There are [% facts.number_of_individuals %] people in the tree,
 				of which [% facts.sex.M %] are male and [% facts.sex.F %] are female.
 				IF [% facts.sex.U %]
 					There are also [% facts.sex.U %] people for which the sex is unknown.
 				[% END %]
 			</p>
+			[% IF facts.number_of_families %]
+				<p>
+					There are [% facts.number_of_families %] families in the tree.
+				</p>
+			[% END %]
                         [% IF facts.fathers_side %]
                                 <p>
                                         There are [% facts.fathers_side.count %] adults known to have lived to 20 or over on the father's side,

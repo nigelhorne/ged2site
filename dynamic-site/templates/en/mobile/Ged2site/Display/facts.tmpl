@@ -17,25 +17,30 @@
 		[% END %]
 		[% IF facts %]
 			<p>
-				There are [% facts.count %] people in the tree,
+				There are [% facts.number_of_individuals %] people in the tree,
 				of which [% facts.sex.M %] are male and [% facts.sex.F %] are female.
 				IF [% facts.sex.U %]
 					There are also [% facts.sex.U %] people for which the sex is unknown.
 				[% END %]
 			</p>
-                        [% IF facts.fathers_side %]
-                                <p>
-                                        There are [% facts.fathers_side.count %] adults known to have lived to 20 or over on the father's side,
+			[% IF facts.number_of_families %]
+				<p>
+					There are [% facts.number_of_families %] families in the tree.
+				</p>
+			[% END %]
+			[% IF facts.fathers_side %]
+				<p>
+					There are [% facts.fathers_side.count %] adults known to have lived to 20 or over on the father's side,
 					of which the average (mean) age at death was [% Math.int(facts.fathers_side.age / facts.fathers_side.count) %].
 
-                                </p>
-                        [% END %]
-                        [% IF facts.mothers_side %]
-                                <p>
-                                        There are [% facts.mothers_side.count %] adults known to have lived to 20 or over on the mother's side,
+				</p>
+			[% END %]
+			[% IF facts.mothers_side %]
+				<p>
+					There are [% facts.mothers_side.count %] adults known to have lived to 20 or over on the mother's side,
 					of which the average (mean) age at death was [% Math.int(facts.mothers_side.age / facts.mothers_side.count) %].
-                                </p>
-                        [% END %]
+				</p>
+			[% END %]
 			[% IF facts.first_birth %]
 				<p>
 					First person in the tree:

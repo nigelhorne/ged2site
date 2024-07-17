@@ -1706,6 +1706,12 @@ if($opts{'w'}) {
 	close $html;
 }
 
+if($facts) {
+	my @fams = $ged->families();
+	$facts->{'number_of_families'} = scalar(@fams);
+	$facts->{'number_of_individuals'} = $facts->{'count'};	# TODO: replace count with number of individuals
+}
+
 $ged = undef;
 @everyone = undef;
 
