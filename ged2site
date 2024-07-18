@@ -13565,6 +13565,17 @@ sub parse_date
 	}
 
 	if(my $date = $params{'date'}) {
+		if(ref($date)) {
+			# Caused by empty value, e.g.:
+			#	1 BIRT
+			#	2 DATE 
+			#	2 PLAC VERMONT
+
+			# $Data::Dumper::Maxdepth = 2;
+			# print STDERR Data::Dumper->new([$dateofbirth])->Dump();
+			# die 'BUG: date() should return a scalar, got a ', ref($dateofbirth);
+			return;
+		}
 		if(lc($date) eq 'unknown') {
 			return;
 		}
