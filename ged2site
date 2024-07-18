@@ -3681,10 +3681,14 @@ sub print_person
 			} else {
 				$bio .= '.';
 				$end_of_sentence = 1;
-				push @phrases, $phrase;
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-				$phrase = Data::Text->new();
-				@phrases = ();
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$phrase = Data::Text->new();
+				}
+				if(scalar(@phrases)) {
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					@phrases = ();
+				}
 			}
 		} elsif($dateofbaptism || $placeofbaptism) {
 		die;	# I don't this code can be reached
@@ -10860,7 +10864,7 @@ sub place {
 		$address = undef;
 	}
 
-	$place =~ s/\.$//;
+	$place =~ s/[\.,]+$//;	# remove trailing full stops and commas
 	$place =~ s/\s\s+/ /;
 
 	return if(lc($place) eq 'unknown');
@@ -14307,6 +14311,7 @@ sub wide_to_html
 
 	$string =~ s/\xc2\xa3/&pound;/g;
 	$string =~ s/\xc2\xa9/&copy;/g;
+	$string =~ s/\xc2\xaa/&ordf;/g;	# ª
 	$string =~ s/\xc2\xab/&quot;/g;	# «
 	$string =~ s/\xc2\xae/&reg;/g;
 	$string =~ s/\xc2\xbb/&quot;/g;	# »
@@ -14351,6 +14356,7 @@ sub wide_to_html
 	$string =~ s/\N{U+00A0}/ /g;
 	$string =~ s/\N{U+00A3}/&pound;/g,
 	$string =~ s/\N{U+00A9}/&copy;/g;
+	$string =~ s/\N{U+00AA}/&ordf;/g,	# ª
 	$string =~ s/\N{U+00AB}/&quot;/g;	# «
 	$string =~ s/\N{U+00AE}/&reg;/g;
 	$string =~ s/\N{U+00BB}/&quot;/g;	# »
@@ -14438,6 +14444,7 @@ sub wide_to_html
 
 	$string =~ s/Á/&Aacute;/g;
 	$string =~ s/å/&aring;/g;
+	$string =~ s/ª/&ordf;/g;
 	$string =~ s/š/&scaron;/g;
 	$string =~ s/Š/&Scaron;/g;
 	$string =~ s/č/&ccaron;/g;
@@ -14579,6 +14586,7 @@ sub wide_to_xml
 	$string =~ s/&scaron;/&#x161;/g;
 	$string =~ s/&ucirc;/&#x0F4;/g;
 	$string =~ s/&ouml;/&#x0F6;/g;
+	$string =~ s/&ordf;/&#0x0AA;/g;	# ª
 	$string =~ s/&oslash;/&#x0F8;/g;	# ø
 	$string =~ s/&zcaron;/&#x17E;/g;
 	$string =~ s/&Scaron;/&#x160;/g;
@@ -14601,6 +14609,7 @@ sub wide_to_xml
 
 	$string =~ s/\xc2\xa3/&#x0A3;/g;	# £
 	$string =~ s/\xc2\xa9/&#x0A9;/g;
+	$string =~ s/\xc2\xaa/&#x0AA;/g;	# ª
 	$string =~ s/\xc2\xab/&quot;/g;	# «
 	$string =~ s/\xc2\xae/&#x0AE;/g;
 	$string =~ s/\xc3\x81/&#x0C1;/g;	# Á
@@ -14719,6 +14728,7 @@ sub wide_to_xml
 
 	$string =~ s/['\x98]/&#039;/g;
 	$string =~ s/©/&#x0A9;/g;
+	$string =~ s/ª/&#0xAA;/g;
 	$string =~ s/®/&#x0AE;/g;
 	$string =~ s/å/&#x0E5;/g;
 	$string =~ s/š/&#x161;/g;
