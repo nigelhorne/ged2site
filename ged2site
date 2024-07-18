@@ -2417,7 +2417,7 @@ sub print_person
 						$event = $e;
 					}
 				}
-				if((ref($event) eq 'Gedcom::Record') &&
+				if($event->can('type') && defined($event->type()) &&
 				  ($event->type() eq 'Custom Marriage')) {
 					# FindMyPast
 					$marriage = $event;
@@ -6289,13 +6289,13 @@ sub print_person
 					$phrase->append(lcfirst($pronoun));
 				}
 				$phrase->append(i18n({ person => $person, format => ' arrived' }));
-				if(my $p = place({ person => $person, record => $events[0] })) {
+				if(my $p = place({ person => $person, record => $event })) {
 					$bio .= $p;
 					$phrase->append($p);
 				} else {
 					complain({ person => $person, warning => 'Arrival record has no place' });
 				}
-				if(my $y = year({ person => $person, record => $events[0] })) {
+				if(my $y = year({ person => $person, record => $event })) {
 					$bio .= " $y";
 					$phrase->append(" $y");
 				} else {
@@ -6369,10 +6369,12 @@ sub print_person
 				} else {
 					$place =~ s/^\sin/ from/;
 				}
-				$bio .= "$place " .
-					year({ person => $person, record => $events[0] });
-				$phrase->append("$place " .
-					year({ person => $person, record => $events[0] }));
+				$bio .= $place;
+				$phrase->append($place);
+				if(my $date = year({ person => $person, record => $event })) {
+					$bio .= " $date";
+					$phrase->append(" $date");
+				}
 				if(my $notes = notes({ record => $event, note_locations => \@note_locations })) {
 					$notes = lcfirst($notes);
 					$bio .= " ($notes)";
@@ -14324,6 +14326,7 @@ sub wide_to_html
 	$string =~ s/\xc3\xa9/&eacute;/g;
 	$string =~ s/\xc3\xad/&iacute;/g;	# í
 	$string =~ s/\xc3\xb0/&eth;/g;	# ð
+	$string =~ s/\xc3\xba/&uacute;/g;	# ú
 	$string =~ s/\xc3\xb4/&ocirc;/g;	# ô
 	$string =~ s/\xc3\xb6/&ouml;/g;
 	$string =~ s/\xc3\xb8/&oslash;/g;	# ø
@@ -14381,6 +14384,7 @@ sub wide_to_html
 	$string =~ s/\N{U+00F4}/&ocirc;/g;	# ô
 	$string =~ s/\N{U+00F6}/&ouml;/g;
 	$string =~ s/\N{U+00F8}/&oslash;/g;	# ø
+	$string =~ s/\N{U+00FA}/&uacute;/g;	# ú
 	$string =~ s/\N{U+00FC}/&uuml;/g;	# ü
 	$string =~ s/\N{U+00FE}/&thorn;/g;	# þ
 	$string =~ s/\N{U+00C1}/&Aacute;/g;	# Á
@@ -14471,6 +14475,7 @@ sub wide_to_html
 	$string =~ s/þ/&thorn;/g;
 	$string =~ s/û/&ucirc;/g;
 	$string =~ s/ü/&uuml;/g;
+	$string =~ s/ú/&uacute;/g;
 	$string =~ s/£/&pound;/g;
 	$string =~ s/ß/&szlig;/g;
 	$string =~ s/–/&ndash;/g;
@@ -14582,6 +14587,7 @@ sub wide_to_xml
 	$string =~ s/&icirc;/&#x0EE;/g;
 	$string =~ s/&iuml;/&#x0EF;/g;	# ï
 	$string =~ s/&eth;/&#x0F0;/g;	# ð
+	$string =~ s/&uacute;/&#0FA;/g;	# ú
 	$string =~ s/&uuml;/&#x0FC;/g;
 	$string =~ s/&scaron;/&#x161;/g;
 	$string =~ s/&ucirc;/&#x0F4;/g;
@@ -14641,6 +14647,7 @@ sub wide_to_xml
 	$string =~ s/\xc3\x89/&#x0C9;/g;
 	$string =~ s/\xc3\xaa/&#x0EA;/g;
 	$string =~ s/\xc3\xab/&#x0EB;/g;	# eumlaut
+	$string =~ s/\xc3\xba/&#x0FA;/g;	# ú
 	$string =~ s/\xc3\xbb/&#x0BB;/g;	# û - ucirc
 	$string =~ s/\xc5\x9b/&#x15B;/g;	# ś - sacute
 	$string =~ s/\xc5\xa0/&#x160;/g;
@@ -14682,6 +14689,7 @@ sub wide_to_xml
 	$string =~ s/\N{U+00F4}/&#x0F4;/g;	# ô
 	$string =~ s/\N{U+00F6}/&#x0F6;/g;	# ö
 	$string =~ s/\N{U+00F8}/&#x0F8;/g;	# ø
+	$string =~ s/\N{U+00FA}/&#x0FA;/g;	# ú
 	$string =~ s/\N{U+00FC}/&#x0FC;/g;	# ü
 	$string =~ s/\N{U+015B}/&#x15B;/g;	# ś
 	# print STDERR __LINE__, ": ($string)";
@@ -14754,6 +14762,7 @@ sub wide_to_xml
 	$string =~ s/ø/&#x0F8;/g;	# ø
 	$string =~ s/û/&#x0FB;/g;
 	$string =~ s/ñ/&#x0F1;/g;
+	$string =~ s/ú/&#x0FA;/g;
 	$string =~ s/ü/&#x0FC;/g;
 	$string =~ s/þ/&#x0FE;/g;	# þ
 	$string =~ s/[“”«»]/&quot;/g;
