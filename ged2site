@@ -981,7 +981,8 @@ open(my $xml, '>', 'dynamic-site/data/people.xml');
 print $xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>\n";
 my $string = XML::Dumper->new()->pl2xml(\%opts);
 $string =~ s/perldata/opts/g;
-print $xml "\t$string";
+print $xml "\t$string\t<file>$ARGV[0]</file>";
+
 ########
 # print $xml "\n</table>\n"; exit;
 ########
@@ -8107,15 +8108,14 @@ sub print_person
 				$n =~ s/<a href=&quot;(.+)&quot;>/<a href="$1">/g;
 			}
 			print $csv $n;
-			$notes =~ s/&pound;/&#163;/g;
+			$notes = wide_to_xml($notes);
 			# $notes =~ s/</&lt;/g;
 			# $notes =~ s/>/&gt;/g;
 			$notes =~ s/\s*&excl;/!/g;
-			$notes =~ s/&Acirc;//gi;
-			$notes =~ s/&Atilde;&copy;//gi;
 			$notes =~ s/^<p>//;
 			$notes =~ s/<\/p>$//;
 			$notes =~ s/<br>/<br \/>/g;
+			$notes =~ s/<p><\/p>//g;
 			print $xml "\n\t\t<note><p>$notes</p></note>";
 			# print $html map { "<p>$_</p>" } @notes;
 		}
@@ -13574,7 +13574,7 @@ sub parse_date
 		if(ref($date)) {
 			# Caused by empty value, e.g.:
 			#	1 BIRT
-			#	2 DATE 
+			#	2 DATE
 			#	2 PLAC VERMONT
 
 			# $Data::Dumper::Maxdepth = 2;
@@ -14590,9 +14590,10 @@ sub wide_to_xml
 	$string =~ s/&uacute;/&#0FA;/g;	# ú
 	$string =~ s/&uuml;/&#x0FC;/g;
 	$string =~ s/&scaron;/&#x161;/g;
+	$string =~ s/&oacute;/&#x0F3;/g;	# ó
 	$string =~ s/&ucirc;/&#x0F4;/g;
 	$string =~ s/&ouml;/&#x0F6;/g;
-	$string =~ s/&ordf;/&#0x0AA;/g;	# ª
+	$string =~ s/&ordf;/&#x0AA;/g;	# ª
 	$string =~ s/&oslash;/&#x0F8;/g;	# ø
 	$string =~ s/&zcaron;/&#x17E;/g;
 	$string =~ s/&Scaron;/&#x160;/g;
@@ -14736,7 +14737,7 @@ sub wide_to_xml
 
 	$string =~ s/['\x98]/&#039;/g;
 	$string =~ s/©/&#x0A9;/g;
-	$string =~ s/ª/&#0xAA;/g;
+	$string =~ s/ª/&#x0AA;/g;
 	$string =~ s/®/&#x0AE;/g;
 	$string =~ s/å/&#x0E5;/g;
 	$string =~ s/š/&#x161;/g;
