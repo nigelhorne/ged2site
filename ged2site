@@ -1858,42 +1858,42 @@ sub print_person
 	# https://github.com/nigelhorne/ged2site/compare/master...jhannah:ged2site:115-bday-of-living-is-private?expand=1
 	if(!is_alive($person)) {
 		$dateofbirth = dateofbirth($person);
-	}
 
-	# ACOM starts approximate dates with "Abt." instead of "ABT".
-	if(defined($dateofbirth) && length($dateofbirth)) {
-		$dateofbirth =~ tr/\.\-/  /;
-		$dateofbirth =~ s/\s{2,}/ /gs;
-		# FIXME: ../../../gedcoms/gl120368.ged puts dates *inside*
-		#	brackets
-		$dateofbirth =~ s/\(.+$//;	# some people put information in brackets after the date
-		if($dateofbirth =~ /^About[:\s](.+)/i) {
-			$dateofbirth = "ABT $1";
-		} elsif($dateofbirth =~ /^Bet\s[a-z]{3}.+([a-z]{3}\s+.*)/i) {	# Bet Jun-Jul 1860
-			$dateofbirth = "ABT $1";
-		} elsif($dateofbirth =~ /^(.+)\s*\?/i) {
-			$dateofbirth = "ABT$1";
-		}
-		if(($dateofbirth !~ /^[\d\sA-Z\/]+$/i) && ($dateofbirth !~ /^Abt\./)) {
-			if($dateofbirth =~ /(\d{4})\s*(.+)/) {
-				my $d = $1;
-				my $t = $2;
-				# Allow 1914-1918
-				if($t !~ /\d{3,4}$/) {
-					$dateofbirth = "ABT$d";
-					if(place({ person => $person, place => $t })) {
-						complain({ person => $person, warning => "Unexpected text ($t) after the date $d - should be in the location record" });
-					} else {
-						complain({ person => $person, warning => "Unexpected text ($t) after the date $d - should be in the note field" });
-					}
-				}
-			} elsif($dateofbirth !~ /\d{1,2}$/) {	# Dates can begin with a letter in the US
-				complain({ person => $person, warning => "Invalid character in date of birth $dateofbirth" });
-				$dateofbirth = undef;
+		# ACOM starts approximate dates with "Abt." instead of "ABT".
+		if(defined($dateofbirth) && length($dateofbirth)) {
+			$dateofbirth =~ tr/\.\-/  /;
+			$dateofbirth =~ s/\s{2,}/ /gs;
+			# FIXME: ../../../gedcoms/gl120368.ged puts dates *inside*
+			#	brackets
+			$dateofbirth =~ s/\(.+$//;	# some people put information in brackets after the date
+			if($dateofbirth =~ /^About[:\s](.+)/i) {
+				$dateofbirth = "ABT $1";
+			} elsif($dateofbirth =~ /^Bet\s[a-z]{3}.+([a-z]{3}\s+.*)/i) {	# Bet Jun-Jul 1860
+				$dateofbirth = "ABT $1";
+			} elsif($dateofbirth =~ /^(.+)\s*\?/i) {
+				$dateofbirth = "ABT$1";
 			}
+			if(($dateofbirth !~ /^[\d\sA-Z\/]+$/i) && ($dateofbirth !~ /^Abt\./)) {
+				if($dateofbirth =~ /(\d{4})\s*(.+)/) {
+					my $d = $1;
+					my $t = $2;
+					# Allow 1914-1918
+					if($t !~ /\d{3,4}$/) {
+						$dateofbirth = "ABT$d";
+						if(place({ person => $person, place => $t })) {
+							complain({ person => $person, warning => "Unexpected text ($t) after the date $d - should be in the location record" });
+						} else {
+							complain({ person => $person, warning => "Unexpected text ($t) after the date $d - should be in the note field" });
+						}
+					}
+				} elsif($dateofbirth !~ /\d{1,2}$/) {	# Dates can begin with a letter in the US
+					complain({ person => $person, warning => "Invalid character in date of birth $dateofbirth" });
+					$dateofbirth = undef;
+				}
+			}
+		} else {
+			undef $dateofbirth;
 		}
-	} else {
-		undef $dateofbirth;
 	}
 
 	print 'Processing ', $person->as_string({ include_years => 1 }), "\n" if($opts{'v'});
