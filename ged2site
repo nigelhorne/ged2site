@@ -1084,7 +1084,6 @@ foreach my $person(@everyone) {
 		$| = 0;
 	}
 	if(!$printed{$person->xref()}) {
-		# FIXME: change &eacute; to e
 		print $xml "\n\t<person person_id=\"$index\">";
 		print_person({ person => $person });
 		print $xml "\n\t</person>";
@@ -1688,6 +1687,8 @@ if($opts{'w'}) {
 					$summary = 'Child born before date of death';
 				} elsif($warning =~ / assuming country of birth is /) {
 					$summary = 'Guessed at country of birth';
+				} elsif($warning =~ /but the addresses don't match or aren't detailed enough to be sure$/) {
+					$summary = 'Unsure if living with parent in childhood or not';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
@@ -2093,7 +2094,7 @@ sub print_person
 
 	my $filename = File::Spec->catfile('static-site', make_filename_from_person(person => $person));
 	if(-e $filename) {
-		die "FIXME: ensure filenames are unique ($filename)";
+		die "BUG: ensure filenames are unique ($filename)";
 	}
 	open(my $html, '>', $filename);
 	print $html "<html><head><title>$title</title>";
@@ -4061,7 +4062,9 @@ sub print_person
 						}
 						if($opts{'w'} && $yob && (my $cdob = dateofbirth($child))) {
 							my $age = get_year_from_date($cdob) - $yob;
-							if($age <= 14) {
+							if($age < 0) {
+								complain({ person => $person, warning => 'Child ' . $child->as_string() . " $cdob which is before date of birth of $yob" });
+							} elsif($age <= 14) {
 								complain({ person => $person, warning => "Only $age years old at time of birth of their child " . $child->as_string() });
 							}
 						}
@@ -14804,7 +14807,7 @@ sub dbpedia
 	my $birth_dt = $params{'birth_dt'};
 	my $yob = $params{'yob'};
 
-	if(defined($birth_dt) && $birth_dt) {
+	if(defined($birth_dt)) {
 		if(!ref($birth_dt)) {
 			print STDERR "\n";
 			my $i = 0;

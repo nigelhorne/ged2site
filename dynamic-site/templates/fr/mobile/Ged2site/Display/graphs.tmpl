@@ -31,7 +31,7 @@
 			[% SET title = 'Country of Birth' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
-			[% SET title = 'Choose a graph' %]
+			[% SET title = 'Choissisez un carte' %]
 		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>[% title %]</title>
@@ -195,9 +195,9 @@
 				These differences could cause anomolies.
 			</p>
 		[% ELSE %]
-			<h2>Choissisez un carte</h2>
+			<h1>Choissisez un carte</h1>
 			<center>
-				<a href="?page=graphs&graph=ageatdeath" class="myButton">Le moyen &acirc;ge &agrave; la mort</a><br><br>
+				<a href="?page=graphs&amp;graph=ageatdeath" class="myButton">Le moyen &acirc;ge &agrave; la mort</a><br><br>
 				<a href="?page=graphs&graph=birthmonth" class="myButton">Month of Birth</a><br><br>
 				<a href="?page=graphs&graph=marriagemonth" class="myButton">Month of Marriage</a><br><br>
 				<a href="?page=graphs&graph=deathmonth" class="myButton">Month of Death</a><br><br>
