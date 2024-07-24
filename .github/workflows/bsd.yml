@@ -11,16 +11,16 @@ on:
   pull_request:
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         os:
           - name: freebsd
-            version: '13.0'
+            version: '13.3'
             pkginstall: pkg install -y p5-LWP-UserAgent-Cached p5-CHI p5-autodie p5-Date-Manip p5-Data-Section p5-Sort-Key-DateTime p5-GIS-Distance p5-Marpa p5-Lingua-EN-Numbers-Ordinate p5-JSON p5-Net-OAuth p5-LWP-Protocol-https p5-CPAN-DistnameInfo p5-Array-Iterator p5-HTML-Parser
           - name: openbsd
-            version: '7.1'
+            version: '7.5'
             pkginstall: pkg_add p5-LWP-Protocol-https
 
     steps:
