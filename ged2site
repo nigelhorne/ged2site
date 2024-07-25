@@ -2112,19 +2112,19 @@ sub print_person
 	}
 	print $html "<center><h1>$title</h1>";
 	if(defined($me)) {
-		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ]';
+		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
 	}
 	if($gedcal) {
-		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
+		print $html ' [ <a href="calendar/index.html">Calendar</a> ] | ';
 	}
-	print $html ' | [ <a href="surnames.html">Surnames Index</a> ]';
+	print $html ' [ <a href="surnames.html">Surnames Index</a> ] | ';
 	if(-r 'static-site/censuses.html') {
-		print $html ' | [ <a href="censuses.html">Census Index</a> ]';
+		print $html ' [ <a href="censuses.html">Census Index</a> ] | ';
 	}
 	if($opts{'w'}) {
-		print $html ' | [ <a href="todo.html">Errors</a> ]';
+		print $html ' [ <a href="todo.html">Errors</a> ] | ';
 	}
-	print $html ' | [ <a href="history.html">Family History</a> ]</center><p>';
+	print $html ' [ <a href="history.html">Family History</a> ]</center><p>';
 
 	my $fullbio;
 
