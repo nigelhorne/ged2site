@@ -5603,6 +5603,9 @@ sub print_person
 										$residencestring .= ')';
 										$first = 0;
 									}
+								} else {
+									delete $living_with{'mother'};
+									delete $living_with{'father'};
 								}
 							} elsif(($same_road_as_mother || $same_road_as_father) && !$printed_sibling) {
 								if($age >= 30) {
@@ -7046,6 +7049,13 @@ sub print_person
 			}
 			$bio_dt->append(" $pronoun served in the military ($value).");
 		}
+	}
+
+	if($person->tag_record('EVEN.MRRGNOTICE')) {
+		die 'TODO: handle FMP marriage notice'
+	}
+	if($person->tag_record('EVEN.RESIDENCEFAMILY')) {
+		die 'TODO: handle FMP family residence'
 	}
 
 	if($placeofburial && $dateofburial && !$place_records{'Burial'}) {
