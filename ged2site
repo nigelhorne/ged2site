@@ -14798,6 +14798,12 @@ sub wide_to_xml
 
 	# print STDERR __LINE__, ": ($string)\n";
 	if($string =~ /[^[:ascii:]]/) {
+		my $i = 0;
+		while((my @call_details = caller($i++))) {
+			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		}
+		warn "TODO: wide_to_xml($string)";
+		$string =~ s/[^[:ascii:]]/XXXXX/g;
 		die "BUG: wide_to_xml($string)";
 	}
 	return $string;
