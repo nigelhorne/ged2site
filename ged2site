@@ -14368,6 +14368,7 @@ sub wide_to_html
 	$string =~ s/\xe2\x80\x9c/&quot;/g;
 	$string =~ s/\xe2\x80\x9d/&quot;/g;
 	$string =~ s/\xe2\x80\xa6/.../g;
+	$string =~ s/\xe2\x97\x8f/&#x25CF;/g;	# ●
 
 	$string =~ s/\N{U+00A0}/ /g;
 	$string =~ s/\N{U+00A3}/&pound;/g,
@@ -14413,6 +14414,7 @@ sub wide_to_html
 	$string =~ s/\N{U+201C}/&quot;/g;
 	$string =~ s/\N{U+201D}/&quot;/g;
 	$string =~ s/\N{U+2026}/.../g;	# …
+	$string =~ s/\N{U+25CF}/&#x25CF;/g;	# ●
 
 	# utf8::encode($string);
 	# $string =~ s/š/&scaron;/g;
@@ -14496,6 +14498,7 @@ sub wide_to_html
 	$string =~ s/ñ/&ntilde;/g;
 	$string =~ s/[“”«»]/&quot;/g;
 	$string =~ s/…/.../g;
+	$string =~ s/●/&#x25CF;/g;
 	$string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
@@ -14670,6 +14673,7 @@ sub wide_to_xml
 	$string =~ s/\xe2\x80\x9c/&quot;/g;
 	$string =~ s/\xe2\x80\x9d/&quot;/g;
 	$string =~ s/\xe2\x80\xa6/.../g;
+	$string =~ s/\xe2\x97\x8f/&#x25CF;/g;	# ●
 	# $string =~ s/\xe4\x8d/&#x10D;/g;	# ? ACOM strangeness
 	# $string =~ s/\N{U+0161}/&#x161;/g;
 	# $string =~ s/\N{U+010D}/&#x10D;/g;
@@ -14727,6 +14731,7 @@ sub wide_to_xml
 	$string =~ s/\N{U+201C}/&quot;/g;
 	$string =~ s/\N{U+201D}/&quot;/g;
 	$string =~ s/\N{U+2026}/.../g;	# …
+	$string =~ s/\N{U+25CF}/&#x25CF;/g;	# ●
 
 	# utf8::encode($string);
 	# $string =~ s/š/&s#x161;/g;
@@ -14782,6 +14787,7 @@ sub wide_to_xml
 	$string =~ s/[“”«»]/&quot;/g;
 	$string =~ s/—/-/g;
 	$string =~ s/…/.../g;
+	$string =~ s/●/&#x25CF;/g;
 	$string =~ tr/\x80/ /;
 
 	# if($string =~ /^Maria\(/) {
