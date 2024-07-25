@@ -29,6 +29,7 @@
 # TODO: Can I make use of the Chart module?
 # TODO: consider Data::Dumper::Names instead of Data::Dumper
 # TODO: investigate User::Identity
+# TODO: handle https://www.compart.com/en/unicode/U+25CF in notes as <li>
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
