@@ -10596,7 +10596,7 @@ sub year
 		$string = $params{'record'};
 		return unless($string);
 
-		if(ref($string) eq 'Gedcom::Record') {
+		if(ref($string) && $string->can('date')) {
 			$string = $string->date();
 			return unless($string);
 			$string =~ s/\s+$//;
