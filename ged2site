@@ -5085,7 +5085,7 @@ sub print_person
 				}
 
 				if(($count == 0) || !places_are_the_same({ person => $person, first => $residence, second => $residencelist[$count - 1] })) {
-					if($birth && $dateofbirth && $rdate && ($rdate eq $dateofbirth) &&
+					if($birth && $dateofbirth && $rdate && (datecmp($rdate, $dateofbirth) == 0) &&
 					   places_are_the_same({ person => $person, first => $birth, second => $residence})) {
 						# This residence record is for the place of birth, which is
 						# printed elsewhere
@@ -5604,9 +5604,6 @@ sub print_person
 										$residencestring .= ')';
 										$first = 0;
 									}
-								} else {
-									delete $living_with{'mother'};
-									delete $living_with{'father'};
 								}
 							} elsif(($same_road_as_mother || $same_road_as_father) && !$printed_sibling) {
 								if($age >= 30) {
