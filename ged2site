@@ -13145,7 +13145,7 @@ sub datecmp($$)
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			}
-			die $right;
+			die "Date parse failure: right = '$right' ($left <=> $right)";
 		}
 		$right = $r[0];
 	}
