@@ -7866,6 +7866,7 @@ sub print_person
 	if($opts{'l'} || !$is_alive) {
 		# Output the citations field
 		if($opts{'c'} && $citationcount) {
+			# TODO: add cititions from dbpedia
 			print "Create $citationcount citations\n" if($opts{'v'});
 			print $html '<h2>Citations</h2><ol>';
 			print $xml "\n\t\t<citations>";
@@ -8103,7 +8104,7 @@ sub print_person
 			# $printed_notes = 1;
 		# }
 
-		# if($opts{'w'} && (my $dbpedia = dbpedia({ person => $person, birth_dt => $birth_dt, yob => $yob, yod => $yod }))) {
+		# if($opts{'w'} && (my $dbpedia = dbpedia({ person => $person, birth_dt => $birth_dt, yob => $yob, yod => $yod, birth_country => $birth_country }))) {
 		# }
 
 		if(($person->get_value('note')) &&
@@ -14826,6 +14827,7 @@ sub dbpedia
 	my $yod = $params{'yod'};
 	my $birth_dt = $params{'birth_dt'};
 	my $yob = $params{'yob'};
+	my $birth_country = $params{'birth_country'};
 
 	if(defined($birth_dt)) {
 		if(!ref($birth_dt)) {
@@ -14967,6 +14969,11 @@ sub dbpedia
 									   ($uri =~ /Category:Seismological_observatories/)) {
 										next RESULT;
 									}
+									if(defined($birth_country)) {
+										if($uri =~ /of_Switzerland$/) {
+											next RESULT if($birth_country ne 'Switzerland');
+										}
+									}
 									if(defined($yod)) {
 										if($uri =~ /Living_people$/) {
 											# dbpedia person is alive, ours is not
@@ -15021,6 +15028,10 @@ sub dbpedia
 							}
 							$Data::Dumper::Maxdepth = 0;
 							print STDERR Data::Dumper->new([\$result])->Dump();
+							if($opts{'c'}) {
+								$t =~ s/\.$//;
+								return "$t ($url).";
+							}
 							return $t;
 						}
 					}
