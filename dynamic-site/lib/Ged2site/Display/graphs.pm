@@ -1207,9 +1207,14 @@ sub create_cloud
 		foreach my $name(@all) {
 			my $count = $name->{'count'};
 			if($count == 1) {
+				# Go straight to the person
 				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=people&amp;entry=$name->{people}", 1);
-			} else {
+			} elsif($sex) {
+				# First names - no links
 				$cloud->add_static($name->{'name'}, $count);
+			} else {
+				# Surnames - add links
+				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=surnames&amp;surname=$name->{name}", $count);
 			}
 		}
 

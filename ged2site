@@ -800,7 +800,7 @@ my %censusmaps = (
 
 # $ged->validate();
 
-my $home = $opts{h};
+my $home = $opts{'h'};
 if((!defined($home)) && defined($config)) {
 	$home = $config->{'home'};
 	if(ref($home) eq 'ARRAY') {

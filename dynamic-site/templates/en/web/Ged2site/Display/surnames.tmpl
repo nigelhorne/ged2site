@@ -49,6 +49,7 @@
 		</div>
 		<div id="container">
 			<center>
+				[ <a href="?page=home">Home</a> ] |
 				[ <a href="?page=people&amp;home=1">Home Person</a> ] |
 				[ <a href="?page=censuses">Census Index</a> ] |
 				[% IF surname %]
@@ -78,7 +79,7 @@
 						<ul id="nav">
 					[% END %]
 					<li>
-						<a href="?page=surnames&amp;filename=[%- surname.filename | uri -%]&amp;surname=[%- surname.surname | uri -%]">[% surname.surname %]</a>
+						<a href="?page=surnames&amp;surname=[%- surname.surname | uri -%]">[% surname.surname %]</a>
 					</li>
 				[% END %]
 				</ul>
