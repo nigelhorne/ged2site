@@ -1,4 +1,5 @@
-name: macos
+---
+name: OS/X
 
 on:
   push:
@@ -21,7 +22,7 @@ jobs:
         run: perl -V
       - name: Install Dependencies
         run: |
-          export PATH=$PATH:/usr/local/Cellar/perl/5.38.0/bin/
+          export PATH=$PATH:/usr/local/Cellar/perl/5.38.2_1/bin/
           cpan -iT File::Spec ExtUtils::MakeMaker App::cpanminus
           cpan -fi CGI::ACL
           cpanm -vin Geo::Coder::Free

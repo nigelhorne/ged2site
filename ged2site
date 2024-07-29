@@ -5418,7 +5418,6 @@ sub print_person
 						my $place = place({ person => $person, record => $r, nopreposition => 1 });
 						next if(!defined($place));
 						my $first = 1;
-						my @siblings_living_with;
 
 						foreach my $sibling(@siblings) {
 							if(my $ss = $sibling->spouse()) {
