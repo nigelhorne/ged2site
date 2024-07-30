@@ -9527,6 +9527,10 @@ sub Gedcom::Individual::as_string
 		if($nsfx) {
 			die $nsfx;
 		}
+		$nsfx = $self->tag_record('NAME NSFX');	# Try suggestion for https://github.com/pjcj/Gedcom.pm/issues/28
+		if($nsfx) {
+			die $nsfx;
+		}
 		$nsfx = get_value({ person => $self, value => 'nsfx' });
 		if($nsfx) {
 			die $nsfx;
