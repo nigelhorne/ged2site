@@ -9503,13 +9503,13 @@ sub all_records_have_date
 sub Gedcom::Individual::as_string
 {
 	my $self = shift;
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = get_params(undef, @_);
 
-	my $name;
+	my ($name, $suffix);
 
-	if($args{'use_aka'}) {
+	if($params->{'use_aka'}) {
 		my $n2 = $self->tag_record('NAME', 2);
-		if(defined($n2) && (ref($n2) eq 'Gedcom::Record') && defined($n2->type()) && ($n2->type() eq 'AlsoKnownAs') && ($n2->value() ne $self->name())) {
+		if(defined($n2) && $n2->can('type') && defined($n2->type()) && ($n2->type() eq 'AlsoKnownAs') && ($n2->value() ne $self->name())) {
 			$name = $n2->value();
 		} else {
 			return;
@@ -9517,23 +9517,10 @@ sub Gedcom::Individual::as_string
 	} else {
 		$name = $self->name();
 
-		# FIXME: how do I get to the NSFX (e.g. "OBE") value for the person?
-		#	none of these methods works
-		my $nsfx = $self->nsfx();
-		if($nsfx) {
-			die $nsfx;
-		}
-		$nsfx = $self->tag_record('NSFX');
-		if($nsfx) {
-			die $nsfx;
-		}
-		$nsfx = $self->tag_record('NAME NSFX');	# Try suggestion for https://github.com/pjcj/Gedcom.pm/issues/28
-		if($nsfx) {
-			die $nsfx;
-		}
-		$nsfx = get_value({ person => $self, value => 'nsfx' });
-		if($nsfx) {
-			die $nsfx;
+		# See https://github.com/pjcj/Gedcom.pm/issues/28
+		$suffix = get_value({ person => $self, value => 'NAME NSFX' });
+		if($suffix) {
+			complain("TODO: add suffix: $name, $suffix");
 		}
 	}
 
@@ -9574,14 +9561,14 @@ sub Gedcom::Individual::as_string
 
 			# Remove the middle name, since it's come in from the non_matching
 			$middle_name = undef;
-			delete $args{'middle_names'};
+			delete $params->{'middle_names'};
 		}
 	} elsif(!defined($surname)) {
 		$surname = $self->surname();
 	}
 
 	my $has_maiden_name;
-	if($args{'nee'}) {
+	if($params->{'nee'}) {
 		my $sex = get_value({ person => $self, value => 'sex' });
 		if(defined($sex) && ($sex eq 'F')) {
 			my @husbands = $self->husband();
@@ -9598,8 +9585,13 @@ sub Gedcom::Individual::as_string
 
 	my $rc;
 
-	if($args{'title'} && $name_components{'title_1'}) {
-		$rc = $name_components{'title_1'};
+	if($params->{'title'} && $name_components{'title_1'}) {
+		if($name_components{'title_1'}) {
+			$rc = $name_components{'title_1'};
+		} else {
+			# Prefix, e.g. 'Cpl'
+			$rc = get_value({ person => $self, value => 'NAME NPFX' });
+		}
 		if($rc) {
 			$rc .= ' ';
 		}
@@ -9610,11 +9602,11 @@ sub Gedcom::Individual::as_string
 	} elsif(my $given = $self->given_names()) {
 		# https://github.com/nigelhorne/ged2site/issues/120
 		$rc .= $given;	# safe as it won't end a sentence
-	} elsif($args{'print_unknown'}) {
+	} elsif($params->{'print_unknown'}) {
 		$rc .= 'UNKNOWN';
 	}
 
-	if($args{'middle_names'}) {
+	if($params->{'middle_names'}) {
 		if($middle_name) {
 			$rc .= " $middle_name";
 		} elsif($name =~ /\s([A-Z])\s.+/) {
@@ -9631,7 +9623,7 @@ sub Gedcom::Individual::as_string
 		if(my $suffix = $name_components{'suffix'}) {
 			$rc .= " $suffix";
 		}
-	} elsif($args{'print_unknown'}) {
+	} elsif($params->{'print_unknown'}) {
 		$rc .= ' UNKNOWN';
 	}
 
@@ -9641,13 +9633,13 @@ sub Gedcom::Individual::as_string
 
 	if(!defined($rc)) {
 		complain({ warning => "Can't parse the name of '$name'" });
-		$args{'include_years'} = 1;
+		$params->{'include_years'} = 1;
 		$rc = 'Unknown person';
 	}
 
 	# utf8::decode($rc) unless(utf8::is_utf8($rc));
 
-	if($args{'include_years'}) {
+	if($params->{'include_years'}) {
 		my $dob = dateofbirth($self);
 
 		my $yob;	# Year of birth
@@ -11919,7 +11911,7 @@ sub red_warning
 # Cache gedcom values
 sub get_value
 {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = get_params(undef, @_);
 
 	# if($fetcher) {
 		# my $args = {
@@ -11932,7 +11924,7 @@ sub get_value
 		# # $fetcher->prime($args);
 		# return $fetcher->get($args);
 	# }
-	my $person = $params{'person'};
+	my $person = $params->{'person'};
 	if(!defined($person)) {
 		my $i = 0;
 		while((my @call_details = caller($i++))) {
@@ -11947,7 +11939,7 @@ sub get_value
 		}
 		die "BUG: person argument isn't an object";
 	}
-	return $params{'person'}->get_value($params{'value'});
+	return $params->{'person'}->get_value($params->{'value'});
 }
 
 sub get_source
