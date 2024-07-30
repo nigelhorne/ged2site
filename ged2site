@@ -4512,6 +4512,31 @@ sub print_person
 									record => $death_of_first_spouse,
 								});
 						}
+						if(my $divorce = $person->get_record('divorce') || $person->get_record('fams divorce')) {
+							if(my $dateofdivorce = $divorce->date()) {
+								if(datecmp($dateofmarriage, $dateofdivorce) > 0) {
+									if($printed_bracket) {
+										$name .= ', ';
+									} else {
+										$name .= '(';
+										$printed_bracket = 1;
+									}
+									if($death_of_first_spouse =~ /\s$/) {
+										complain({ person => $person, warning => 'Removing trailing spaces from date' });
+										$dateofdivorce =~ s/\s+$//;
+									}
+									$name .= 'following ' .
+										(($person->pronoun() eq 'She') ? 'her' : 'his') .
+										' divorce ' .
+										year({
+											person => $person,
+											record => $dateofdivorce
+										});
+								} else {
+									complain({ person => $person, warning => "Divorced on $dateofdivorce after marriage on $dateofmarriage" });
+								}
+							}
+						}
 					}
 					$bio .= ')' if($printed_bracket);
 					$name .= ')' if($printed_bracket);
@@ -14820,13 +14845,13 @@ sub dbpedia
 {
 	return;	# TODO
 
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = get_params(undef, @_);
 
-	my $person = $params{'person'};
-	my $yod = $params{'yod'};
-	my $birth_dt = $params{'birth_dt'};
-	my $yob = $params{'yob'};
-	my $birth_country = $params{'birth_country'};
+	my $person = $params->{'person'};
+	my $yod = $params->{'yod'};
+	my $birth_dt = $params->{'birth_dt'};
+	my $yob = $params->{'yob'};
+	my $birth_country = $params->{'birth_country'};
 
 	if(defined($birth_dt)) {
 		if(!ref($birth_dt)) {
@@ -14959,6 +14984,11 @@ sub dbpedia
 									@categories = ( $result->{'Categories'}->{'Category'} );
 								}
 								foreach my $category(@categories) {
+									my $label = $category->{'Label'}->{'text'};
+									if($label =~ /^Companies based in/) {
+										next RESULT;
+									}
+
 									my $uri = $category->{'URI'}->{'text'};
 									if(($uri =~ /Category:Teaching_hospitals/) ||
 									   ($uri =~ /Category:Public_housing/) ||
@@ -15088,20 +15118,43 @@ sub newspaper
 # Avoid end of sentences such as "with his twin sister Jane E.."
 sub given_names
 {
-	my %params;
+	my $params = get_params('person', @_);
 
-	if(ref($_[0]) eq 'HASH') {
-		%params = %{$_[0]};
-	} elsif(scalar(@_) % 2 == 0) {
-		%params = @_;
-	} elsif(scalar(@_) == 1) {
-		$params{'person'} = shift;
-	}
-
-	if(my $given = $params{'person'}->given_names()) {
+	if(my $given = $params->{'person'}->given_names()) {
 		$given =~ s/\.$//;
 		return $given;
 	}
+}
+
+# Helper routine to parse the arguments given to a function,
+#	allowing the caller to call the function in anyway that they want
+#	e.g. foo('bar'), foo(arg => 'bar'), foo({ arg => 'bar' }) all mean the same
+#	when called _get_params('arg', @_);
+sub get_params
+{
+	my $default = shift;
+
+	my %rc;
+
+	if(ref($_[0]) eq 'HASH') {
+		%rc = %{$_[0]};
+	} elsif(scalar(@_) % 2 == 0) {
+		%rc = @_;
+	} elsif(scalar(@_) == 1) {
+		if(defined($default)) {
+			$rc{$default} = shift;
+		} else {
+			my @c = caller(1);
+			my $func = $c[3];	# calling function name
+			Carp::croak('Usage: ', __PACKAGE__, "->$func($default => " . '$val)');
+		}
+	} elsif((scalar(@_) == 0) && defined($default)) {
+		my @c = caller(1);
+		my $func = $c[3];	# calling function name
+		Carp::croak('Usage: ', __PACKAGE__, "->$func($default => " . '$val)');
+	}
+
+	return \%rc;
 }
 
 # Must all be in lower case
