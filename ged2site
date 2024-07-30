@@ -5168,7 +5168,7 @@ sub print_person
 								# TODO: Also check all children under 10
 								foreach my $l(@{$all_locations{$year}}) {
 									if(($l->{'person'}->xref() eq $spouses[0]->xref()) &&
-									   ($l->{'date'} eq $strftime)) {
+									   (datecmp($l->{'date'}, $strftime) == 0)) {
 										my $r1 = place(record => $residence, nopreposition => 1);
 										my $r2 = place(record => $l->{'record'}, nopreposition => 1);
 										if($r1 ne $r2) {
