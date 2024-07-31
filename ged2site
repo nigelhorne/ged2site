@@ -6498,6 +6498,41 @@ sub print_person
 				# die $i->page();
 			} elsif($type eq 'Funeral') {
 				$funeral = $event;
+			} elsif($type eq 'event') {
+				# 1 EVEN Some text describing the event
+				# 2 TYPE event
+				# 2 DATE 29 Sep 1939
+				# 2 PLAC Margate, Kent, England
+				$Data::Dumper::Maxdepth = 2;
+				print Data::Dumper->new([$event])->Dump();
+				if($end_of_sentence) {
+					$bio .= ' ' unless($bio =~ /\s$/);
+				} else {
+					$bio .= '. ';
+				}
+				if(scalar(@phrases)) {
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.  ');
+					$phrase = Data::Text->new(' ');
+				} else {
+					$phrase->append(' ');
+				}
+				if(my $date = year(record => $event)) {
+					$date = ucfirst($date);
+					$bio .= " $date ";
+					$phrase->append("$date ");
+				}
+				$bio .= lc($pronoun);
+				$phrase->append(lc($pronoun));
+				if(my $value = $event->value()) {
+					$value = ' ' . lcfirst($value);
+					$bio .= $value;
+					$phrase->append($value);
+				}
+				if(my $place = place({ person => $person, record => $event })) {
+					$bio .= $place;
+					$phrase->append($place);
+				}
 			# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 			} elsif(($type !~ /Census/) &&
 				($type ne 'Race') &&
@@ -6505,7 +6540,8 @@ sub print_person
 				($type ne 'Email') &&
 				($type ne 'Register UK 1939')) {
 
-				red_warning({ person => $person, warning => "Unhandled event type: $type" });
+				complain({ person => $person, warning => "Unhandled event type: $type" });
+				die "TODO: event type $type";
 				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 					$notes = ucfirst($notes);
 					$bio .= " ($notes)";
