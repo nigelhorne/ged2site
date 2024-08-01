@@ -2019,7 +2019,7 @@ sub print_person
 					warn 'Potential match: ', $person->as_string($string_args), "/$yob/$year/", $possible->as_string($string_args);
 				} elsif(my $pdod = dateofdeath($possible)) {
 					my $year = get_year_from_date($pdod);
-					next if(($yob - $year) > 2);	# Born more than two years after the possible match died
+					next if(abs($yob - $year) > 2);	# Born more than two years after the possible match died
 					die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
 				}
 			} elsif($yod) {
