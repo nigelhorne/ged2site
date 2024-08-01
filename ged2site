@@ -1996,6 +1996,50 @@ sub print_person
 		$surname = ucfirst(lc(wide_to_html($surname)));
 	}
 
+	if($opts{'w'}) {
+		# Look to see if this person also appears elsewhere in the tree
+		my $string_args = {
+			include_years => 1,
+			middle_names => 1,
+			nee => 1
+		};
+		foreach my $possible(@{$params{'everyone'}}) {
+			next if($possible->xref() eq $person->xref());
+			next if(lc($possible->surname()) ne lc($surname));
+			next if($surname eq '?');
+			my $given = lc(given_names($person));
+			next if($given ne lc(given_names($possible)));
+
+			if($yob) {
+				if(my $pdob = dateofbirth($possible)) {
+					my $year = get_year_from_date($pdob);
+					next if(abs($yob - $year) > 2);
+					complain({ person => $person, warning => 'potential duplicate person found' });
+					# DEBUG: warn while looking for false positives
+					warn 'Potential match: ', $person->as_string($string_args), "/$yob/$year/", $possible->as_string($string_args);
+				} elsif(my $pdod = dateofdeath($possible)) {
+					my $year = get_year_from_date($pdod);
+					next if(($yob - $year) > 2);	# Born more than two years after the possible match died
+					die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
+				}
+			} elsif($yod) {
+				if(my $pdob = dateofbirth($possible)) {
+					my $year = get_year_from_date($pdob);
+					next if(abs($yod - $year) > 2);	# Died more than two years before the possible match was born
+					die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
+				}
+			} elsif(my $relationship = $possible->relationship($person)) {
+				next if($relationship eq 'father');
+				next if($relationship eq 'mother');
+				next if($relationship eq 'son');
+				next if($relationship eq 'daughter');
+			} elsif($given ne '?') {
+				die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
+			}
+		}
+	}
+
+
 	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
 		# $firstname = $1;
 		$firstname = ucfirst(lc(wide_to_html(given_names($person)))); # RT109786
@@ -3837,12 +3881,12 @@ sub print_person
 							($person->pronoun() eq 'She') ? 'her' : 'his' .
 							" parents died in $myod when " .
 							lcfirst($person->pronoun()) .
-							' was ' .  $myod - $yob .  ' years old';
+							' was ' . $myod - $yob . ' years old';
 						$phrase->append('when both of ' .
 							($person->pronoun() eq 'She') ? 'her' : 'his' .
 							" parents died in $myod when " .
 							lcfirst($person->pronoun()) .
-							' was ' .  $myod - $yob .  ' years old');
+							' was ' . $myod - $yob . ' years old');
 					} elsif($myod > $fyod) {
 						$bio .= 'at the age of ' . ($myod - $yob) .
 							i18n(' following the death of ') .
@@ -4483,10 +4527,12 @@ sub print_person
 						$printed_bracket = 1;
 					}
 					$spouse_number++;
-					if(defined($dateofmarriage) && (scalar(@spouses) == 2) && ($spouse_number == 2)) {
-						my $death_of_first_spouse = dateofdeath($spouses[0]);
-						if($death_of_first_spouse &&
-						   (datecmp($dateofmarriage, $death_of_first_spouse) > 0)) {
+					if(defined($dateofmarriage) &&
+					   (scalar(@spouses) == 2) &&
+					   ($spouse_number == 2) &&
+					   (my $death_of_first_spouse = dateofdeath($spouses[0]))) {
+					   	# Determine if the second marriage was after a divorce or death
+						if(datecmp($dateofmarriage, $death_of_first_spouse) > 0) {
 							if($printed_bracket) {
 								$bio .= ', ';
 								$name .= ', ';
@@ -4511,8 +4557,7 @@ sub print_person
 									person => $spouses[0],
 									record => $death_of_first_spouse,
 								});
-						}
-						if(my $divorce = $person->get_record('divorce') || $person->get_record('fams divorce')) {
+						} elsif(my $divorce = $person->get_record('divorce') || $person->get_record('fams divorce')) {
 							if(my $dateofdivorce = $divorce->date()) {
 								if(datecmp($dateofmarriage, $dateofdivorce) > 0) {
 									if($printed_bracket) {
@@ -6476,6 +6521,7 @@ sub print_person
 				}
 				if(scalar(@phrases) > 0) {
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases));
+					@phrases = ();
 				} else {
 					$phrase->set($firstname // $pronoun)->append(' ');
 				}
@@ -6498,13 +6544,6 @@ sub print_person
 				# die $i->page();
 			} elsif($type eq 'Funeral') {
 				$funeral = $event;
-			} elsif($type eq 'event') {
-				# 1 EVEN Some text describing the event
-				# 2 TYPE event
-				# 2 DATE 29 Sep 1939
-				# 2 PLAC Margate, Kent, England
-				$Data::Dumper::Maxdepth = 2;
-				print Data::Dumper->new([$event])->Dump();
 				if($end_of_sentence) {
 					$bio .= ' ' unless($bio =~ /\s$/);
 				} else {
@@ -6512,15 +6551,33 @@ sub print_person
 				}
 				if(scalar(@phrases)) {
 					push @phrases, $phrase;
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.  ');
-					$phrase = Data::Text->new(' ');
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+					$phrase = Data::Text->new();
 				} else {
 					$phrase->append(' ');
+				}
+			} elsif($type eq 'event') {
+				# 1 EVEN Some text describing the event
+				# 2 TYPE event
+				# 2 DATE 29 Sep 1939
+				# 2 PLAC Margate, Kent, England
+				# $Data::Dumper::Maxdepth = 2;
+				# print Data::Dumper->new([$event])->Dump();
+				if($end_of_sentence) {
+					$bio .= ' ' unless($bio =~ /\s$/);
+				} else {
+					$bio .= '. ';
+				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+					$phrase = Data::Text->new();
+					@phrases = ();
 				}
 				if(my $date = year(record => $event)) {
 					$date = ucfirst($date);
 					$bio .= " $date ";
-					$phrase->append("$date ");
+					$phrase->set("$date ");
 				}
 				$bio .= lc($pronoun);
 				$phrase->append(lc($pronoun));
@@ -6533,6 +6590,33 @@ sub print_person
 					$bio .= $place;
 					$phrase->append($place);
 				}
+				$end_of_sentence = 0;
+			} elsif($type eq 'Granted Arms') {
+				if($end_of_sentence) {
+					$bio .= ' ' unless($bio =~ /\s$/);
+				} else {
+					$bio .= '. ';
+				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+					$phrase = Data::Text->new();
+					@phrases = ();
+				} else {
+					$phrase->set(' ');
+					$bio_dt->append(' ');
+				}
+				if(my $date = year(record => $event)) {
+					$date = ucfirst($date);
+					$bio .= "$date " . lc($pronoun);
+					$phrase->append("$date " . lc($pronoun));
+				} else {
+					$bio .= $pronoun;
+					$phrase->append($pronoun);
+				}
+				$bio .= ' was granted a coat of arms';
+				$phrase->append(' was granted a coat of arms');
+				$end_of_sentence = 0;
 			# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 			} elsif(($type !~ /Census/) &&
 				($type ne 'Race') &&
@@ -6541,7 +6625,7 @@ sub print_person
 				($type ne 'Register UK 1939')) {
 
 				complain({ person => $person, warning => "Unhandled event type: $type" });
-				die "TODO: event type $type";
+				die 'TODO: ', $person->as_string({ nee => 1, include_years => 1, middle_names => 1}), " event type $type";
 				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 					$notes = ucfirst($notes);
 					$bio .= " ($notes)";
@@ -7289,7 +7373,7 @@ sub print_person
 				$bio .= '. ' if(!$end_of_sentence);
 				$end_of_sentence = 1;
 			}
-			if($phrase->length()) {
+			if($phrase->trim()->length()) {
 				push @phrases, $phrase;
 				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 				$phrase = Data::Text->new();
