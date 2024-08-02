@@ -13572,12 +13572,14 @@ sub get_marriage
 
 	my $marriage = $person->get_record('marriage') || $person->get_record('fams marriage');
 	if(!defined($marriage)) {
-		my @spouses = $person->spouse();
-		if(scalar(@spouses)) {
-			# FIXME: only looks at the first spouse
-			$marriage = $spouses[0]->get_record('marriage') || $spouses[0]->get_record('fams marriage');
-			return $marriage if(defined($marriage));
-		}
+		# Don't do this, because it generates false positives when
+		# a spouse has marriage records to a different person
+		# my @spouses = $person->spouse();
+		# if(scalar(@spouses)) {
+			# # FIXME: only looks at the first spouse
+			# $marriage = $spouses[0]->get_record('marriage') || $spouses[0]->get_record('fams marriage');
+			# return $marriage if(defined($marriage));
+		# }
 
 		my @events = $person->event();
 		if(scalar(@events) == 1) {
