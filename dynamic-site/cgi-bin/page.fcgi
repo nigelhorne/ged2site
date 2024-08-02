@@ -35,6 +35,7 @@ use Log::WarnDie 0.09;
 use CGI::ACL;
 use HTTP::Date;
 use POSIX qw(strftime);
+use Time::HiRes;
 # FIXME: Gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
 # use Taint::Runtime qw($TAINT taint_env);
 use autodie qw(:all);
@@ -242,10 +243,15 @@ while($handling_request = ($request->Accept() >= 0)) {
 	$people->set_logger($logger);
 	$info->set_logger($logger);
 
+	my $start = [Time::HiRes::gettimeofday()];
+
 	# TODO:  Make this neater
 	# Tries again without the database if it can't be opened
 	try {
 		doit(debug => 0);
+		my $timetaken = Time::HiRes::tv_interval($start);
+
+		$logger->info("$script_name completed in $timetaken seconds");
 	} catch Error::DB::Open with {
 		my $msg = shift;
 		my $tryagain = 0;
