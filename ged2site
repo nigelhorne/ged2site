@@ -2129,9 +2129,9 @@ sub print_person
 		print $csv '1!';
 	} else {
 		print $index_html "<head><title>The Family Tree $name</title>",
-			'<meta http-equiv="Refresh" content="1;URL=/history.html">',
+			'<meta http-equiv="Refresh" content="1;URL=history.html">',
 			'</head>',
-			"<body><h1>Family History</h1><a href=\"/history.html\">Family History</a></body>";
+			"<body><h1>Family History</h1><a href=\"history.html\">Family History</a></body>";
 		print $csv '0!';
 	}
 	print $index_html '</html>';
