@@ -8588,7 +8588,7 @@ sub print_person
 
 		if(defined($dot)) {
 			print "Create family tree\n" if($opts{'v'});
-			my $png = 'static-site/img/' . make_filename_from_object(object => $person) . '.png';
+			my $png = 'static-site/img/family-tree-' . $person->xref() . '.png';
 			my $tmp = File::Temp->new();
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
@@ -8646,7 +8646,7 @@ sub print_person
 				close $fout;
 
 				print $html '<h2>Family Tree</h2>';
-				my $filename = make_filename_from_object(object => $person);
+				my $filename = 'family-tree-' . $person->xref();
 				my $dim = Image::Info::html_dim(Image::Info::image_info($png));
 				print $html "<img src=\"img/$filename.png\" $dim", ' usemap="#family" alt="Family Tree">';
 				$tmp->seek(0, SEEK_SET);
@@ -8655,7 +8655,7 @@ sub print_person
 					print $html $line;
 				}
 			}
-			$png = "dynamic-site/img/" . make_filename_from_object(object => $person) . '.png';
+			$png = 'dynamic-site/img/family-tree-' . $person->xref() . '.png';
 			$tmp = File::Temp->new();
 			$filename = $tmp->filename();
 			binmode($tmp, ':utf8');
@@ -8718,7 +8718,7 @@ sub print_person
 				print $fout '}';
 				close $fout;
 
-				my $filename = make_filename_from_object(object => $person);
+				my $filename = 'family-tree-' . $person->xref();
 				my $dim = Image::Info::html_dim(Image::Info::image_info($png));
 				print $csv "/img/$filename.png---$dim---";
 				print $xml "\n\t\t<profile>/img/$filename.png</profile>";
@@ -12339,9 +12339,9 @@ sub make_filename_from_person
 
 sub make_filename_from_object
 {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = get_params('object', @_);
 
-	my $object = $params{'object'};
+	my $object = $params->{'object'};
 
 	my $rc = $object->title();
 	if(!$rc) {
