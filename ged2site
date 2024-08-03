@@ -7094,9 +7094,6 @@ sub print_person
 					($type ne 'Race') &&
 					($type ne 'Hospitalisation')) {
 					complain({ person => $person, warning => "Unhandled event type: $type" });
-					if($dateofmarriage) {
-						warn $dateofmarriage;
-					}
 					die 'TODO: ', $person->as_string({ nee => 1, include_years => 1, middle_names => 1}), " event type $type";
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes =~ s/[\s\.]+$//;
