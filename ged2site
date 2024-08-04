@@ -4630,7 +4630,7 @@ sub print_person
 							}
 						}
 					}
-					if($phrase->length()) {
+					if($phrase->trim()->length() > 0) {
 						push @phrases, $phrase;
 					}
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
@@ -5779,7 +5779,7 @@ sub print_person
 								# print "p1: $p1\n\tp2 $p2\n";
 								# print "\t", $distance->yards(), '/', $distance->miles(), "\n";
 
-								if($p1 eq $p2) {
+								if(($p1 eq $p2) || places_are_the_same({ person => $person, first => $l->{'record'}, second => $residence, exact => 1 })) {
 									$close_relative = 1;
 								} elsif(($l->{'location'}->latitude() == $latitude) && ($l->{'location'}->longitude() == $longitude)) {
 									complain({
@@ -11793,10 +11793,10 @@ sub person_line_csv
 # Are two places the same? exact => 1 means must be equal, otherwise use fuzzy logic
 sub places_are_the_same
 {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = get_params(undef, @_);
 
-	my $record1 = $params{'first'};
-	my $record2 = $params{'second'};
+	my $record1 = $params->{'first'};
+	my $record2 = $params->{'second'};
 
 	die 'first is not optional' unless $record1;
 	die 'second is not optional' unless $record2;
@@ -11810,7 +11810,7 @@ sub places_are_the_same
 	my $place2 = $record2->place();
 	return 0 unless(defined($place2));
 
-	my $person = $params{'person'};
+	my $person = $params->{'person'};
 	if($person) {
 		validate_place({ person => $person, place => $place1 });
 		validate_place({ person => $person, place => $place2 }) unless(lc($place1) eq lc($place2));
@@ -11857,7 +11857,7 @@ sub places_are_the_same
 	# }
 	return 1 if(lc($place1) eq lc($place2));
 	return 1 if(place(record => $record1) eq place(record => $record2));
-	return 0 if($params{'exact'});
+	return 0 if($params->{'exact'});
 	if(compare($place1, $place2) > 0.5) {
 		if($person) {
 			complain({ person => $person, warning => "The places '$place1' and '$place2' seem similar; is there a typo?" });
