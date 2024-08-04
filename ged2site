@@ -6248,7 +6248,7 @@ sub print_person
 
 		if($phrase->length()) {
 			push @phrases, $phrase;
-			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
 			$phrase = Data::Text->new();
 			@phrases = ();
 		}
