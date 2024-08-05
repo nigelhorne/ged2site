@@ -12490,6 +12490,31 @@ sub date_to_datetime
 	return;	# undef
 }
 
+sub descendants
+{
+	my $person = shift;
+
+	my @list;
+	if(my $l = shift) {
+		@list = @{$l};
+	}
+
+	# my @children = $person->children();
+	my @children = map { $_->children() } $person->fams();
+	if(scalar(@children)) {
+		foreach my $child(@children) {
+			push @list, $child;
+			# my @spouses = $child->spouse();
+			# if(scalar(@spouses)) {
+				# push @list, @spouses;
+			# }
+			@list = descendants($child, \@list);
+		}
+	}
+
+	return @list;
+}
+
 sub add_marker
 {
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
