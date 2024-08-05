@@ -7069,11 +7069,24 @@ sub print_person
 				} elsif($type eq 'Employment') {
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes =~ s/\.$//;
+						$bio .= '.' if(!$end_of_sentence);
+						$bio .= ' ';
+						$bio .= $firstname // $pronoun;
+
+						if($phrase->length()) {
+							push @phrases, $phrase;
+							$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+							$phrase = Data::Text->new();
+							@phrases = ();
+						} else {
+							$bio_dt->append(' ');
+						}
+
 						if(my $date = year(record => $event)) {
 							if(scalar(@phrases) == 0) {
 								$date = ucfirst($date);
 							}
-							$phrase->append("$date " . lcfirst($pronoun) . ' was working');
+							$phrase->set("$date " . lcfirst($pronoun) . ' was working');
 						} else {
 							$phrase->set("$pronoun worked");
 						}
@@ -7942,6 +7955,7 @@ sub print_person
 
 	print $html wide_to_html({ string => $bio, keep_hrefs => 1 });
 	$fullbio .= $bio;
+	undef $bio;
 
 # warn $bio_dt->as_string(), ">>>>>>>>>>>>>>>>$fullbio";
 ########################
