@@ -5823,6 +5823,10 @@ sub print_person
 										}
 										next;
 									}
+									if(($relationship eq 'brother') || ($relationship eq 'sister') && ($age < 18)) {
+										# Ignore children living with or close to siblings
+										next;
+									}
 									$p3 = $p1;
 									my $first_string;
 									my $future_spouse;
@@ -15443,6 +15447,7 @@ check out %s::check out %s
 child::child
 children::children
 daughter::daughter
+daughters::daughters
 died::died
 during %s::during %s
 during %s life::during %s life
