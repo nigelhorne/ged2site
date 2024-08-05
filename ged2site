@@ -5823,7 +5823,7 @@ sub print_person
 										}
 										next;
 									}
-									if(($relationship eq 'brother') || ($relationship eq 'sister') && ($age < 18)) {
+									if($relationship && (($relationship eq 'brother') || ($relationship eq 'sister')) && ($age < 18)) {
 										# Ignore children living with or close to siblings
 										next;
 									}
@@ -6076,28 +6076,24 @@ sub print_person
 								delete $living_with{'sibling'};
 							}
 
-							if(my $in_law = $living_with{'brother-in-law'}) {
-								# TODO: brothers-in-law
-								$residencestring .= i18n(' brother-in-law, ') .
-									$in_law->as_string();
-								delete $living_with{'brother-in-law'};
-							}
-							if(my $in_law = $living_with{'sister-in-law'}) {
-								# TODO: sisters-in-law
-								$residencestring .= i18n(' sister-in-law, ') .
-									$in_law->as_string();
-								delete $living_with{'sister-in-law'};
-							}
+							# TODO: go through the keys when I'm sure it's all sensible
+							foreach my $r('aunt', 'uncle', 'nephew', 'brother-in-law', 'sister-in-law', 'grandfather') {
+								next unless($living_with{$r});
 
-							if($living_with{'nephew'}) {
-								my @nephews = @{$living_with{'nephew'}};
-								if(scalar(@nephews) == 1) {
-									$residencestring .= i18n(' nephew, ') .
-										given_names($nephews[0]);
+								if(ref($living_with{$r}) eq 'ARRAY') {
+									my @people = @{$living_with{$r}};
+									if(scalar(@people) == 1) {
+										$residencestring .= i18n(" $r, ") .
+											given_names($people[0]);
+									} else {
+										# Handle more than one
+										die "TODO: $r", 's';
+									}
 								} else {
-									die 'TODO: nephews';
+									$residencestring .= i18n(" $r, ") .
+										given_names($living_with{$r});
 								}
-								delete $living_with{'nephew'};
+								delete $living_with{$r};
 							}
 
 							if($opts{'w'} && scalar(keys %living_with)) {
@@ -10024,7 +10020,7 @@ sub Gedcom::Individual::relationship_up
 	}
 
 	foreach my $person1(@ancestors) {
-		die $person1->as_string() if($person1 eq $self);
+		die $person1->as_string({ include_years => 1 }) if($person1->xref() eq $self->xref());
 		if($person1->xref() eq $other->xref()) {
 			# Direct ancestor
 			my $steps = stepsabove($self, $other, 0);
@@ -12640,7 +12636,7 @@ sub cite
 
 	return '' unless($opts{'c'});
 
-	my $params;
+	my %params;
 
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
@@ -15436,6 +15432,7 @@ an %s::an %s
 and::and
 arrived::arrived
 at::at
+aunt::aunt
 before %s::before %s
 between::between
 birthplace::birthplace
@@ -15457,6 +15454,7 @@ following the death of::following the death of
 from::from
 funeral::funeral
 grandchildren::grandchildren
+grandfather::grandfather
 great-grandchildren::great-grandchildren
 had::had
 has been married::has been married
@@ -15495,6 +15493,7 @@ today::today
 tomorrow::tomorrow
 twice::twice
 twin of::twin of
+uncle::uncle
 was::was
 was buried::was buried
 was born::was born
