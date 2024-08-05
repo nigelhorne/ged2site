@@ -2171,8 +2171,6 @@ sub print_person
 	}
 	print $html ' [ <a href="history.html">Family History</a> ]</center><p>';
 
-	my $fullbio;
-
 	my $phrase = Data::Text->new();
 	my @phrases;
 
@@ -2937,7 +2935,7 @@ sub print_person
 	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
 
 	my $same_occupation_as_father;
-	my $bio;
+	my $bio;	# This is used to generate the texts for the static page
 
 	if($occupations[0]) {
 		my @foccupations;
@@ -2986,6 +2984,7 @@ sub print_person
 	}
 
 	my $print_sibling_count = 0;
+	my $fullbio;	# This is used to generate pop-ups in dynamic pages
 
 	if(($father || $mother) &&
 	   ((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() eq $me->xref()))) {
@@ -3218,7 +3217,7 @@ sub print_person
 		if((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() ne $me->xref())) {
 			if($opts{'l'} || $is_alive) {
 				if($relationship) {
-					$bio .= ', ' if($mother || $father);
+					$bio .= ', ' if(length($bio));
 					if($phrase->length()) {
 						$phrase->append(', ');
 					}
@@ -3281,8 +3280,6 @@ sub print_person
 		$fullbio .= $bio;
 		undef $bio;
 	}
-
-	my $bio_dt = Data::Text->new();
 
 	my $haveprintedspousename;
 	if($relationship) {
@@ -3378,6 +3375,7 @@ sub print_person
 	my $start_of_paragraph = 0;
 	my $end_of_sentence = 0;
 	my $printed_and = 0;
+	my $bio_dt = Data::Text->new();	# This is used to generate the dynamic text
 
 	my @childrenunknownparent;
 	my @residences = get_all_residences($person);
@@ -3707,7 +3705,7 @@ sub print_person
 					$phrase = Data::Text->new();
 				}
 				if(scalar(@phrases)) {
-					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$bio_dt->set(conjunction(map { $_->as_string() } @phrases))->append('.');
 					@phrases = ();
 				}
 			}
