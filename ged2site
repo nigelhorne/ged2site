@@ -5466,42 +5466,42 @@ sub print_person
 						next if(!defined($place));
 						my $first = 1;
 
-						foreach my $sibling(@siblings) {
-							if(my $ss = $sibling->spouse()) {
-								next if($age < 20);
-								# If they are living with an in-law, assume both are adults
-								$ss = Class::Simple::Readonly::Cached->new({ object => $ss, cache => {}, quiet => 1 });
-								my @ssr = get_all_residences(person => $ss);
-								foreach my $ssr(@ssr) {
-									if(my $d = $ssr->date()) {
-										next if($d ne $rdate);
+						if($age >= 35) {
+							# Safe to assume both are adults at this time
+							foreach my $sibling(@siblings) {
+								if(my $ss = $sibling->spouse()) {
+									# If they are living with an in-law, assume both are adults
+									$ss = Class::Simple::Readonly::Cached->new({ object => $ss, cache => {}, quiet => 1 });
+									my @ssr = get_all_residences(person => $ss);
+									foreach my $ssr(@ssr) {
+										if(my $d = $ssr->date()) {
+											next if($d ne $rdate);
 
-										# Compare only if full addresses to prevent
-										# false positives when only a city is known
-										if(($place =~ /^\s\d/ && (my $ssp = place({ person => $ss, record => $ssr, nopreposition => 1 })))) {
-											if($ssp eq $place) {
-												if($ss->sex() eq 'F') {
-													$living_with{'sister-in-law'} = $ss
-												} else {
-													$living_with{'brother-in-law'} = $ss
+											# Compare only if full addresses to prevent
+											# false positives when only a city is known
+											if(($place =~ /^\s\d/ && (my $ssp = place({ person => $ss, record => $ssr, nopreposition => 1 })))) {
+												if($ssp eq $place) {
+													if($ss->sex() eq 'F') {
+														$living_with{'sister-in-law'} = $ss
+													} else {
+														$living_with{'brother-in-law'} = $ss
+													}
+													$printed_sibling = 1;
+													last;
 												}
-												$printed_sibling = 1;
-												last;
 											}
 										}
 									}
 								}
-							}
-							next if($age < 40);
-							# Safe to assume both are adults at this time
-							my @sr = get_all_residences(person => $sibling);
-							foreach my $sr(@sr) {
-								my $sdate = $sr->date();
-								next if(!defined($sdate));
-								next if($sdate ne $rdate);
-								if(($place =~ /^\s\d/) && (place({ person => $sibling, record => $sr, nopreposition => 1 }) eq $place)) {
-									push @{$living_with{'sibling'}}, $sibling;
-									last;
+								my @sr = get_all_residences(person => $sibling);
+								foreach my $sr(@sr) {
+									my $sdate = $sr->date();
+									next if(!defined($sdate));
+									next if($sdate ne $rdate);
+									if(($place =~ /^\s\d/) && (place({ person => $sibling, record => $sr, nopreposition => 1 }) eq $place)) {
+										push @{$living_with{'sibling'}}, $sibling;
+										last;
+									}
 								}
 							}
 						}
@@ -5977,30 +5977,36 @@ sub print_person
 								' was living with ' .
 								lcfirst($person->possessive());
 
+							if($living_with{'son'}) {
+								my @sons = @{$living_with{'son'}};
+								$residencestring .= i18n((scalar(@sons) > 1) ? ' sons, ' : ' son ') .
+									conjunction(map { given_names($_) } @sons);
+								if($living_with{'daughter'}) {
+									$residencestring .= i18n(' and');
+								} elsif(dateofdeath($spouses[0])) {
+									$residencestring .= ', ' .
+									i18n('following the death of ') .
+									(($sex eq 'M') ? 'his wife ' : 'her husband ') .
+									year(date => dateofdeath($spouses[0]));
+								}
+								delete $living_with{'son'};
+							}
 							if($living_with{'daughter'}) {
 								my @daughters = @{$living_with{'daughter'}};
 								$residencestring .= i18n((scalar(@daughters) > 1) ? ' daughters, ' : ' daughter ') .
-									conjunction(map { given_names($_) } @daughters) . ',' .
+									conjunction(map { given_names($_) } @daughters) .
 									i18n(' following the death of ') .
 									(($sex eq 'M') ? 'his wife ' : 'her husband ') .
 									year(date => dateofdeath($spouses[0]));
 								delete $living_with{'daughter'};
 							}
-							if($living_with{'son'}) {
-								my @sons = @{$living_with{'son'}};
-								$residencestring .= i18n((scalar(@sons) > 1) ? ' sons, ' : ' son ') .
-									conjunction(map { given_names($_) } @sons) . ',' .
-									i18n(' following the death of ') .
-									(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-									year(date => dateofdeath($spouses[0]));
-								delete $living_with{'son'};
+
+							foreach my $sibling (@{$living_with{'brother'}}, @{$living_with{'sister'}}) {
+								push @{$living_with{'sibling'}}, $sibling;
 							}
-							if(my $in_law = $living_with{'brother-in-law'}) {
-								# TODO: brothers-in-law
-								$residencestring .= i18n(' brother-in-law, ') .
-									$in_law->as_string();
-								delete $living_with{'brother-in-law'};
-							}
+							delete $living_with{'sister'};
+							delete $living_with{'brother'};
+
 							if($living_with{'sibling'}) {
 								# Print out all the siblings this person was living with
 								# as an adult
@@ -6037,14 +6043,55 @@ sub print_person
 											i18n('sister ') .
 											given_names($sister);
 									} else {
-										die 'TODO: ', $person->as_string(include_years => 1), ' living with ', scalar(@siblings), ' siblings of differing genders';
+										# Living with siblings of differing genders
+										my @brothers = grep { $_->sex() eq 'M' } @siblings;
+										my @sisters = grep { $_->sex() eq 'F' } @siblings;
+										if(scalar(@brothers) == 1) {
+											$residencestring .= i18n(' brother, ') .
+												given_names($brothers[0]) .
+												i18n(' and') .
+												i18n(' sisters, ') .
+												conjunction(map { given_names($_) } @sisters);
+										} else {
+											$residencestring .= i18n(' sister, ') .
+												given_names($sisters[0]) .
+												i18n(' and') .
+												i18n(' brothers, ') .
+												conjunction(map { given_names($_) } @brothers);
+										}
 									}
 								}
 								delete $living_with{'sibling'};
 							}
+
+							if(my $in_law = $living_with{'brother-in-law'}) {
+								# TODO: brothers-in-law
+								$residencestring .= i18n(' brother-in-law, ') .
+									$in_law->as_string();
+								delete $living_with{'brother-in-law'};
+							}
+							if(my $in_law = $living_with{'sister-in-law'}) {
+								# TODO: sisters-in-law
+								$residencestring .= i18n(' sister-in-law, ') .
+									$in_law->as_string();
+								delete $living_with{'sister-in-law'};
+							}
+
+							if($living_with{'nephew'}) {
+								my @nephews = @{$living_with{'nephew'}};
+								if(scalar(@nephews) == 1) {
+									$residencestring .= i18n(' nephew, ') .
+										given_names($nephews[0]);
+								} else {
+									die 'TODO: nephews';
+								}
+								delete $living_with{'nephew'};
+							}
+
 							if($opts{'w'} && scalar(keys %living_with)) {
+								warn $residencestring;
 								$Data::Dumper::Maxdepth = 2;
-								die $person->as_string({ include_years => 1 }), ": TODO ($rdate): ", Data::Dumper->new([\%living_with])->Dump();
+								die $person->as_string({ include_years => 1, middle_names => 1 }), ": TODO ($rdate): ", Data::Dumper->new([\%living_with])->Dump();
 							}
 						}
 						$living_alone = 0;
@@ -7101,7 +7148,7 @@ sub print_person
 					($type ne 'Race') &&
 					($type ne 'Hospitalisation')) {
 					complain({ person => $person, warning => "Unhandled event type: $type" });
-					die 'TODO: ', $person->as_string({ nee => 1, include_years => 1, middle_names => 1}), " event type $type";
+					die 'TODO: ', $person->as_string({ nee => 1, include_years => 1, middle_names => 1 }), " event type $type";
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes =~ s/[\s\.]+$//;
 						my $date = year(record => $event);
@@ -10605,12 +10652,14 @@ sub Gedcom::Individual::relationship_down
 
 	if($me && ($self->xref() eq $me->xref())) {
 		unless(@mydescendants) {
-			@mydescendants = $me->descendants();
+			# @mydescendants = $me->descendants();
+			@mydescendants = descendants($me);
 		}
 		return unless scalar(@mydescendants);
 		@descendant = @mydescendants;
 	} else {
-		@descendant = $self->descendants();
+		# @descendant = $self->descendants();
+		@descendant = descendants($self);
 	}
 
 	my $sex = get_value({ person => $other, value => 'sex' });
@@ -10627,7 +10676,7 @@ sub Gedcom::Individual::relationship_down
 	foreach my $person1(@descendant) {
 		# print __LINE__, "\t", $person1->as_string(), "\n";
 		die $person1->as_string() if($person1 eq $self);
-		if($person1 eq $other) {
+		if($person1->xref() eq $other->xref()) {
 			# Direct descendant
 			my $steps = stepsabove($other, $self, 0);
 			my $title = i18n(($sex eq 'M') ? 'son' : 'daughter');
@@ -15358,6 +15407,7 @@ later that same year::later that same year
 living person::living person
 married::married
 mother::mother
+nephew::nephew
 of::of
 of %d children::of %d children
 older::older
