@@ -5292,7 +5292,7 @@ sub print_person
 													$p2 =~ s/^\s+//;
 													complain({ person => $person, warning => "Location for $date ($p2) differs from mother's ($p1)" });
 												}
-												if($date ne $rdate) {
+												if(datecmp($date, $rdate) != 0) {
 													complain({ person => $person, warning => "Date of residence ($rdate) differs from mother's in same year ($date)" });
 												}
 												last;
