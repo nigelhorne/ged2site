@@ -11089,6 +11089,7 @@ sub place {
 				$address = undef;
 			} else {
 				$place = $place->place();
+				$place = undef if($place eq '-');
 			}
 			if(!defined($place)) {
 				if($opts{'w'} && (!$params{'allow_empty'}) && $params{'record'}->type() && ($params{'record'}->type() ne 'Story')) {
