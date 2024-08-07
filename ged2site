@@ -3371,7 +3371,7 @@ sub print_person
 		$haveprintedspousename = 1;
 	}
 
-	if(my $aka = $person->as_string({ use_aka => 1 })) {
+	if(($opts{'l'} || !$is_alive) && (my $aka = $person->as_string({ use_aka => 1 }))) {
 		$phrase->append(" (also known as $aka)");
 		print $html " (also known as $aka)";
 		print $xml '<aka>', wide_to_xml($aka), "</aka>\n\t\t\t\t";
@@ -5761,6 +5761,7 @@ sub print_person
 						my $printed_person = 0;
 						my $gis = GIS::Distance->new('MathTrig');
 						my $p2 = place({ record => $residence, nopreposition => 1 });
+						$p2 =~ s/^\s+//g;
 						my @people_near_p2;
 						my $p3;	# previous place
 
@@ -5781,6 +5782,7 @@ sub print_person
 								# This stops verbosity when the list is:
 								#	high street, 33 high street, high street
 								next unless($p1 =~ /^\s?\d/);
+								$p1 =~ s/^\s+//g;
 
 								my $peek = $iterator->peek();
 								next if($peek && ($peek->{'person'}->xref() eq $l->{'person'}->xref()));
@@ -5816,7 +5818,8 @@ sub print_person
 									# p1 is the place of the relative we're considering ($l)
 									# p2 is the place of the current person
 									# p3 is the place of the previous relative we're considering
-									if($p3 && $peek && (place({ record => $peek->{'record'}, nopreposition => 1 }) eq $p3)) {
+									# if($p3 && $peek && (places_are_the_same({ person => $person, first => $l->{'record'}, second => $peek->{'record'}, exact => 1 }))) {
+									if($p3 && $peek && (place({ record => $peek->{'record'}, nopreposition => 1 }) eq " $p3")) {
 										if((!defined($people_near_p2[0])) || ($people_near_p2[0]->{'person'}->xref() ne $l->{'person'}->xref())) {
 											push @people_near_p2, $l;
 										}
@@ -5826,7 +5829,11 @@ sub print_person
 										# Ignore children living with or close to siblings
 										next;
 									}
-									$p3 = $p1;
+									if(!defined($p3)) {
+										# First time we've looked at this place
+										$p3 = $p1;
+										next;
+									}
 									my $first_string;
 									my $future_spouse;
 									if($spouses[0] && ($l->{'person'}->xref() eq $spouses[0]->xref())) {
@@ -5866,14 +5873,14 @@ sub print_person
 									if($l->{'person'}->surname() eq $surname) {
 										$first_string .= given_names($l->{'person'});
 									} else {
-										$first_string .= $l->{'person'}->as_string();
+										$first_string .= $l->{'person'}->as_string({ middle_names => 1 });
 									}
 									my @people_living_together = ($first_string);
 									if(scalar(@people_near_p2)) {
 										while(my $p = pop(@people_near_p2)) {
 											if(my $r = $person->relationship($p->{'person'})) {
 												push @people_living_together,
-													"$r " . $p->{'person'}->as_string();
+													"$r " . $p->{'person'}->as_string({ middle_names => 1 });
 											}
 										}
 									}
@@ -6084,9 +6091,12 @@ sub print_person
 									if(scalar(@people) == 1) {
 										$residencestring .= i18n(" $r, ") .
 											given_names($people[0]);
+									} elsif($r =~ /(.+)-in-law$/) {
+										die $1, 's-in-law';
 									} else {
 										# Handle more than one
-										die "TODO: $r", 's';
+										$residencestring .= i18n(" ${r}s, ") .
+											conjunction(map { given_names($_) } @people);
 									}
 								} else {
 									$residencestring .= i18n(" $r, ") .
@@ -11068,18 +11078,19 @@ sub year
 	return ($string =~ /\d$/) ? "in $string" : "on $string";
 }
 
-sub place {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+sub place
+{
+	my $params = get_params(undef, @_);
 
-	my $place = $params{'place'};
-	my $address = $params{'address'};
+	my $place = $params->{'place'};
+	my $address = $params->{'address'};
 
-	if(!defined($params{'encode'})) {
-		$params{'encode'} = 1;
+	if(!defined($params->{'encode'})) {
+		$params->{'encode'} = 1;
 	}
 
 	if(!defined($place)) {
-		$place = $params{'record'};
+		$place = $params->{'record'};
 		return unless($place);
 
 		if(ref($place) eq 'Gedcom::Record') {
@@ -11092,15 +11103,15 @@ sub place {
 				$place = undef if($place eq '-');
 			}
 			if(!defined($place)) {
-				if($opts{'w'} && (!$params{'allow_empty'}) && $params{'record'}->type() && ($params{'record'}->type() ne 'Story')) {
+				if($opts{'w'} && (!$params->{'allow_empty'}) && $params->{'record'}->type() && ($params->{'record'}->type() ne 'Story')) {
 					if(my $date = $p->date()) {
 						if($date =~ /^bet\s*(.+)/i) {
-							complain({ person => $params{'person'}, warning => "Location for the event between $1 is empty" });
+							complain({ person => $params->{'person'}, warning => "Location for the event between $1 is empty" });
 						} else {
-							complain({ person => $params{'person'}, warning => 'Location for "' . lcfirst($params{'record'}->type()) . "\" on $date is empty" });
+							complain({ person => $params->{'person'}, warning => 'Location for "' . lcfirst($params->{'record'}->type()) . "\" on $date is empty" });
 						}
 					} else {
-						complain({ person => $params{'person'}, warning => 'Location is Empty' });
+						complain({ person => $params->{'person'}, warning => 'Location is Empty' });
 					}
 				}
 				return;
@@ -11148,12 +11159,12 @@ sub place {
 		}
 	}
 
-	my $there = $params{'there'};
+	my $there = $params->{'there'};
 
 	if($there && ($place eq $there)) {
 		if($address) {
 			if($place =~ /^(.+?),.+,/) {
-				if($params{'nopreposition'}) {
+				if($params->{'nopreposition'}) {
 					return " $address, $1";
 				}
 				if($language eq 'French') {
@@ -11179,7 +11190,7 @@ sub place {
 		$place = "$1 USA";
 		$rc->en($place);
 	} elsif($place =~ /States\s.*$/) {
-		complain({ person => $params{'person'}, warning => "Unexpected text at the end of the place '$place'" });
+		complain({ person => $params->{'person'}, warning => "Unexpected text at the end of the place '$place'" });
 	} elsif($place =~ /(.*)(^|,\s*)(.+),\s*Canada$/i) {
 		my $town = $1;
 		my $province = $3;
@@ -11237,7 +11248,7 @@ sub place {
 			}
 			$rc->set({ lang => $lang, string => $place });
 		} else {
-			complain({ person => $params{'person'}, warning => "Unknown Canadian province $province" });
+			complain({ person => $params->{'person'}, warning => "Unknown Canadian province $province" });
 		}
 	} elsif($place =~ /(.*)(^|,\s*.+),\s*(UK|England|Wales|Scotland)$/i) {
 		# Translate the city from English
@@ -11255,28 +11266,28 @@ sub place {
 		}
 	}
 
-	if($params{'person'}) {
-		validate_place({ person => $params{'person'}, place => $rc });
+	if($params->{'person'}) {
+		validate_place({ person => $params->{'person'}, place => $rc });
 	}
 
 	# utf8::decode($place);
 	if($place =~ /,,/) {
-		complain({ person => $params{'person'}, warning => "Consecutive commas found in '$place'" });
+		complain({ person => $params->{'person'}, warning => "Consecutive commas found in '$place'" });
 		$place =~ s/,,/,/g;
 		$place =~ s/,(\S)/, $1/g;
 	}
 	if($place =~ /,(\S)/) {
-		complain({ person => $params{'person'}, warning => "Space missing after comma in '$place'" });
+		complain({ person => $params->{'person'}, warning => "Space missing after comma in '$place'" });
 		$place =~ s/,(\S)/, $1/g;
 	}
 
 	if($place =~ /^\d/) {
-		if(my $places_printed = $params{'places_printed'}) {
+		if(my $places_printed = $params->{'places_printed'}) {
 			$places_printed->{" at$place"} = 1;
 			if($place =~ /(.+),(.+?),(.+?),(.+?),(.+?)$/) {
 				if($places_printed->{" in$3,$4,$5"}) {
 					$places_printed->{"at $1,$2,$3"} = 1;
-					if($params{'nopreposition'}) {
+					if($params->{'nopreposition'}) {
 						return "$1,$2,$3";
 					}
 					if($language eq 'French') {
@@ -11292,7 +11303,7 @@ sub place {
 		if($language eq 'French') {
 			return " \N{U+00E0} $place";
 		}
-		if($params{'nopreposition'}) {
+		if($params->{'nopreposition'}) {
 			return " $place";
 		}
 		return " at $place";
@@ -11300,18 +11311,18 @@ sub place {
 
 	if($place eq 'USA') {
 		if($language eq 'French') {
-			if($params{'nopreposition'}) {
+			if($params->{'nopreposition'}) {
 				return " \N{U+00C9}tats-Unis";
 			}
 			return " aux \N{U+00C9}tats-Unis";
 		}
 		if($language eq 'German') {
-			if($params{'nopreposition'}) {
+			if($params->{'nopreposition'}) {
 				return ' der Vereinigten Staaten';
 			}
 			return ' in den Vereinigten Staaten';
 		}
-		if($params{'nopreposition'}) {
+		if($params->{'nopreposition'}) {
 			return ' USA';
 		}
 		return ' in the USA';
@@ -11319,7 +11330,7 @@ sub place {
 
 	if($address) {
 		# utf8::decode($address);
-		if($params{'nopreposition'}) {
+		if($params->{'nopreposition'}) {
 			$place = " $address, $place";
 			$rc->en(" $address, " . $rc->en());
 		} elsif($language eq 'French') {
@@ -11332,7 +11343,7 @@ sub place {
 		} else {
 			$place = " at $address, $place";
 		}
-	} elsif($params{'nopreposition'}) {
+	} elsif($params->{'nopreposition'}) {
 		$place = " $place";
 	} elsif($place =~ /^Isle of /) {
 		$place = " on the $place";
@@ -11343,7 +11354,7 @@ sub place {
 	}
 	$rc->set({ lang => $lang, string => $place });
 
-	if(my $places_printed = $params{'places_printed'}) {
+	if(my $places_printed = $params->{'places_printed'}) {
 		if(($language eq 'French') && ($place =~ /(.+), London, England/)) {
 			$place = "$1, Londres, Angleterre";
 			$rc->fr($place);
@@ -11356,8 +11367,8 @@ sub place {
 		}
 		if($place =~ /(.+),(.+?),(.+?),(.+?)$/) {
 			my $str = "$2,$3,$4";
-			if($params{'person'} && $address) {
-				validate_place({ person => $params{'person'}, place => $place });
+			if($params->{'person'} && $address) {
+				validate_place({ person => $params->{'person'}, place => $place });
 			}
 			if($places_printed->{" in$str"}) {
 				if(($4 eq ' USA') || ($4 eq ' Canada')) {
@@ -11386,7 +11397,7 @@ sub place {
 			}
 			$str = "$3,$4";
 			if($places_printed->{" in$str"} || $places_printed->{" at$str"}) {
-				if($params{'encode'}) {
+				if($params->{'encode'}) {
 					return wide_to_html("$1,$2,$3");
 				}
 				return "$1,$2,$3";
@@ -11403,7 +11414,7 @@ sub place {
 				} else {
 					$rc->fr("$1,$2");
 				}
-				if($params{'encode'}) {
+				if($params->{'encode'}) {
 					$rc->encode();
 				}
 				return $rc;
@@ -11452,7 +11463,7 @@ sub place {
 			$en =~ s/^ in //;
 			if(my $code = $lcm->country2code($en, 'LOCALE_CODE_ALPHA_2', 'en')) {
 				$place = $lcm->code2country($code, $lang);
-				if(!$params{'nopreposition'}) {
+				if(!$params->{'nopreposition'}) {
 					if($language eq 'French') {
 						my $preposition;
 						if($place =~ /e$/) {
@@ -11480,7 +11491,7 @@ sub place {
 
 	$rc =~ s/\.$//;
 
-	if($params{'encode'}) {
+	if($params->{'encode'}) {
 		$rc->encode();
 	}
 
@@ -11965,7 +11976,7 @@ sub places_are_the_same
 		# $place2 = "$1 Road";
 	# }
 	return 1 if(lc($place1) eq lc($place2));
-	return 1 if(place(record => $record1) eq place(record => $record2));
+	return 1 if(place(record => $record1, nopreposition => 1) eq place(record => $record2, nopreposition => 1));
 	return 0 if($params->{'exact'});
 	if(compare($place1, $place2) > 0.5) {
 		if($person) {
@@ -15409,7 +15420,7 @@ sub get_params
 		} else {
 			my @c = caller(1);
 			my $func = $c[3];	# calling function name
-			Carp::croak('Usage: ', __PACKAGE__, "->$func($default => " . '$val)');
+			Carp::croak('Usage: ', __PACKAGE__, "->$func()");
 		}
 	} elsif((scalar(@_) == 0) && defined($default)) {
 		my @c = caller(1);
@@ -15434,6 +15445,7 @@ and::and
 arrived::arrived
 at::at
 aunt::aunt
+aunts::aunts
 before %s::before %s
 between::between
 birthplace::birthplace
