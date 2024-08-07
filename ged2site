@@ -3374,8 +3374,7 @@ sub print_person
 	if(my $aka = $person->as_string({ use_aka => 1 })) {
 		$phrase->append(" (also known as $aka)");
 		print $html " (also known as $aka)";
-		$aka = wide_to_xml($aka);
-		print $xml " (also known as $aka)";
+		print $xml '<aka>', wide_to_xml($aka), "</aka>\n\t\t\t\t";
 	}
 
 	my $start_of_paragraph = 0;
@@ -8018,15 +8017,17 @@ sub print_person
 			if($father && (my $f = person_line_html({ person => $father, year => $year }))) {
 				print $html "<li>$f</li>";
 				print $csv person_line_csv({ person => $father, year => $year });
-				my $x = wide_to_xml($f);
-				print $xml "\n\t\t<father>$x</father>";
+				print $xml "\n\t\t<father>\n\t\t\t<xref>", $father->xref(),
+					"</xref>\n\t\t\t<first_name>", given_names($father), "</first_name>\n\t\t\t<surname>",
+					normalize_name($father->surname()), "</surname>\n\t\t</father>";
 			}
 			print $csv '!';
 			if($mother && (my $m = person_line_html({ person => $mother, year => $year }))) {
 				print $html "<li>$m</li>";
 				print $csv person_line_csv({ person => $mother, year => $year });
-				my $x = wide_to_xml($m);
-				print $xml "\n\t\t<mother>$x</mother>";
+				print $xml "\n\t\t<mother>\n\t\t\t<xref>", $mother->xref(),
+					"</xref>\n\t\t\t<first_name>", given_names($mother), "</first_name>\n\t\t\t<surname>",
+					normalize_name($mother->surname()), "</surname>\n\t\t</mother>";
 			}
 			print $html '</ol>';
 		} else {
@@ -11087,8 +11088,7 @@ sub place {
 			if(ref($address) eq 'Gedcom::Record') {
 				$place = getaddress($address);
 				$address = undef;
-			} else {
-				$place = $place->place();
+			} elsif($place = $place->place()) {
 				$place = undef if($place eq '-');
 			}
 			if(!defined($place)) {
