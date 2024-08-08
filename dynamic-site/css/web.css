@@ -35,7 +35,7 @@ table {
 	width:940px;
 	text-align:center;
 }
- 
+
 #container {
 	margin:0 auto;
 	overflow:auto;
@@ -73,31 +73,31 @@ table {
 	font-size: 0.8em;
 }
 
-h2 {                                            
-        /* position: relative;          
-        top:3em;                        
-        border: 2px solid #2c4eac; */           
+h2 {
+        /* position: relative;
+        top:3em;
+        border: 2px solid #2c4eac; */
         width: 85%;
-        margin: auto;                   
-        color:#2C4EAC;          
+        margin: auto;
+        color:#2C4EAC;
         line-height: 2em;
-}                       
-
-h3 {                                            
-        color:#2C4EAC;          
-        width: 80%;
-        margin: auto;                   
 }
-                                
+
+h3 {
+        color:#2C4EAC;
+        width: 80%;
+        margin: auto;
+}
+
 /* http://accessify.com/tools-and-wizards/developer-tools/list-o-matic/ */
-ul#nav {                                        
-        color:#2c4eac;                                  
+ul#nav {
+        color:#2c4eac;
         font-family:helvetica,arial,sans-serif;margin:0;padding:0;width:30em
-}                                               
-ul#nav li {                             
+}
+ul#nav li {
         margin:0;padding:0;list-style:none;margin:0 0 0.3em 0;color:#2c4eac;margin-left:10em;
-}                       
-ul#nav li a {   
+}
+ul#nav li a {
         color:#2c4eac;
         text-decoration:none;display:block;padding:0.3em 0.5em;border:1px solid silver;background:#fff
 }
@@ -140,4 +140,28 @@ ul#nav li a:hover {
 
 myButton:active {
 	top:1px
+}
+
+/* https://www.w3schools.com/howto/howto_js_collapsible.asp */
+.collapsible {
+  background-color: #777;
+  color: white;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+.active, .collapsible:hover {
+  background-color: #555;
+}
+
+.content {
+  padding: 0 18px;
+  display: none;
+  overflow: hidden;
+  background-color: #f1f1f1;
 }
