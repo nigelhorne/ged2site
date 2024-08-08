@@ -60,11 +60,6 @@ since they contain cached copies of pages that will be inconsistent with the new
 
 Finally, for the dynamic site, set-up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
 
-Different people use different ways to format and enter information,
-ged2site goes out of its way to support all of these,
-such as different location and date formats.
-If your data shows issues with this aim, let me know.
-
 ## Installation and Pre-Requisites
 
 Ged2site uses many CPAN modules which it will try to install if they are not
@@ -227,6 +222,11 @@ site before you deploy. Be aware that you will also see debugging messages.
 To see the environment of the system to help with debugging
 
     https://localhost/cgi-bin/page.fcgi?page=meta-data
+
+Different people use different ways to format and enter information,
+ged2site goes out of its way to support all of these,
+such as different location and date formats.
+If your data shows issues with this aim, let me know.
 
 ## Bugs
 
