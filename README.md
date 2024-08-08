@@ -10,6 +10,7 @@ at https://genealogy.nigelhorne.com.
 This is quite complex software, so if you are a genealogist looking to create
 a website and aren't an IT guru,
 it would be better to e-mail me on `<njh at nigelhorne.com>` for professional help.
+The software is aimed to be useful for people with limited genealogical knowledge.
 If you contact me, please let me know the program you're using to create your
 Gedcom file, and the operating system you are using.
 
@@ -24,8 +25,13 @@ Typical usage:
 You will then have two sites created in sub directories
 - static-site is static HTML (no CGI),
 - dynamic-site is a [VWF](//github.com/nigelhorne/vwf) based website which uses templates to support more than one
-language and present different content to mobile/web/search-engine clients. This is much more easily customisable
+language and present different content to mobile/web/search-engine clients.
+This allows for better SEO and a seemless experience on mobile as well as desktops
+in a multi-lingual environment.
+This is much more easily customisable
 by you to create the look and feel of the website that you want.
+The dynamic site contains more data visualisation such as trend analysis,
+time-lapse views and heatmaps in a visually appealing way.
 
 If you decide to use the static site, just copy files in the static-site directory to your web-server.
 
@@ -53,6 +59,11 @@ Every time you upload a new site ensure that you remove the "save_to" directory 
 since they contain cached copies of pages that will be inconsistent with the new site.
 
 Finally, for the dynamic site, set-up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
+
+Different people use different ways to format and enter information,
+ged2site goes out of its way to support all of these,
+such as different location and date formats.
+If your data shows issues with this aim, let me know.
 
 ## Installation and Pre-Requisites
 
@@ -105,6 +116,9 @@ The options to ged2site are:
 
 NOTE: when you use the -m option, your Google API key will be included in the output,
 so ensure that you restrict the key's use just to this app on your host's IP.
+
+Data privacy and handling of sensitive data is important,
+the default configuration works hard to avoid sharing information about living people.
 
 If [gedcom](https://github.com/nigelhorne/gedcom) is installed,
 ged2site will also create a calendar of births and deaths,
@@ -238,6 +252,8 @@ If you see lumpy English text in the output, or just plain mistakes,
 please e-mail me or add a bug report to github.com/nigelhorne/ged2site.
 
 Profile pictures are not handled with output from Ancestry.  Findmypast is handled correctly.
+
+The story telling format is hard coded, it would be useful if it were configurable.
 
 ## Acknowledgements
 
