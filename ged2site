@@ -2439,7 +2439,11 @@ sub print_person
 		$dateofbaptism =~ s/^0//;
 	}
 	if($dateofbaptism && $dateofbirth && ($dateofbirth !~ /^abt\s/i) && ($dateofbaptism !~ /^bet \d{3,4} and \d{3,4}$/) && (datecmp($dateofbaptism, $dateofbirth) <= 0)) {
-		complain({ person => $person, warning => "Date of baptism ($dateofbaptism) before date of birth ($dateofbirth)" });
+
+		# Try hard to avoid FP "Date of baptism (17 Jun 1877) before date of birth (1877)"
+		if((get_year_from_date($dateofbirth) != get_year_from_date($dateofbaptism)) || (($dateofbirth =~ /\D/) && ($dateofbaptism =~ /\D/))) {
+			complain({ person => $person, warning => "Date of baptism ($dateofbaptism) before date of birth ($dateofbirth)" });
+		}
 	}
 	my $placeofbaptism = get_value({ person => $person, value => 'baptism place' });
 	if((!$placeofbaptism) && $baptism) {
