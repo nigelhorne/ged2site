@@ -2700,7 +2700,7 @@ sub print_person
 
 	if($placeofbirth) {
 		if(!defined($birth->place())) {
-			complain({ person => $person, warning => "Birthplace is set to $placeofbirth but birth->place is empty" });
+			complain({ person => $person, warning => "Birthplace is set to $placeofbirth but birth place is empty" });
 			$birth->set('place', $placeofbirth);
 		}
 		$place_records{'Birth'} = $birth;
@@ -2717,7 +2717,7 @@ sub print_person
 	}
 	if($placeofdeath) {
 		if(!defined($death->place())) {
-			complain({ person => $person, warning => "Deathplace is set to $placeofdeath but death->place is empty" });
+			complain({ person => $person, warning => "Deathplace is set to $placeofdeath but death place is empty" });
 			$death->set('place', $placeofdeath);
 		}
 		$place_records{'Death'} = $death;
