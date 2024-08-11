@@ -165,6 +165,7 @@ BEGIN {
 			   ($warning =~ /Wide/) ||
 			   ($warning =~ /masks earlier declaration in same scope/) ||
 			   ($warning =~ /: attempt to add consecutive punctuation/) ||
+			   ($warning =~ /^Odd number of elements in hash assignment/) ||
 			   ($warning =~ /isn't numeric in numeric eq /i)) {
 				die $warning;
 			}
@@ -5802,6 +5803,9 @@ sub print_person
 								if(($p1 eq $p2) || places_are_the_same({ person => $person, first => $l->{'record'}, second => $residence, exact => 1 })) {
 									# mother and father are single entries, the others are arrays
 									if($relationship && ((!$living_with{$relationship}) || (($relationship ne 'mother') && ($relationship ne 'father')))) {
+										if($relationship =~ /^cousin/) {
+											$relationship = 'cousin';
+										}
 										push @{$living_with{$relationship}}, $l->{'person'};
 									}
 								} elsif(($l->{'location'}->latitude() == $latitude) && ($l->{'location'}->longitude() == $longitude)) {
@@ -6019,10 +6023,12 @@ sub print_person
 							if($living_with{'daughter'}) {
 								my @daughters = @{$living_with{'daughter'}};
 								$residencestring .= i18n((scalar(@daughters) > 1) ? ' daughters, ' : ' daughter ') .
-									conjunction(map { given_names($_) } @daughters) .
-									i18n(' following the death of ') .
-									(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-									year(date => dateofdeath($spouses[0]));
+									conjunction(map { given_names($_) } @daughters);
+								if(my $sdod = dateofdeath($spouses[0])) {
+									$residencestring .= i18n(' following the death of ') .
+										(($sex eq 'M') ? 'his wife ' : 'her husband ') .
+										year(date => dateofdeath($spouses[0]));
+								}
 								delete $living_with{'daughter'};
 							}
 
@@ -6090,7 +6096,7 @@ sub print_person
 							}
 
 							# TODO: go through the keys when I'm sure it's all sensible
-							foreach my $r('aunt', 'uncle', 'nephew', 'brother-in-law', 'sister-in-law', 'grandfather') {
+							foreach my $r('aunt', 'uncle', 'nephew', 'brother-in-law', 'sister-in-law', 'grandfather', 'grandmother') {
 								next unless($living_with{$r});
 
 								if(ref($living_with{$r}) eq 'ARRAY') {
@@ -7300,7 +7306,7 @@ sub print_person
 	if($placeofburial && $dateofburial && !$place_records{'Burial'}) {
 		$place_records{'Burial'} = $burial;
 	}
-	if($funeral) {
+	if($funeral && $funeral->place()) {
 		$place_records{'Funeral'} = $funeral;
 		if((!defined($dateofburial)) && (!defined($dateofcremation))) {
 			complain({ person => $person, warning => 'Taking details of burial from funeral record' });
@@ -8880,6 +8886,7 @@ sub print_person
 		if($opts{'w'}) {
 			while(my($key, $value) = each %place_records) {
 				if(!defined(place({ person => $person, record => $value, nopreposition => 1 }))) {
+					$Data::Dumper::Maxdepth = 2;
 					print STDERR __LINE__, ': ', ref($value), ': ', Data::Dumper->new([$value])->Dump();
 					die "BUG: ", $person->as_string(), ": $key (", $value->place(), ') record has no location';
 				}
@@ -10836,12 +10843,12 @@ sub stepsabove
 # and locales
 sub year
 {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = get_params(undef, @_);
 
-	my $string = $params{'string'} || $params{'date'};
+	my $string = $params->{'string'} || $params->{'date'};
 
 	if(!defined($string)) {
-		$string = $params{'record'};
+		$string = $params->{'record'};
 		return unless($string);
 
 		if(ref($string) && $string->can('date')) {
@@ -10860,7 +10867,7 @@ sub year
 	if($string =~ /^(Abt|ca?)\.?\s*(.+)/i) {
 		my $rc = $2;
 		if($opts{'w'}) {
-			if(my $must_postdate = $params{'must_postdate'}) {
+			if(my $must_postdate = $params->{'must_postdate'}) {
 				my $dt;
 				if($rc !~ /^\d/) {
 					$dt = date_to_datetime("1 $rc");
@@ -10868,10 +10875,10 @@ sub year
 					$dt = date_to_datetime($rc);
 				}
 				if($dt && ($dt < $must_postdate)) {
-					complain({ person => $params{'person'}, warning => "Something is wrong with the date $string which should be after $must_postdate" });
+					complain({ person => $params->{'person'}, warning => "Something is wrong with the date $string which should be after $must_postdate" });
 				}
 			}
-			if(my $must_predate = $params{'must_predate'}) {
+			if(my $must_predate = $params->{'must_predate'}) {
 				my $dt;
 				if($rc !~ /^\d/) {
 					$dt = date_to_datetime("1 $rc");
@@ -10879,12 +10886,12 @@ sub year
 					$dt = date_to_datetime($rc);
 				}
 				if($dt && ($dt > $must_predate)) {
-					complain({ person => $params{'person'}, warning => "Something is wrong with the date $string which should be before $must_predate" });
+					complain({ person => $params->{'person'}, warning => "Something is wrong with the date $string which should be before $must_predate" });
 				}
 			}
 		}
-		if(!defined($params{'circa'})) {
-			$params{'circa'} //= '<i>c.</i>';
+		if(!defined($params->{'circa'})) {
+			$params->{'circa'} //= '<i>c.</i>';
 		}
 		if($language ne 'English') {
 			my $d = $date_parser->parse(date => $rc);
@@ -10899,9 +10906,9 @@ sub year
 			} elsif($ENV{'LANG'}) {
 				$d->set_locale($ENV{'LANG'});
 			}
-			return $params{'circa'} . ' ' . $d->strftime('%b %Y');
+			return $params->{'circa'} . ' ' . $d->strftime('%b %Y');
 		}
-		return $params{'circa'} . " $rc";
+		return $params->{'circa'} . " $rc";
 	}
 
 	if($string =~ /^\s*(.+\d\d)\s*\-\s*(.+\d\d)\s*$/) {
@@ -10915,8 +10922,8 @@ sub year
 
 	if(($string =~ /^bet (.+) and (.+)/i) ||
 	   ($string =~ /^Fro?m (.+) to (.+)/i)) {
-		my $from = year({ %params, string => $1 });
-		my $to = year({ %params, string => $2 });
+		my $from = year({ %{$params}, string => $1 });
+		my $to = year({ %{$params}, string => $2 });
 
 		if($language eq 'French') {
 			$from =~ s/^(en|c.) //;
@@ -10943,27 +10950,27 @@ sub year
 
 	if($string =~ /(.+)\s(\d{4})\/\d{2}/) {
 		my $year = $2 + 1;
-		complain({ person => $params{'person'}, warning => "old-style date ($string) should be in $year" });
+		complain({ person => $params->{'person'}, warning => "old-style date ($string) should be in $year" });
 		$string = "$1 $year";
 	}
 
 	if(($string =~ /^\d/) && ($string !~ /[a-z]$/i)) {
 		# Precise date
-		my $person = $params{'person'};
+		my $person = $params->{'person'};
 		if($string =~ /^31 Nov/) {
 			complain({ person => $person, warning => "$string is invalid, there are only 30 days in November" });
 			return;
 		}
 		if(my $d = date_parser_cached(date => $string)) {
 			$d = $dfn->parse_datetime($d->{'canonical'});
-			if(my $must_postdate = $params{'must_postdate'}) {
+			if(my $must_postdate = $params->{'must_postdate'}) {
 				complain({
 					person => $person,
 					warning => [ "Something is wrong with the date $string which should be after ", $must_postdate->strftime('%x') ],
 					# stack_trace => 1,
 				}) if($d < $must_postdate);
 			}
-			if(my $must_predate = $params{'must_predate'}) {
+			if(my $must_predate = $params->{'must_predate'}) {
 				complain({ person => $person, warning => "Something is wrong with the date $string which should be before " . $must_predate->strftime('%x') }) if($d > $must_predate);
 			}
 			if($ENV{'LC_TIME'}) {
@@ -11023,7 +11030,7 @@ sub year
 	}
 	if($string =~ /^bef.*\s+(\d{3,4})/i) {
 		if($string !~ /^bef.? (\d{3,4})/i) {
-			if(my $person = $params{'person'}) {
+			if(my $person = $params->{'person'}) {
 				complain({ person => $person, warning => "Date '$string' should start with 'Bef'" });
 			} else {
 				complain("Date '$string' should start with 'Bef'");
@@ -11038,7 +11045,7 @@ sub year
 		return "by $1";
 	}
 	if($string =~ /^By (\d{3,4})/i) {
-		if(my $person = $params{'person'}) {
+		if(my $person = $params->{'person'}) {
 			complain({ person => $person, warning => "says 'By' instead of 'Bef'" });
 		} else {
 			complain("says 'By' instead of 'Bef'");
@@ -11052,7 +11059,7 @@ sub year
 		return i18n({ format => 'after %s', args => $1 });
 	}
 
-	if($params{'nopreposition'}) {
+	if($params->{'nopreposition'}) {
 		return $string;
 	}
 	if($string =~ /^bef\s(.+)/i) {
@@ -15475,6 +15482,7 @@ from::from
 funeral::funeral
 grandchildren::grandchildren
 grandfather::grandfather
+grandmother::grandmother
 great-grandchildren::great-grandchildren
 had::had
 has been married::has been married
@@ -15492,6 +15500,7 @@ living person::living person
 married::married
 mother::mother
 nephew::nephew
+nephews::nephews
 of::of
 of %d children::of %d children
 older::older
