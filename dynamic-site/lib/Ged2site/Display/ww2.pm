@@ -1,6 +1,6 @@
-package Ged2site::Display::ww1;
+package Ged2site::Display::ww2;
 
-# Display the First World War page
+# Display the Second World War page
 
 use warnings;
 use strict;
@@ -15,7 +15,7 @@ sub html {
 
 	my $info = $self->{_info};
 	my $allowed = {
-		'page' => 'ww1',
+		'page' => 'ww2',
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
 	};
@@ -44,8 +44,8 @@ sub html {
 		} else {
 			next;
 		}
-		next if($yod < 1914);
-		next if($yod > 1918);
+		next if($yod < 1939);
+		next if($yod > 1945);
 
 		my $dcountry = $person->{'death_country'};
 		next unless($dcountry);
