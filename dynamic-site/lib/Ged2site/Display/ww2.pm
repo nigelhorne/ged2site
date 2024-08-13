@@ -53,7 +53,7 @@ sub html {
 			$dcountry = lc(country2code($dcountry));
 		}
 
-		next unless(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dcountry eq 'nl'));
+		next unless(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dcountry eq 'nl') || ($dcountry eq 'de') || ($dcountry eq 'it'));
 
 		push @wardead, $person;
 	}

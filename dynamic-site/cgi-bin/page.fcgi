@@ -92,6 +92,7 @@ use Ged2site::Display::intermarriages;
 use Ged2site::Display::locations;
 use Ged2site::Display::orphans;
 use Ged2site::Display::ww1;
+use Ged2site::Display::ww2;
 use Ged2site::Display::military;
 use Ged2site::Display::twins;
 use Ged2site::Display::reports;
@@ -455,6 +456,8 @@ sub doit
 			$display = Ged2site::Display::orphans->new($args);
 		} elsif($page eq 'ww1') {
 			$display = Ged2site::Display::ww1->new($args);
+		} elsif($page eq 'ww2') {
+			$display = Ged2site::Display::ww2->new($args);
 		} elsif($page eq 'military') {
 			$display = Ged2site::Display::military->new($args);
 		} elsif($page eq 'twins') {
@@ -580,6 +583,7 @@ sub choose
 			"/cgi-bin/page.fcgi?page=emmigrants\n",
 			"/cgi-bin/page.fcgi?page=intermarriages\n",
 			"/cgi-bin/page.fcgi?page=ww1\n",
+			"/cgi-bin/page.fcgi?page=ww2\n",
 			"/cgi-bin/page.fcgi?page=military\n",
 			"/cgi-bin/page.fcgi?page=orphans\n",
 			"/cgi-bin/page.fcgi?page=twins\n",

@@ -6704,6 +6704,34 @@ sub print_person
 					$phrase->append($place);
 				}
 				$end_of_sentence = 0;
+			} elsif($type eq 'Custom') {
+				# TODO: Custom records will be, by definition, difficult to parse and standardise.
+				if($end_of_sentence) {
+					$bio .= ' ' unless($bio =~ /\s$/);
+				} else {
+					$bio .= '. ';
+				}
+				if($phrase->length()) {
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+					$phrase = Data::Text->new();
+					@phrases = ();
+				} else {
+					$phrase->set(' ');
+					$bio_dt->append(' ');
+				}
+				if(my $date = year(record => $event)) {
+					$bio .= "$date " . lcfirst($pronoun);
+					$phrase->append("$date " . lcfirst($pronoun));
+				}
+				if(my $place = place(person => $person, record => $event)) {
+					if($phrase->length() == 0) {
+						$place = ucfirst($place);
+					}
+					$bio .= $place;
+					$phrase->append($place);
+				}
+				$end_of_sentence = 0;
 			# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 			} elsif(($type !~ /Census/) &&
 				($type ne 'Race') &&
