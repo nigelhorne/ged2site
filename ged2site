@@ -2038,11 +2038,12 @@ sub print_person
 					next if(abs($yod - $year) > 2);	# Died more than two years before the possible match was born
 					die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
 				}
-			} elsif(my $relationship = $possible->relationship($person)) {
+			} elsif(my $relationship = $person->relationship($possible)) {
 				next if($relationship eq 'father');
 				next if($relationship eq 'mother');
 				next if($relationship eq 'son');
 				next if($relationship eq 'daughter');
+				die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
 			} elsif($given ne '?') {
 				die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
 			}
@@ -10738,7 +10739,7 @@ sub Gedcom::Individual::relationship_up
 					}
 				}
 				if(!defined($rc)) {
-					# die $other->as_string(), ": $steps1, $steps2";
+					die $other->as_string({ nee => 1, middle_names => 1, include_years => 1 }), ": $steps1, $steps2";
 					complain({ person => $other, warning => "TODO: $steps1, $steps2" });
 				}
 				return $rc;
@@ -15721,6 +15722,7 @@ your::Ihr
 brother::bror
 child::barn
 father::far
+mother::mor
 sister::søster
 @@ Latin
 and::et
@@ -15731,7 +15733,8 @@ mother::mater
 sister::soror
 wife::uxor
 @@ Norwegian
-brother::far
+father::far
+mother::mor
 sister::søster
 @@ Spanish
 aunt::tia
