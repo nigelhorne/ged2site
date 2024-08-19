@@ -305,14 +305,14 @@ if($opts{'v'}) {
 	push @modules, 'Log::Any::Adapter';
 }
 
-my $libdir1 = File::Spec->catfile($FindBin::Bin, File::Spec->updir(), 'lib');
-if(-d $libdir1) {
-	unshift @INC, ($libdir1);
-}
-my $libdir2 = File::Spec->catfile(File::HomeDir->my_home(), 'lib');
-if(($libdir2 ne $libdir1) && (-d $libdir2)) {
-	unshift @INC, ($libdir2);
-}
+# my $libdir1 = File::Spec->catfile($FindBin::Bin, File::Spec->updir(), 'lib');
+# if(-d $libdir1) {
+	# unshift @INC, ($libdir1);
+# }
+# my $libdir2 = File::Spec->catfile(File::HomeDir->my_home(), 'lib');
+# if(($libdir2 ne $libdir1) && (-d $libdir2)) {
+	# unshift @INC, ($libdir2);
+# }
 
 foreach my $module(@modules) {
 	my $version;

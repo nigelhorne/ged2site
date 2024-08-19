@@ -277,7 +277,6 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 * [gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files
 * [gedcmp](https://github.com/nigelhorne/gedcmp) - compare two Gedcoms
-* [lib](https://github.com/nigelhorne/lib) - library of routines used by this package
 * [The Perl-GEDCOM Mailing List](https://www.miskatonic.org/pg/) - dead mailing list, you can check the archives
 
 ## LICENSE AND COPYRIGHT
