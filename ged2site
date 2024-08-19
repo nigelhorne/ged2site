@@ -7637,10 +7637,17 @@ sub print_person
 					$record = $cremation;
 				}
 				if(defined($record)) {
-					if($funeral && $record->date() && (datecmp($funeral->date(), $record->date()) == 0) && (my $place = place({ person => $person, record => $funeral }))) {
+					# Prefer burial date, but use funeral if that is available instead
+					if($funeral &&
+					   (!$record->date() || (datecmp($funeral->date(), $record->date()) == 0)) &&
+					   (my $place = place({ person => $person, record => $funeral }))) {
 						if(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
 							$phrase->append(" ($weather)");
 							$bio .= " ($weather)";
+						}
+						if($funeral->place() eq $record->place()) {
+							# Burial and funeral in the same town
+							$place = i18n(' at ') . $funeral->address() if($funeral->address());
 						}
 						$phrase->append(' following ' .
 							($person->pronoun() eq 'She' ? 'her' : 'his') .
