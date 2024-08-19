@@ -14859,18 +14859,22 @@ sub wide_to_html
 
 	# print STDERR __LINE__, ": ($string)\n";
 	if($string =~ /[^[:ascii:]]/) {
-		# print STDERR (unpack 'H*', $string);
-		print STDERR __LINE__, ': ';
-		print STDERR (sprintf '%v02X', $string), "\n";
-		my $i = 0;
-		while((my @call_details = caller($i++))) {
-			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		$string = HTML::Entities::encode($string);
+		if($string =~ /[^[:ascii:]]/) {
+			print STDERR (unpack 'H*', $string);
+			print STDERR __LINE__, ': ';
+			print STDERR (sprintf '%v02X', $string), "\n";
+			my $i = 0;
+			while((my @call_details = caller($i++))) {
+				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+			}
+			complain("TODO: wide_to_html($string)");
+			warn "TODO: wide_to_html($string)";
+			$string =~ s/[^[:ascii:]]/XXXXX/g;
+			die "BUG: wide_to_html($string)";
 		}
-		complain("TODO: wide_to_html($string)");
-		warn "TODO: wide_to_html($string)";
-		$string =~ s/[^[:ascii:]]/XXXXX/g;
-		die "BUG: wide_to_html($string)";
 	}
+
 	return $string;
 }
 
