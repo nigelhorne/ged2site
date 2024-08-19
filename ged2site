@@ -10054,10 +10054,8 @@ sub Gedcom::Individual::relationship_up
 	my $other = shift;
 	my @ancestors;
 
-	unless(@myancestors) {
-		@myancestors = $self->ancestors();
-	}
-	if($me && ($self eq $me)) {
+	if($me && ($self->xref() eq $me->xref())) {
+		# Cache myancestors since we call this a lot of times
 		unless(@myancestors) {
 			@myancestors = $me->ancestors();
 		}
@@ -10755,6 +10753,7 @@ sub Gedcom::Individual::relationship_down
 	my @descendant;
 
 	if($me && ($self->xref() eq $me->xref())) {
+		# Cache mydescendants since we call this a lot of times
 		unless(@mydescendants) {
 			# @mydescendants = $me->descendants();
 			@mydescendants = descendants($me);
