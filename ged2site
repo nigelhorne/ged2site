@@ -15313,6 +15313,10 @@ sub dbpedia
 									   ($uri =~ /Category:Defunct_companies/) ||
 									   ($uri =~ /Category:Songs_/) ||
 									   ($uri =~ /Category:Fictional/) ||
+									   ($uri =~ /Category:Public_holidays/) ||
+									   ($uri =~ /Category:Types_of_national_holidays/) ||
+									   ($uri =~ /Category:Events_in_/) ||
+									   ($uri =~ /Category:.+Parades$/) ||
 									   ($uri =~ /Category:Seismological_observatories/)) {
 										next RESULT;
 									}
@@ -15370,7 +15374,7 @@ sub dbpedia
 											}
 										}
 									}
-									warn ">>>>>>>>>> $uri";
+									warn ">>>>>>>>>> $uri" if($opts{'w'});
 								}
 							}
 							$Data::Dumper::Maxdepth = 0;
