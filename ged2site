@@ -2460,8 +2460,12 @@ sub print_person
 	if(scalar(@events) == 2) {
 		my $event = $events[1];
 		if(!ref($event)) {
-			# red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
-			pop @events;
+			if($event = $person->tag_record('EVEN', 2)) {
+				$events[1] = $event;
+			} else {
+				red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
+				pop @events;
+			}
 		}
 	}
 
