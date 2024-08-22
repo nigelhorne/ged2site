@@ -7246,6 +7246,9 @@ sub print_person
 					$funeral = $event;
 				} elsif($type eq 'Custom Marriage') {
 					die 'BUG: ', $person->as_string(), ' missed custom marriage' if(!defined($marriage));
+				} elsif($type eq 'Email') {
+					# The person's e-mail address is in $event->value()
+					next;
 				# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 				} elsif(($type !~ /Census/) &&
 					($type ne 'Register UK 1939') &&
@@ -7649,7 +7652,7 @@ sub print_person
 							$phrase->append(" ($weather)");
 							$bio .= " ($weather)";
 						}
-						if($funeral->place() eq $record->place()) {
+						if($record->place() && ($funeral->place() eq $record->place())) {
 							# Burial and funeral in the same town
 							$place = i18n(' at ') . $funeral->address() if($funeral->address());
 						}
@@ -7661,11 +7664,9 @@ sub print_person
 							($person->pronoun() eq 'She' ? 'her' : 'his') .
 							i18n(' funeral') .
 							$place;
-					} elsif($place = place({ person => $person, record => $record, nopreposition => 1 })) {
-						if(my $weather = weather({ person => $person, record => $record, meteo => $meteo })) {
-							$phrase->append(" ($weather)");
-							$bio .= " ($weather)";
-						}
+					} elsif(my $weather = weather({ person => $person, record => $record, meteo => $meteo })) {
+						$phrase->append(" ($weather)");
+						$bio .= " ($weather)";
 					}
 				} elsif(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
 					# Funeral record, but no burial or cremation
