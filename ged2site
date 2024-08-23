@@ -15322,6 +15322,7 @@ sub dbpedia
 									   ($uri =~ /Category:Types_of_national_holidays/) ||
 									   ($uri =~ /Category:Events_in_/) ||
 									   ($uri =~ /Category:.+Parades$/) ||
+									   ($uri =~ /Category:Geology_of_/) ||
 									   ($uri =~ /Category:Seismological_observatories/)) {
 										next RESULT;
 									}
