@@ -6841,11 +6841,13 @@ sub print_person
 						$mentioned_military = 1;
 					}
 
-					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
-						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
-						$notes =~ s/[\s\.]+$//;
-						$bio .= " (<em>$notes</em>)";
-						$phrase->append(" (<em>$notes</em>)");
+					if((!$mentioned_military) || (notes(record => $event) ne 'Royal Navy.')) {
+						if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
+							$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
+							$notes =~ s/[\s\.]+$//;
+							$bio .= " (<em>$notes</em>)";
+							$phrase->append(" (<em>$notes</em>)");
+						}
 					}
 					$end_of_sentence = 0;
 				} elsif($type eq 'Arrival') {
