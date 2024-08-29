@@ -6331,6 +6331,7 @@ sub print_person
 
 	if((scalar(@events) == 2) &&
 	   $events[0]->can('type') && $events[1]->can('type') &&
+	   $events[0]->type() && $events[1]->type() &&
 	   ((($events[0]->type() eq 'Arrival') && ($events[1]->type() eq 'Departure')) ||
 	   (($events[1]->type() eq 'Arrival') && ($events[0]->type() eq 'Departure')))) {
 		$bio .= '. ' if(!$end_of_sentence);
@@ -6777,7 +6778,7 @@ sub print_person
 					@phrases = ();
 				}
 			}
-			if($event->can('type') || $event->isa('Class::Simple::Readonly::Cached')) {
+			if($event->can('type')) {
 				my $type = $event->type();
 				if(!defined($type)) {
 					red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
@@ -6856,7 +6857,7 @@ sub print_person
 						next;
 					}
 					if(my $e = $events[$index]) {
-						if(ref($e) && ($e->type() eq 'Departure') && $event->date() && $e->date()) {
+						if(ref($e) && $e->type() && ($e->type() eq 'Arrival') && $event->date() && $e->date()) {
 							$previous = $event;
 							$prev_type = $event->type();
 							# FIXME: not all locations will be noted or notes printed
