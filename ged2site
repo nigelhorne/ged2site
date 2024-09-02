@@ -13996,7 +13996,8 @@ sub parse_date
 			if($date =~ /^(\d+)\-00\-00$/) {
 				$date = $1
 			}
-		} elsif($date =~ /^about(\d.+)/) {
+		} elsif($date =~ /^about\s?(\d.+)/) {
+			# FMP adds "about " instead of "abt " when you check "a guess"
 			# about1883
 			$date = $1;
 			$about = 1;
