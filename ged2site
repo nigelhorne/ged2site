@@ -6783,7 +6783,7 @@ sub print_person
 			$s = ($firstname // $pronoun) . ' ';
 			$s .= 'appeared ';
 
-			my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $events[0] });
+			my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $newspapers[0] });
 			my $title = $newspaper->title();
 			my $url = $newspaper->url();
 			if(defined($title) && ($title =~ /^https?:\/\//)) {
