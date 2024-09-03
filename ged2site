@@ -6764,8 +6764,10 @@ sub print_person
 		my @newspapers;
 		foreach my $event(@events) {
 			# This is a non-standard thing that FMP has invented :-(
-			if($event->type() eq 'Newspaper') {
-				push @newspapers, $event;
+			if(ref($event) && $event->can('type')) {
+				if(my $type = $event->type()) {
+					push @newspapers, $event if($type eq 'Newspaper');
+				}
 			}
 		}
 		if(scalar(@newspapers) == 1) {
@@ -6824,6 +6826,8 @@ sub print_person
 				my $string;
 				if(my $title = $newspaper->title()) {
 					$string = "in $title ";
+				} else {
+					$string = 'in an unknown newspaper ';
 				}
 				if(my $date = $newspaper->date()) {
 					$string .= "on $date ";
