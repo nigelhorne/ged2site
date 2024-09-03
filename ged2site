@@ -6845,7 +6845,7 @@ sub print_person
 
 			$phrase->appendconjunction(@newspaper_list);
 			push @phrases, $phrase;
-			$bio->append(conjunction(map { $_->as_string() } @phrases))->append('.  ');
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 			$phrase = Data::Text->new();
 		}
 
@@ -15592,6 +15592,7 @@ is::is
 is buried::is buried
 is married to::is married to
 later that same year::later that same year
+lived::lived
 living person::living person
 married::married
 mother::mother
@@ -15680,6 +15681,7 @@ is buried:F:est inhumée
 is married to:M:est marié à
 is married to:F:est mariée à
 later that same year::plus tard la même année
+lived::habitait
 living person::vivant
 married::a marié
 mother::mère
