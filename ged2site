@@ -6031,7 +6031,7 @@ sub print_person
 								if(my $sdod = dateofdeath($spouses[0])) {
 									$residencestring .= i18n(' following the death of ') .
 										(($sex eq 'M') ? 'his wife ' : 'her husband ') .
-										year(date => dateofdeath($spouses[0]));
+										year(date => $sdod);
 								}
 								delete $living_with{'daughter'};
 							}
@@ -14467,8 +14467,9 @@ sub between
 }
 
 # Create an array that will allow fast access to each element
-sub cache_array {
-	if(ref($_[0]) && ref($_[0] eq 'ARRAY')) {
+sub cache_array
+{
+	if(ref($_[0]) && (ref($_[0]) eq 'ARRAY')) {
 		return map { Class::Simple::Readonly::Cached->new({ object => $_, cache => {} }) } @_;
 	}
 	return @_;
