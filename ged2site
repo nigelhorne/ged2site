@@ -6761,10 +6761,95 @@ sub print_person
 			}
 		}
 	} elsif(scalar(@events) > 0) {
-		my $mentioned_military;
+		my @newspapers;
+		foreach my $event(@events) {
+			# This is a non-standard thing that FMP has invented :-(
+			if($event->type() eq 'Newspaper') {
+				push @newspapers, $event;
+			}
+		}
+		if(scalar(@newspapers) == 1) {
+			# FIXME: duplicate code with one event
+			my $s;
+			if($phrase->length()) {
+				push @phrases, $phrase;
+				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+				$phrase = Data::Text->new();
+				@phrases = ();
+			}
+			$bio .= '. ' if(!$end_of_sentence);
+			$s = ($firstname // $pronoun) . ' ';
+			$s .= 'appeared ';
+
+			my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $events[0] });
+			my $title = $newspaper->title();
+			my $url = $newspaper->url();
+			if(defined($title) && ($title =~ /^https?:\/\//)) {
+				if($url) {
+					$s .= "<a href=\"$url\">$title</a>";
+				} else {
+					$s .= "<a href=\"$title\">$title</a>";
+				}
+			}
+
+			if($title) {
+				$s .= "in $title";
+			} else {
+				$s .= 'in a newspaper'
+			}
+			if(my $date = $newspaper->date()) {
+				$s .= " on $date";
+			}
+			if(my $page = $newspaper->page()) {
+				$s .= " on page $page";
+			}
+			if((!defined($title)) && defined($url)) {
+				$s .= " (<a href=\"$url\">$url</a>)";
+			}
+			$bio .= $s;
+			$phrase->append($s);
+		} elsif(scalar(@newspapers) > 1) {
+			if($phrase->length()) {
+				push @phrases, $phrase;
+				$phrase = Data::Text->new();
+			}
+			if(scalar(@phrases) == 0) {
+				$phrase->set($firstname // $pronoun)->append(' ');
+			}
+			$bio .= ('appeared in ' . scalar(@newspapers) . ' newspapers');
+			$phrase->append('appeared in ' . scalar(@newspapers) . ' newspapers');
+			my @newspaper_list;
+			foreach my $n(@newspapers) {
+				my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $n });
+				my $string;
+				if(my $title = $newspaper->title()) {
+					$string = "in $title ";
+				}
+				if(my $date = $newspaper->date()) {
+					$string .= "on $date ";
+				}
+				if(my $page = $newspaper->page()) {
+					$string = "on page $page ";
+				}
+				if(my $url = $newspaper->url()) {
+					$string .= "($url)";
+				}
+				push @newspaper_list, $string;
+			}
+			$bio .= conjunction(@newspaper_list) . '. ';
+			$end_of_sentence = 1;
+
+			$phrase->appendconjunction(@newspaper_list);
+			push @phrases, $phrase;
+			$bio->append(conjunction(map { $_->as_string() } @phrases))->append('.  ');
+			$phrase = Data::Text->new();
+		}
+
 		my $index = 0;
+		my $mentioned_military;
 		my $previous;
 		my $prev_type;
+
 		foreach my $event(@events) {
 			$index++;
 			if(!ref($event)) {
@@ -7198,52 +7283,7 @@ sub print_person
 						$end_of_sentence = 0;
 					}
 				} elsif($type eq 'Newspaper') {
-					# FIXME: duplicate code with one event
-					# This is a non-standard thing that FMP has invented :-(
-					# FIXME: handle more than one newspaper
-					my $s;
-					if($phrase->length()) {
-						push @phrases, $phrase;
-						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
-						$phrase = Data::Text->new();
-						@phrases = ();
-					}
-					if((!defined($prev_type)) || ($prev_type ne 'Newspaper')) {
-						$bio .= '. ' if(!$end_of_sentence);
-						$s = ($firstname // $pronoun) . ' ';
-						$s .= 'appeared';
-					}
-					$s .= ' ';
-					my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $event });
-					my $title = $newspaper->title();
-					my $url = $newspaper->url();
-					if(defined($title) && ($title =~ /^https?:\/\//)) {
-						if($url) {
-							$s .= "<a href=\"$url\">$title</a>";
-						} else {
-							$s .= "<a href=\"$title\">$title</a>";
-						}
-					}
-
-					if($title) {
-						$s .= "in $title";
-					} else {
-						$s .= 'in a newspaper'
-					}
-					if(my $date = $newspaper->date()) {
-						$s .= " on $date";
-					}
-					if(my $page = $newspaper->page()) {
-						$s .= " on page $page";
-					}
-					if((!defined($title)) && defined($url)) {
-						$s .= " (<a href=\"$url\">$url</a>)";
-					}
-					$bio .= $s;
-					$phrase->append($s);
-
-					$previous = $event;
-					$prev_type = 'Newspaper';
+					next;	# handled earlier
 				} elsif($type eq 'Newspaper Death Notice') {
 					# More non-standard FMP stuff
 					# TODO - difficult to handle because the field is broken
