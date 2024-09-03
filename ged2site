@@ -6817,9 +6817,10 @@ sub print_person
 			}
 			if(scalar(@phrases) == 0) {
 				$phrase->set($firstname // $pronoun)->append(' ');
+				$bio .= '<p>' . ($firstname // $pronoun) . ' ';
 			}
-			$bio .= ('appeared in ' . scalar(@newspapers) . ' newspapers');
-			$phrase->append('appeared in ' . scalar(@newspapers) . ' newspapers');
+			$bio .= ('appeared in ' . scalar(@newspapers) . ' newspapers: ');
+			$phrase->append('appeared in ' . scalar(@newspapers) . ' newspapers: ');
 			my @newspaper_list;
 			foreach my $n(@newspapers) {
 				my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $n });
@@ -6833,19 +6834,19 @@ sub print_person
 					$string .= "on $date ";
 				}
 				if(my $page = $newspaper->page()) {
-					$string = "on page $page ";
+					$string .= "on page $page ";
 				}
 				if(my $url = $newspaper->url()) {
-					$string .= "($url)";
+					$string .= "(<a href=\"$url\">$url</a>)";
 				}
 				push @newspaper_list, $string;
 			}
-			$bio .= conjunction(@newspaper_list) . '. ';
+			$bio .= conjunction(@newspaper_list) . '.</p><p>';
 			$end_of_sentence = 1;
 
 			$phrase->appendconjunction(@newspaper_list);
 			push @phrases, $phrase;
-			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+			$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
 			$phrase = Data::Text->new();
 		}
 
@@ -8452,16 +8453,11 @@ sub print_person
 		if(($person->get_value('note')) &&
 		   (my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations }))) {
 			print "Handling notes\n" if($opts{'v'});
-			print $html '<h2>Notes</h2>';
-
-			print $html $notes;
-			my $n = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations, encode => 0 });
-			$n =~ s/"/&quot;/g;
-			if($n =~ /a href=&quot;/) {
-				# Reverse that encoding for hrefs
-				$n =~ s/<a href=&quot;(.+)&quot;>/<a href="$1">/g;
-			}
-			print $csv $n;
+			print $html "<h2>Notes</h2>$notes";
+			print $csv wide_to_html({
+				string => notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations, encode => 0 }),
+				keep_hrefs => 1
+			});
 			$notes = wide_to_xml($notes);
 			# $notes =~ s/</&lt;/g;
 			# $notes =~ s/>/&gt;/g;
