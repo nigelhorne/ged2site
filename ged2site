@@ -7133,7 +7133,7 @@ sub print_person
 						next;
 					}
 					if(my $e = $events[$index]) {
-						if(ref($e) && ($e->type() eq 'Arrival') && $event->date() && $e->date()) {
+						if(ref($e) && defined($e->type()) && ($e->type() eq 'Arrival') && $event->date() && $e->date()) {
 							$previous = $event;
 							$prev_type = $event->type();
 							# FIXME: not all locations will be noted or notes printed
@@ -8362,8 +8362,7 @@ sub print_person
 					});
 				}
 				foreach my $event(@events) {
-					if($event->can('type')) {
-						my $type = $event->type();
+					if($event->can('type') && defined(my $type = $event->type())) {
 						my $year;
 						if($type =~ /^Census U[KS] (\d{4})$/) {
 							$year = $1;
@@ -15519,7 +15518,7 @@ sub get_params
 
 	my %rc;
 
-	if(scalar(@_) % 2 == 0) {
+	if((scalar(@_) % 2) == 0) {
 		%rc = @_;
 	} elsif(scalar(@_) == 1) {
 		if(defined($default)) {
