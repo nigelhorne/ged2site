@@ -2121,9 +2121,10 @@ sub print_person
 		print $xml "\n\t\t<surname>", wide_to_xml($surname), '</surname>';
 	}
 
-	open(my $index_html, '>', 'static-site/index.html');
-	print $index_html '<html>';
+	my $filename = File::Spec->catfile('static-site', 'index.html');
 	if($me && ($person->xref() eq $me->xref())) {
+		open(my $index_html, '>', $filename);
+		print $index_html '<html>';
 		my $name = wide_to_html($person->as_string(nee => 1));
 
 		print $index_html "<head><title>The Family Tree $name</title>",
@@ -2137,18 +2138,24 @@ sub print_person
 		print $index_html '</head>',
 			"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body>";
 		print $xml "\n\t\t<home>1</home>";
+		print $index_html '</html>';
+		close $index_html;
 		print $csv '1!';
 	} else {
-		print $index_html "<head><title>The Family Tree $name</title>",
-			'<meta http-equiv="Refresh" content="1;URL=history.html">',
-			'</head>',
-			"<body><h1>Family History</h1><a href=\"history.html\">Family History</a></body>";
+		if(!-e $filename) {
+			open(my $index_html, '>', $filename);
+				print $index_html '<html>';
+			print $index_html "<head><title>The Family Tree $name</title>",
+				'<meta http-equiv="Refresh" content="1;URL=history.html">',
+				'</head>',
+				"<body><h1>Family History</h1><a href=\"history.html\">Family History</a></body>";
+			print $index_html '</html>';
+			close $index_html;
+		}
 		print $csv '0!';
 	}
-	print $index_html '</html>';
-	close $index_html;
 
-	my $filename = File::Spec->catfile('static-site', make_filename_from_person(person => $person));
+	$filename = File::Spec->catfile('static-site', make_filename_from_person(person => $person));
 	if(-e $filename) {
 		die "BUG: ensure filenames are unique ($filename)";
 	}
@@ -8740,7 +8747,7 @@ sub print_person
 								my $escaped_file = $file;
 								$escaped_file =~ s/&/&amp;/g;
 								if($title) {
-									print $html "<a href=\"$file\" target=\"_blank\">",
+									print $html "<a href=\"$escaped_file\" target=\"_blank\">",
 										"<img src=\"$file\" alt=\"$title\" width=\"175\">",
 										'</a>';
 									print $csv "$file---$title---0----";
