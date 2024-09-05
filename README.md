@@ -79,8 +79,11 @@ To install by hand you'll either have to use local::lib or perlbrew.
 Of course you could also run ged2site as root,
 but I strongly advise you don't do that.
 
-You'll also need to install
-[Library](https://github.com/nigelhorne/lib) - library of code common with
+You can also try
+```cpan -i lazy && perl -Mlazy ged2site && perl -Mlazy dynamic/cgi-bin/page.cgi```
+though I've not tested that.
+
+You'll also need to install to get calendars to appear on the dynamic sites
 [gedcom](https://github.com/nigelhorne/gedcom).
 
 On FreeBSD you'll need to
