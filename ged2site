@@ -2146,8 +2146,14 @@ sub print_person
 			open(my $index_html, '>', $filename);
 				print $index_html '<html>';
 			print $index_html "<head><title>The Family Tree $name</title>",
-				'<meta http-equiv="Refresh" content="1;URL=history.html">',
-				'</head>',
+				'<meta http-equiv="Refresh" content="1;URL=history.html">';
+			if(my $lang = $ENV{'LANG'}) {
+				$lang =~ s/\.UTF-8//;
+				$lang =~ tr/_/-/;
+				$lang = lc($lang);
+				print $index_html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
+			}
+			print $index_html '</head>',
 				"<body><h1>Family History</h1><a href=\"history.html\">Family History</a></body>";
 			print $index_html '</html>';
 			close $index_html;
