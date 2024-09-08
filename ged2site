@@ -1720,8 +1720,16 @@ if($opts{'w'}) {
 					$summary = 'Child born before date of death';
 				} elsif($warning =~ / assuming country of birth is /) {
 					$summary = 'Guessed at country of birth';
+				} elsif($warning =~ /^Child .+ which is before the date of birth of'/) {
+					$summary = 'Child born before parent';
+				} elsif($warning =~ /^Moved from .+ and back again/) {
+					$summary = 'Moved from A to B and back again - check for correctness';
+				} elsif($warning =~ /^Only \d.+ years old at time of birth of their child/) {
+					$summary = 'Child born to very young parent';
 				} elsif($warning =~ /but the addresses don't match or aren't detailed enough to be sure$/) {
 					$summary = 'Unsure if living with parent in childhood or not';
+				} elsif($warning =~ /^The places .+ seem similar/) {
+					$summary = 'Similar sounding place names - check for typos';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
