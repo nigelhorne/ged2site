@@ -16,7 +16,7 @@
 # TODO: Can I use a kdTree to determine events or residences close by each other?
 # TODO: add male and female average lifespan to the facts
 # TODO: finish -x option to create a blog of differences over time of
-#	changes to the tree
+#	changes to the tree (how do I check it's the same family tree, though?)
 # TODO: look at census records to note the different places that a person's children
 #	were born and note if the residences of the person don't include those places
 # TODO: Create occupations database
@@ -1170,7 +1170,8 @@ if(scalar(%censuses)) {
 	if($gedcal) {
 		print $html ' | [ <a href="calendar/index.html">Calendar</a> ]';
 	}
-	print $html ' | [ <a href="history.html">Family History</a> ]</center>',
+	print $html ' | [ <a href="calendar/changes.html">Blog</a> ]',
+		' | [ <a href="history.html">Family History</a> ]</center>',
 		'<br><ul>';
 
 	open($csv, '>', 'dynamic-site/data/censuses.psv');
@@ -1339,8 +1340,22 @@ if(scalar(%orphans)) {
 	undef %orphans;
 }
 
-if(scalar(%changes)) {
+if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 	print "Adding to change blog\n";
+	print $fout "<html><head><title>Family History Blog $html_name</title></head>",
+		"<body><center><h1>Family History Blog $html_name</h1>";
+	if($me) {
+		print $fout '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
+	}
+	print $fout '[ <a href="surnames.html">Surnames Index</a> ]';
+	if(-r 'static-site/censuses.html') {
+		print $fout ' | [ <a href="censuses.html">Census Index</a> ]';
+	}
+	if($opts{'w'}) {
+		print $fout ' | [ <a href="todo.html">Errors</a> ]';
+	}
+	print $fout ' | [ <a href="calendar/index.html">Calendar</a> ]</center><br>',
+		'<ul>';
 
 	# Keep a copy in the current directory so that it's not trashed
 	# when the data directory is cleared
@@ -1352,17 +1367,30 @@ if(scalar(%changes)) {
 		print $log "$date|\"",
 			$person->xref(),
 			"\"|\"Added new person\"\n";
+		print $fout '<li><a href="',
+			make_filename_from_person(person => $person), '">',
+			$person->as_string(nee => 1), '</a>: ',
+			'Added new person',
+			'</li>';
 	}
 	while(my $change = shift(@{$changes{'changes'}})) {
+		my $person = $change->person();
 		print $log "$date|\"",
-			$change->person()->xref(),
+			$person->xref(),
 			'"|"',
 			$change->change(),
 			"\"\n";
+		print $fout '<li><a href="',
+			make_filename_from_person(person => $person), '">',
+			$person->as_string(nee => 1), '</a>: ',
+			$change->change(),
+			'</li>';
 	}
 
+	close($fout);
 	close($log);
 	link('changes.psv', 'dynamic-site/data/changes.psv');
+	undef %changes;
 }
 
 print "Creating intermarriages database\n";
@@ -9792,6 +9820,7 @@ sub print_person
 			}
 		} else {
 			push @{$changes{'added_people'}}, $person;
+			$person_in_last_run = 1;	# Avoid adding this person to the blog twice
 		}
 	}
 
