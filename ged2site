@@ -6113,7 +6113,7 @@ sub print_person
 							}
 
 							# TODO: go through the keys when I'm sure it's all sensible
-							foreach my $r('aunt', 'uncle', 'nephew', 'brother-in-law', 'sister-in-law', 'grandfather', 'grandmother') {
+							foreach my $r('aunt', 'uncle', 'nephew', 'brother-in-law', 'sister-in-law', 'grandfather', 'grandmother', 'cousin') {
 								next unless($living_with{$r});
 
 								if(ref($living_with{$r}) eq 'ARRAY') {
@@ -14555,6 +14555,7 @@ sub weather
 	return if($date !~ /^\d/);
 
 	if((my $d = $dfg->parse_datetime(date => $date)) &&
+	   $record->place() &&
 	   (my $location = get_location($record->place()))) {
 		my $weather = $meteo->weather($location, $d->strftime('%F'));
 
@@ -15575,6 +15576,8 @@ brothers::brothers
 check out %s::check out %s
 child::child
 children::children
+cousin::cousin
+cousins::cousins
 daughter::daughter
 daughters::daughters
 died::died
@@ -15665,6 +15668,8 @@ brother-in-law::beau-frère
 check out %s::visitez %s
 child::enfant
 children::enfants
+cousin:M:cousin germain
+cousin:F:cousine germaine
 daughter::fille
 died:M:est mort
 died:F:est morte
@@ -15753,6 +15758,8 @@ brothers::Brüder
 check out %s::Schau mal bei %s
 child::Kind
 children::Kinder
+cousin:M:Cousin
+cousin:F:Cousine
 daughter::Tochter
 died::starb
 during %s life:M:während seines Lebens
