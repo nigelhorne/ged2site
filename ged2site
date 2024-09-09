@@ -1359,14 +1359,22 @@ if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 
 	# Keep a copy in the current directory so that it's not trashed
 	# when the data directory is cleared
+	# TODO: keep old records on the static site
 
 	open(my $log, '>>', 'changes.psv');
 
 	my $date = DateTime->now(time_zone => 'local')->ymd('');
+	my $last_date = '';
 	while(my $person = shift(@{$changes{'added_people'}})) {
 		print $log "$date|\"",
 			$person->xref(),
 			"\"|\"Added new person\"\n";
+		if($date ne $last_date) {	# FIXME - old records not kept on the static site
+			# print $fout "<h1>$date</h1>";
+			$last_date = $date;
+			my $d = DateTime->now(time_zone => 'local')->strftime('%e %b %Y');
+			print $fout "<h1>$d</h1>";
+		}
 		print $fout '<li><a href="',
 			make_filename_from_person(person => $person), '">',
 			wide_to_html($person->as_string(nee => 1)), '</a>: ',
@@ -1380,6 +1388,12 @@ if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 			'"|"',
 			$change->change(),
 			"\"\n";
+		if($date ne $last_date) {	# FIXME - old records not kept on the static site
+			# print $fout "<h1>$date</h1>";
+			$last_date = $date;
+			my $d = DateTime->now(time_zone => 'local')->strftime('%e %b %Y');
+			print $fout "<h1>$d</h1>";
+		}
 		print $fout '<li><a href="',
 			make_filename_from_person(person => $person), '">',
 			wide_to_html($person->as_string(nee => 1)), '</a>: ',
@@ -1430,8 +1444,11 @@ if(-r 'static-site/censuses.html') {
 if($opts{'w'}) {
 	print $html '[ <a href="todo.html">Errors</a> ] | ';
 }
+
 print $html '[ <a href="calendar/index.html">Calendar</a> ]',
-	' | [ <a href="history.html">Family History</a> ]</center><br><ul>';
+	' | [ <a href="calendar/changes.html">Blog</a> ]',
+	' | [ <a href="history.html">Family History</a> ]</center>',
+	'<br><ul>';
 
 open($csv, '>', 'dynamic-site/data/surnames.csv');
 print $csv "entry!surname!filename!person\n";
