@@ -383,7 +383,7 @@ my %all_military;
 my %all_occupations;
 my %orphans;
 my %images;
-my %all_locations;
+my %all_locations;	# Maps years to an array of hashes
 my %all_events;	# Maps events to people
 my %all_dates;	# Maps dates to the hashref from Genealogy::Gedcom::Date
 my %name_date;	# Maps first names to quarter century
@@ -1369,7 +1369,7 @@ if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 			"\"|\"Added new person\"\n";
 		print $fout '<li><a href="',
 			make_filename_from_person(person => $person), '">',
-			$person->as_string(nee => 1), '</a>: ',
+			wide_to_html($person->as_string(nee => 1)), '</a>: ',
 			'Added new person',
 			'</li>';
 	}
@@ -1382,7 +1382,7 @@ if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 			"\"\n";
 		print $fout '<li><a href="',
 			make_filename_from_person(person => $person), '">',
-			$person->as_string(nee => 1), '</a>: ',
+			wide_to_html($person->as_string(nee => 1)), '</a>: ',
 			$change->change(),
 			'</li>';
 	}
@@ -5247,7 +5247,7 @@ sub print_person
 									'latitude' => $location->lat(),
 									'longitude' => $location->long(),
 									'location' => $location
-								};
+								}
 							}
 						}
 						if($opts{'w'} && $marriage_dt && ($rdate_dt > $marriage_dt)) {
@@ -6467,6 +6467,7 @@ sub print_person
 			}
 		}
 		if($event->can('type') || $event->isa('Class::Simple::Readonly::Cached')) {
+			# FIXME:  a lot of this code is duplicated with scalar(@events) > 1
 			my $type = $event->type();
 			if(!defined($type)) {
 				red_warning({ person => $person, warning => "Can't determine type of event, or the event type is empty" });
@@ -6793,6 +6794,14 @@ sub print_person
 					$phrase->append($place);
 				}
 				$end_of_sentence = 0;
+			} elsif($type eq 'Unknown') {
+				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
+					$notes = ucfirst($notes);
+					$bio .= " ($notes)";
+					$bio =~ s/\s$//;
+					$phrase->rtrim()->append(" ($notes)");
+					$end_of_sentence = 0;
+				}
 			# } elsif(($type !~ /^Census U[KS] \d{4}$/) &&
 			} elsif(($type !~ /Census/) &&
 				($type ne 'Race') &&
@@ -6801,14 +6810,93 @@ sub print_person
 				($type ne 'Register UK 1939')) {
 
 				complain({ person => $person, warning => "Unhandled event type: $type" });
-				die 'TODO: ', $person->as_string({ nee => 1, include_years => 1, middle_names => 1 }), " event type $type";
-				if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
-					$notes = ucfirst($notes);
-					$bio .= " ($notes)";
-					$bio =~ s/\s$//;
-					$phrase->rtrim()->append(" ($notes)");
+				# die 'TODO: ', $person->as_string({ nee => 1, include_years => 1, middle_names => 1 }), " event type $type";
+				my $notes = $type;
+				if(my $n = notes(record => $event, note_locations => \@note_locations)) {
+					$n =~ s/[\s\.]+$//;
+					$notes = "$type: $n";
+				}
+				my $date = year(record => $event);
+				$bio =~ s/\s$//;
+				if($end_of_sentence) {
+					if($date) {
+						$bio .= ' ' . ucfirst($notes) . " $date. ";
+					} else {
+						$bio .= ' ' . ucfirst($notes) . '. ';
+					}
+				} else {
+					$notes = lcfirst($notes);
+					if($date) {
+						$bio .= " ($date, $notes)";
+					} else {
+						$bio .= " ($notes)";
+					}
 					$end_of_sentence = 0;
 				}
+				if($phrase->rtrim()->length()) {
+					$notes = lcfirst($notes);
+					if($date) {
+						$phrase->append(" ($date, $notes)");
+					} else {
+						$phrase->append(" ($notes)");
+					}
+				} else {
+					if($date) {
+						$phrase->set(' ' . ucfirst($notes) . " $date");
+					} else {
+						$phrase->set(' ' . ucfirst($notes));
+					}
+				}
+
+				# Try hard to get some information
+				my @objects = $event->obje();
+				foreach my $o(@objects) {
+					# If there's a hyperlink in the object, honour that
+					my $obje;
+					if($o->isa('Gedcom::Record')) {
+						$obje = $o;	# e.g. Ancestry
+					} else {
+						$obje = $ged->resolve_xref($o);	# e.g. FMP
+					}
+					next if(!defined($obje));
+					next if(!ref($obje));
+					my $title = $obje->file->title();
+					foreach my $item($obje->items()) {
+						next if($item->tag() ne '_ORIG');
+						foreach my $item2($item->items()) {
+							next if($item2->tag() ne '_URL');
+							my $link = "$title (" . $item2->value() . ')';
+							$bio .= $link;
+							$phrase->append($link);
+							last;
+						}
+					}
+					# If there's a location in the object, add that to the known locations
+					if((my $place = $obje->place()) && (my $date = $obje->date())) {
+						my $dt = date_to_datetime($date);
+						my $strftime = $dt->strftime('%x');
+						my $year = $dt->year();
+						$year =~ s/^0+//;	# Strip leading zeros
+						if(my $location = get_location($place)) {
+							push @{$all_locations{$year}}, {
+								'record' => $obje,
+								'person' => $person,
+								'date' => $strftime,
+								'latitude' => $location->lat(),
+								'longitude' => $location->long(),
+								'location' => $location
+							};
+							# Add it to the map of where a person has been
+							$place_records{"$title: " . year({ person => $person, string => $date })} = $place;
+							die "DEBUGGING: $place";
+						}
+					}
+				}
+				$notes = ucfirst($notes);
+				$bio .= " ($notes)";
+				$bio =~ s/\s$//;
+				$phrase->rtrim()->append(" ($notes)");
+				$end_of_sentence = 0;
 			}
 		}
 	} elsif(scalar(@events) > 0) {
@@ -6910,7 +6998,7 @@ sub print_person
 			$index++;
 			if(!ref($event)) {
 				my $e = $person->tag_record('EVEN', $index);
-				if(ref($e) eq 'Gedcom::Record') {
+				if($e->isa('Gedcom::Record')) {
 					$event = $e;
 				} else {
 					red_warning({ person => $person, warning => "Event record is just description ($event), information has been lost" });
@@ -7358,45 +7446,107 @@ sub print_person
 					($type ne 'Race') &&
 					($type ne 'Hospitalisation')) {
 					complain({ person => $person, warning => "Unhandled event type: $type" });
-					die 'TODO: ', $person->as_string({ nee => 1, include_years => 1, middle_names => 1 }), " event type $type";
-					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
-						$notes =~ s/[\s\.]+$//;
-						my $date = year(record => $event);
-						$bio =~ s/\s$//;
-						if($end_of_sentence) {
-							if($date) {
-								$bio .= ' ' . ucfirst($notes) . " $date. ";
-							} else {
-								$bio .= ' ' . ucfirst($notes) . '. ';
-							}
-						} else {
-							$notes = lcfirst($notes);
-							if($date) {
-								$bio .= " ($date, $notes)";
-							} else {
-								$bio .= " ($notes)";
-							}
-							$end_of_sentence = 0;
-						}
-						if($phrase->rtrim()->length()) {
-							$notes = lcfirst($notes);
-							if($date) {
-								$phrase->append(" ($date, $notes)");
-							} else {
-								$phrase->append(" ($notes)");
-							}
-						} else {
-							if($date) {
-								$phrase->set(' ' . ucfirst($notes) . " $date");
-							} else {
-								$phrase->set(' ' . ucfirst($notes));
-							}
-						}
-						push @phrases, $phrase;
-						$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
-						$phrase = Data::Text->new();
-						@phrases = ();
+					# die 'TODO: ', $person->as_string({ nee => 1, include_years => 1, middle_names => 1 }), " event type $type";
+					# TODO: How do I get the WWW information from this?
+					# 1 EVEN
+					# 2 TYPE Feb 1, 1957 The Cumberland News
+					# 2 DATE 1 Feb 1957
+					# 2 PLAC Cumberland, Maryland
+					# 2 SOUR @S1376455579@
+					# 3 PAGE Feb 1, 1957 The Cumberland News 1 Feb 1957
+					# 3 DATA
+					# 4 WWW https://www.newspapers.com/clip/20559043/feb_1_1957_the_cumberland_news/?xid=637
+					# 3 OBJE @O163@
+					# 2 OBJE @O163@
+
+					my $notes = $type;
+					if(my $n = notes(record => $event, note_locations => \@note_locations)) {
+						$n =~ s/[\s\.]+$//;
+						$notes = "$type: $n";
 					}
+					my $date = year(record => $event);
+					$bio =~ s/\s$//;
+					if($end_of_sentence) {
+						if($date) {
+							$bio .= ' ' . ucfirst($notes) . " $date. ";
+						} else {
+							$bio .= ' ' . ucfirst($notes) . '. ';
+						}
+					} else {
+						$notes = lcfirst($notes);
+						if($date) {
+							$bio .= " ($date, $notes)";
+						} else {
+							$bio .= " ($notes)";
+						}
+						$end_of_sentence = 0;
+					}
+					if($phrase->rtrim()->length()) {
+						$notes = lcfirst($notes);
+						if($date) {
+							$phrase->append(" ($date, $notes)");
+						} else {
+							$phrase->append(" ($notes)");
+						}
+					} else {
+						if($date) {
+							$phrase->set(' ' . ucfirst($notes) . " $date");
+						} else {
+							$phrase->set(' ' . ucfirst($notes));
+						}
+					}
+
+					# Try hard to get some information
+					my @objects = $event->obje();
+					foreach my $o(@objects) {
+						# If there's a hyperlink in the object, honour that
+						my $obje;
+						if($o->isa('Gedcom::Record')) {
+							$obje = $o;	# e.g. Ancestry
+						} else {
+							$obje = $ged->resolve_xref($o);	# e.g. FMP
+						}
+						next if(!defined($obje));
+						next if(!ref($obje));
+						my $title = $obje->file->title();
+						foreach my $item($obje->items()) {
+							next if($item->tag() ne '_ORIG');
+							foreach my $item2($item->items()) {
+								next if($item2->tag() ne '_URL');
+								my $link = ' - <a href="' .
+									$item2->value() .
+									"\">$title</a>";
+								$bio .= $link;
+								$phrase->append($link);
+								last;
+							}
+						}
+						# If there's a location in the object, add that to the known locations
+						if((my $place = $obje->place()) && (my $date = $obje->date())) {
+							my $dt = date_to_datetime($date);
+							my $strftime = $dt->strftime('%x');
+							my $year = $dt->year();
+							$year =~ s/^0+//;	# Strip leading zeros
+							if(my $location = get_location($place)) {
+								push @{$all_locations{$year}}, {
+									'record' => $obje,
+									'person' => $person,
+									'date' => $strftime,
+									'latitude' => $location->lat(),
+									'longitude' => $location->long(),
+									'location' => $location
+								};
+								# Add it to the map of where a person has been
+								$place_records{"$title: " . year({ person => $person, string => $date })} = $place;
+								die "DEBUGGING: $place";
+							}
+						}
+					}
+					push @phrases, $phrase;
+					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+					$phrase = Data::Text->new();
+					@phrases = ();
+
 				}
 			}
 		}
@@ -10423,6 +10573,7 @@ sub Gedcom::Individual::relationship_up
 					12 << 24 | 4 => 'third cousin eight-times-removed',
 					12 << 24 | 5 => 'fourth cousin seven-times-removed',
 					13 << 24 | 1 => 'eleven times great-uncle',
+					13 << 24 | 2 => 'first cousin eleven-times-removed',
 					14 << 24 | 1 => 'twelve times great-uncle',
 					15 << 24 | 1 => 'thirteen times great-uncle',
 					16 << 24 | 1 => 'fourteen times great-uncle',
@@ -10652,6 +10803,7 @@ sub Gedcom::Individual::relationship_up
 					12 << 24 | 4 => 'third cousin eight-times-removed',
 					12 << 24 | 5 => 'fourth cousin seven-times-removed',
 					13 << 24 | 1 => 'eleven times great-aunt',
+					13 << 24 | 2 => 'first cousin eleven-times-removed',
 					14 << 24 | 1 => 'twelve times great-aunt',
 					15 << 24 | 1 => 'thirteen times great-aunt',
 					16 << 24 | 1 => 'fourteen times great-aunt',
@@ -10728,6 +10880,7 @@ sub Gedcom::Individual::relationship_up
 					12 << 24 | 4 => 'third cousin eight-times-removed',
 					12 << 24 | 5 => 'fourth cousin seven-times-removed',
 					13 << 24 | 1 => 'eleven times great-aunt',
+					13 << 24 | 2 => 'first cousin eleven-times-removed',
 					14 << 24 | 1 => 'twelve times great-aunt',
 					15 << 24 | 1 => 'thirteen times great-aunt',
 					16 << 24 | 1 => 'fourteen times great-aunt',
