@@ -6197,15 +6197,17 @@ sub print_person
 					if(!defined($text)) {
 						die $person->as_string({ include_years => 1 }), ': BUG: residencestring array is unexpectedly empty';
 					}
-					$bio_dt->append("$text. ");
+					$bio_dt->append("$text.");
 					$phrase = Data::Text->new();
 					@phrases = ();
+					$start_of_paragraph = 0;
 				}
 
 				my $first = $residencelist[0];
 				if((scalar(@residencelist) == 1) && (my $rdate = $first->date())) {
-					$bio .= ' ' . ucfirst(year({ person => $person, date => $rdate, circa => 'About' }));
-					$phrase->set(ucfirst(year({ person => $person, date => $rdate, circa => 'About' })));
+					my $date = ucfirst(year({ person => $person, date => $rdate, circa => 'About' }));
+					$bio .= " $date";
+					$phrase->set(" $date");
 				} else {
 					if(!$start_of_paragraph) {
 						$bio .= '</p><p>';
