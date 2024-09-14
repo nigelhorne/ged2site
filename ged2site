@@ -14053,7 +14053,7 @@ sub get_marriage
 					$event = $e;
 				}
 			}
-			if($event->can('type') && defined($event->type()) &&
+			if(ref($event) && $event->can('type') && defined($event->type()) &&
 			  ($event->type() eq 'Custom Marriage')) {
 				# FindMyPast
 				return $event;
