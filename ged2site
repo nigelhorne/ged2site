@@ -1375,7 +1375,7 @@ if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 	while(my $person = shift(@{$changes{'added_people'}})) {
 		print $log "$date|\"",
 			$person->xref(),
-			"\"|\"Added new person\"\n";
+			"\"|\"New person\"\n";
 		if($date ne $last_date) {	# FIXME - old records not kept on the static site
 			# print $fout "<h1>$date</h1>";
 			$last_date = $date;
@@ -1385,7 +1385,7 @@ if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 		print $fout '<li><a href="',
 			make_filename_from_person(person => $person), '">',
 			wide_to_html($person->as_string(nee => 1)), '</a>: ',
-			'Added new person',
+			'New person',
 			'</li>';
 	}
 	while(my $change = shift(@{$changes{'changes'}})) {
