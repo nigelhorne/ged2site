@@ -64,7 +64,7 @@
 				[% FOREACH surname IN surnames %]
 					[% IF surname.surname.substr(0,1) != initial %]
 						[% IF initial %]
-							</ul>
+							</div>
 						[% END %]
 						[% IF surname.surname == 'UNKNOWN' %]
 							[% initial = '?' %]
@@ -75,14 +75,16 @@
 							-->
 							[% initial = surname.surname.substr(0,1) %]
 						[% END %]
-						<h2>[% initial %]</h2>
-						<ul id="nav">
+						<br>
+						<button class="collapsible">[% initial %]</button>
+                                                <div class="content">
+						<p>
 					[% END %]
 					<li>
 						<a href="?page=surnames&amp;surname=[%- surname.surname | uri -%]">[% surname.surname %]</a>
 					</li>
 				[% END %]
-				</ul>
+				</div>
 			[% ELSIF people %]
 				<br>
 				<ul id="nav">

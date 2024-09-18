@@ -144,11 +144,11 @@ myButton:active {
 
 /* https://www.w3schools.com/howto/howto_js_collapsible.asp */
 .collapsible {
-  background-color: #777;
+  background-color: #378de5;
   color: white;
   cursor: pointer;
   padding: 18px;
-  width: 100%;
+  width: 10%;
   border: none;
   text-align: left;
   outline: none;
