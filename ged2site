@@ -10054,9 +10054,6 @@ sub Gedcom::Individual::as_string
 
 		# See https://github.com/pjcj/Gedcom.pm/issues/28
 		$suffix = get_value({ person => $self, value => 'NAME NSFX' });
-		if($suffix) {
-			complain("TODO: add suffix: $name, $suffix");
-		}
 	}
 
 	$name =~ s/\///g;
@@ -10216,6 +10213,10 @@ sub Gedcom::Individual::as_string
 			}
 		}
 
+		if($suffix) {
+			$rc .= " $suffix";
+		}
+
 		$rc .= ' ' if($yob || $yod);
 
 		if($yob) {
@@ -10236,6 +10237,9 @@ sub Gedcom::Individual::as_string
 
 	$rc =~ tr/"/'/;	# fix issues with Graphviz and others
 
+	if($suffix) {
+		return "$rc $suffix";
+	}
 	return $rc;
 }
 
