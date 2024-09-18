@@ -33,6 +33,7 @@
 # TODO: collapsable lists: https://www.w3schools.com/howto/howto_js_collapsible.asp
 # TODO: is there anything that could be better modeled in a 3D way?
 # TODO: data analysis of notes to find extra information
+# TODO: prune old entries from changes.psv (should be configurable how long ago)
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -1357,6 +1358,12 @@ if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 	print $fout ' | [ <a href="calendar/index.html">Calendar</a> ]</center><br>',
 		'<ul>';
 
+	if(!-r 'changes.psv') {
+		# First run - put in the heading row
+		open(my $log, '>', 'changes.psv');
+		print $log "date|xref|changes\n";
+		close $log;
+	}
 	# Keep a copy in the current directory so that it's not trashed
 	# when the data directory is cleared
 	# TODO: keep old records on the static site
@@ -9799,7 +9806,7 @@ sub print_person
 		my $xref = $person->xref();
 		my $military_count = 0;
 		foreach my $event(@events) {
-			if((ref($event) eq 'Gedcom::Record') && (my $type = $event->type())) {
+			if($event->can('type') && (my $type = $event->type())) {
 				if($type eq 'Military service') {
 					if($military_count == 0) {
 						print $xml "\n\t\t<military>";
@@ -9905,12 +9912,13 @@ sub print_person
 
 	$printed{$person->xref()} = 1;
 
-	# Find this person's previous record to put changes into the blog
-	my $person_in_last_run;
-	my $birth_in_last_run;
-	my $marriage_in_last_run;
-	my $death_in_last_run;
 	if($current_people) {
+		# Find this person's previous record to put changes into the blog
+		my $person_in_last_run;
+		my $birth_in_last_run;
+		my $marriage_in_last_run;
+		my $death_in_last_run;
+
 		foreach my $p($current_people->root()->children('person')) {
 			my $entry = $p->first_child('xref');
 			next if($entry->first_child()->pcdata() ne $person->xref());
@@ -9939,65 +9947,65 @@ sub print_person
 			$person_in_last_run = $p;
 			last;
 		}
-	}
 
-	# Add entries to the changes.psv file
-	if($opts{'l'} || !$is_alive) {
-		if(defined($person_in_last_run)) {
-			if($birth_dt) {
-				my $b = $birth_dt->strftime('%Y/%m/%d');
-				my $change;
-				if($birth_in_last_run) {
-					if($b ne $birth_in_last_run) {
-						$change = "Changed date of birth from $birth_in_last_run to $b";
+		# Add entries to the changes.psv file
+		if($opts{'l'} || !$is_alive) {
+			if(defined($person_in_last_run)) {
+				if($birth_dt) {
+					my $b = $birth_dt->strftime('%Y/%m/%d');
+					my $change;
+					if($birth_in_last_run) {
+						if($b ne $birth_in_last_run) {
+							$change = "Changed date of birth from $birth_in_last_run to $b";
+						}
+					} else {
+						$change = "Added date of birth as $b";
 					}
-				} else {
-					$change = "Added date of birth as $b";
-				}
-				if($change) {
-					my $p = Class::Simple->new();
-					$p->readonly_person($person);
-					$p->readonly_change($change);
-					push @{$changes{'changes'}}, $p;
-				}
-			}
-			if($marriage_dt) {
-				my $m = $marriage_dt->strftime('%Y/%m/%d');
-				my $change;
-				if($marriage_in_last_run) {
-					if($m ne $marriage_in_last_run) {
-						$change = "Changed date of marriage from $marriage_in_last_run to $m";
+					if($change) {
+						my $p = Class::Simple->new();
+						$p->readonly_person($person);
+						$p->readonly_change($change);
+						push @{$changes{'changes'}}, $p;
 					}
-				} else {
-					$change = "Added date of marriage as $m";
 				}
-				if($change) {
-					my $p = Class::Simple->new();
-					$p->readonly_person($person);
-					$p->readonly_change($change);
-					push @{$changes{'changes'}}, $p;
-				}
-			}
-			if($death_dt) {
-				my $d = $death_dt->strftime('%Y/%m/%d');
-				my $change;
-				if($death_in_last_run) {
-					if($d ne $death_in_last_run) {
-						$change = "Changed date of death from $death_in_last_run to $d";
+				if($marriage_dt) {
+					my $m = $marriage_dt->strftime('%Y/%m/%d');
+					my $change;
+					if($marriage_in_last_run) {
+						if($m ne $marriage_in_last_run) {
+							$change = "Changed date of marriage from $marriage_in_last_run to $m";
+						}
+					} else {
+						$change = "Added date of marriage as $m";
 					}
-				} else {
-					$change = "Added date of death as $d";
+					if($change) {
+						my $p = Class::Simple->new();
+						$p->readonly_person($person);
+						$p->readonly_change($change);
+						push @{$changes{'changes'}}, $p;
+					}
 				}
-				if($change) {
-					my $p = Class::Simple->new();
-					$p->readonly_person($person);
-					$p->readonly_change($change);
-					push @{$changes{'changes'}}, $p;
+				if($death_dt) {
+					my $d = $death_dt->strftime('%Y/%m/%d');
+					my $change;
+					if($death_in_last_run) {
+						if($d ne $death_in_last_run) {
+							$change = "Changed date of death from $death_in_last_run to $d";
+						}
+					} else {
+						$change = "Added date of death as $d";
+					}
+					if($change) {
+						my $p = Class::Simple->new();
+						$p->readonly_person($person);
+						$p->readonly_change($change);
+						push @{$changes{'changes'}}, $p;
+					}
 				}
+			} else {
+				push @{$changes{'added_people'}}, $person;
+				$person_in_last_run = 1;	# Avoid adding this person to the blog twice
 			}
-		} else {
-			push @{$changes{'added_people'}}, $person;
-			$person_in_last_run = 1;	# Avoid adding this person to the blog twice
 		}
 	}
 

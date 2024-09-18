@@ -85,6 +85,7 @@ use Ged2site::Display::surnames;
 use Ged2site::Display::history;
 use Ged2site::Display::todo;
 use Ged2site::Display::calendar;
+use Ged2site::Display::changes;
 use Ged2site::Display::descendants;
 use Ged2site::Display::graphs;
 use Ged2site::Display::emmigrants;
@@ -106,6 +107,7 @@ if($@) {
 	Log::WarnDie->dispatcher(undef);
 	die $@;
 }
+use Ged2site::Data::changes;
 use Ged2site::Data::censuses;
 use Ged2site::Data::history;
 use Ged2site::Data::orphans;
@@ -132,6 +134,7 @@ if($@) {
 	die $@;
 }
 my $censuses = Ged2site::Data::censuses->new();
+my $changes = Ged2site::Data::changes->new();
 my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::Data::history->new();
 my $orphans = Ged2site::Data::orphans->new();
@@ -442,6 +445,8 @@ sub doit
 			$display = Ged2site::Display::todo->new($args);
 		} elsif($page eq 'calendar') {
 			$display = Ged2site::Display::calendar->new($args);
+		} elsif($page eq 'changes') {
+			$display = Ged2site::Display::changes->new($args);
 		} elsif($page eq 'descendants') {
 			$display = Ged2site::Display::descendants->new($args);
 		} elsif($page eq 'graphs') {
@@ -490,6 +495,7 @@ sub doit
 			cachedir => $cachedir,
 			people => $people,
 			censuses => $censuses,
+			changes => $changes,
 			locations => $locations,
 			orphans => $orphans,
 			surnames => $surnames,
@@ -574,6 +580,7 @@ sub choose
 		print "/cgi-bin/page.fcgi?page=people\n",
 			"/cgi-bin/page.fcgi?page=home\n",
 			"/cgi-bin/page.fcgi?page=censuses\n",
+			"/cgi-bin/page.fcgi?page=changes\n",
 			"/cgi-bin/page.fcgi?page=surnames\n",
 			"/cgi-bin/page.fcgi?page=history\n",
 			"/cgi-bin/page.fcgi?page=todo\n",
