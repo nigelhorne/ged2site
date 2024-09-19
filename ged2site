@@ -14103,7 +14103,12 @@ sub dateofmarriage
 		@d = $marriage->date();
 	}
 
-	if(scalar(@d) == 2) {	# TODO: && dates not the same
+	if((scalar(@d) == 2) && (datecmp($d[0], $d[1]) == 0)) {
+		complain({ person => $person, warning => "Two dates of marriage, both of which are the same: $d[0]" });
+		pop(@d);
+	}
+
+	if(scalar(@d) == 2) {
 		my ($year1, $year2);
 
 		if($d[0] =~ /(\d{3,4})/) {
@@ -14135,7 +14140,7 @@ sub dateofmarriage
 			complain({ person => $person, warning => 'two dates of marriage, neither of which is marked primary' });
 			$dateofmarriage = $d[0];
 		}
-	} elsif(scalar(@d) == 1) {	# TODO: || scalar == 2 && dates are the same, though warn then
+	} elsif(scalar(@d) == 1) {
 		$dateofmarriage = $d[0];
 	} elsif(scalar(@d)) {
 		complain({ person => $person, warning => [ 'TODO: handle more than 2 dates of marriage: ', conjunction(map { year(date => $_) } @d) ] });
