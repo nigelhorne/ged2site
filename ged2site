@@ -14215,17 +14215,9 @@ sub dateofdeath
 # Dig the date out of a field and return in a valid gedcom format
 sub parse_date
 {
-	my %params;
+	my $params = get_params('date', @_);
 
-	if(ref($_[0]) eq 'HASH') {
-		%params = %{$_[0]};
-	} elsif(scalar(@_) % 2 == 0) {
-		%params = @_;
-	} else {
-		$params{'date'} = shift;
-	}
-
-	if(my $date = $params{'date'}) {
+	if(my $date = $params->{'date'}) {
 		if(ref($date)) {
 			# Caused by empty value, e.g.:
 			#	1 BIRT
@@ -14244,8 +14236,8 @@ sub parse_date
 			return;
 		}
 
-		my $type = $params{'type'};
-		my $person = $params{'person'};
+		my $type = $params->{'type'};
+		my $person = $params->{'person'};
 		my $after;
 		my $before;
 		my $about;
@@ -14282,6 +14274,10 @@ sub parse_date
 			if($date =~ /^(\d+)\-00\-00$/) {
 				$date = $1
 			}
+		} elsif($date =~ /^about\s?([A-Z]{3})\s(\d{3,4})/i) {
+			# about Feb 1877
+			$date = "$1 $2";
+			$about = 1;
 		}
 
 		if($date =~ /[A-Z]{4,}/i) {
@@ -14323,7 +14319,7 @@ sub parse_date
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			}
-			die 'BUG: parse_date(): handle "', $params{'date'}, '" on ', $person->as_string();
+			die 'BUG: parse_date(): handle "', $params->{'date'}, '" on ', $person->as_string();
 		}
 		if($about) {
 			$date = "abt $date";
