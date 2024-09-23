@@ -1089,6 +1089,10 @@ foreach my $person(@everyone) {
 		$pr->write();
 		$| = 0;
 	}
+	if(!defined($person->xref())) {
+		complain({ person => $person, warning => 'has no xref' });
+		next;
+	}
 	if(!$printed{$person->xref()}) {
 		print $xml "\n\t<person person_id=\"$index\">";
 		print_person({ person => $person });
