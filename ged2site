@@ -2205,11 +2205,12 @@ sub print_person
 		print $index_html '</html>';
 		close $index_html;
 		print $csv '1!';
+		chmod 0444, $index_html;
 	} else {
 		if(!-e $filename) {
 			open(my $index_html, '>', $filename);
-				print $index_html '<html>';
-			print $index_html "<head><title>The Family Tree $name</title>",
+			print $index_html '<html>',
+				"<head><title>The Family Tree $name</title>",
 				'<meta http-equiv="Refresh" content="1;URL=history.html">';
 			if(my $lang = $ENV{'LANG'}) {
 				$lang =~ s/\.UTF-8//;
@@ -2221,6 +2222,7 @@ sub print_person
 				"<body><h1>Family History</h1><a href=\"history.html\">Family History</a></body>";
 			print $index_html '</html>';
 			close $index_html;
+			chmod 0444, $index_html;
 		}
 		print $csv '0!';
 	}
