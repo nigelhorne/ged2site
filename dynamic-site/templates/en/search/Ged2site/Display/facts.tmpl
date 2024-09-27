@@ -26,7 +26,7 @@
 			<p>
 				There are [% facts.number_of_individuals %] people in the tree,
 				of which [% facts.sex.M %] are male and [% facts.sex.F %] are female.
-				IF [% facts.sex.U %]
+				[% IF facts.sex.U %]
 					There are also [% facts.sex.U %] people for which the sex is unknown.
 				[% END %]
 			</p>
