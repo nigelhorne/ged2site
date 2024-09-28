@@ -15653,8 +15653,13 @@ sub dbpedia
 												next RESULT;
 											}
 										} elsif(($uri =~ /(\d{3,4})s_deaths/)) {
-											if($yob > ($1 + 10)) {
+											if($yob > ($1 + 20)) {
 												# Born after the end of the decade this person died
+												next RESULT;
+											}
+										} elsif(($uri =~ /(\d{3,4})s_births/)) {
+											if($yob < ($1 - 20)) {
+												# Born sometime before the start of the decard this person was born
 												next RESULT;
 											}
 										} elsif($uri =~ /(\d\d)th-century_deaths/) {
