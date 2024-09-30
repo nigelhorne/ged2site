@@ -11678,10 +11678,16 @@ sub place
 			$rc->fr($place);
 			$rc->en("$address, " . $rc->en());
 		} elsif($on_road && ($address =~ /^[a-z]+\s+.*[a-z]+$/i)) {
-			# e.g on Appleby Street
-			$place = " on $address, $place";
+			if($address =~ /^The .+ Hall,/) {
+				# e.g. at The Salvation Army Hall
+				$place = " at $address, $place";
+			} else {
+				# e.g on Appleby Street
+				$place = " on $address, $place";
+			}
 		} else {
 			$place = " at $address, $place";
+			$rc->en(" at $address, " . $rc->en());
 		}
 	} elsif($params->{'nopreposition'}) {
 		$place = " $place";
@@ -15676,7 +15682,7 @@ sub dbpedia
 											}
 										}
 									}
-									warn ">>>>>>>>>> $uri" if($opts{'w'});
+									warn ">>>>>>>>>> dbpedia allowig possibility $uri" if($opts{'w'});
 								}
 							}
 							$Data::Dumper::Maxdepth = 0;
