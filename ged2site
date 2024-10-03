@@ -4203,12 +4203,16 @@ sub print_person
 							}
 						}
 						if((!$all_children_are_alive) || (!$opts{'l'}) || ($yob && ($year > $yob + ASSUME_NOT_LIVING))) {
+							if($phrase->length()) {
+								$bio .= ' ';
+								$phrase->append(' ');
+							}
 							if(is_alive(person => $person)) {
 								$bio .= 'has ';
 								$phrase->append('has ');
 							}
-							$bio .= ' had ';
-							$phrase->append(' had ');
+							$bio .= 'had ';
+							$phrase->append('had ');
 						} elsif((!$dateofdeath) && (!$dateofburial) && ($spouses[0]) && !$spouses[0]->death()) {
 							$bio .= i18n(' has had ');
 							$phrase->append(i18n(' has had '));
@@ -4226,16 +4230,16 @@ sub print_person
 									$bio .= '1 surviving child';
 									$phrase->append('1 surviving child');
 								}
+								if($opts{'l'}) {
+									$bio .= ', ';
+									$phrase->append(', ');
+								}
 							} elsif($language eq 'French') {
-								$bio .= '1 enfant';
-								$phrase->append('1 enfant');
+								$bio .= '1 enfant, ';
+								$phrase->append('1 enfant, ');
 							} else {
-								$bio .= '1 child';
-								$phrase->append('1 child');
-							}
-							if($placeofmarriage || $dateofmarriage) {
-								$bio .= ',';
-								$phrase->append(',');
+								$bio .= '1 child, ';
+								$phrase->append('1 child, ');
 							}
 						} else {
 							if($all_children_are_alive) {
@@ -4249,9 +4253,9 @@ sub print_person
 									$phrase->append(':');
 								}
 							}
+							$bio .= ' ';
+							$phrase->append(' ');
 						}
-						$bio .= ' ';
-						$phrase->append(' ');
 						if((!$placeofmarriage) && !$dateofmarriage) {
 							if(length(my $spouse_name = $spouse->as_string({ middle_names => 1, title => 1 }))) {
 								$bio .= i18n({ format => 'with %s', args => $spouse_name });
@@ -4270,8 +4274,8 @@ sub print_person
 									$phrase->append(' (un ' . lc($soccupation) . ')');
 								}
 							}
-							$bio .= ': ';
 							$haveprintedspousename = 1;
+							$bio .= ': ';
 							$phrase->append(': ');
 						}
 						if($numberofchildrenwiththisspouse == 1) {
@@ -4283,6 +4287,11 @@ sub print_person
 								} else {
 									$bio .= 'whose first name is unknown';
 									$phrase->append('whose first name is unknown');
+								}
+								if($phrase->length()) {
+									push @phrases, $phrase;
+									$phrase = Data::Text->new();
+									$bio .= ', ';
 								}
 							}
 						} elsif($numberofchildrenwiththisspouse > 1) {
@@ -4335,9 +4344,6 @@ sub print_person
 					if($parentheses) {
 						$bio .= ')';
 						$phrase->append(')');
-					} elsif(($dateofmarriage || $placeofmarriage) && $numberofchildren) {
-						$bio .= ',';
-						$phrase->append(',');
 					}
 					if($placeofmarriage && $dateofmarriage &&
 					   ($placeofbaptism and ($placeofmarriage eq $placeofbaptism))) {
