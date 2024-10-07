@@ -6405,75 +6405,6 @@ sub print_person
 				}
 			}
 
-			# See if this person was born, lived and died all in the same county
-			if((scalar(@residencelist) > 3) && $birth_country && $death_country && ($birth_country eq $death_country)) {
-				# TODO: finish this code
-				my $all_in_one_county = 1;
-				my $birth_county;
-				if($placeofbirth =~ /.+,\s*(.+),\s*.+$/) {
-					$birth_county = $1;
-				} elsif($placeofbirth =~ /^(.+),\s*.+$/) {
-					$birth_county = $1;
-				}
-				foreach my $residence(@residencelist) {
-					my $place = $residence->place();
-					if(($place !~ /,\s*\Q$birth_country\E$/i)) {
-						if($birth_country eq 'United Kingdom') {
-							if(($place !~ /(.+),\s*(UK|England|Wales|Scotland)$/i)) {
-								$all_in_one_county = 0;
-								last;
-							}
-						} else {
-							$all_in_one_county = 0;
-							last;
-						}
-					}
-					if($place =~ /.+,\s*(.+),\s*.+$/) {
-						if($1 ne $birth_county) {
-							$all_in_one_county = 0;
-							last;
-						}
-					} elsif($place =~ /^(.+),\s*.+$/) {
-						if($1 ne $birth_county) {
-							$all_in_one_county = 0;
-							last;
-						}
-					}
-				}
-				foreach my $event(@events) {
-					if(my $type = $event->type()) {
-						if(($type eq 'Military service') || ($type eq 'Military')) {
-							$all_in_one_county = 0;	# Possibly served abroad
-							last;
-						}
-					}
-					my $place = $event->place();
-					if(($place !~ /,\s*\Q$birth_country\E$/i)) {
-						if($birth_country eq 'United Kingdom') {
-							if(($place !~ /(.+),\s*(UK|England|Wales|Scotland)$/i)) {
-								$all_in_one_county = 0;
-								last;
-							}
-						} else {
-							$all_in_one_county = 0;
-							last;
-						}
-					}
-					if($place =~ /.+,\s*(.+),\s*.+$/) {
-						if($1 ne $birth_county) {
-							$all_in_one_county = 0;
-							last;
-						}
-					} elsif($place =~ /^(.+),\s*.+$/) {
-						if($1 ne $birth_county) {
-							$all_in_one_county = 0;
-							last;
-						}
-					}
-				}
-				die if($opts{'w'} && $all_in_one_county);
-			}
-
 			# Print out the residence strings with semi-colons between each residence
 			if(scalar(@residencestringarray)) {
 				$bio .= '.' unless($end_of_sentence || $start_of_paragraph);
@@ -6491,6 +6422,8 @@ sub print_person
 				}
 
 				my $first = $residencelist[0];
+				my $all_in_county;
+				my $all_in_country;
 				if((scalar(@residencelist) == 1) && (my $rdate = $first->date())) {
 					my $date = ucfirst(year({ person => $person, date => $rdate, circa => 'About' }));
 					$bio .= " $date";
@@ -6500,6 +6433,100 @@ sub print_person
 						$bio .= '</p><p>';
 						$phrase->set('</p><p>');
 					}
+					# See if this person was born, lived and died all in the same county
+					if((scalar(@residencelist) > 3) && $birth_country && $death_country && ($birth_country eq $death_country)) {
+						my $all_in_one_county = 1;
+						$all_in_country = $birth_country;
+
+						if($placeofbirth =~ /.+,\s*(.+),\s*.+$/) {
+							$all_in_county = $1;
+						} elsif($placeofbirth =~ /^(.+),\s*.+$/) {
+							$all_in_county = $1;
+						}
+						foreach my $residence(@residencelist) {
+							my $place = $residence->place();
+							if(($place !~ /,\s*\Q$birth_country\E$/i)) {
+								if($birth_country eq 'United Kingdom') {
+									if(($place !~ /.+,\s*(UK|England|Wales|Scotland)$/i)) {
+										$all_in_one_county = 0;
+										last;
+									}
+									$all_in_country = $1;	# Use which country in the UK
+								} else {
+									$all_in_one_county = 0;
+									last;
+								}
+							}
+							if($place =~ /.+,\s*(.+),\s*.+$/) {
+								if($1 ne $all_in_county) {
+									$all_in_one_county = 0;
+									last;
+								}
+							} elsif($place =~ /^(.+),\s*.+$/) {
+								if($1 ne $all_in_county) {
+									$all_in_one_county = 0;
+									last;
+								}
+							}
+						}
+						foreach my $event(@events) {
+							if(my $type = $event->type()) {
+								if(($type eq 'Military service') || ($type eq 'Military')) {
+									$all_in_one_county = 0;	# Possibly served abroad
+									last;
+								}
+							}
+							if(my $place = $event->place()) {
+								if(($place !~ /,\s*\Q$birth_country\E$/i)) {
+									if($birth_country eq 'United Kingdom') {
+										if(($place !~ /.+,\s*(UK|England|Wales|Scotland)$/i)) {
+											$all_in_one_county = 0;
+											last;
+										}
+										$all_in_country = $1;
+									} else {
+										$all_in_one_county = 0;
+										last;
+									}
+								}
+								if($place =~ /.+,\s*(.+),\s*.+$/) {
+									if($1 ne $all_in_county) {
+										$all_in_one_county = 0;
+										last;
+									}
+								} elsif($place =~ /^(.+),\s*.+$/) {
+									if($1 ne $all_in_county) {
+										$all_in_one_county = 0;
+										last;
+									}
+								}
+							}
+						}
+						if($all_in_one_county) {
+							if($phrase->length()) {
+								push @phrases, $phrase;
+							}
+							if(scalar(@phrases)) {
+								$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('. ');
+								@phrases = ();
+								$phrase = Data::Text->new();
+							}
+							$bio_dt->append("$firstname spent all of " . 
+								(($person->pronoun() eq 'She') ? 'her' : 'his') .
+								" life in $all_in_county " .
+								(($ENV{'LANG'} && ($ENV{'LANG'} =~ /^en_US/)) ? ',' : 'in') .
+								" $all_in_country. ");
+							$bio .= "$firstname spent all of " . 
+								(($person->pronoun() eq 'She') ? 'her' : 'his') .
+								" life in $all_in_county " .
+								(($ENV{'LANG'} && ($ENV{'LANG'} =~ /^en_US/)) ? ',' : 'in') .
+								" $all_in_country. ";
+						} else {
+							undef $all_in_country;
+							undef $all_in_county;
+						}
+					}
+
 					if(scalar(@residencelist) > 1) {
 						$bio .= 'Throughout ' . lc($person->possessive()) . ' life';
 						$phrase->set('Throughout ' . lc($person->possessive()) . ' life');
