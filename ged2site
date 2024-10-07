@@ -2250,16 +2250,16 @@ sub print_person
 		print $html '[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ';
 	}
 	if($gedcal) {
-		print $html ' [ <a href="calendar/index.html">Calendar</a> ] | ';
+		print $html '[ <a href="calendar/index.html">Calendar</a> ] | ';
 	}
-	print $html ' [ <a href="surnames.html">Surnames Index</a> ] | ';
+	print $html '[ <a href="surnames.html">Surnames Index</a> ] | ';
 	if(-r 'static-site/censuses.html') {
-		print $html ' [ <a href="censuses.html">Census Index</a> ] | ';
+		print $html '[ <a href="censuses.html">Census Index</a> ] | ';
 	}
 	if($opts{'w'}) {
-		print $html ' [ <a href="todo.html">Errors</a> ] | ';
+		print $html '[ <a href="todo.html">Errors</a> ] | ';
 	}
-	print $html ' [ <a href="history.html">Family History</a> ]</center><p>';
+	print $html '[ <a href="history.html">Family History</a> ]</center><p>';
 
 	my $phrase = Data::Text->new();
 	my @phrases;
@@ -6470,6 +6470,7 @@ sub print_person
 							}
 						}
 						foreach my $event(@events) {
+							next unless ref($event);
 							if(my $type = $event->type()) {
 								if(($type eq 'Military service') || ($type eq 'Military')) {
 									$all_in_one_county = 0;	# Possibly served abroad
@@ -6513,13 +6514,13 @@ sub print_person
 							}
 							$bio_dt->append("$firstname spent all of " . 
 								(($person->pronoun() eq 'She') ? 'her' : 'his') .
-								" life in $all_in_county " .
-								(($ENV{'LANG'} && ($ENV{'LANG'} =~ /^en_US/)) ? ',' : 'in') .
+								" life in $all_in_county" .
+								(($ENV{'LANG'} && ($ENV{'LANG'} =~ /^en_US/)) ? ',' : ' in') .
 								" $all_in_country. ");
 							$bio .= "$firstname spent all of " . 
 								(($person->pronoun() eq 'She') ? 'her' : 'his') .
-								" life in $all_in_county " .
-								(($ENV{'LANG'} && ($ENV{'LANG'} =~ /^en_US/)) ? ',' : 'in') .
+								" life in $all_in_county" .
+								(($ENV{'LANG'} && ($ENV{'LANG'} =~ /^en_US/)) ? ',' : ' in') .
 								" $all_in_country. ";
 						} else {
 							undef $all_in_country;
@@ -6552,23 +6553,48 @@ sub print_person
 						$residencestringarray[$i+1] = undef;
 					}
 				}
-				while(!defined($residencestringarray[scalar(@residencestringarray) - 1])) {
-					pop @residencestringarray;
-				}
-				# $bio .= ', ' . lcfirst($pronoun) . i18n(' was living ') .
+				# while(!defined($residencestringarray[scalar(@residencestringarray) - 1])) {
+					# pop @residencestringarray;
+				# }
+				# while(!defined($residencestringarray[0])) {
+					# shift @residencestringarray;
+				# }
+				@residencestringarray = grep { defined } @residencestringarray;
+				# $phrase->append(', ' . lcfirst($pronoun) . i18n(' was living ') .
 					# Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; ', conj => i18n('and')});
-				my $s;
-				if(is_alive($person) && !$first->date()) {
-					$s = 'has lived';
+				my $s = ', ';
+				if(scalar(@residencestringarray) < 3) {
+					$s .= lcfirst($pronoun);
+					if(is_alive($person) && !$first->date()) {
+						$s .= i18n(' has lived');
+					} else {
+						$s .= ' lived';
+					}
 				} else {
-					$s = 'lived';
+					if($all_in_county) {
+						$s .= lcfirst($pronoun) . ' ';
+					} else {
+						$s .= "$firstname ";
+					}
+					if(is_alive($person) && !$first->date()) {
+						$s .= 'has ';
+					}
+					$s .= 'lived in several places';
+					if($all_in_county) {
+						$s .= ' around the county';
+						@residencestringarray = map { if($_ =~ /(.+),\s*$all_in_county ([io]n .+)/) { "$1 $2" } else { $_ } } @residencestringarray;
+					} elsif($all_in_country) {
+						$s .= " around $all_in_country";
+						@residencestringarray = map { if($_ =~ /(.+),\s*$all_in_country ([io]n .+)/) { "$1 $2" } else { $_ } } @residencestringarray;
+					}
+					$s .= ':';
 				}
 
 				print Data::Dumper->new([\@residencestringarray])->Dump() if($opts{'v'});
 				Lingua::Conjunction->separator_phrase(';');
 				Lingua::Conjunction->penultimate(1);
-				$bio .= ', ' . lcfirst($pronoun) . i18n(" $s ") . conjunction(@residencestringarray);
-				$phrase->append(', ' . lcfirst($pronoun) . i18n(" $s ") . conjunction(@residencestringarray));
+				$bio .= "$s " . conjunction(@residencestringarray);
+				$phrase->append("$s " . conjunction(@residencestringarray));
 				Lingua::Conjunction->separator_phrase(',');
 				Lingua::Conjunction->penultimate(0);
 
