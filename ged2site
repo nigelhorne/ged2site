@@ -13385,6 +13385,7 @@ sub get_all_occupations
 		} elsif(($occupation eq 'Ag Lab') ||
 			($occupation eq 'Ag Labourer') ||
 			($occupation eq 'Ag Labourer Pauper') ||
+			($occupation eq 'Agric Labourer') ||
 			($occupation eq 'Ag Lab Pauper') ||
 			($occupation eq 'Farm Labourer') ||
 			($occupation eq 'Agricultural Farm Labourer') ||
@@ -13424,7 +13425,7 @@ sub get_all_occupations
 			} elsif($1 ne 'Shop') {
 				$occupation = "$1's Assistant" unless($1 =~ /'s$/);
 			}
-		} elsif($occupation =~ /Clerk (.*)/) {
+		} elsif($occupation =~ /^Clerk (.*)/) {
 			$occupation = "$1 Clerk";
 		} elsif($occupation =~ /^Salesman (.*)/i) {
 			$occupation = "$1 Salesman";
