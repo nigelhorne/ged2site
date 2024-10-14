@@ -2083,7 +2083,7 @@ sub print_person
 					my $year = get_year_from_date($pdob);
 					next if(abs($yob - $year) > 2);
 					if((my $f1 = $person->father()) && (my $f2 = $possible->father())) {
-						if((my $fdob = dateofbirth($person)) && (my $pfdob = dateofbirth($f2))) {
+						if((my $fdob = dateofbirth($f1)) && (my $pfdob = dateofbirth($f2))) {
 							# Fathers born more than 10 years apart - not a dup
 							next if(abs(get_year_from_date($fdob) - get_year_from_date($pfdob)) > 10);
 						}
