@@ -6565,8 +6565,12 @@ sub print_person
 				my $s = ', ';
 				if(scalar(@residencestringarray) < 3) {
 					$s .= lcfirst($pronoun);
-					if(is_alive($person) && !$first->date()) {
-						$s .= i18n(' has lived');
+					if(is_alive($person)) {
+						if($first->date()) {
+							$s .= i18n(' was living');
+						} else {
+							$s .= i18n(' has lived');
+						}
 					} else {
 						$s .= ' lived';
 					}
