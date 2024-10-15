@@ -553,6 +553,11 @@
 				[% END %]
 			</div>
 		[% ELSE %]
+			<div id="header_container">
+				<center>
+					<h1>Analytics for [% SiteTitle.join(' ') %]</h1>
+				</center>
+			</div>
 			<div id="container">
 				<h1>Choose a Graph</h1>
 				<br>
@@ -572,11 +577,11 @@
 					<li><a href="?page=graphs&amp;graph=familysizetime">How family size changes over time</a></li>
 					<li><a href="?page=graphs&amp;graph=motherchildren">Number of children by women</a></li>
 					<li><a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a></li>
-					<li><a href="?page=graphs&amp;graph=name_date_m">Male First Name Popularity</a></li>
-					<li><a href="?page=graphs&amp;graph=name_date_f">Female First Name Popularity</a></li>
-					<li><a href="?page=graphs&amp;graph=surname_date">Surname Popularity</a></li>
-					<li><a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a></li>
-					<li><a href="?page=graphs&amp;graph=death_countries">Country of Death</a></li>
+					<li><a href="?page=graphs&amp;graph=name_date_m">Male First Name popularity</a></li>
+					<li><a href="?page=graphs&amp;graph=name_date_f">Female First Name popularity</a></li>
+					<li><a href="?page=graphs&amp;graph=surname_date">Surname popularity</a></li>
+					<li><a href="?page=graphs&amp;graph=birth_countries">Country of birth</a></li>
+					<li><a href="?page=graphs&amp;graph=death_countries">Country of death</a></li>
 				</ul>
 			</div>
 		[% END %]

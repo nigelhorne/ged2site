@@ -8,6 +8,10 @@
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
+		[% IF twitter %]
+			<meta name="twitter:site" content="@[% twitter %]">
+			<meta name="twitter:title" content="[% SiteTitle %]">
+		[% END %]
 	</head>
 	<body>
 		<div id="header_container">
