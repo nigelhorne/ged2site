@@ -5818,7 +5818,7 @@ sub print_person
 									my $p = place({ person => $mother, record => $mr, nopreposition => 1 });
 									next unless($p);
 
-									if(($rdate eq $mdate) && $road && ($mr->place() eq $residence->place())) {
+									if((datecmp($rdate, $mdate) == 0) && $road && ($mr->place() eq $residence->place())) {
 										if($p eq $place) {
 											$living_with{'mother'} = $mother;
 											last;
@@ -5838,7 +5838,7 @@ sub print_person
 										}
 									} elsif($p eq $place) {
 										# if(($p =~ /^\s\d/) && ($p eq $place)) {
-										if($mdate eq $rdate) {
+										if(datecmp($mdate, $rdate) == 0) {
 											$with_mother++;
 											$living_alone = 0;
 											last;
@@ -5863,7 +5863,7 @@ sub print_person
 									my $p = place({ person => $father, record => $fr, nopreposition => 1 });
 									next unless($p);
 
-									if(($rdate eq $fdate) && $road && ($fr->place() eq $residence->place())) {
+									if((datecmp($rdate, $fdate) == 0) && $road && ($fr->place() eq $residence->place())) {
 										if($p eq $place) {
 											$living_with{'father'} = $father;
 											last;
@@ -5883,7 +5883,7 @@ sub print_person
 										}
 									} elsif($p eq $place) {
 										# if(($p =~ /^\s\d/) && ($p eq $place)) {
-										if($fdate eq $rdate) {
+										if(datecmp($fdate, $rdate) == 0) {
 											$with_father++;
 											$living_alone = 0;
 											last;
