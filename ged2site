@@ -3213,7 +3213,6 @@ sub print_person
 		print $html wide_to_html({ string => $phrase, keep_hrefs => 1 });
 		# $bio =~ s/&eacute;/&#233;/g;
 
-		$bio = ', ';
 		$fullbio = $phrase->as_string();
 
 		if($opts{'l'} || !$is_alive) {
@@ -3808,7 +3807,7 @@ sub print_person
 				}
 			}
 		} elsif($dateofbaptism || $placeofbaptism) {
-		die;	# I don't this code can be reached
+			die;	# I don't this code can be reached
 			if($language eq 'French') {
 				if($placeofbaptism && $placeofbirth && ($placeofbaptism eq $placeofbirth)) {
 					$bio .= " $pronoun y a \N{U+00E9}t\N{U+00E9} ";	# a été
@@ -15025,16 +15024,11 @@ sub twins
 
 sub person_in_residence_record
 {
+	my $params = get_params(undef, @_);
 	my %params;
 
-	if(ref($_[0]) eq 'HASH') {
-		%params = %{$_[0]};
-	} elsif(scalar(@_) % 2 == 0) {
-		%params = @_;
-	}
-
-	my $person = $params{'person'};
-	my $date = $params{'date'};
+	my $person = $params->{'person'};
+	my $date = $params->{'date'};
 
 	foreach my $event(get_all_residences($person)) {
 		my $edate = $event->date();
