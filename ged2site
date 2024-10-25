@@ -123,6 +123,7 @@ BEGIN {
 		}
 	}
 	# Fix for this module not being found
+	# https://cpan.metacpan.org/authors/id/G/GR/GRAY/Geo-Coder-PlaceFinder-0.05.tar.gz
 	eval 'use Geo::Coder::PlaceFinder';
 	if($@) {
 		push @needfull, 'Net::OAuth', 'JSON', 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
@@ -154,6 +155,7 @@ BEGIN {
 		# system("cpan -i $list");
 		system('perl -MCPAN -e \'CPAN::Shell->install("' . join('", "', @needfull) . '")\'');
 	}
+	# $Devel::FIXME::REPAIR_INC = 1;
 
 	# FIXME
 	$SIG{__WARN__} = sub {
@@ -176,26 +178,21 @@ BEGIN {
 	};
 }
 
-foreach my $module(@needfull) {
-	my $version;
-	if($module =~ /(.+)\s(.+)$/) {
-		$module = $1;
-		$version = $2;
-	}
-	if($module =~ /.+\/(.+)/) {
-		$module = $1;
-	}
-	$module =~ s/\-/::/g;
-	$module =~ s/\.tar\.gz$//;
-	$module =~ s/::(\d)+$/ $1/;
-	eval "require $module";
-	if($@) {
-		die $@;
-	}
-	$module->import();
-	# if($version && ($module::VERSION < $version)) {
-		# die "$module: need $version got ", $module::VERSION;
-	# }
+foreach my $module (@needfull) {
+	my ($name, $version) = $module =~ /(.+?)\s(.+)?$/;
+	$name ||= $module;
+
+	# Extract module name, replacing hyphens with `::` and removing extensions
+	$name =~ s{.+/}{};     # Remove path if present
+	$name =~ s{-}{::}g;    # Convert hyphens to `::`
+	$name =~ s{\.tar\.gz$}{}; # Remove file extension
+	$name =~ s{::(\d+)$}{ $1}; # Adjust version formatting if embedded in module name
+
+	eval "require $name" or die $@;
+	$name->import();
+
+	# Uncomment to check version if needed
+	# die "$name: need $version, got " . $name->VERSION if $version && $name->VERSION < $version;
 }
 
 use autodie qw(:all);
