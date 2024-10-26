@@ -13175,21 +13175,22 @@ sub get_all_residences
 		return @{$all_residences{$person->xref()}};
 	}
 
-	my @residences = $person->residence();
 	my @rc;
 	my $index = 0;
-	foreach my $residence(@residences) {
+
+	for my $residence ($person->residence()) {
 		$index++;
-		if(!ref($residence)) {
+
+		# Attempt to resolve non-object residence to a Gedcom::Record object
+		unless (ref $residence) {
 			my $r = $person->tag_record('RESI', $index);
-			if(ref($r) eq 'Gedcom::Record') {
-				$residence = $r;
-			}
+			$residence = $r if $r->isa('Gedcom::Record');
 		}
-		if(ref($residence) eq 'Gedcom::Record') {
-			push @rc, $residence;
-		}
+
+		# Add valid Gedcom::Record residences to the results array
+		push @rc, $residence if $residence->isa('Gedcom::Record');
 	}
+
 	my @events = $person->event();
 	$index = 0;
 	foreach my $event(@events) {
@@ -15909,13 +15910,13 @@ sub get_params
 
 	# Populate %rc based on the number and type of arguments
 	if(($num_args == 1) && (defined $default)) {
-		%rc = ($default => shift);
+		return { $default => shift };
 	} elsif(($num_args % 2) == 0) {
 		%rc = @_;
 	} elsif($num_args == 1) {
-		Carp::croak("Usage: ", __PACKAGE__, "->", (caller(1))[3], "()");
+		Carp::croak('Usage: ', __PACKAGE__, '->', (caller(1))[3], '()');
 	} elsif($num_args == 0 && defined $default) {
-		Carp::croak("Usage: ", __PACKAGE__, "->", (caller(1))[3], "($default => \$val)");
+		Carp::croak('Usage: ', __PACKAGE__, '->', (caller(1))[3], '($default => \$val)');
 	}
 
 	return \%rc;
