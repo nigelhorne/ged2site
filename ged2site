@@ -13209,6 +13209,7 @@ sub get_all_residences
 			push @rc, $event;
 		}
 	}
+
 	my @censuses = $person->census();
 	$index = 0;
 	foreach my $census(@censuses) {
@@ -15348,11 +15349,21 @@ sub wide_to_xml
 	$string =~ s/&/&amp;/g;
 
 	unless($params->{'keep_hrefs'}) {
-		$string =~ s/</&lt;/g;
-		$string =~ s/>/&gt;/g;
-		$string =~ s/"/&quot;/g;
-		$string =~ s/“/&quot;/g;	# U+201C
-		$string =~ s/”/&quot;/g;	# U+201D
+		# $string =~ s/</&lt;/g;
+		# $string =~ s/>/&gt;/g;
+		# $string =~ s/"/&quot;/g;
+		# $string =~ s/“/&quot;/g;	# U+201C
+		# $string =~ s/”/&quot;/g;	# U+201D
+
+		my %replacements = (
+			'<' => '&lt;',
+			'>' => '&gt;',
+			'"' => '&quot;',
+			'“' => '&quot;',	# U+201C
+			'”' => '&quot;',	# U+201D
+		);
+
+		$string =~ s/([<>“”"])/$replacements{$1}/g;
 	}
 
 	$string =~ s/‘/&apos;/g;
