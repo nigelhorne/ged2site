@@ -4708,15 +4708,12 @@ sub print_person
 						# may be the case where someone married more than once,
 						# and has a child by a 3rd unknown (or unfound) person
 						if($opts{'w'}) {
-							if(($numberofchildren - $childrenseen) == 1) {
-								if($unknown) {
-									red_warning({ person => $person, warning => 'One of the parents of ' . $unknown->as_string() . ' is not known'});
-								} else {
-									red_warning({ person => $person, warning => 'One of the parents of 1 child is not known'});
-								}
-							} else {
-								red_warning({ person => $person, warning => 'One of the parents of ' . ($numberofchildren - $childrenseen) . ' children is not known'});
-							}
+							my $children_missing_parents = $numberofchildren - $childrenseen;
+							my $warning_message = $children_missing_parents == 1
+							? 'One of the parents of ' . ($unknown ? $unknown->as_string() : '1 child') . ' is not known'
+							: "One of the parents of $children_missing_parents children is not known";
+
+							complain({ person => $person, warning => $warning_message });
 						}
 					} else {
 						foreach my $spouse(@spouses) {
@@ -4724,9 +4721,7 @@ sub print_person
 								$parentofall = undef;
 								last;
 							}
-							if($childrenbyspouse{$spouse->xref()}) {
-								$parentofall = $spouse;
-							}
+							$parentofall = $spouse if $childrenbyspouse{$spouse->xref()};
 						}
 					}
 					if($phrase->trim()->length() > 0) {
