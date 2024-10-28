@@ -215,50 +215,39 @@ sub set_cookie
 	return $self;
 }
 
-sub http {
+sub http
+{
 	my $self = shift;
 
+	# Handle session cookies
 	# TODO: Only session cookies as the moment
-	my $cookies = $self->{_cookies};
-	if(defined($cookies)) {
+	if(my $cookies = $self->{_cookies}) {
 		foreach my $cookie (keys(%{$cookies})) {
-			if(exists($cookies->{$cookie})) {
-				print "Set-Cookie:$cookie=$cookies->{$cookie}; path=/; HttpOnly\n";
-			} else {
-				print "Set-Cookie:$cookie=0:0; path=/; HttpOnly\n";
-			}
+			my $value = exists $cookies->{$cookie} ? $cookies->{$cookie} : '0:0';
+			print "Set-Cookie: $cookie=$value; path=/; HttpOnly\n";
 		}
 	}
 
-	my $language;
-	if($self->{_lingua}) {
-		$language = $self->{_lingua}->language();
-	} else {
-		$language = 'English';
-	}
+	# Determine language, defaulting to English
+	# TODO: Change the headers, e.g. character set, based on the langauge
+	# my $language = $self->{_lingua} ? $self->{_lingua}->language() : 'English';
 
-	my $rc;
-
+	# Determine content type
 	my $filename = $self->get_template_path();
-	if($filename =~ /\.txt$/) {
+	my $rc;
+	if ($filename =~ /\.txt$/) {
 		$rc = "Content-Type: text/plain\n";
-	} elsif($language eq 'Japanese') {
-		binmode(STDOUT, ':utf8');
-
-		$rc = "Content-Type: text/html; charset=UTF-8\n";
-	} elsif($language eq 'Polish') {
-		binmode(STDOUT, ':utf8');
-
-		# print "Content-Type: text/html; charset=ISO-8859-2\n";
-		$rc = "Content-Type: text/html; charset=UTF-8\n";
 	} else {
-		# $rc = "Content-Type: text/html; charset=ISO-8859-1\n";
+		binmode(STDOUT, ':utf8');
 		$rc = "Content-Type: text/html; charset=UTF-8\n";
 	}
 
+	# Security headers
 	# https://www.owasp.org/index.php/Clickjacking_Defense_Cheat_Sheet
 	# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
-	return $rc . "X-Frame-Options: SAMEORIGIN\nX-Content-Type-Options: nosniff\nReferrer-Policy: strict-origin-when-cross-origin\n\n";
+	return $rc . "X-Frame-Options: SAMEORIGIN\n"
+		. "X-Content-Type-Options: nosniff\n"
+		. "Referrer-Policy: strict-origin-when-cross-origin\n\n";
 }
 
 # Override this routine in a subclass if you wish to create special arguments to
