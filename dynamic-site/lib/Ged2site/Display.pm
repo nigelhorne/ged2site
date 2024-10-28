@@ -115,6 +115,12 @@ sub as_string {
 		}
 	}
 
+	# my $html = $self->html($args);
+	# unless($html) {
+		# return;
+	# }
+	# return $self->http() . $html;
+
 	# Build the HTTP response
 	my $rc = $self->http();
 	return $rc =~ /^Location:\s/ms ? $rc : $rc . $self->html($args);
