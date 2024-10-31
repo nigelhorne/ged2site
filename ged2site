@@ -5812,6 +5812,8 @@ sub print_person
 									if((datecmp($rdate, $mdate) == 0) && $road && ($mr->place() eq $residence->place())) {
 										if($p eq $place) {
 											$living_with{'mother'} = $mother;
+											$with_mother++;
+											$living_alone = 0;
 											last;
 										} elsif(my $mroad = $mr->address()) {
 											if($mroad eq $address) {
@@ -5857,6 +5859,8 @@ sub print_person
 									if((datecmp($rdate, $fdate) == 0) && $road && ($fr->place() eq $residence->place())) {
 										if($p eq $place) {
 											$living_with{'father'} = $father;
+											$with_father++;
+											$living_alone = 0;
 											last;
 										} elsif(my $froad = $fr->address()) {
 											if($froad eq $address) {
@@ -5891,7 +5895,9 @@ sub print_person
 								if($age >= 30) {
 									$residencestring .= ' ';
 									if($first) {
-										$residencestring .= '(' . i18n('when ') . i18n(($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
+										$residencestring .= '(' .
+											i18n('when ') .
+											i18n(($sex eq 'M') ? 'he' : 'she') . i18n(' was living');
 									}
 									if($language eq 'French') {
 										$residencestring =~ s/lorsque elle/lorsqu'elle/;
@@ -5922,6 +5928,10 @@ sub print_person
 										$residencestring .= i18n(' mother, ') . given_names($mother);
 									} elsif($with_father) {
 										$residencestring .= i18n(' father, ') . given_names($father);
+									} else {
+										$Data::Dumper::Maxdepth = 2;
+										print STDERR __LINE__, ': ', Data::Dumper->new([\%living_with])->Dump();
+										die "BUG: living_with set, but can't determine with whom";
 									}
 									if($first) {
 										$residencestring .= ')';
