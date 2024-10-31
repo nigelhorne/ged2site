@@ -33,26 +33,26 @@
 				<ul>
 					<li>
 						There are [% facts.number_of_individuals %] people in the tree,
-						of which [% facts.sex.M %] are male and [% facts.sex.F %] are female.
+						of which [% facts.sex.M %] are male and [% facts.sex.F %] are female
 						[% IF facts.sex.U %]
-							There are also [% facts.sex.U %] people for which the sex is unknown.
+							. There are also [% facts.sex.U %] people for which the sex is unknown
 						[% END %]
 					</li>
 					[% IF facts.number_of_families %]
 						<li>
-							There are [% facts.number_of_families %] families in the tree.
+							There are [% facts.number_of_families %] families in the tree
 						</li>
 					[% END %]
 					[% IF facts.fathers_side %]
 						<li>
 							There are [% facts.fathers_side.count %] adults known to have lived to 20 or over on the father's side,
-							of which the average (mean) age at death was [% Math.int(facts.fathers_side.age / facts.fathers_side.count) %].
+							of which the average (mean) age at death was [% Math.int(facts.fathers_side.age / facts.fathers_side.count) %]
 						</li>
 					[% END %]
 					[% IF facts.mothers_side %]
 						<li>
 							There are [% facts.mothers_side.count %] adults known to have lived to 20 or over on the mother's side,
-							of which the average (mean) age at death was [% Math.int(facts.mothers_side.age / facts.mothers_side.count) %].
+							of which the average (mean) age at death was [% Math.int(facts.mothers_side.age / facts.mothers_side.count) %]
 						</li>
 					[% END %]
 					[% IF facts.first_birth %]
@@ -65,8 +65,9 @@
 						<li>
 							Person who lived the longest:
 							<a href="?page=people&amp;entry=[%- facts.oldest_age.person.entry %]">[% facts.oldest_age.person.title %]</a> who lived for
-							[% facts.oldest_age.years %] years,
-							[% facts.oldest_age.months %] months and
+							[% facts.oldest_age.years %] years
+							[% IF %facts.oldest_age.months %], months[% END %]
+							and
 							[% facts.oldest_age.days %] days
 						</li>
 					[% END %]
@@ -96,7 +97,7 @@
 					[% END %]
 					[% IF facts.family_size %]
 						<li>
-							The mean family size is [% facts.family_size.mean %] children.
+							The mean family size is [% facts.family_size.mean %] children
 						</li>
 					[% END %]
 					[% IF facts.youngest_marriage %]
