@@ -14718,11 +14718,10 @@ sub get_language
 
 sub get_language_code
 {
-	if($ENV{'LANGUAGE'}) {
-		if($ENV{'LANGUAGE'} =~ /^([a-z]{2})/i) {
-			return lc($1);
-		}
+	if($ENV{'LANGUAGE'} && ($ENV{'LANGUAGE'} =~ /^([a-z]{2})/i)) {
+		return lc($1);
 	}
+
 	foreach my $variable('LC_ALL', 'LC_MESSAGES', 'LANG') {
 		my $val = $ENV{$variable};
 		next unless(defined($val));
@@ -15096,11 +15095,12 @@ sub wide_to_html
 	# $string =~ s/&id=/&amp;id=/g;
 
 	unless($params->{'keep_apos'}) {
-		$string =~ s/'/&apos;/g;
-		$string =~ s/‘/&apos;/g;
-		$string =~ s/’/&apos;/g;
-		$string =~ s/‘/&apos;/g;
-		$string =~ s/\x98/&apos;/g;
+		# $string =~ s/'/&apos;/g;
+		# $string =~ s/‘/&apos;/g;
+		# $string =~ s/’/&apos;/g;
+		# $string =~ s/‘/&apos;/g;
+		# $string =~ s/\x98/&apos;/g;
+		$string =~ s/['‘’‘\x98]/&apos;/g;
 	}
 
 	if($string !~ /[^[:ascii:]]/) {
@@ -15371,11 +15371,12 @@ sub wide_to_xml
 		$string =~ s/([<>“”"])/$replacements{$1}/g;
 	}
 
-	$string =~ s/‘/&apos;/g;
-	$string =~ s/’/&apos;/g;
-	$string =~ s/‘/&apos;/g;
-	$string =~ s/‘/&apos;/g;
-	$string =~ s/\x98/&apos;/g;
+	# $string =~ s/‘/&apos;/g;
+	# $string =~ s/’/&apos;/g;
+	# $string =~ s/‘/&apos;/g;
+	# $string =~ s/‘/&apos;/g;
+	# $string =~ s/\x98/&apos;/g;
+	$string =~ s/['‘’‘\x98]/&apos;/g;
 
 	$string =~ s/&Aacute;/&#x0C1;/g;	# Á
 	$string =~ s/&aring;/&#x0E5;/g;	# å
