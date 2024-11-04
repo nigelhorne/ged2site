@@ -11378,7 +11378,7 @@ sub year
 			} elsif($ENV{'LANG'}) {
 				$d->set_locale($ENV{'LANG'});
 			}
-			return $params->{'circa'} . ' ' . $d->strftime('%b %Y');
+			return i18n($params->{'circa'}) . ' ' . $d->strftime('%b %Y');
 		}
 		return $params->{'circa'} . " $rc";
 	}
@@ -14748,6 +14748,8 @@ sub get_language_code
 
 # TODO:	format containing ':'
 # FIXME: German nouns start with a capital letter
+# TODO: investigate Lingua::Translate
+# TODO: investigate Locale::Maketext (though I find that overly complex to get started with)
 sub i18n
 {
 	my %params;
@@ -15936,13 +15938,14 @@ sub get_params
 
 	# Populate %rc based on the number and type of arguments
 	if(($num_args == 1) && (defined $default)) {
+		# %rc = ($default => shift);
 		return { $default => shift };
-	} elsif(($num_args % 2) == 0) {
-		%rc = @_;
 	} elsif($num_args == 1) {
 		Carp::croak('Usage: ', __PACKAGE__, '->', (caller(1))[3], '()');
 	} elsif($num_args == 0 && defined $default) {
 		Carp::croak('Usage: ', __PACKAGE__, '->', (caller(1))[3], '($default => \$val)');
+	} elsif(($num_args % 2) == 0) {
+		%rc = @_;
 	}
 
 	return \%rc;
@@ -15959,6 +15962,7 @@ also::also
 also%s::also%s
 an %s::an %s
 and::and
+around::around
 arrived::arrived
 at::at
 aunt::aunt
@@ -16056,6 +16060,7 @@ also%s::aussi%s
 an %s:M:un %s
 an %s:F:une %s
 and::et
+around::environ
 arrived:M:est arrivé
 arrived:F:est arrivée
 at::à
@@ -16150,6 +16155,7 @@ all with %s::alles mit %s
 also::auch
 also%s::auch%s
 and::und
+around::circa
 arrived::kam
 at::in der
 before %s::vor %s
