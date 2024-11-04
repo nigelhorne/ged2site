@@ -5974,22 +5974,27 @@ sub print_person
 								}
 								$living_alone = 0;
 							} elsif($father_date && (datecmp($rdate, $father_date) > 0)) {
-								$residencestring .= ' (the same place as ' .
-									($person->pronoun() eq 'She' ? 'her' : 'his');
+								if($language eq 'French') {
+									$residencestring .= " (le m\N{U+00EA}me endoite que";
+								} else {
+									$residencestring .= ' (the same place as ' .
+										($person->pronoun() eq 'She' ? 'her' : 'his');
+								}
 								if($mother_date && (datecmp($father_date, $mother_date) == 0)) {
+									$residencestring .= ' ses' if($language eq 'French');
 									$residencestring .= i18n(' parents ');
 									$printed_mother_same_place = 1;
 								} else {
 									$residencestring .= i18n(' father ');
 								}
 								if(datecmp($rdate, $father_date) > 0) {
-									$residencestring .= 'had been';
+									$residencestring .= i18n('had been');
 								} elsif($printed_mother_same_place) {
 									$residencestring .= 'were';
 								} else {
 									$residencestring .= 'was';
 								}
-								$residencestring .= ' living ' .
+								$residencestring .= i18n(' living ') .
 									year({ person => $person, string => $father_date }) .
 									')';
 								$printed_father_same_place = 1;
@@ -6530,8 +6535,13 @@ sub print_person
 					}
 
 					if(scalar(@residencelist) > 1) {
-						$bio .= 'Throughout ' . lc($person->possessive()) . ' life';
-						$phrase->set('Throughout ' . lc($person->possessive()) . ' life');
+						if($language eq 'French') {
+							$phrase->set('Pendant sa vie');
+							$bio .= 'Pendant sa vie';
+						} else {
+							$phrase->set('Throughout ' . lc($person->possessive()) . ' life');
+							$bio .= 'Throughout ' . lc($person->possessive()) . ' life';
+						}
 					} else {
 						$bio .= ucfirst(i18n('during %s life', lc($person->possessive())));
 						$phrase->append(ucfirst(i18n('during %s life', lc($person->possessive()))));
@@ -6573,7 +6583,7 @@ sub print_person
 							$s .= i18n(' has lived');
 						}
 					} else {
-						$s .= ' lived';
+						$s .= i18n(' lived');
 					}
 				} else {
 					if($all_in_county) {
@@ -6584,7 +6594,7 @@ sub print_person
 					if(is_alive($person) && !$first->date()) {
 						$s .= 'has ';
 					}
-					$s .= 'lived in several places';
+					$s .= i18n('lived in several places');
 					if($all_in_county) {
 						$s .= ' around the county';
 						@residencestringarray = map { if($_ =~ /(.+),\s*$all_in_county ([io]n .+)/) { "$1 $2" } else { $_ } } @residencestringarray;
@@ -15028,7 +15038,6 @@ sub twins
 sub person_in_residence_record
 {
 	my $params = get_params(undef, @_);
-	my %params;
 
 	my $person = $params->{'person'};
 	my $date = $params->{'date'};
@@ -15981,6 +15990,7 @@ grandfather::grandfather
 grandmother::grandmother
 great-grandchildren::great-grandchildren
 had::had
+had been::had been
 has been married::has been married
 has had::has had
 has lived::has lived
@@ -15993,6 +16003,8 @@ is buried::is buried
 is married to::is married to
 later that same year::later that same year
 lived::lived
+lived in several places::lived in several places
+living::living
 living person::living person
 married::married
 mother::mother
@@ -16069,6 +16081,7 @@ father::père
 following the death of::suite au mort de
 from::de
 had::a eu
+had been::avait été
 has been married:M:a été marrié
 has been married:F:a été marriée
 has had::a eu
@@ -16084,6 +16097,8 @@ is married to:M:est marié à
 is married to:F:est mariée à
 later that same year::plus tard la même année
 lived::habitait
+lived in several places::habitait dans plusiers lieux
+living::vécu
 living person::vivant
 married::a marié
 mother::mère
