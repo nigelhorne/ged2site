@@ -15034,14 +15034,18 @@ sub person_in_residence_record
 {
 	my $params = get_params(undef, @_);
 
-	my $person = $params->{'person'};
-	my $date = $params->{'date'};
+	# my $person = $params->{'person'};
+	# my $date = $params->{'date'};
+	my ($person, $date) = $params->{qw(person date)};
 
 	foreach my $event(get_all_residences($person)) {
 		my $edate = $event->date();
-		if($edate && ($edate !~ /^bet\s/i) && ($edate !~ /[,\-]/) && (datecmp($edate, $date) == 0)) {
-			return 1;
-		}
+
+		# Skip if $edate is undefined, contains "bet", or contains a comma or dash
+		next unless $edate && $edate !~ /^bet\s/i && $edate !~ /[,\-]/;
+
+		# Return 1 if dates match
+		return 1 if datecmp($edate, $date) == 0;
 	}
 
 	return 0;
@@ -15967,6 +15971,7 @@ both with %s::both with %s
 brother::brother
 brother-in-law::brother-in-law
 brothers::brothers
+c.::c.
 check out %s::check out %s
 child::child
 children::children
@@ -16063,6 +16068,7 @@ birthplace::ville natal
 both with %s::tous les deux avec %s
 brother::frère
 brother-in-law::beau-frère
+c.::environ
 check out %s::visitez %s
 child::enfant
 children::enfants
@@ -16157,6 +16163,7 @@ birthplace::Geburtsort
 both with %s::beide mit %s
 brother::Bruder
 brothers::Brüder
+c.::circa
 check out %s::Schau mal bei %s
 child::Kind
 children::Kinder
