@@ -6526,12 +6526,12 @@ sub print_person
 								@phrases = ();
 								$phrase = Data::Text->new();
 							}
-							$bio_dt->append("$firstname spent all of " . 
+							$bio_dt->append("$firstname spent all of " .
 								(($person->pronoun() eq 'She') ? 'her' : 'his') .
 								" life in $all_in_county" .
 								(($ENV{'LANG'} && ($ENV{'LANG'} =~ /^en_US/)) ? ',' : ' in') .
 								" $all_in_country. ");
-							$bio .= "$firstname spent all of " . 
+							$bio .= "$firstname spent all of " .
 								(($person->pronoun() eq 'She') ? 'her' : 'his') .
 								" life in $all_in_county" .
 								(($ENV{'LANG'} && ($ENV{'LANG'} =~ /^en_US/)) ? ',' : ' in') .
@@ -11998,26 +11998,12 @@ sub place
 	return $rc;
 }
 
-sub getaddress {
+sub getaddress
+{
 	my $address = shift;
 
-	my $rc;
-
-	if(my $city = $address->city()) {
-		$rc = $city;
-	}
-	if(my $state = $address->state()) {
-		if($rc) {
-			$rc .= ', ';
-		}
-		$rc .= $state;
-	}
-	if(my $country = $address->country()) {
-		if($rc) {
-			$rc .= ', ';
-		}
-		$rc .= $country;
-	}
+	# Concatenate non-empty values with ', ' as the separator
+	my $rc = join(', ', grep { $_ } $address->city(), $address->state(), $address->country());
 
 	return $rc;
 }
@@ -14814,7 +14800,7 @@ sub i18n
 		}
 
 		if($translation) {
-			if($translation =~ /%/) {	# FIXME: %%
+			if($translation =~ /%/) {	# TODO: %%
 				if(ref($params{'args'}) eq 'ARRAY') {
 					$translation = sprintf($translation, @{$params{'args'}});
 				} elsif(ref($params{'args'})) {
@@ -14848,7 +14834,7 @@ sub i18n
 		}
 		die $format;
 	}
-	if($format =~ /%/) {	# FIXME: %%
+	if($format =~ /%/) {	# TODO: %%
 		if(ref($params{'args'}) eq 'ARRAY') {
 			$format = sprintf($format, @{$params{'args'}});
 		} else {
