@@ -432,52 +432,11 @@ sub doit
 	eval {
 		my $page = $info->param('page');
 		$page =~ s/#.*$//;
-		# $display = Ged2site::Display::$page->new($args);
-		if($page eq 'people') {
-			$display = Ged2site::Display::people->new($args);
-		} elsif($page eq 'censuses') {
-			$display = Ged2site::Display::censuses->new($args);
-		} elsif($page eq 'surnames') {
-			$display = Ged2site::Display::surnames->new($args);
-		} elsif($page eq 'history') {
-			$display = Ged2site::Display::history->new($args);
-		} elsif($page eq 'todo') {
-			$display = Ged2site::Display::todo->new($args);
-		} elsif($page eq 'calendar') {
-			$display = Ged2site::Display::calendar->new($args);
-		} elsif($page eq 'changes') {
-			$display = Ged2site::Display::changes->new($args);
-		} elsif($page eq 'descendants') {
-			$display = Ged2site::Display::descendants->new($args);
-		} elsif($page eq 'graphs') {
-			$display = Ged2site::Display::graphs->new($args);
-		} elsif($page eq 'emmigrants') {
-			$display = Ged2site::Display::emmigrants->new($args);
-		} elsif($page eq 'intermarriages') {
-			$display = Ged2site::Display::intermarriages->new($args);
-		} elsif($page eq 'locations') {
-			$display = Ged2site::Display::locations->new($args);
-		} elsif($page eq 'orphans') {
-			$display = Ged2site::Display::orphans->new($args);
-		} elsif($page eq 'ww1') {
-			$display = Ged2site::Display::ww1->new($args);
-		} elsif($page eq 'ww2') {
-			$display = Ged2site::Display::ww2->new($args);
-		} elsif($page eq 'military') {
-			$display = Ged2site::Display::military->new($args);
-		} elsif($page eq 'twins') {
-			$display = Ged2site::Display::twins->new($args);
-		} elsif($page eq 'reports') {
-			$display = Ged2site::Display::reports->new($args);
-		} elsif($page eq 'facts') {
-			$display = Ged2site::Display::facts->new($args);
-		} elsif($page eq 'mailto') {
-			$display = Ged2site::Display::mailto->new($args);
-		} elsif($page eq 'home') {
-			$display = Ged2site::Display::home->new($args);
-		} elsif($page eq 'meta-data') {
-			$display = Ged2site::Display::meta_data->new($args);
-		} else {
+		$display = do {
+			my $class = "Ged2site::Display::$page";
+			eval { $class->new($args) };
+		};
+		if(!defined($display)) {
 			$logger->info("Unknown page $page");
 			$invalidpage = 1;
 		}
