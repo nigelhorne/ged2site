@@ -13165,16 +13165,7 @@ sub cite
 
 sub get_all_residences
 {
-	my %params;
-
-	if(ref($_[0]) eq 'HASH') {
-		%params = %{$_[0]};
-	} elsif(scalar(@_) % 2 == 0) {
-		%params = @_;
-	} else {
-		$params{'person'} = shift;
-	}
-
+	my $params = get_params('person', @_);
 	my $person = $params{'person'};
 
 	die 'Usage: get_all_residences($person)' unless($person);
@@ -15034,9 +15025,8 @@ sub person_in_residence_record
 {
 	my $params = get_params(undef, @_);
 
-	# my $person = $params->{'person'};
-	# my $date = $params->{'date'};
-	my ($person, $date) = $params->{qw(person date)};
+	my $person = $params->{'person'};
+	my $date = $params->{'date'};
 
 	foreach my $event(get_all_residences($person)) {
 		my $edate = $event->date();
