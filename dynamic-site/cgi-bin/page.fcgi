@@ -429,9 +429,12 @@ sub doit
 		lingua => $lingua,
 		config => $config,
 	};
+
+	# Display the requested page
 	eval {
 		my $page = $info->param('page');
 		$page =~ s/#.*$//;
+
 		$display = do {
 			my $class = "Ged2site::Display::$page";
 			eval { $class->new($args) };

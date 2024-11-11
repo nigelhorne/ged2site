@@ -234,6 +234,7 @@ print "Language = $language\n" if($opts{'v'});
 
 my @modules = ();
 @needfull = ();
+my $grave_modules;
 
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 	push @modules, 'File::Spec', 'XML::Hash';
@@ -304,6 +305,34 @@ if($opts{'m'} || $opts{'w'}) {
 }
 if($opts{'v'}) {
 	push @modules, 'Log::Any::Adapter';
+}
+if($opts{'w'} && $opts{'c'}) {
+	# If you have a locally written module to look up entries,
+	# list them in gedcom.config,
+	# otherwise use Genealogy::FindaGrave
+	my $config;
+
+	eval { $config = Config::Auto::parse() };
+
+	if($config && $config->{'grave_modules'}) {
+		$grave_modules = $config->{'grave_modules'};
+
+		if(ref($grave_modules)) {
+			foreach my $module(@{$grave_modules}) {
+				autoload $module;
+			}
+		} else {
+			autoload $grave_modules;
+		}
+	} else {
+		push @modules, 'FindaGrave';
+
+		$grave_modules = 'Genealogy::FindaGrave';
+	}
+
+	# if(!$ged->validate() && $opts{'f'}) {
+		# die "$ARGV[0] is not a valid gedcom file";
+	# }
 }
 
 # my $libdir1 = File::Spec->catfile($FindBin::Bin, File::Spec->updir(), 'lib');
@@ -8999,6 +9028,54 @@ sub print_person
 							person => $person,
 							warning => '1939 UK register information missing'
 						});
+					}
+				}
+				my $lastname = $surname;
+				if(defined($sex) && ($sex eq 'F')) {
+					if(my $husband = $person->husband()) {
+						$lastname = $husband->surname();
+					}
+				}
+				if($yod && $firstname && $lastname) {
+					my %opts = (
+						date_of_death => $yod,
+						firstname => $firstname,
+						lastname => $lastname,
+						ua => $browser,
+					);
+					if($placeofburial) {
+						if($placeofburial =~ /.+,\s+(\w+)$/) {
+							$opts{'country'} = $1;
+						}
+					} elsif($placeofdeath) {
+						if($placeofdeath =~ /.+,\s+(\w+)$/) {
+							$opts{'country'} = $1;
+						}
+					}
+					if($opts{'country'} && ($opts{'country'} eq 'USA')) {
+						$opts{'country'} = 'United States of America';
+					}
+					# foreach my $b(Genealogy::FindaGrave->new(\%opts)) {
+					if(defined($grave_modules)) {
+						if(ref($grave_modules)) {
+							foreach my $m(@{$grave_modules}) {
+								my $b = $m->new(\%opts);
+								while(my $url = $b->get_next_entry()) {
+									complain({
+										person => $person,
+										warning => "possible burial link $url"
+									});
+								}
+							}
+						} else {
+							my $b = $grave_modules->new(\%opts);
+							while(my $url = $b->get_next_entry()) {
+								complain({
+									person => $person,
+									warning => "possible burial link $url"
+								});
+							}
+						}
 					}
 				}
 			}
