@@ -13368,9 +13368,10 @@ sub get_all_residences
 					my $nextnextplace = place({ person => $person, record => $nextnext, nopreposition => 1 });
 					if(defined($nextnextplace) && ($nextnextplace eq $place) && ($nextplace ne $place)) {
 						my @locations = get_location($place);
-						my @nextlocations = get_location($nextplace);
 
 						if(my $location = shift @locations) {
+							my @nextlocations = get_location($nextplace);
+
 							if((ref($location) eq 'Geo::Location::Point') && (my $nextlocation = shift @nextlocations)) {
 								if(ref($nextlocation) eq 'Geo::Location::Point') {
 									if($location->distance($nextlocation)->mile() >= 30.0) {
