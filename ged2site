@@ -188,11 +188,15 @@ foreach my $module (@needfull) {
 	$name =~ s{\.tar\.gz$}{}; # Remove file extension
 	$name =~ s{::(\d+)$}{ $1}; # Adjust version formatting if embedded in module name
 
-	eval "require $name" or die $@;
+	if($version) {
+		eval "require $name $version" or die $@;
+	} else {
+		eval "require $name" or die $@;
+	}
 	$name->import();
 
 	# Uncomment to check version if needed
-	# die "$name: need $version, got " . $name->VERSION if $version && $name->VERSION < $version;
+	die "$name: need $version, got " . $name->VERSION if $version && $name->VERSION < $version;
 }
 
 use autodie qw(:all);
