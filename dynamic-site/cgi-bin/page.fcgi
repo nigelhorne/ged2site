@@ -19,9 +19,11 @@ use warnings;
 no lib '.';
 
 use Log::Log4perl qw(:levels);	# Put first to cleanup last
+use CGI::ACL;
 use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info;
 use CGI::Lingua 0.61;
+use Class::Simple;
 use Database::Abstraction 0.05;
 use File::Basename;
 # use CGI::Alert $ENV{'SERVER_ADMIN'} || 'you@example.com';
@@ -32,8 +34,6 @@ use Log::Any::Adapter;
 use Error qw(:try);
 use File::Spec;
 use Log::WarnDie 0.09;
-use CGI::ACL;
-use HTTP::Date;
 use POSIX qw(strftime);
 use Time::HiRes;
 # FIXME: Gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
@@ -175,8 +175,24 @@ $SIG{TERM} = \&sig_handler;
 $SIG{PIPE} = 'IGNORE';
 $ENV{'PATH'} = '/usr/local/bin:/bin:/usr/bin';	# For insecurity
 
-$SIG{__WARN__} = sub { Log::WarnDie->dispatcher(undef); die @_ };
+$SIG{__WARN__} = sub {
+	if(open(my $fout, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"))) {
+		print $fout @_;
+	}
+	Log::WarnDie->dispatcher(undef);
+	CORE::die @_
+};
 
+# my ($stdin, $stdout, $stderr) = (IO::Handle->new(), IO::Handle->new(), IO::Handle->new());
+my $err_handler = sub {
+	if(open(my $fout, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"))) {
+		print $fout @_;
+	# } else {
+		# print $stderr @_;
+	}
+};
+
+# my $request = FCGI::Request($stdin, $stdout, $stderr);
 my $request = FCGI::Request();
 
 # It would be really good to send 429 to search engines when there are more than, say, 5 requests being handled.
@@ -242,6 +258,9 @@ while($handling_request = ($request->Accept() >= 0)) {
 		};
 		last;
 	}
+
+	# https://stackoverflow.com/questions/14563686/how-do-i-get-errors-in-from-a-perl-script-running-fcgi-pm-to-appear-in-the-apach
+	$SIG{__DIE__} = $err_handler;
 
 	$requestcount++;
 	Log::Any::Adapter->set( { category => $script_name }, 'Log4perl');
@@ -362,18 +381,7 @@ sub doit
 		syslog => $syslog,
 	});
 
-	if($vwflog && open(my $fout, '>>', $vwflog)) {
-		print $fout
-			'"', $info->domain_name(), '",',
-			'"', strftime('%F %T', localtime), '",',
-			'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
-			'"', $lingua->country(), '",',
-			'"', $info->browser_type(), '",',
-			'"', $lingua->language(), '",',
-			'"', $info->as_string(), "\"\n";
-		close($fout);
-	}
-
+	$vwflog ||= ($config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log'));
 	if($ENV{'REMOTE_ADDR'} && $acl->all_denied(lingua => $lingua)) {
 		print "Status: 403 Forbidden\n",
 			"Content-type: text/plain\n",
@@ -383,6 +391,20 @@ sub doit
 			print "Access Denied\n";
 		}
 		$logger->info($ENV{'REMOTE_ADDR'}, ': access denied');
+		$info->status(403);
+		if($vwflog && open(my $fout, '>>', $vwflog)) {
+			print $fout
+				'"', $info->domain_name(), '",',
+				'"', strftime('%F %T', localtime), '",',
+				'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
+				'"', $lingua->country(), '",',
+				'"', $info->browser_type(), '",',
+				'"', $lingua->language(), '",',
+				'403,',
+				'""',
+				'"', $info->as_string(), "\"\n";
+			close($fout);
+		}
 		return;
 	}
 
@@ -422,12 +444,15 @@ sub doit
 
 	my $display;
 	my $invalidpage;
+	my $log = Class::Simple->new();
+
 	$args = {
 		cachedir => $cachedir,
 		info => $info,
 		logger => $logger,
 		lingua => $lingua,
 		config => $config,
+		log => $log
 	};
 
 	# Display the requested page
@@ -470,8 +495,34 @@ sub doit
 			military => $military,
 			databasedir => $database_dir
 		});
+		if($vwflog && open(my $fout, '>>', $vwflog)) {
+			print $fout
+				'"', $info->domain_name(), '",',
+				'"', strftime('%F %T', localtime), '",',
+				'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
+				'"', $lingua->country(), '",',
+				'"', $info->browser_type(), '",',
+				'"', $lingua->language(), '",',
+				$info->status(), ',',
+				'"', $log->template(), '",',
+				'"', $info->as_string(), "\"\n";
+			close($fout);
+		}
 	} elsif($invalidpage) {
 		choose();
+		if($vwflog && open(my $fout, '>>', $vwflog)) {
+			print $fout
+				'"', $info->domain_name(), '",',
+				'"', strftime('%F %T', localtime), '",',
+				'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
+				'"', $lingua->country(), '",',
+				'"', $info->browser_type(), '",',
+				'"', $lingua->language(), '",',
+				$info->status(), ',',
+				'""',
+				'"', $info->as_string(), "\"\n";
+			close($fout);
+		}
 		return;
 	} else {
 		$logger->debug('disabling cache');
@@ -486,6 +537,8 @@ sub doit
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 				print "I don't know what you want me to display.\n";
 			}
+			$info->status(400);
+			$log->status(400);
 		} elsif($error =~ /Can\'t locate .* in \@INC/) {
 			$logger->error($error);
 			print "Status: 500 Internal Server Error\n",
@@ -496,6 +549,8 @@ sub doit
 				print "Software error - contact the webmaster\n",
 					"$error\n";
 			}
+			$info->status(500);
+			$log->status(500);
 		} else {
 			# No permission to show this page
 			print "Status: 403 Forbidden\n",
@@ -505,6 +560,21 @@ sub doit
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 				print "Access Denied\n";
 			}
+			$info->status(403);
+			$log->status(403);
+		}
+		if($vwflog && open(my $fout, '>>', $vwflog)) {
+			print $fout
+				'"', $info->domain_name(), '",',
+				'"', strftime('%F %T', localtime), '",',
+				'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
+				'"', $lingua->country(), '",',
+				'"', $info->browser_type(), '",',
+				'"', $lingua->language(), '",',
+				$info->status(), ',',
+				'""',
+				'"', $info->as_string(), "\"\n";
+			close($fout);
 		}
 		throw Error::Simple($error ? $error : $info->as_string());
 	}
@@ -529,15 +599,21 @@ sub choose
 	print "Status: 300 Multiple Choices\n",
 		"Content-type: text/plain\n";
 
-	my $path = $info->script_path();
-	if(defined($path)) {
+	$info->status(300);
+
+	# Print last modified date if path is defined
+	if(my $path = $info->script_path()) {
+		require HTTP::Date;
+		HTTP::Date->import();
+
 		my @statb = stat($path);
 		my $mtime = $statb[9];
-		print "Last-Modified: ", HTTP::Date::time2str($mtime), "\n";
+		print 'Last-Modified: ', HTTP::Date::time2str($mtime), "\n";
 	}
 
 	print "\n";
 
+	# Print available pages unless it's a HEAD request
 	unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 		print "/cgi-bin/page.fcgi?page=people\n",
 			"/cgi-bin/page.fcgi?page=home\n",
@@ -564,10 +640,13 @@ sub choose
 }
 
 # False positives we don't need in the logs
-sub filter {
-	return 0 if($_[0] =~ /Can't locate Net\/OAuth\/V1_0A\/ProtectedResourceRequest.pm in /);
-	return 0 if($_[0] =~ /Can't locate auto\/NetAddr\/IP\/InetBase\/AF_INET6.al in /);
-	return 0 if($_[0] =~ /S_IFFIFO is not a valid Fcntl macro at /);
+sub filter
+{
+	# return 0 if($_[0] =~ /Can't locate Net\/OAuth\/V1_0A\/ProtectedResourceRequest.pm in /);
+	# return 0 if($_[0] =~ /Can't locate auto\/NetAddr\/IP\/InetBase\/AF_INET6.al in /);
+	# return 0 if($_[0] =~ /S_IFFIFO is not a valid Fcntl macro at /);
 
+	return 0 if $_[0] =~ /Can't locate (Net\/OAuth\/V1_0A\/ProtectedResourceRequest\.pm|auto\/NetAddr\/IP\/InetBase\/AF_INET6\.al) in |
+		   S_IFFIFO is not a valid Fcntl macro at /x;
 	return 1;
 }
