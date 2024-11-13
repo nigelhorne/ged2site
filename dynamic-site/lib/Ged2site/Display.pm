@@ -201,6 +201,12 @@ sub get_template_path {
 	close($fh);
 	$self->_debug({ message => "using $filename" });
 	$self->{_filename} = $filename;
+
+	# Remember the template filename
+	if($self->{'log'}) {
+		$self->{'log'}->template($filename);
+	}
+
 	return $filename;
 }
 

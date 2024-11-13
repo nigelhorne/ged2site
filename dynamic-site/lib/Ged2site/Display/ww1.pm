@@ -48,7 +48,15 @@ sub html {
 		next if($yod > 1918);
 
 		my $dcountry = $person->{'death_country'};
-		next unless($dcountry);
+		if(!defined($dcountry)) {
+			if($person->{'bio'} =~ /In (\d{4}) s?he was serving in the military/i) {
+				next if($1 < 1914);
+				next if($1 > 1918);
+				# Died in an unknown country while surving in the military during the first world war
+				push @wardead, $person;
+			}
+			next;
+		}
 		if(length($dcountry) > 2) {
 			$dcountry = lc(country2code($dcountry));
 		}

@@ -48,14 +48,22 @@ sub html {
 		next if($yod > 1945);
 
 		my $dcountry = $person->{'death_country'};
-		next unless($dcountry);
+		if(!defined($dcountry)) {
+			if($person->{'bio'} =~ /In (\d{4}) s?he was serving in the military/i) {
+				next if($1 < 1939);
+				next if($1 > 1945);
+				# Died in an unknown country while surving in the military during the second world war
+				push @wardead, $person;
+			}
+			next;
+		}
 		if(length($dcountry) > 2) {
 			$dcountry = lc(country2code($dcountry));
 		}
 
-		next unless(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dcountry eq 'nl') || ($dcountry eq 'de') || ($dcountry eq 'it'));
-
-		push @wardead, $person;
+		if(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dcountry eq 'nl') || ($dcountry eq 'de') || ($dcountry eq 'it')) {
+			push @wardead, $person;
+		}
 	}
 
 	@wardead = sort { $a->{'title'} cmp $b->{'title'} } @wardead;
