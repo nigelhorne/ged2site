@@ -10260,23 +10260,19 @@ sub all_records_have_date
 	my @records = @{$args{'records'}};
 	my $person = $args{'person'};
 
-	foreach my $record(@records) {
-		if((!ref($record)) || (ref($record) ne 'Gedcom::Record') || !$record->date()) {
-			return 0;
-		}
-		if(my $date = $record->date()) {
-			if(($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
-			   ($date =~ /[\/\-]/) || ($date =~ / to /) || !date_parser_cached(date => $date)) {
-				return 0;
-			}
-			if(!date_parser_cached(date => $date)) {
-				complain({
-					person => $person,
-					warning => "Record has an invalid date of $date"
-				});
-				return 0;
-			}
-		} else {
+	foreach my $record (@records) {
+		# Check if $record is an object and has a valid date method
+		return 0 unless(ref($record) && $record->can('date'));
+
+		my $date = $record->date();
+		# Check if the date is valid and matches required format
+		if((!defined $date) || ($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
+		    ($date =~ /[\/\-]/) || ($date =~ / to /) || !date_parser_cached(date => $date)) {
+			# Log a warning if date is invalid
+			complain({
+				person => $person,
+				warning => "Record has an invalid date of $date"
+			});
 			return 0;
 		}
 	}
