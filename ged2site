@@ -4516,10 +4516,15 @@ sub print_person
 				$fullbio .= $bio;
 				undef $bio;
 
-				# Sort the order of the marriages by date
+				# Sort the marriages by date
 				my $all_marriages_have_date = 1;
 				foreach my $spouse(@spouses) {
-					if(!date_to_datetime(dateofmarriage($spouse))) {
+					if(my $dom = dateofmarriage($spouse)) {
+						if(!date_to_datetime($dom)) {
+							$all_marriages_have_date = 0;
+							last;
+						}
+					} else {
 						$all_marriages_have_date = 0;
 						last;
 					}
@@ -10268,11 +10273,13 @@ sub all_records_have_date
 		# Check if the date is valid and matches required format
 		if((!defined $date) || ($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
 		    ($date =~ /[\/\-]/) || ($date =~ / to /) || !date_parser_cached(date => $date)) {
-			# Log a warning if date is invalid
-			complain({
-				person => $person,
-				warning => "Record has an invalid date of $date"
-			});
+			if(defined($date)) {
+				# Log a warning if date is invalid
+				complain({
+					person => $person,
+					warning => "Record has an invalid date of $date"
+				});
+			}
 			return 0;
 		}
 	}
