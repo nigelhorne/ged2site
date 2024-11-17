@@ -23,6 +23,8 @@ sub html {
 		'home' => 1,
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
+		'fbclid' => qr/^[A-Z][0-9]_\-/i,	# Facebook info
+                'gclid' => qr/^[A-Z][0-9]\-/i,  # Google info
 	};
 	my %params = %{$info->params({ allow => $allowed })};
 

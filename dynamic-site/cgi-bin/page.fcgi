@@ -401,7 +401,7 @@ sub doit
 				'"', $info->browser_type(), '",',
 				'"', $lingua->language(), '",',
 				'403,',
-				'""',
+				'"",',
 				'"', $info->as_string(), "\"\n";
 			close($fout);
 		}
