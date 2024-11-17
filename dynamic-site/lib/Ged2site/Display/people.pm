@@ -17,7 +17,7 @@ our @ISA = ('Ged2site::Display');
 	# my $info = $self->{_info};
 	# die unless($info);
 # 
-	# my $allowed = {
+	# my $allow = {
 		# 'page' => 'people',
 		# 'entry' => undef,	# TODO: regex of allowable name formats
 		# 'home' => 1,
@@ -26,7 +26,7 @@ our @ISA = ('Ged2site::Display');
 		# 'fbclid' => qr/^[\w-]+$/i,	# Facebook info
 		# 'gclid' => qr/^\w+$/i,	# Google info
 	# };
-	# my %params = %{$info->params({ allow => $allowed })};
+	# my %params = %{$info->params({ allow => $allow })};
 # 
 	# delete $params{'page'};
 	# delete $params{'lint_content'};
@@ -57,11 +57,11 @@ sub html {
 	my %args = ref($_[0]) eq 'HASH' ? %{$_[0]} : @_;
 
 	my $info = $self->{_info};
-	die "Missing _info in object" unless $info;
+	die 'Missing _info in object' unless $info;
 
-	# Define allowed parameters (use state to avoid redeclaring in subsequent calls)
-	# state $allowed = {
-	my $allowed = {
+	# Define allow parameters (use state to avoid redeclaring in subsequent calls)
+	# state $allow = {
+	my $allow = {
 		page => 'people',
 		entry => undef,	# TODO: Add regex for valid formats
 		home => 1,
@@ -69,31 +69,37 @@ sub html {
 		lint_content => qr/^\d$/,
 		fbclid => qr/^[\w-]+$/i,	# Facebook tracking info
 		gclid => qr/^\w+$/i,	# Google tracking info
+		'lint_content' => qr/^\d$/,
 	};
 
 	# Extract and filter params
-	my %params = %{$info->params({ allow => $allowed })};
-
-	# Parameters to exclude from further processing
-	# my @exclude_keys = qw(page lint_content lang fbclid gclid);
-	# delete @params{@exclude_keys};
-	delete $params{'page'};
-	delete $params{'lint_content'};
-	delete $params{'lang'};
-	delete $params{'fbclid'};
-	delete $params{'gclid'};
+	my $params = $info->params({ allow => $allow });
 
 	# Database handle
 	my $people = $args{'people'};
 	die "Missing 'people' handle" unless($people);
 
-	unless(scalar(keys %params)) {
-		# No parameters to process: return the main index page
+	if(!defined($params)) {
+		# No parameters to process: display the main index page
+		return $self->SUPER::html(updated => $people->updated());
+	}
+
+	# Parameters to exclude from further processing
+	# my @exclude_keys = qw(page lint_content lang fbclid gclid);
+	# delete @params{@exclude_keys};
+	delete $params->{'page'};
+	delete $params->{'lint_content'};
+	delete $params->{'lang'};
+	delete $params->{'fbclid'};
+	delete $params->{'gclid'};
+
+	if(scalar(keys %{$params}) == 0) {
+		# No parameters to process: display the main index page
 		return $self->SUPER::html(updated => $people->updated());
 	}
 
 	# Fetch person details from the database
-	my $person_details = $people->fetchrow_hashref(\%params);
+	my $person_details = $people->fetchrow_hashref($params);
 	unless($person_details) {
 		die 'Lookup failed: No matching record found for given parameters';
 	}
@@ -105,6 +111,5 @@ sub html {
 		updated => $people->updated()
 	});
 }
-
 
 1;
