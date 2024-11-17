@@ -329,7 +329,7 @@ if($opts{'w'} && $opts{'c'}) {
 			autoload $grave_modules;
 		}
 	} else {
-		push @modules, 'FindaGrave';
+		push @modules, 'Genealogy::FindaGrave';
 
 		$grave_modules = 'Genealogy::FindaGrave';
 	}
