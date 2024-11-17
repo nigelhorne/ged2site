@@ -126,7 +126,8 @@ sub as_string {
 	return $rc =~ /^Location:\s/ms ? $rc : $rc . $self->html($args);
 }
 
-sub get_template_path {
+sub get_template_path
+{
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
