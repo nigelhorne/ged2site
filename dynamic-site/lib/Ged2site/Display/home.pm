@@ -19,7 +19,7 @@ sub html {
 
 	my $allowed = {
 		'page' => 'home',
-		'lang' => qr/^[A-Z][A-Z]/i,
+		lang => qr/^[A-Z]{2}$/i,
 		'lint_content' => qr/^\d$/,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
