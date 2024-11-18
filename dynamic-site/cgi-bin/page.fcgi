@@ -519,7 +519,7 @@ sub doit
 				'"', $info->browser_type(), '",',
 				'"', $lingua->language(), '",',
 				$info->status(), ',',
-				'""',
+				'"",',
 				'"', $info->as_string(), "\"\n";
 			close($fout);
 		}
@@ -572,7 +572,7 @@ sub doit
 				'"', $info->browser_type(), '",',
 				'"', $lingua->language(), '",',
 				$info->status(), ',',
-				'""',
+				'"",',
 				'"', $info->as_string(), "\"\n";
 			close($fout);
 		}

@@ -104,6 +104,7 @@ If the arguments are not set, tries to take from class level defaults
 =cut
 
 sub new {
+	die 'Use Database::Abstraction';
 	my $proto = shift;
         my %args;
 
