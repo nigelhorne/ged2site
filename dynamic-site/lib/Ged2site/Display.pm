@@ -101,6 +101,8 @@ sub as_string {
 			$args->{cart} = \%cart;
 		}
 	}
+
+	# Calculate items in cart if not already present in $args
 	unless($args && $args->{itemsincart}) {
 		if($args->{cart}) {
 			my $itemsincart;
@@ -126,6 +128,7 @@ sub as_string {
 	return $rc =~ /^Location:\s/ms ? $rc : $rc . $self->html($args);
 }
 
+# Determine the path to the correct template file based on various criteria such as language settings, browser type, and module path
 sub get_template_path
 {
 	my $self = shift;
