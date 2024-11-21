@@ -10564,8 +10564,8 @@ sub Gedcom::Individual::relationship
 
 		# Full siblings
 		if(($self_mother->xref() eq $other_mother->xref()) && ($self_father->xref() eq $other_father->xref())) {
-			# return ($sex eq 'M') ? 'barādar' : 'khāhar';
 			return $language eq 'Farsi'
+				# ? ($sex eq 'M') ? 'barādar' : 'khāhar';
 				? ($sex eq 'M' ? "\N{U+0631}\N{U+062F}\N{U+0637}\N{U+0631}\N{U+0638}" : "\N{U+062E}\N{U+0627}\N{U+0647}\N{U+0631}")
 				: i18n($sex eq 'M' ? 'brother' : 'sister');
 		}
@@ -16286,6 +16286,7 @@ today::heute
 was::war
 was born::wurde geboren
 was married to %s::war mit %s verheiratet
+when::wenn
 wife::Frau
 with::mit
 youngest::jüngsten
