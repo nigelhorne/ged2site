@@ -16,6 +16,15 @@ BEGIN {
 	Log::Any::Adapter->set('Log4perl');
 }
 
+=head1 SUBROUTINES/METHODS
+
+=head2 create_disc_cache
+
+Initialise a disc-based cache using the CHI module.
+Supports multiple cache drivers, including BerkeleyDB, DBI, and Redis.
+
+=cut
+
 sub create_disc_cache {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -94,6 +103,13 @@ sub create_disc_cache {
 	return CHI->new(%chi_args);
 }
 
+=head2 create_memory_cache
+
+Initialise a memory-based cache using the CHI module.
+Supports multiple cache drivers, including SharedMem, Memory, and Redis.
+
+=cut
+
 sub create_memory_cache {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -167,8 +183,16 @@ sub create_memory_cache {
 	return CHI->new(%chi_args);
 }
 
-# From http://www.geodatasource.com/developers/perl
-# FIXME:  use Math::Trig
+=head2 distance
+
+Calculate the distance between two geographical points using latitude and longitude.
+Supports distance in kilometres (K), nautical miles (N), or miles.
+
+From L<http://www.geodatasource.com/developers/perl>
+FIXME:  use Math::Trig
+
+=cut
+
 sub distance {
 	my ($lat1, $lon1, $lat2, $lon2, $unit) = @_;
 	my $theta = $lon1 - $lon2;
@@ -176,9 +200,9 @@ sub distance {
 	$dist = _acos($dist);
 	$dist = _rad2deg($dist);
 	$dist = $dist * 60 * 1.1515;
-	if ($unit eq "K") {
-		$dist = $dist * 1.609344;
-	} elsif ($unit eq "N") {
+	if ($unit eq 'K') {
+		$dist = $dist * 1.609344;	# number of kilometres in a mile
+	} elsif ($unit eq 'N') {
 		$dist = $dist * 0.8684;
 	}
 	return ($dist);
