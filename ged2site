@@ -13369,23 +13369,29 @@ sub get_all_residences
 				my $iterator = Array::Iterator->new({ __array__ => \@rc });
 				while(1) {
 					my $current = $iterator->get_next();
-					my $next = $iterator->peek();
 					my $nextnext = $iterator->peek(2);
+
 					last if(!defined($nextnext));
+
 					my $place = place({ person => $person, record => $current, nopreposition => 1 });
+
 					next if(!defined($place));
+
+					my $next = $iterator->peek();
 					my $nextplace = place({ person => $person, record => $next, nopreposition => 1 });
 					my $nextnextplace = place({ person => $person, record => $nextnext, nopreposition => 1 });
+
 					if(defined($nextnextplace) && ($nextnextplace eq $place) && ($nextplace ne $place)) {
 						my @locations = get_location($place);
 
 						if(my $location = shift @locations) {
 							my @nextlocations = get_location($nextplace);
 
-							if((ref($location) eq 'Geo::Location::Point') && (my $nextlocation = shift @nextlocations)) {
-								if(ref($nextlocation) eq 'Geo::Location::Point') {
+							if($location->isa('Geo::Location::Point') && (my $nextlocation = shift @nextlocations)) {
+								if($nextlocation->isa('Geo::Location::Point')) {
 									if($location->distance($nextlocation)->mile() >= 30.0) {
 										complain({ person => $person, warning => "Moved from$place to$nextplace and back again - check for incorrect entry" });
+										last;
 									}
 								}
 							}
@@ -14768,8 +14774,8 @@ sub get_language
 
 	# Check the LANGUAGE environment variable
 	if($ENV{'LANGUAGE'}) {
-		for my $language (split /:/, $ENV{'LANGUAGE'}) {
-			return $langs{$language} if exists $langs{$language};
+		for my $language(split /:/, $ENV{'LANGUAGE'}) {
+			return $langs{$language} if(exists($langs{$language}));
 		}
 	}
 
@@ -14777,7 +14783,7 @@ sub get_language
 	for my $variable('LC_ALL', 'LC_MESSAGES', 'LANG') {
 		if(my $val = $ENV{$variable}) {
 			if(my ($prefix) = $val =~ /^(\w{2})/) {
-				return $langs{$prefix} if exists $langs{$prefix};
+				return $langs{$prefix} if(exists($langs{$prefix}));
 			}
 		}
 	}
