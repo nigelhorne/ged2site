@@ -10273,7 +10273,7 @@ sub all_records_have_date
 		# Check if the date is valid and matches required format
 		if((!defined $date) || ($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
 		    ($date =~ /[\/\-]/) || ($date =~ / to /) || !date_parser_cached(date => $date)) {
-			if(defined($date)) {
+			if((defined($date)) && ($date !~ / to /) && ($date !~ /[\/\-]/)) {
 				# Log a warning if date is invalid
 				complain({
 					person => $person,
@@ -11373,36 +11373,30 @@ sub Gedcom::Individual::relationship_down
 
 sub stepsabove
 {
-	my $person = shift;
-	my $target = shift;
-	my $count = shift;
+	my ($person, $target, $count) = @_;
+	$count ||= 0; # Ensure count has a default value if not provided.
 
-	return -1 if($count == -1);
-
-	if(!defined($target)) {
+	# Validate inputs
+	if((!defined $person) || !defined $target) {
 		print STDERR "\n";
 		my $i = 0;
-		while((my @call_details = caller($i++))) {
-			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+		while (my @call_details = caller($i++)) {
+			print STDERR "\t", colored("$call_details[2] of $call_details[1]", 'red'), "\n";
 		}
 		die 'Usage: stepsabove($person, $target, $count)';
 	}
 
-	if($person->xref() eq $target->xref()) {
-		return $count;
+	# Found the target
+	return $count if $person->xref() eq $target->xref();
+
+	# Recursive calls for father and mother
+	for my $parent($person->father(), $person->mother()) {
+		next unless defined $parent; # Skip undefined parents
+		my $rc = stepsabove($parent, $target, $count + 1);
+		return $rc if $rc != -1; # Return result if found
 	}
 
-	my @father = $person->father();
-	if(my $father = $father[0]) {
-		my $rc = stepsabove($father, $target, $count + 1);
-		return $rc if($rc != -1);
-	}
-
-	my @mother = $person->mother();
-	if(my $mother = $mother[0]) {
-		return stepsabove($mother, $target, $count + 1);
-	}
-
+	# Target not found
 	return -1;
 }
 
