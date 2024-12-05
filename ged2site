@@ -6509,15 +6509,17 @@ sub print_person
 									last;
 								}
 							}
-							if($place =~ /.+,\s*(.+),\s*.+$/) {
-								if($1 ne $all_in_county) {
-									$all_in_one_county = 0;
-									last;
-								}
-							} elsif($place =~ /^(.+),\s*.+$/) {
-								if($1 ne $all_in_county) {
-									$all_in_one_county = 0;
-									last;
+							if(defined($all_in_county)) {
+								if($place =~ /.+,\s*(.+),\s*.+$/) {
+									if($1 ne $all_in_county) {
+										$all_in_one_county = 0;
+										last;
+									}
+								} elsif($place =~ /^(.+),\s*.+$/) {
+									if($1 ne $all_in_county) {
+										$all_in_one_county = 0;
+										last;
+									}
 								}
 							}
 						}
@@ -10927,6 +10929,7 @@ sub Gedcom::Individual::relationship_up
 					12 << 24 | 4 => 'third cousin eight-times-removed',
 					12 << 24 | 5 => 'fourth cousin seven-times-removed',
 					13 << 24 | 1 => 'eleven times great-uncle',
+					13 << 24 | 2 => 'first cousin eleven-times-removed',
 					14 << 24 | 1 => 'twelve times great-uncle',
 					15 << 24 | 1 => 'thirteen times great-uncle',
 					16 << 24 | 1 => 'fourteen times great-uncle',
@@ -11003,6 +11006,7 @@ sub Gedcom::Individual::relationship_up
 					12 << 24 | 4 => 'third cousin eight-times-removed',
 					12 << 24 | 5 => 'fourth cousin seven-times-removed',
 					13 << 24 | 1 => 'eleven times great-uncle',
+					13 << 24 | 2 => 'first cousin eleven-times-removed',
 					14 << 24 | 1 => 'twelve times great-uncle',
 					15 << 24 | 1 => 'thirteen times great-uncle',
 					16 << 24 | 1 => 'fourteen times great-uncle',
@@ -11233,6 +11237,7 @@ sub Gedcom::Individual::relationship_up
 					12 << 24 | 4 => 'third cousin eight-times-removed',
 					12 << 24 | 5 => 'fourth cousin seven-times-removed',
 					13 << 24 | 1 => 'eleven times great-aunt',
+					13 << 24 | 2 => 'first cousin eleven-times-removed',
 					14 << 24 | 1 => 'twelve times great-aunt',
 					15 << 24 | 1 => 'thirteen times great-aunt',
 					16 << 24 | 1 => 'fourteen times great-aunt',
