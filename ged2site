@@ -487,12 +487,12 @@ my $dfn;
 if(defined($language) && ($language eq 'French')) {
 	# $dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy', lang => 'fr');	 # not supported
 	$dfn = DateTime::Format::Natural->new(format => 'dd/mm/yy');
-	Date_Init("DateFormat=FR");	# Date::Manip
+	Date_Init('DateFormat=FR');	# Date::Manip
 	$lcm->set_lang('fr');
 } elsif((defined($ENV{'LC_TIME'}) && ($ENV{'LC_TIME'} =~ /^en_US/)) ||
 	((defined($ENV{'LC_ALL'}) && ($ENV{'LC_ALL'} =~ /^en_US/)))) {
 	$dfn = DateTime::Format::Natural->new();
-	Date_Init("DateFormat=US");	# Date::Manip
+	Date_Init('DateFormat=US');	# Date::Manip
 	if(defined($lcm)) {
 		$lcm->set_lang('en');
 	}
@@ -501,7 +501,7 @@ if(defined($language) && ($language eq 'French')) {
 	if(defined($language)) {
 		Date_Init("Language=$language");	# Date::Manip
 	} else {
-		Date_Init("DateFormat=International");
+		Date_Init('DateFormat=International');
 	}
 	if($lcm) {
 		$lcm->set_lang(get_language_code() // 'en');

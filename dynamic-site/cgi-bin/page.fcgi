@@ -18,6 +18,12 @@ use warnings;
 
 no lib '.';
 
+BEGIN {
+	# Sanitize environment variables
+	delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
+	$ENV{'PATH'} = '/usr/local/bin:/bin:/usr/bin';	# For insecurity
+}
+
 use Log::Log4perl qw(:levels);	# Put first to cleanup last
 use CGI::ACL;
 use CGI::Carp qw(fatalsToBrowser);
@@ -173,23 +179,17 @@ sub sig_handler {
 $SIG{USR1} = \&sig_handler;
 $SIG{TERM} = \&sig_handler;
 $SIG{PIPE} = 'IGNORE';
-$ENV{'PATH'} = '/usr/local/bin:/bin:/usr/bin';	# For insecurity
-
-$SIG{__WARN__} = sub {
-	if(open(my $fout, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"))) {
-		print $fout @_;
-	}
-	Log::WarnDie->dispatcher(undef);
-	CORE::die @_
-};
 
 # my ($stdin, $stdout, $stderr) = (IO::Handle->new(), IO::Handle->new(), IO::Handle->new());
-my $err_handler = sub {
+# https://stackoverflow.com/questions/14563686/how-do-i-get-errors-in-from-a-perl-script-running-fcgi-pm-to-appear-in-the-apach
+$SIG{__DIE__} = $SIG{__WARN__} = sub {
 	if(open(my $fout, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"))) {
-		print $fout @_;
+		print $fout $info->domain_name(), ": @_";
 	# } else {
 		# print $stderr @_;
 	}
+	Log::WarnDie->dispatcher(undef);
+	CORE::die @_
 };
 
 # my $request = FCGI::Request($stdin, $stdout, $stderr);
@@ -198,6 +198,7 @@ my $request = FCGI::Request();
 # It would be really good to send 429 to search engines when there are more than, say, 5 requests being handled.
 # But I don't think that's possible with the FCGI module
 
+# Main request loop
 while($handling_request = ($request->Accept() >= 0)) {
 	unless($ENV{'REMOTE_ADDR'}) {
 		# debugging from the command line
@@ -258,9 +259,6 @@ while($handling_request = ($request->Accept() >= 0)) {
 		};
 		last;
 	}
-
-	# https://stackoverflow.com/questions/14563686/how-do-i-get-errors-in-from-a-perl-script-running-fcgi-pm-to-appear-in-the-apach
-	$SIG{__DIE__} = $err_handler;
 
 	$requestcount++;
 	Log::Any::Adapter->set( { category => $script_name }, 'Log4perl');
@@ -467,6 +465,9 @@ sub doit
 		if(!defined($display)) {
 			$logger->info("Unknown page $page");
 			$invalidpage = 1;
+		} elsif(!$display->can('as_string')) {
+			$logger->warn("Problem understanding $page");
+			undef $display;
 		}
 	};
 
