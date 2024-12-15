@@ -15,7 +15,7 @@
 			<meta name="description" content="About [% person.title %] - A ged2site webpage">
 		[% ELSE %]
 			<title>[% SiteTitle.join(' ') %]</title>
-			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=people&home=1">
+			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=people&amp;home=1">
 			<meta name="description" content="[% SiteTitle.join(' ') %] - A ged2site webpage">
 		[% END %]
 		<!--
@@ -42,7 +42,7 @@
 				[% END %]
 			[% END %]
 			[% UNLESS home %]
-				<a href="?page=people&home=1">Home</a><br>
+				<a href="?page=people&amp;home=1">Home</a><br>
 			[% END %]
 			<a href="?page=censuses">Census Index</a><br>
 			<a href="?page=surnames">Surname Index</a><br>
