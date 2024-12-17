@@ -24,6 +24,7 @@ BEGIN {
 	$ENV{'PATH'} = '/usr/local/bin:/bin:/usr/bin';	# For insecurity
 }
 
+use Log::WarnDie 0.09;
 use Log::Log4perl qw(:levels);	# Put first to cleanup last
 use CGI::ACL;
 use CGI::Carp qw(fatalsToBrowser);
@@ -39,17 +40,21 @@ use File::HomeDir;
 use Log::Any::Adapter;
 use Error qw(:try);
 use File::Spec;
-use Log::WarnDie 0.09;
 use POSIX qw(strftime);
 use Time::HiRes;
 # FIXME: Gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
 # use Taint::Runtime qw($TAINT taint_env);
 use autodie qw(:all);
 
+# use File::HomeDir;
+# use lib File::HomeDir->my_home() . '/lib/perl5';
+
 # use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
 			# i.e. the contents of the lib directory in the
 			# distribution
-use lib '../lib';
+
+# Where to find the Ged2site modules
+use lib CGI::Info::script_dir() . '/../lib';
 
 use Ged2site::Config;
 use Error::DB::Open;
@@ -221,6 +226,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		# TODO:  Make this neater
 		# Tries again without the database if it can't be opened
 		$Error::Debug = 1;
+		# CHI->stats->enable();
 		try {
 			doit(debug => 1);
 		} catch Error::DB::Open with {
@@ -330,6 +336,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 	}
 }
 
+# Clean up resources before shutdown
 $logger->info("Shutting down");
 if($buffercache) {
 	$buffercache->purge();
@@ -338,6 +345,7 @@ CHI->stats->flush();
 Log::WarnDie->dispatcher(undef);
 exit(0);
 
+# Create and send response to the client for each request
 sub doit
 {
 	CGI::Info->reset();
@@ -370,6 +378,7 @@ sub doit
 
 	$linguacache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Lingua');
 
+	# Language negotiation
 	my $lingua = CGI::Lingua->new({
 		supported => [ 'en-gb', 'fr' ],
 		cache => $linguacache,
@@ -379,7 +388,15 @@ sub doit
 		syslog => $syslog,
 	});
 
-	$vwflog ||= ($config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log'));
+	$vwflog ||= $config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log');
+
+	my $warnings = '';
+	if(my $w = $info->warnings()) {
+		my @warnings = map { $_->{'warning'} } @{$w};
+		$warnings = join(';', @warnings);
+	}
+
+	# Access control checks
 	if($ENV{'REMOTE_ADDR'} && $acl->all_denied(lingua => $lingua)) {
 		print "Status: 403 Forbidden\n",
 			"Content-type: text/plain\n",
@@ -400,7 +417,9 @@ sub doit
 				'"', $lingua->language(), '",',
 				'403,',
 				'"",',
-				'"', $info->as_string(), "\"\n";
+				'"', $info->as_string(), '",',
+				'"', $warnings, '"',
+				"\n";
 			close($fout);
 		}
 		return;
@@ -505,8 +524,10 @@ sub doit
 				'"', $info->browser_type(), '",',
 				'"', $lingua->language(), '",',
 				$info->status(), ',',
-				'"', $log->template(), '",',
-				'"', $info->as_string(), "\"\n";
+				'"', ($log->template() ? $log->template() : ''), '",',
+				'"', $info->as_string(), '",',
+				'"', $warnings, '"',
+				"\n";
 			close($fout);
 		}
 	} elsif($invalidpage) {
@@ -521,7 +542,9 @@ sub doit
 				'"', $lingua->language(), '",',
 				$info->status(), ',',
 				'"",',
-				'"', $info->as_string(), "\"\n";
+				'"', $info->as_string(), '",',
+				'"', $warnings, '"',
+				"\n";
 			close($fout);
 		}
 		return;
@@ -530,6 +553,7 @@ sub doit
 		$fb->init(
 			cache => undef,
 		);
+		# Handle errors gracefully
 		if($error eq 'Unknown page to display') {
 			print "Status: 400 Bad Request\n",
 				"Content-type: text/plain\n",
@@ -574,7 +598,9 @@ sub doit
 				'"', $lingua->language(), '",',
 				$info->status(), ',',
 				'"",',
-				'"', $info->as_string(), "\"\n";
+				'"', $info->as_string(), '",',
+				'"', $warnings, '"',
+				"\n";
 			close($fout);
 		}
 		throw Error::Simple($error ? $error : $info->as_string());
@@ -636,7 +662,7 @@ sub choose
 			"/cgi-bin/page.fcgi?page=reports\n",
 			"/cgi-bin/page.fcgi?page=facts\n",
 			"/cgi-bin/page.fcgi?page=mailto\n",
-			"/cgi-bin/page.fcgi?page=meta-data\n";
+			"/cgi-bin/page.fcgi?page=meta_data\n";
 	}
 }
 
