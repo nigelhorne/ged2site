@@ -255,6 +255,8 @@ sub http
 	# Security headers
 	# https://www.owasp.org/index.php/Clickjacking_Defense_Cheat_Sheet
 	# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+
+	# TODO: investigate Content-Security-Policy
 	return $rc . "X-Frame-Options: SAMEORIGIN\n"
 		. "X-Content-Type-Options: nosniff\n"
 		. "Referrer-Policy: strict-origin-when-cross-origin\n\n";
@@ -323,8 +325,8 @@ sub html {
 		throw Error::Simple("Unhandled file type $filename");
 	}
 
-	if(($filename !~ /.txt$/) && ($rc =~ /\smailto:(.+?)>/) && ($1 !~ /^&/)) {
-		$self->_debug({ message => "Found mailto link $1, you should remove it or use " . obfuscate($1) . ' instead' });
+	if(($filename !~ /.txt$/) && ($rc =~ /\smailto:(.+?)>/) && ($1 !~ /^&/) && $self->{_logger}) {
+		$self->{_logger}->warn({ message => "Found mailto link $1, you should remove it or use " . obfuscate($1) . ' instead' });
 	}
 
 	return $rc;
@@ -334,12 +336,12 @@ sub _debug
 {
 	my $self = shift;
 
-	if($self->{_logger}) {
+	if(my $logger = $self->{_logger}) {
 		my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
-		if($ENV{'REMOTE_ADDR'}) {
-			$self->{_logger}->debug("$ENV{'REMOTE_ADDR'}: $params{'message'}");
+		if(defined($ENV{'REMOTE_ADDR'})) {
+			$logger->debug("$ENV{'REMOTE_ADDR'}: $params{'message'}");
 		} else {
-			$self->{_logger}->debug($params{'message'});
+			$logger->debug($params{'message'});
 		}
 	}
 	return $self;

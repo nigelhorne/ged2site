@@ -15706,6 +15706,7 @@ sub dbpedia
 	my $birth_dt = $params->{'birth_dt'};
 	my $yob = $params->{'yob'};
 	my $birth_country = $params->{'birth_country'};
+	my $dbpedia = Class::Simple->new();
 
 	if(defined($birth_dt)) {
 		if(!ref($birth_dt)) {
@@ -15892,6 +15893,7 @@ sub dbpedia
 												# Born different year from the dbpedia person was born
 												next RESULT;
 											}
+											$dbpedia->birth($b);
 										} elsif(($uri =~ /(\d{3,4})s_deaths/)) {
 											if($yob > ($1 + 20)) {
 												# Born after the end of the decade this person died
@@ -15899,7 +15901,7 @@ sub dbpedia
 											}
 										} elsif(($uri =~ /(\d{3,4})s_births/)) {
 											if($yob < ($1 - 20)) {
-												# Born sometime before the start of the decard this person was born
+												# Born sometime before the start of the decade this person was born
 												next RESULT;
 											}
 										} elsif($uri =~ /(\d\d)th-century_deaths/) {
@@ -15914,6 +15916,7 @@ sub dbpedia
 												# Born after this person died
 												next RESULT;
 											}
+											$dbpedia->death($d);
 										}
 									}
 									warn ">>>>>>>>>> dbpedia allowing possibility $uri" if($opts{'w'});
@@ -15921,6 +15924,12 @@ sub dbpedia
 							}
 							$Data::Dumper::Maxdepth = 0;
 							print STDERR Data::Dumper->new([\$result])->Dump();
+							if(defined($yob) && (my $b = $dbpedia->birth()) && ($dbpedia->birth() != $yob)) {
+								complain({ person => $person, warning => "Year of birth may be inaccurate: ($yob != $b)" });
+							}
+							if(defined($yod) && (my $d = $dbpedia->death()) && ($dbpedia->death() != $yod)) {
+								complain({ person => $person, warning => "Year of death may be inaccurate: ($yod != $d)" });
+							}
 							if($opts{'c'}) {
 								$t =~ s/\.$//;
 								return "$t ($url).";
