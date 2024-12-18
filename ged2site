@@ -8815,7 +8815,7 @@ sub print_person
 	if($opts{'l'} || !$is_alive) {
 		# Output the citations field
 		if($opts{'c'} && $citationcount) {
-			# TODO: add cititions from dbpedia
+			# TODO: add citations from dbpedia
 			print "Create $citationcount citations\n" if($opts{'v'});
 			print $html '<h2>Citations</h2><ol>';
 			print $xml "\n\t\t<citations>";
@@ -13598,6 +13598,8 @@ sub get_all_occupations
 			} elsif($language eq 'German') {
 				if($occupation eq 'Teacher') {
 					$occupation = (($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin');
+				} elsif($occupation =~ /(.+)\sFarmer/) {
+					$occupation = (($person->sex() eq 'M') ? 'Landwirt' : 'Landwirtin');
 				}
 				$occupation =~ s/retired/im ruhestand/i;
 				$occupation =~ s/self-employed/slbststa\N{U+00E4}ndig/;
