@@ -15758,6 +15758,7 @@ sub dbpedia
 							   ($class->{'Label'}->{'text'} eq 'Event') ||
 							   ($class->{'Label'}->{'text'} eq 'Holiday') ||
 							   ($class->{'Label'}->{'text'} eq 'Plant') ||
+							   ($class->{'Label'}->{'text'} eq 'Organisation') ||
 							   ($class->{'Label'}->{'text'} eq 'Artwork')) {
 								next RESULT;
 							}
@@ -15857,6 +15858,7 @@ sub dbpedia
 									   ($uri =~ /Category:Events_in_/) ||
 									   ($uri =~ /Category:.+Parades$/) ||
 									   ($uri =~ /Category:Geology_of_/) ||
+									   ($uri =~ /Category:Hematology/) ||
 									   ($uri =~ /Category:Seismological_observatories/)) {
 										next RESULT;
 									}
