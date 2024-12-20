@@ -287,38 +287,26 @@ sub get_template_path
 	}
 	$dir .= '/templates';
 
+	my $prefix;
+
 	# Look in .../robot or .../mobile first, if appropriate
-	my $prefix = '';
-
 	# Look in .../en/gb/web, then .../en/web then /web
-	if($self->{_lingua}) {
-		my $lingua = $self->{_lingua};
-
-		$self->_debug({ message => 'Requested language: ' . $lingua->requested_language() });
-
-		# FIXME: look for lower priority languages if the highest isn't found
-		my $candidate;
-		if(my $sl = $lingua->sublanguage_code_alpha2()) {
-			$candidate = "$dir/" . $lingua->code_alpha2() . "/$sl";
-			$self->_debug({ message => "check for directory $candidate" });
-			if(!-d $candidate) {
-				$candidate = undef;
+	foreach my $browser_type($self->_types()) {
+		if(my $lingua = $self->{_lingua}) {
+			$self->_debug({ message => 'Requested language: ' . $lingua->requested_language() });
+			# FIXME: look for lower priority languages if the highest isn't found
+			if(my $language = $lingua->language_code_alpha2()) {
+				if(my $dialect = $lingua->sublanguage_code_alpha2()) {
+					$prefix .= "$dir/$browser_type/$language/$dialect:";
+					$prefix .= "$dir/$browser_type/$language/default:";
+				}
+				$prefix .= "$dir/$browser_type/$language:" if(-d "$dir/$browser_type/$language");
+				$prefix .= "$dir/$browser_type/default:" if(-d "$dir/$browser_type/default");
+				$prefix .= "$dir/default/$browser_type/:" if(-d "$dir/default/$browser_type");
 			}
 		}
-		if((!defined($candidate)) && defined($lingua->code_alpha2())) {
-			$candidate = "$dir/" . $lingua->code_alpha2();
-			$self->_debug({ message => "check for directory $candidate" });
-			if(!-d $candidate) {
-				$candidate = undef;
-			}
-		}
-		if($candidate) {
-			$prefix = $self->_append_browser_type({ directory => $candidate });
-		}
+		$prefix .= "$dir/$browser_type:" if(-d "$dir/$browser_type");
 	}
-
-	$prefix .= $self->_append_browser_type({ directory => "$dir/default" });
-	$prefix .= $self->_append_browser_type({ directory => $dir });
 
 	# Fall back to .../web, or if that fails, assume no web, robot or
 	# mobile variant
@@ -489,38 +477,22 @@ sub obfuscate {
 	return map { '&#' . ord($_) . ';' } split(//, shift);
 }
 
-sub _append_browser_type {
+sub _types
+{
 	my $self = shift;
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $info = $self->{_info};
+	my @rc;
 
-	if($self->{_logger}) {
-		$self->{_logger}->trace('_append_browser_type');
+	if($info->is_search_engine()) {
+		push @rc, 'search', 'robot';
+	} elsif($info->is_mobile()) {
+		push @rc, 'mobile';
+	} elsif($info->is_robot()) {
+		push @rc, 'robot', 'search';
 	}
+	push @rc, 'web';
 
-	my $directory = $args{'directory'};
-
-	return unless(defined($directory));
-
-	if($self->{_logger}) {
-		$self->{_logger}->debug("_append_browser_type: directory = $directory");
-	}
-
-	my $rc;
-	if(-d $directory) {
-		if($self->{_info}->is_search_engine()) {
-			$rc = "$directory/search:$directory/robot:";
-		} elsif($self->{_info}->is_mobile()) {
-			$rc = "$directory/mobile:";
-		} elsif($self->{_info}->is_robot()) {
-			$rc = "$directory/robot:$directory/search:";
-		}
-		$rc .= "$directory/web:";
-
-		$self->_debug({ message => "_append_directory_type: $directory=>$rc" });
-		return $rc;
-	}
-
-	return '';	# Don't return undef or else the caller may use an uninit variable
+	return @rc;
 }
 
 1;
