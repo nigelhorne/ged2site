@@ -6,26 +6,59 @@ package Ged2site::Display;
 use strict;
 use warnings;
 
-use Ged2site::Config;
-use Ged2site::Allow;
+use Config::Auto;
 use CGI::Info;
-use Error;
-use Fatal qw(:void open);
-use File::pfopen;
-
+use Data::Dumper;
+use File::Spec;
 use Template::Filters;
 use Template::Plugin::EnvHash;
 use Template::Plugin::Math;
 use HTML::SocialMedia;
+use Ged2site::Utils;
+use Error;
+use Fatal qw(:void open);
+use File::pfopen;
+use Scalar::Util;
+
+# TODO: read this from the config file
+my %blacklist = (
+	'MD' => 1,
+	'RU' => 1,
+	'CN' => 1,
+	'BR' => 1,
+	'UY' => 1,
+	'TR' => 1,
+	'MA' => 1,
+	'VE' => 1,
+	'SA' => 1,
+	'CY' => 1,
+	'CO' => 1,
+	'MX' => 1,
+	'IN' => 1,
+	'RS' => 1,
+	'PK' => 1,
+);
 
 our $sm;
 our $smcache;
 
 sub new {
-	my $proto = shift;
+	my $class = shift;
+
+	# Handle hash or hashref arguments
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $class = ref($proto) || $proto;
+	if(!defined($class)) {
+		# Using Ged2site::Display->new(), not Ged2site::Display::new()
+		# carp(__PACKAGE__, ' use ->new() not ::new() to instantiate');
+		# return;
+
+		# FIXME: this only works when no arguments are given
+		$class = __PACKAGE__;
+	} elsif(Scalar::Util::blessed($class)) {
+		# If $class is an object, clone it with new arguments
+		return bless { %{$class}, %args }, ref($class);
+	}
 
 	if(defined($ENV{'HTTP_REFERER'})) {
 		# Protect against Shellshocker
@@ -38,20 +71,68 @@ sub new {
 	}
 
 	my $info = $args{info} || CGI::Info->new();
-	my $config = $args{config} || Ged2site::Config->new({ logger => $args{logger}, info => $info, lingua => $args{lingua} });
 
-	if((!$info->is_search_engine()) && defined($ENV{'REMOTE_ADDR'})) {
-		my %allowargs = (
-			info => $info,
-			config => $config,
-			lingua => $args{lingua},
-			logger => $args{logger},
-			cachedir => $args{cachedir},
-			cache => $args{cache}
-		);
-		unless(Ged2site::Allow::allow(%allowargs)) {
-			throw Error::Simple("Not allowing connexion from $ENV{'REMOTE_ADDR'}", 1);
+	unless($info->is_search_engine() || !defined($ENV{'REMOTE_ADDR'})) {
+		require CGI::IDS;
+		CGI::IDS->import();
+
+		my $ids = CGI::IDS->new();
+		$ids->set_scan_keys(scan_keys => 1);
+		my $impact = $ids->detect_attacks(request => $info->params());
+		if($impact > 0) {
+			die "IDS impact is $impact";
 		}
+
+		require Data::Throttler;
+		Data::Throttler->import();
+
+		# Handle YAML Errors
+		my $db_file = File::Spec->catdir($info->tmpdir(), 'throttle');
+		eval {
+			my $throttler = Data::Throttler->new(
+				max_items => 30,
+				interval => 90,
+				backend => 'YAML',
+				backend_options => {
+					db_file => $db_file
+				}
+			);
+
+			unless($throttler->try_push(key => $ENV{'REMOTE_ADDR'})) {
+				die "$ENV{REMOTE_ADDR} connexion throttled";
+			}
+		};
+		if($@) {
+			unlink($db_file);
+		}
+		if(my $lingua = $args{lingua}) {
+			if($blacklist{uc($lingua->country())}) {
+				die "$ENV{REMOTE_ADDR} is from a blacklisted country ", $lingua->country();
+			}
+		}
+	}
+	my $config_dir = _find_config_dir(\%args, $info);
+	if($args{'logger'}) {
+		$args{'logger'}->debug(__PACKAGE__, ': ', __LINE__, " path = $config_dir");
+	}
+	my $config;
+	eval {
+		if(-r File::Spec->catdir($config_dir, $info->domain_name())) {
+			$config = Config::Auto::parse($info->domain_name(), path => $config_dir);
+		} elsif (-r File::Spec->catdir($config_dir, 'default')) {
+			$config = Config::Auto::parse('default', path => $config_dir);
+		} else {
+			die 'no suitable config file found';
+		}
+	};
+	if($@ || !defined($config)) {
+		die "Configuration error: $@: $config_dir/", $info->domain_name();
+	}
+
+	# The values in config are defaults which can be overridden by
+	# the values in args{config}
+	if(defined($args{'config'})) {
+		$config = { %{$config}, %{$args{'config'}} };
 	}
 
 	Template::Filters->use_html_entities();
@@ -85,7 +166,64 @@ sub new {
 	$self->{'_social_media'}->{'facebook_share_button'} = $sm->as_string(facebook_share_button => 1);
 	# $self->{'_social_media'}->{'google_plusone'} = $sm->as_string(google_plusone => 1);
 
+	# Return the blessed object
 	return bless $self, $class;
+}
+
+# Determine the configuration directory
+sub _find_config_dir
+{
+	my($args, $info) = @_;
+
+	if($ENV{'CONFIG_DIR'}) {
+		return $ENV{'CONFIG_DIR'};
+	}
+
+	my $config_dir = File::Spec->catdir(
+			$info->script_dir(),
+			File::Spec->updir(),
+			File::Spec->updir(),
+			'conf'
+		);
+
+	if(!-d $config_dir) {
+		$config_dir = File::Spec->catdir(
+				$info->script_dir(),
+				File::Spec->updir(),
+				'conf'
+			);
+	}
+
+	if(!-d $config_dir) {
+		if($ENV{'DOCUMENT_ROOT'}) {
+			$config_dir = File::Spec->catdir(
+				# $ENV{'DOCUMENT_ROOT'},
+				$info->rootdir(),
+				File::Spec->updir(),
+				'lib',
+				'conf'
+			);
+		} else {
+			$config_dir = File::Spec->catdir(
+				$ENV{'HOME'},
+				'lib',
+				'conf'
+			);
+		}
+	}
+
+	if(!-d $config_dir) {
+		if($args->{config_directory}) {
+			return $args->{config_directory};
+		}
+		if($args->{logger}) {
+			while(my ($k, $v) = each %ENV) {
+				$args->{logger}->debug("$k=$v");
+			}
+		}
+	}
+
+	return $config_dir;
 }
 
 # Call this to display the page
@@ -160,8 +298,8 @@ sub get_template_path
 
 		# FIXME: look for lower priority languages if the highest isn't found
 		my $candidate;
-		if($lingua->sublanguage_code_alpha2()) {
-			$candidate = "$dir/" . $lingua->code_alpha2() . '/' . $lingua->sublanguage_code_alpha2();
+		if(my $sl = $lingua->sublanguage_code_alpha2()) {
+			$candidate = "$dir/" . $lingua->code_alpha2() . "/$sl";
 			$self->_debug({ message => "check for directory $candidate" });
 			if(!-d $candidate) {
 				$candidate = undef;
@@ -239,7 +377,7 @@ sub http
 	}
 
 	# Determine language, defaulting to English
-	# TODO: Change the headers, e.g. character set, based on the langauge
+	# TODO: Change the headers, e.g. character set, based on the language
 	# my $language = $self->{_lingua} ? $self->{_lingua}->language() : 'English';
 
 	# Determine content type

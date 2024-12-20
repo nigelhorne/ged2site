@@ -15132,7 +15132,7 @@ sub person_in_residence_record
 #	https://www.compart.com/en/unicode/U+00EB
 #
 # keep_hrefs => 1 means ensure hyperlinks still work
-# keep_apos => 1 means keep apostraphes, useful within <script>
+# keep_apos => 1 means keep apostrophes, useful within <script>
 # TODO: don't transform anything within <script>...</script>
 # TODO: a lot of this should be table driven
 sub wide_to_html
