@@ -37,6 +37,21 @@ sub html {
 			next unless($person->{'birth_coords'} && $person->{'death_coords'});
 			next if($person->{'birth_coords'} eq $person->{'death_coords'});
 
+			# Ignore people who died abroad during a war
+			my $dod = $person->{'dod'};
+			my $yod;
+			if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+				$dod =~ tr/\//-/;
+				$yod = $1;
+			} elsif($dod =~ /^\d{3,4}$/) {
+				$yod = $dod;
+			}
+
+			if(defined($yod)) {
+				next if(($yod >= 1914) && ($yod <= 1918));
+				next if(($yod >= 1939) && ($yod <= 1945));
+			}
+
 			my @b = split(/,/, $person->{'birth_coords'});
 			my @d = split(/,/, $person->{'death_coords'});
 			# TODO: optimise min. distance
@@ -75,13 +90,32 @@ sub html {
 		}
 	} else {
 		foreach my $person(@everyone) {
+			# Check if country data is available
 			next unless($person->{'birth_country'} && $person->{'death_country'});
+
+			# Skip if birth and death countries are the same
 			next if($person->{'birth_country'} eq $person->{'death_country'});
+
+			# Ignore people who died abroad during a war
+			my $dod = $person->{'dod'};
+			my $yod;
+			if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+				$dod =~ tr/\//-/;
+				$yod = $1;
+			} elsif($dod =~ /^\d{3,4}$/) {
+				$yod = $dod;
+			}
+
+			if(defined($yod)) {
+				next if(($yod >= 1914) && ($yod <= 1918));
+				next if(($yod >= 1939) && ($yod <= 1945));
+			}
 
 			push @emmigrants, $person;
 		}
 	}
 
+	# Sort emigrants by title
 	@emmigrants = sort { $a->{'title'} cmp $b->{'title'} } @emmigrants;
 
 	return $self->SUPER::html({ emmigrants => \@emmigrants, updated => $people->updated() });

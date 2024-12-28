@@ -50,9 +50,8 @@ sub html {
 		my $dcountry = $person->{'death_country'};
 		if(!defined($dcountry)) {
 			if($person->{'bio'} =~ /In (\d{4}) s?he was serving in the military/i) {
-				next if($1 < 1914);
-				next if($1 > 1918);
-				# Died in an unknown country while surving in the military during the first world war
+				next if(($1 < 1914) || ($1 > 1918));
+				# Died in an unknown country while serving in the military during the First World War
 				push @wardead, $person;
 			}
 			next;
@@ -61,9 +60,9 @@ sub html {
 			$dcountry = lc(country2code($dcountry));
 		}
 
-		next unless(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dcountry eq 'nl'));
-
-		push @wardead, $person;
+		if(($dcountry eq 'be') || ($dcountry eq 'fr') || ($dcountry eq 'nl') || ($dcountry eq 'de') || ($dcountry eq 'it')) {
+			push @wardead, $person;
+		}
 	}
 
 	@wardead = sort { $a->{'title'} cmp $b->{'title'} } @wardead;
