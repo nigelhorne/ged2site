@@ -99,6 +99,7 @@ sub new {
 			);
 
 			unless($throttler->try_push(key => $ENV{'REMOTE_ADDR'})) {
+				sleep(1);
 				die "$ENV{REMOTE_ADDR} connexion throttled";
 			}
 		};
