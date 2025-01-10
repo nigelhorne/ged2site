@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2024, Nigel Horne
+# Copyright (C) 2015-2025, Nigel Horne
 
 # Usage is subject to licence terms.
 # The licence terms of this software are as follows:
@@ -13434,7 +13434,7 @@ sub get_all_occupations
 	while($occupations[0] && ($occupations[0] =~ /home duties/i)) {
 		shift @occupations;
 	}
-	while($occupations[0] && ($occupations[0] =~ /household duties/i)) {
+	while($occupations[0] && ($occupations[0] =~ /house\s?hold duties/i)) {
 		shift @occupations;
 	}
 	while($occupations[0] && ($occupations[0] eq 'Retired')) {
@@ -13561,6 +13561,8 @@ sub get_all_occupations
 		} elsif(($occupation !~ /gas works/i) && ($occupation =~ /(.+)([a-z])s\s+([a-z]+)$/i)) {
 			# Don't change Bus Driver to Bu's Driver
 			$occupation = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
+		} elsif($occupation eq 'Laundry Man') {
+			$occupation = 'Laundryman';
 		} elsif(($occupation =~ /Manager (.*)/i) &&
 			($occupation !~ /^Manager of /i) &&
 			($occupation !~ /Manager & /i)) {
