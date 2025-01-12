@@ -112,7 +112,7 @@ sub html {
 					# Fetch details of this child
 					my $other = $people->fetchrow_hashref({ entry => $xref });
 
-					# If the child person has a valid date of birth, format it
+					# If the child has a valid date of birth, format it
 					if($other->{'dob'} && ($other->{'dob'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
 						my $year = $1;
 						my $month = $2;
@@ -132,7 +132,7 @@ sub html {
 							year => $year,
 						}
 					}
-					# If the child person has a valid date of death, format it
+					# If the child has a valid date of death, format it
 					if($other->{'dod'} && ($other->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
 						my $year = $1;
 						my $month = $2;
@@ -155,6 +155,39 @@ sub html {
 							month => $month,
 							year => $year,
 						}
+					}
+				}
+			}
+			# Process spouse
+			# TODO: Add support for people married more than once
+			if($person->{'bio'} =~ /married <a href=.+?entry=(.+?)">/) {
+				my $xref = $1;
+
+				# Fetch details of this spouse
+				my $spouse = $people->fetchrow_hashref({ entry => $xref });
+
+				# If the spouse has a valid date of death, format it
+				if($spouse->{'dod'} && ($spouse->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
+					my $year = $1;
+					my $month = $2;
+					my $day = $3;
+
+					# Only include on this person's timeline if the spouse died
+					#	before they did
+					next if(defined($yod) && ($year > $yod));
+
+					# Remove leading zeros from day and month
+					$day =~ s/^0//;
+					$month =~ s/^0//;
+
+					# Add a "Death of spouse" event to the timeline
+					push @events, {
+						event => ($spouse->{'sex'} eq 'M') ? 'Death of husband' : 'Death of wife',
+						person => $xref,
+						title => $spouse->{'title'},
+						day => $day,
+						month => $month,
+						year => $year,
 					}
 				}
 			}
