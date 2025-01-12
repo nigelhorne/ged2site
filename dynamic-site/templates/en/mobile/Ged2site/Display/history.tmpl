@@ -2,7 +2,11 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
-		<title>Family History of [% SiteTitle.join(' ') %]</title>
+		[% IF name %]
+			<title>History of [% name %]</title>
+		[% ELSE %]
+			<title>History of [% SiteTitle.join(' ') %]</title>
+		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
 		<meta name="msvalidate.01" content="deadbeef" />
@@ -17,14 +21,24 @@
 	</head>
 	<body>
 		<center>
-			<h1>Family History of [% SiteTitle.join(' ') %]</h1>
+			[% IF name %]
+				<h1>History of [% name %]</h1>
+			[% ELSE %]
+				<h1>History of [% SiteTitle.join(' ') %]</h1>
+			[% END %]
 			[ <a href="?page=people&amp;home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ] | [ <a href="?page=surnames">Surname Index</a> ]
 		</center>
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
 		[% USE day = date(format = '%e %B', locale = lingua.language_code_alpha2) %]
-		[% FOREACH year IN events.keys.sort %]
+		<!-- Sort back in time in the main table, forward in time when just one person -->
+		[% IF name %]
+			[% years = events.keys.sort %]
+		[% ELSE %]
+			[% years = events.keys.sort.reverse %]
+		[% END %]
+		[% FOREACH year IN years %]
 			<h2>[% year %]</h2>
 			<ul>
 				[% FOREACH event IN events.$year %]

@@ -2,14 +2,22 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
-		<title>History of [% SiteTitle.join(' ') %]</title>
+		[% IF name %]
+			<title>History of [% name %]</title>
+		[% ELSE %]
+			<title>History of [% SiteTitle.join(' ') %]</title>
+		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
 		<meta name="msvalidate.01" content="deadbeef" />
 		-->
 	</head>
 	<body>
-		<h1>History of [% SiteTitle.join(' ') %]</h1>
+		[% IF name %]
+			<h1>History of [% name %]</h1>
+		[% ELSE %]
+			<h1>History of [% SiteTitle.join(' ') %]</h1>
+		[% END %]
 		[ <a href="?page=people&amp;home=1">Home</a> ]<br>
 		[ <a href="?page=censuses">Census Index</a> ]<br>
 		[ <a href="?page=surnames">Surname Index</a><br>

@@ -26,10 +26,42 @@ sub html {
 
 	# TODO: handle situation where look up fails
         my @events;
+	my $template_args = { updated => $history->updated() };
         if(my $entry = $params{'entry'}) {
 		# Display the timeline of one person
-		# TODO: add items such as birth of children, emigration, death of parents
+		# TODO: add items such as birth of children, emigration, world events
                 @events = $history->selectall_hash({ person => $entry });
+		if(scalar(@events)) {
+			$template_args->{'name'} = $events[0]->{'title'};
+		}
+
+		my $people = $args{'people'};	# Handle into the database
+		if(my $person = $people->fetchrow_hashref({ entry => $entry })) {
+			foreach my $relation('mother', 'father') {
+				if($person->{$relation} && ($person->{$relation} =~ /&entry=(\w+)">/)) {
+					my $xref = $1;
+					my $other = $people->fetchrow_hashref({ entry => $xref });
+					if($other->{'dod'} && ($other->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
+						my $year = $1;
+						my $month = $2;
+						my $day = $3;
+						$day =~ s/^0//;
+						$month =~ s/^0//;
+
+						push @events, {
+							event => "Death of $relation",
+							person => $xref,
+							title => $other->{'title'},
+							day => $day,
+							month => $month,
+							year => $year,
+						}
+					}
+				}
+			}
+		}
+		# Sort by year
+		@events = sort { $a->{'year'} <=> $b->{'year'} } @events;
         } else {
                 # Everyone
                 @events = $history->selectall_hash();
@@ -39,8 +71,9 @@ sub html {
 	foreach my $event(@events) {
 		push @{$eventshash->{$event->{'year'}}}, $event;
 	}
+	$template_args->{'events'} = $eventshash;
 
-	return $self->SUPER::html({ events => $eventshash, updated => $history->updated() });
+	return $self->SUPER::html($template_args);
 }
 
 1;

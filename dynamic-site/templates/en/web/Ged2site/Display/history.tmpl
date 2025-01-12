@@ -3,7 +3,11 @@
 <html lang="en">
 	<head>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<title>History of [% SiteTitle.join(' ') %]</title>
+		[% IF name %]
+			<title>History of [% name %]</title>
+		[% ELSE %]
+			<title>History of [% SiteTitle.join(' ') %]</title>
+		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<link rel="stylesheet" href="/css/style.css">
 		<link rel="stylesheet" href="/css/responsive.css">
@@ -26,9 +30,13 @@
 	</head>
 	<body class="page">
 		<center>
-			<h1>History of [% SiteTitle.join(' ') %]</h1>
+			[% IF name %]
+				<h1>History of [% name %]</h1>
+			[% ELSE %]
+				<h1>History of [% SiteTitle.join(' ') %]</h1>
+			[% END %]
 			<p>
-				[ <a href="?page=people&amp;home=1">Home</a> ] |
+				[ <a href="?page=home">Home</a> ] |
 				[ <a href="?page=censuses">Census Index</a> ] |
 				[ <a href="?page=surnames">Surname Index</a> ] |
 				[ <a href="?page=todo">To Do</a> ] |
@@ -48,7 +56,13 @@
 		<div class="ss-container">
 			[% USE day = date(format = '%e %B', locale = lingua.language_code_alpha2) %]
 			[% index = 1 %]
-			[% FOREACH year IN events.keys.sort.reverse %]
+			<!-- Sort back in time in the main table, forward in time when just one person -->
+			[% IF name %]
+				[% years = events.keys.sort %]
+			[% ELSE %]
+				[% years = events.keys.sort.reverse %]
+			[% END %]
+			[% FOREACH year IN years %]
 				[% IF index % 2 %]
 					<div class="ss-row ss-medium">
 						<div class="ss-left jaartal module">
@@ -74,7 +88,7 @@
 							<p>
 								[% FOREACH event IN events.$year %]
 									[% day.format("0:0:0 $event.day:$event.month:$year") %]
-									<a href="?page=people&entry=[% event.person %]">[% event.title %]</a>:
+									<a href="?page=people&amp;entry=[% event.person %]">[% event.title %]</a>:
 									[% event.event %]
 									<br>
 								[% END %]
