@@ -45,7 +45,7 @@ sub html {
 	if(my $entry = $params{'entry'}) {
 		# Fetch timeline events for a specific person
 
-		# TODO: add items such as birth of children, emigration, world events
+		# TODO: add items such as emigration, world events
 		@events = $history->selectall_hash({ person => $entry });
 
 		# If events are found, set the person's name in the template arguments
@@ -58,16 +58,62 @@ sub html {
 
 		# Fetch person details based on the entry parameter
 		if(my $person = $people->fetchrow_hashref({ entry => $entry })) {
+			# Get the year of death of the person being displayed
+			my $yod;
+			if($person->{'dod'} && ($person->{'dod'} =~ /^(\d{3,4})\/\d{2}\/\d{2}$/)) {
+				$yod = $1;
+			}
+
 			# Process mother and father
-			foreach my $relation('mother', 'father') {
-				if($person->{$relation} && ($person->{$relation} =~ /&entry=(\w+)">/)) {
+			foreach my $parent('mother', 'father') {
+				if($person->{$parent} && ($person->{$parent} =~ /&entry=(\w+)">/)) {
 					my $xref = $1;
 
-					# Fetch details of the related person
+					# Fetch details of this parent
 					my $other = $people->fetchrow_hashref({ entry => $xref });
 
-					# If the related person has a valid date of death, format it
+					# If the parent has a valid date of death, format it
 					if($other->{'dod'} && ($other->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
+						my $year = $1;
+						my $month = $2;
+						my $day = $3;
+
+						# Only include on this person's timeline if the parent died
+						#	before they did
+						next if(defined($yod) && ($year > $yod));
+
+						# Remove leading zeros from day and month
+						$day =~ s/^0//;
+						$month =~ s/^0//;
+
+						# Add a "Death of parent" event to the timeline
+						push @events, {
+							event => "Death of $parent",
+							person => $xref,
+							title => $other->{'title'},
+							day => $day,
+							month => $month,
+							year => $year,
+						}
+					}
+				}
+			}
+			# Process children
+			foreach my $child(split(/----/, $person->{'children'})) {
+				my $name;
+				if($child =~ /">(.+)<\/a>/) {
+					$name = $1;
+				} else {
+					$name = 'Unknown child';
+				}
+				if($child =~ /&entry=(\w+)">/) {
+					my $xref = $1;
+
+					# Fetch details of this child
+					my $other = $people->fetchrow_hashref({ entry => $xref });
+
+					# If the child person has a valid date of birth, format it
+					if($other->{'dob'} && ($other->{'dob'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
 						my $year = $1;
 						my $month = $2;
 						my $day = $3;
@@ -76,9 +122,33 @@ sub html {
 						$day =~ s/^0//;
 						$month =~ s/^0//;
 
-						# Add a "Death of relation" event to the timeline
+						# Add a "Birth of child" event to the timeline
 						push @events, {
-							event => "Death of $relation",
+							event => 'Birth of child',
+							person => $xref,
+							title => $other->{'title'},
+							day => $day,
+							month => $month,
+							year => $year,
+						}
+					}
+					# If the child person has a valid date of death, format it
+					if($other->{'dod'} && ($other->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
+						my $year = $1;
+						my $month = $2;
+						my $day = $3;
+
+						# Only include on this person's timeline if the child died
+						#	before they did
+						next if(defined($yod) && ($year > $yod));
+
+						# Remove leading zeros from day and month
+						$day =~ s/^0//;
+						$month =~ s/^0//;
+
+						# Add a "Death of child" event to the timeline
+						push @events, {
+							event => 'Death of child',
 							person => $xref,
 							title => $other->{'title'},
 							day => $day,
