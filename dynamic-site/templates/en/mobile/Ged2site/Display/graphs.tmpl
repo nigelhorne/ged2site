@@ -44,7 +44,7 @@
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 		<title>[% title %]</title>
 		[% IF datapoints %]
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
@@ -192,7 +192,7 @@
 			<p>This graph only includes data from 5 year periods that contain at least 10 births.</p>
 		[% ELSIF graph == 'ageatfirstchild' || graph == 'ageatlastchild' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
-			<p>This graph only includes data when the year of births of parents and children are known.</p>
+			<p>This graph, which shows the trend of generation gaps over the years, only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
 		[% ELSIF graph == 'birth_countries' %]
 			<p>Shows the countries of birth on both sides of the family of all adults in the tree.<p>
@@ -282,7 +282,7 @@
 				<a href="?page=graphs&graph=sex" class="myButton">Sex of people born in each year</a><br><br>
 				<a href="?page=graphs&graph=dist" class="myButton">Average distance between birth and death</a><br><br>
 				<a href="?page=graphs&amp;graph=percentagedying" class="myButton">Percentage of the people dying</a><br><br>
-				<a href="?page=graphs&graph=ageatfirstchild" class="myButton">Age of Parents at birth of first child</a><br><br>
+				<a href="?page=graphs&amp;graph=ageatfirstchild" class="myButton">Age of Parents at birth of first child</a><br><br>
 				<a href="?page=graphs&graph=ageatlastchild" class="myButton">Age of Parents at birth of last child</a><br><br>
 				<a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a><br><br>
 				<a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a><br><br>
