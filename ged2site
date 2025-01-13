@@ -1878,9 +1878,9 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 		'<ul>';
 	my @sorted_events = Sort::Key::DateTime::dtkeysort { $all_events{$_}->{'date'} } keys %all_events;
 	my $year;
-	open(my $csv, '>', 'dynamic-site/data/history.csv');
-	print $csv "entry!year!month!day!person!title!event\n";
 	my $index = 1;
+	open(my $csv, '>', 'dynamic-site/data/history.csv');
+	print $csv "entry!year!month!day!xref!title!event\n";
 	while(my $e = shift @sorted_events) {
 		$e = $all_events{$e};
 		my $date = $e->{'date'};
@@ -7446,6 +7446,7 @@ sub print_person
 						}
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^from /) {
+								$bio .= ' ' unless($bio =~ /\s$/);
 								$bio .= "$pronoun served in the $service $date";
 								$phrase->set("$pronoun served in the $service $date");
 							} else {

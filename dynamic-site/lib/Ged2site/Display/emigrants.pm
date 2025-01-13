@@ -35,7 +35,7 @@ sub html
 	});
 }
 
-# Determines if a person is an emigrant
+# Helper: determines if a person is an emigrant
 sub _is_emigrant
 {
 	my $person = shift;
@@ -57,7 +57,7 @@ sub _is_emigrant
 	return 1;	# Person is an emigrant
 }
 
-# Extract year from date
+# Helper: extract year from date
 sub _get_year_from_date
 {
 	my $dod = shift;

@@ -31,7 +31,7 @@
 				[% FOREACH event IN events.$year %]
 					<li>
 						[% day.format("0:0:0 $event.day:$event.month:$year") %]
-						[% event.person %]
+						[% event.title %]
 						[% event.event %]
 					</li>
 				[% END %]

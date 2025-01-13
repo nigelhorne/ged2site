@@ -390,6 +390,8 @@ sub http
 		. "Referrer-Policy: strict-origin-when-cross-origin\n\n";
 }
 
+# Run the given data through the template to create HTML
+
 # Override this routine in a subclass if you wish to create special arguments to
 # send to the template
 sub html {
@@ -398,6 +400,8 @@ sub html {
 
 	my $filename = $self->get_template_path();
 	my $rc;
+
+	# Handle template files (.tmpl or .t)
 	if($filename =~ /.+\.t(mpl|t)$/) {
 		require Template;
 		Template->import();
@@ -435,6 +439,7 @@ sub html {
 			ABSOLUTE => 1,
 		});
 
+		# Process the template
 		if(!$template->process($filename, $vals, \$rc)) {
 			if(my $err = $template->error()) {
 				throw Error::Simple($err);
@@ -442,6 +447,7 @@ sub html {
 			throw Error::Simple("Unknown error in template: $filename");
 		}
 	} elsif($filename =~ /\.(html?|txt)$/) {
+		# Handle static HTML or text files
 		open(my $fin, '<', $filename) || throw Error::Simple("$filename: $!");
 
 		my @lines = <$fin>;
@@ -453,6 +459,7 @@ sub html {
 		throw Error::Simple("Unhandled file type $filename");
 	}
 
+	# Check for mailto links and log a warning
 	if(($filename !~ /.txt$/) && ($rc =~ /\smailto:(.+?)>/) && ($1 !~ /^&/) && $self->{_logger}) {
 		$self->{_logger}->warn({ message => "Found mailto link $1, you should remove it or use " . obfuscate($1) . ' instead' });
 	}

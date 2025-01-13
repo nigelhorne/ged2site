@@ -5,10 +5,12 @@ package Ged2site::Display::history;
 use warnings;
 use strict;
 use Ged2site::Display;
+use DateTime::Format::Genealogy;
 
 our @ISA = ('Ged2site::Display');
 
 # Generate HTML for the history page
+# TODO: This would be much better if it could quickly get to the information in the XML file people.xml
 sub html
 {
 	my $self = shift;
@@ -45,8 +47,8 @@ sub html
 		# Fetch timeline events for a specific person
 
 		# TODO: handle situation where look up fails
-		# TODO: add items such as emigration, world events
-		@events = $history->selectall_hash({ person => $entry });
+		# TODO: add items such as emigration (need to work out year), world events
+		@events = $history->selectall_hash({ xref => $entry });
 
 		# If events are found, pass the person's name to the template
 		# The template uses the [% name %] field to know if it's to display a specific person
@@ -65,7 +67,7 @@ sub html
 		# Fetch person details based on the entry parameter
 		if(my $person = $people->fetchrow_hashref({ entry => $entry })) {
 			# Get the year of death of the person being displayed
-			my ($yod) = parse_date($person->{'dod'});
+			my ($yod) = _parse_date($person->{'dod'});
 
 			# Process mother and father
 			foreach my $relation ('mother', 'father') {
@@ -73,11 +75,11 @@ sub html
 					# Fetch details of this parent
 					if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
 						# If the parent has a valid date of birth, format it
-						if(my ($year, $month, $day) = parse_date($other->{'dod'})) {
+						if(my ($year, $month, $day) = _parse_date($other->{'dod'})) {
 							next if defined($yod) && $year > $yod;
 
 							# Add a "Death of parent" event to the timeline
-							add_event(\@events, "Death of $relation", $xref, $other->{'title'}, $year, $month, $day);
+							_add_event(\@events, "Death of $relation", $xref, $other->{'title'}, $year, $month, $day);
 						}
 					}
 				}
@@ -89,17 +91,17 @@ sub html
 					# Fetch details of this child
 					if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
 						# If the child has a valid date of birth, format it
-						if(my ($year, $month, $day) = parse_date($other->{'dob'})) {
+						if(my ($year, $month, $day) = _parse_date($other->{'dob'})) {
 							# Add a "Birth of child" event to the timeline
-							add_event(\@events, 'Birth of child', $xref, $other->{'title'}, $year, $month, $day);
+							_add_event(\@events, 'Birth of child', $xref, $other->{'title'}, $year, $month, $day);
 						}
-						if(my ($year, $month, $day) = parse_date($other->{'dod'})) {
+						if(my ($year, $month, $day) = _parse_date($other->{'dod'})) {
 							next if defined($yod) && $year > $yod;
 							my $event_type = $language eq 'de' ? 'Todesfall von Kind' :
 								$language eq 'fr' ? "Mort d'enfant" :
 								'Death of child';
 							# Add a "Death of child" event to the timeline
-							add_event(\@events, $event_type, $xref, $other->{'title'}, $year, $month, $day);
+							_add_event(\@events, $event_type, $xref, $other->{'title'}, $year, $month, $day);
 						}
 					}
 				}
@@ -111,14 +113,29 @@ sub html
 				# Fetch details of this spouse
 				if(my $spouse = $people->fetchrow_hashref({ entry => $xref })) {
 					# If the spouse has a valid date of death, format it
-					if(my ($year, $month, $day) = parse_date($spouse->{'dod'})) {
+					if(my ($year, $month, $day) = _parse_date($spouse->{'dod'})) {
 						# Only include on this person's timeline if the spouse died
 						#	before they did
 						next if defined($yod) && $year > $yod;
 						my $event_type = $spouse->{'sex'} eq 'M' ? 'Death of husband' : 'Death of wife';
 						# Add a "Death of spouse" event to the timeline
-						add_event(\@events, $event_type, $xref, $spouse->{'title'}, $year, $month, $day);
+						_add_event(\@events, $event_type, $xref, $spouse->{'title'}, $year, $month, $day);
 					}
+				}
+			}
+
+			# Did this person serve in the military?
+			if($person->{'bio'} =~ /served in the (.+?) from (.+?) to (.+? \d{4})/) {
+				my ($service, $start, $end) = ($1, $2, $3);
+				my $dfg = DateTime::Format::Genealogy->new();
+
+				# Add joining military service to the timeline
+				if(my $start_dt = $dfg->parse_datetime($start)) {
+					_add_event(\@events, "Joined the $service", $entry, $events[0]->{'title'}, $start_dt->year(), $start_dt->month(), $start_dt->day());
+				}
+				# Add leaving military service to the timeline
+				if(my $end_dt = $dfg->parse_datetime($end)) {
+					_add_event(\@events, "Left the $service", $entry, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
 				}
 			}
 		}
@@ -145,7 +162,7 @@ sub html
 }
 
 # Helper: Parse date into year, month, day, removing leading zeros
-sub parse_date
+sub _parse_date
 {
 	my $date = shift;
 
@@ -163,17 +180,17 @@ sub parse_date
 }
 
 # Helper: Add an event to the timeline
-sub add_event
+sub _add_event
 {
 	my ($events, $event_type, $xref, $title, $year, $month, $day) = @_;
 
-	push @$events, {
+	push @{$events}, {
 		event => $event_type,
-		person => $xref,
+		xref => $xref,
 		title => $title,
 		year => $year,
 		month => $month,
-		day => $day,
+		day => $day
 	};
 }
 
