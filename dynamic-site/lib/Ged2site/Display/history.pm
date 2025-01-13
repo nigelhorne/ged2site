@@ -49,9 +49,7 @@ sub html {
 		@events = $history->selectall_hash({ person => $entry });
 
 		# If events are found, set the person's name in the template arguments
-		if(scalar(@events)) {
-			$template_args->{'name'} = $events[0]->{'title'};
-		}
+		$template_args->{'name'} = $events[0]->{'title'} if(scalar(@events));
 
 		# Get the people database handle
 		my $people = $args{'people'};
@@ -62,145 +60,59 @@ sub html {
 		# Fetch person details based on the entry parameter
 		if(my $person = $people->fetchrow_hashref({ entry => $entry })) {
 			# Get the year of death of the person being displayed
-			my $yod;
-			if($person->{'dod'} && ($person->{'dod'} =~ /^(\d{3,4})\/\d{2}\/\d{2}$/)) {
-				$yod = $1;
-			}
+			my ($yod) = parse_date($person->{'dod'});
 
 			# Process mother and father
-			foreach my $parent('mother', 'father') {
-				if($person->{$parent} && ($person->{$parent} =~ /&entry=(\w+)">/)) {
-					my $xref = $1;
-
+			foreach my $relation ('mother', 'father') {
+				if(my $xref = $person->{$relation} =~ /&entry=(\w+)">/ && $1) {
 					# Fetch details of this parent
-					my $other = $people->fetchrow_hashref({ entry => $xref });
+					if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
+						# If the parent has a valid date of birth, format it
+						if(my ($year, $month, $day) = parse_date($other->{'dod'})) {
+							next if defined($yod) && $year > $yod;
 
-					# If the parent has a valid date of death, format it
-					if($other->{'dod'} && ($other->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
-						my $year = $1;
-						my $month = $2;
-						my $day = $3;
-
-						# Only include on this person's timeline if the parent died
-						#	before they did
-						next if(defined($yod) && ($year > $yod));
-
-						# Remove leading zeros from day and month
-						$day =~ s/^0//;
-						$month =~ s/^0//;
-
-						# Add a "Death of parent" event to the timeline
-						push @events, {
-							event => "Death of $parent",
-							person => $xref,
-							title => $other->{'title'},
-							day => $day,
-							month => $month,
-							year => $year
+							# Add a "Death of parent" event to the timeline
+							add_event(\@events, "Death of $relation", $xref, $other->{'title'}, $year, $month, $day);
 						}
 					}
 				}
 			}
-			if($person->{'children'}) {
-				# Process children
-				foreach my $child(split(/----/, $person->{'children'})) {
-					my $name;
-					if($child =~ /">(.+)<\/a>/) {
-						$name = $1;
-					} else {
-						$name = 'Unknown child';
-					}
-					if($child =~ /&entry=(\w+)">/) {
-						my $xref = $1;
 
-						# Fetch details of this child
-						my $other = $people->fetchrow_hashref({ entry => $xref });
-
+			# Process children (if any)
+			foreach my $child (split(/----/, $person->{'children'} || '')) {
+				if(my $xref = $child =~ /&entry=(\w+)">/ && $1) {
+					# Fetch details of this child
+					if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
 						# If the child has a valid date of birth, format it
-						if($other->{'dob'} && ($other->{'dob'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
-							my $year = $1;
-							my $month = $2;
-							my $day = $3;
-
-							# Remove leading zeros from day and month
-							$day =~ s/^0//;
-							$month =~ s/^0//;
-
+						if(my ($year, $month, $day) = parse_date($other->{'dob'})) {
 							# Add a "Birth of child" event to the timeline
-							push @events, {
-								event => 'Birth of child',
-								person => $xref,
-								title => $other->{'title'},
-								day => $day,
-								month => $month,
-								year => $year
-							}
+							add_event(\@events, 'Birth of child', $xref, $other->{'title'}, $year, $month, $day);
 						}
-						# If the child has a valid date of death, format it
-						if($other->{'dod'} && ($other->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
-							my $year = $1;
-							my $month = $2;
-							my $day = $3;
-
-							# Only include on this person's timeline if the child died
-							#	before they did
-							next if(defined($yod) && ($year > $yod));
-
-							# Remove leading zeros from day and month
-							$day =~ s/^0//;
-							$month =~ s/^0//;
-
+						if(my ($year, $month, $day) = parse_date($other->{'dod'})) {
+							next if defined($yod) && $year > $yod;
+							my $event_type = $language eq 'de' ? 'Todesfall von Kind' :
+								$language eq 'fr' ? "Mort d'enfant" :
+								'Death of child';
 							# Add a "Death of child" event to the timeline
-							my $event;
-							if($language eq 'de') {
-								$event = 'Todesfall von Kind';
-							} elsif($language eq 'fr') {
-								$event = "Mort d'enfant";
-							} else {
-								$event = 'Death of child';
-							}
-							push @events, {
-								event => $event,
-								person => $xref,
-								title => $other->{'title'},
-								day => $day,
-								month => $month,
-								year => $year
-							}
+							add_event(\@events, $event_type, $xref, $other->{'title'}, $year, $month, $day);
 						}
 					}
 				}
 			}
+
 			# Process spouse
 			# TODO: Add support for people married more than once
-			if($person->{'bio'} =~ /married <a href=.+?entry=(.+?)">/) {
-				my $xref = $1;
-
+			if(my $xref = $person->{'bio'} =~ /married <a href=.+?entry=(.+?)">/ && $1) {
 				# Fetch details of this spouse
-				my $spouse = $people->fetchrow_hashref({ entry => $xref });
-
-				# If the spouse has a valid date of death, format it
-				if($spouse->{'dod'} && ($spouse->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
-					my $year = $1;
-					my $month = $2;
-					my $day = $3;
-
-					# Only include on this person's timeline if the spouse died
-					#	before they did
-					next if(defined($yod) && ($year > $yod));
-
-					# Remove leading zeros from day and month
-					$day =~ s/^0//;
-					$month =~ s/^0//;
-
-					# Add a "Death of spouse" event to the timeline
-					push @events, {
-						event => ($spouse->{'sex'} eq 'M') ? 'Death of husband' : 'Death of wife',
-						person => $xref,
-						title => $spouse->{'title'},
-						day => $day,
-						month => $month,
-						year => $year
+				if(my $spouse = $people->fetchrow_hashref({ entry => $xref })) {
+					# If the spouse has a valid date of death, format it
+					if(my ($year, $month, $day) = parse_date($spouse->{'dod'})) {
+						# Only include on this person's timeline if the spouse died
+						#	before they did
+						next if defined($yod) && $year > $yod;
+						my $event_type = $spouse->{'sex'} eq 'M' ? 'Death of husband' : 'Death of wife';
+						# Add a "Death of spouse" event to the timeline
+						add_event(\@events, $event_type, $xref, $spouse->{'title'}, $year, $month, $day);
 					}
 				}
 			}
@@ -225,6 +137,38 @@ sub html {
 
 	# Call the parent class's html method to render the final HTML
 	return $self->SUPER::html($template_args);
+}
+
+# Helper: Parse date into year, month, day, removing leading zeros
+sub parse_date
+{
+	my ($date) = @_;
+
+	return if(!defined($date));
+
+	if ($date =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/) {
+		my $year = $1;
+		my $month = $2;
+		my $day = $3;
+		$month =~ s/^0//r;
+		$day =~ s/^0//r;
+		return ($year, $month, $day);
+	}
+	return;
+}
+
+# Helper: Add an event to the timeline
+sub add_event
+{
+	my ($events, $event_type, $xref, $title, $year, $month, $day) = @_;
+	push @$events, {
+		event => $event_type,
+		person => $xref,
+		title => $title,
+		year => $year,
+		month => $month,
+		day => $day,
+	};
 }
 
 1;
