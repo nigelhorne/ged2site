@@ -56,6 +56,9 @@ sub html {
 		# Get the people database handle
 		my $people = $args{'people'};
 
+		# Get the language to display
+		my $language = lc($params{'lang'} || $self->{'_lingua'}->language_code_alpha2() || 'en');
+
 		# Fetch person details based on the entry parameter
 		if(my $person = $people->fetchrow_hashref({ entry => $entry })) {
 			# Get the year of death of the person being displayed
@@ -93,67 +96,77 @@ sub html {
 							title => $other->{'title'},
 							day => $day,
 							month => $month,
-							year => $year,
+							year => $year
 						}
 					}
 				}
 			}
-			# Process children
-			foreach my $child(split(/----/, $person->{'children'})) {
-				my $name;
-				if($child =~ /">(.+)<\/a>/) {
-					$name = $1;
-				} else {
-					$name = 'Unknown child';
-				}
-				if($child =~ /&entry=(\w+)">/) {
-					my $xref = $1;
-
-					# Fetch details of this child
-					my $other = $people->fetchrow_hashref({ entry => $xref });
-
-					# If the child has a valid date of birth, format it
-					if($other->{'dob'} && ($other->{'dob'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
-						my $year = $1;
-						my $month = $2;
-						my $day = $3;
-
-						# Remove leading zeros from day and month
-						$day =~ s/^0//;
-						$month =~ s/^0//;
-
-						# Add a "Birth of child" event to the timeline
-						push @events, {
-							event => 'Birth of child',
-							person => $xref,
-							title => $other->{'title'},
-							day => $day,
-							month => $month,
-							year => $year,
-						}
+			if($person->{'children'}) {
+				# Process children
+				foreach my $child(split(/----/, $person->{'children'})) {
+					my $name;
+					if($child =~ /">(.+)<\/a>/) {
+						$name = $1;
+					} else {
+						$name = 'Unknown child';
 					}
-					# If the child has a valid date of death, format it
-					if($other->{'dod'} && ($other->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
-						my $year = $1;
-						my $month = $2;
-						my $day = $3;
+					if($child =~ /&entry=(\w+)">/) {
+						my $xref = $1;
 
-						# Only include on this person's timeline if the child died
-						#	before they did
-						next if(defined($yod) && ($year > $yod));
+						# Fetch details of this child
+						my $other = $people->fetchrow_hashref({ entry => $xref });
 
-						# Remove leading zeros from day and month
-						$day =~ s/^0//;
-						$month =~ s/^0//;
+						# If the child has a valid date of birth, format it
+						if($other->{'dob'} && ($other->{'dob'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
+							my $year = $1;
+							my $month = $2;
+							my $day = $3;
 
-						# Add a "Death of child" event to the timeline
-						push @events, {
-							event => 'Death of child',
-							person => $xref,
-							title => $other->{'title'},
-							day => $day,
-							month => $month,
-							year => $year,
+							# Remove leading zeros from day and month
+							$day =~ s/^0//;
+							$month =~ s/^0//;
+
+							# Add a "Birth of child" event to the timeline
+							push @events, {
+								event => 'Birth of child',
+								person => $xref,
+								title => $other->{'title'},
+								day => $day,
+								month => $month,
+								year => $year
+							}
+						}
+						# If the child has a valid date of death, format it
+						if($other->{'dod'} && ($other->{'dod'} =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/)) {
+							my $year = $1;
+							my $month = $2;
+							my $day = $3;
+
+							# Only include on this person's timeline if the child died
+							#	before they did
+							next if(defined($yod) && ($year > $yod));
+
+							# Remove leading zeros from day and month
+							$day =~ s/^0//;
+							$month =~ s/^0//;
+
+							# Add a "Death of child" event to the timeline
+							my $event;
+							if($language eq 'de') {
+								$event = 'Todesfall von Kind';
+							} elsif($language eq 'fr') {
+								$event = "Mort d'enfant";
+							} else {
+								$event = 'Death of child';
+							}
+							push @events, {
+								event => $event,
+								person => $xref,
+								title => $other->{'title'},
+								day => $day,
+								month => $month,
+								year => $year
+							}
 						}
 					}
 				}
@@ -187,7 +200,7 @@ sub html {
 						title => $spouse->{'title'},
 						day => $day,
 						month => $month,
-						year => $year,
+						year => $year
 					}
 				}
 			}
@@ -199,7 +212,7 @@ sub html {
 		# If no specific "entry" is provided, fetch events for all people
 		@events = $history->selectall_hash();
 	}
-	
+
 	# Group events by year into a hash
 	my $eventshash;	# Hash to store events grouped by year
 

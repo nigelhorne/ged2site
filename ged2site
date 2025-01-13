@@ -13602,6 +13602,8 @@ sub get_all_occupations
 					$occupation = (($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin');
 				} elsif($occupation =~ /(.+)\sFarmer/) {
 					$occupation = (($person->sex() eq 'M') ? 'Landwirt' : 'Landwirtin');
+				} elsif($occupation eq 'Farmer') {
+					$occupation = (($person->sex() eq 'M') ? 'Bauer' : 'Bauerin');
 				}
 				$occupation =~ s/retired/im ruhestand/i;
 				$occupation =~ s/self-employed/slbststa\N{U+00E4}ndig/;
