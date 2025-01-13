@@ -142,11 +142,11 @@ sub html {
 # Helper: Parse date into year, month, day, removing leading zeros
 sub parse_date
 {
-	my ($date) = @_;
+	my $date = shift;
 
 	return if(!defined($date));
 
-	if ($date =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/) {
+	if($date =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/) {
 		my $year = $1;
 		my $month = $2;
 		my $day = $3;
@@ -161,6 +161,7 @@ sub parse_date
 sub add_event
 {
 	my ($events, $event_type, $xref, $title, $year, $month, $day) = @_;
+
 	push @$events, {
 		event => $event_type,
 		person => $xref,
