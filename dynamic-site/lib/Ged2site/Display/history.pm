@@ -9,7 +9,8 @@ use Ged2site::Display;
 our @ISA = ('Ged2site::Display');
 
 # Generate HTML for the history page
-sub html {
+sub html
+{
 	my $self = shift;
 
 	# Allow arguments to be passed as either a hash reference or a list
@@ -40,7 +41,6 @@ sub html {
 	# Prepare template arguments with an updated timestamp from the database
 	my $template_args = { updated => $history->updated() };
 
-
 	if(my $entry = $params{'entry'}) {
 		# Fetch timeline events for a specific person
 
@@ -56,7 +56,10 @@ sub html {
 		# Get the people database handle
 		my $people = $args{'people'};
 
-		# Get the language to display
+		# Get the language to display, using these methods:
+		#	1: Use the lang parameter given in the URL
+		#	2: If that's not set, use CGI::Lingua to interrogate the browser's setting
+		#	3: Fall back to English
 		my $language = lc($params{'lang'} || $self->{'_lingua'}->language_code_alpha2() || 'en');
 
 		# Fetch person details based on the entry parameter
