@@ -34,21 +34,23 @@ sub html {
 	# Get the history database handle
 	my $history = $args{'history'};
 
-	# TODO: handle situation where look up fails
-
 	# Array to store events
 	my @events;
 
 	# Prepare template arguments with an updated timestamp from the database
 	my $template_args = { updated => $history->updated() };
 
+
 	if(my $entry = $params{'entry'}) {
 		# Fetch timeline events for a specific person
 
+		# TODO: handle situation where look up fails
 		# TODO: add items such as emigration, world events
 		@events = $history->selectall_hash({ person => $entry });
 
-		# If events are found, set the person's name in the template arguments
+		# If events are found, pass the person's name to the template
+		# The template uses the [% name %] field to know if it's to display a specific person
+		#	or all events in the database
 		$template_args->{'name'} = $events[0]->{'title'} if(scalar(@events));
 
 		# Get the people database handle
