@@ -99,7 +99,7 @@ use Ged2site::Display::calendar;
 use Ged2site::Display::changes;
 use Ged2site::Display::descendants;
 use Ged2site::Display::graphs;
-use Ged2site::Display::emmigrants;
+use Ged2site::Display::emigrants;
 use Ged2site::Display::intermarriages;
 use Ged2site::Display::locations;
 use Ged2site::Display::orphans;
@@ -652,7 +652,7 @@ sub choose
 			"/cgi-bin/page.fcgi?page=calendar\n",
 			"/cgi-bin/page.fcgi?page=descendants\n",
 			"/cgi-bin/page.fcgi?page=graphs\n",
-			"/cgi-bin/page.fcgi?page=emmigrants\n",
+			"/cgi-bin/page.fcgi?page=emigrants\n",
 			"/cgi-bin/page.fcgi?page=intermarriages\n",
 			"/cgi-bin/page.fcgi?page=ww1\n",
 			"/cgi-bin/page.fcgi?page=ww2\n",

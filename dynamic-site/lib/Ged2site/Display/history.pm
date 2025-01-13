@@ -155,8 +155,8 @@ sub parse_date
 		my $year = $1;
 		my $month = $2;
 		my $day = $3;
-		$month =~ s/^0//r;
-		$day =~ s/^0//r;
+		$month =~ s/^0//;
+		$day =~ s/^0//;
 		return ($year, $month, $day);
 	}
 	return;

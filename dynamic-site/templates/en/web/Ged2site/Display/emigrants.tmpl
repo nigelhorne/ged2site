@@ -30,10 +30,10 @@
 				[ <a href="?page=graphs">Analytics</a> ] |
 				[ <a href="/visjs.html">Timeline</a> ]
 			</center>
-			[% IF emmigrants %]
+			[% IF emigrants %]
 				<br>
 				<ul id="nav">
-					[% FOREACH person IN emmigrants %]
+					[% FOREACH person IN emigrants %]
 						<li>
 							<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
 						</li>
