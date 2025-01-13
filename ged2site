@@ -15953,38 +15953,44 @@ sub dbpedia
 	}
 }
 
-# Parse a Newspaper event
-# These are in FindMyPast records
+# Parse a Newspaper event from FindMyPast records
 sub newspaper
 {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = get_params('event', @_);
+	my $event = $params->{'event'};
 
-	my $event = $params{'event'};
-
+	# Initialize the return object
 	my $rc = Class::Simple->new();
 
+	# Set the event date, if available
 	if(my $date = $event->date()) {
-		$date =~ s/^0//;
+		$date =~ s/^0//;	# Remove leading zeros
 		$rc->date($date);
 	}
 
 	# my $source = $event->source();
 	if(ref(my $source = $event->source())) {
+		# If source is an object, extract URL
 		$rc->url($source->tag_record('REF')->value());
 		# $rc->title('a newspaper');
 	} else {
-		$source = get_source({ source => $source, %params });
+		# Process source as a string or scalar
+		$source = get_source({ source => $source, %{$params} });
 		if(my $title = $source->title()) {
-			$title =~ s/\.$//;
+			$title =~ s/\.$//;	# Remove trailing fullstop
 			$rc->title($title);
 		}
 
+		# Retrieve the detailed source record
 		$source = $event->tag_record('SOUR');
-		$rc->url($source->tag_record('REF')->value());
+		if(my $ref = $source->tag_record('REF')) {
+			$rc->url($ref->value());
+		}
 
+		# Extract page number, if available
 		if(my $page = $source->tag_record('PAGE')) {
 			$page = $page->value();
-			$page =~ s/^0+//;
+			$page =~ s/^0//;	# Remove leading zeros
 			$rc->page($page);
 		}
 
@@ -15993,6 +15999,7 @@ sub newspaper
 		# die Data::Dumper->new([\@items])->Dump();
 	}
 
+	# Return the constructed object
 	return $rc;
 }
 
