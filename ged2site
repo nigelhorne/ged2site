@@ -65,7 +65,7 @@ my @needfull;
 BEGIN {
 	my @modules = (
 		'Array::Iterator', 'Config::Auto', 'Data::Text',
-		'File::Basename', 'File::Copy', 'File::Temp',
+		'File::Basename', 'File::Copy', 'File::Print::Many', 'File::Temp',
 		'Date::Manip', 'Parse::RecDescent', 'Roman',
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
@@ -885,7 +885,7 @@ for my $dir('dynamic-site/data', 'dynamic-site/img', 'static-site') {
 	}
 }
 
-my @dirlist = ('static-site', 'dynamic-site/data');
+my @dirlist = ('static-site', 'dynamic-site/data', 'dynamic-site/data/people');
 if($dot || $opts{'d'}) {
 	push @dirlist, 'static-site/img';
 	push @dirlist, 'dynamic-site/img';
@@ -2213,14 +2213,18 @@ sub print_person
 
 	my $xtitle = wide_to_xml($title);
 
-	print $xml "\n\t\t<xref>", $person->xref(),
-		"</xref>\n\t\t<title>$xtitle</title>";
+	open(my $person_xml, '>', File::Spec->catfile('dynamic-site', 'data', 'people', $person->xref() . '.xml'));
+	print $person_xml "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>\n<table>\n\t<person>\n",
+		"\t\t<title>$xtitle</title>";
+
+	my $both_xmls = File::Print::Many->new(fds => [$xml, $person_xml]);
+	$both_xmls->print("\n\t\t<xref>", $person->xref(), '</xref>');
 	if($firstname) {
-		print $xml "\n\t\t<first_name>", wide_to_xml($firstname),
-			'</first_name>';
+		$both_xmls->print("\n\t\t<first_name>", wide_to_xml($firstname))
+			->print('</first_name>');
 	}
 	if($surname) {
-		print $xml "\n\t\t<surname>", wide_to_xml($surname), '</surname>';
+		$both_xmls->print("\n\t\t<surname>")->print(wide_to_xml($surname))->print('</surname>');
 	}
 
 	my $filename = File::Spec->catfile('static-site', 'index.html');
@@ -2239,7 +2243,7 @@ sub print_person
 		}
 		print $index_html '</head>',
 			"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body>";
-		print $xml "\n\t\t<home>1</home>";
+		$both_xmls->print("\n\t\t<home>1</home>");
 		print $index_html '</html>';
 		close $index_html;
 		print $csv '1!';
@@ -2304,13 +2308,13 @@ sub print_person
 
 	if($is_alive && !$opts{'l'}) {
 		print "Living person\n" if($opts{'v'});
-		print $xml "\n\t\t<alive>1</alive>";
+		$both_xmls->print("\n\t\t<alive>1</alive>");
 		print $csv '1!';
 		my $str = '<i>This is the record of a living person, so not much data will be shown.</i></p><p>';
 		print $html $str;
 		print $csv $str;
 	} else {
-		print $xml "\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t";
+		$both_xmls->print("\n\t\t<bio>\n\t\t\t<en>\n\t\t\t\t");
 		print $csv '0!';
 		$surnames->{$surname}->{$title} = $person;
 	}
@@ -3491,7 +3495,7 @@ sub print_person
 			# '&lt;/a&gt;';
 		if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism || $dateofmarriage) {
 			print $html ',';
-			print $xml ',';
+			$both_xmls->print(',');
 		}
 		if($phrase->length()) {
 			push @phrases, $phrase;
@@ -3503,7 +3507,7 @@ sub print_person
 	if(($opts{'l'} || !$is_alive) && (my $aka = $person->as_string({ use_aka => 1 }))) {
 		$phrase->append(" (also known as $aka)");
 		print $html " (also known as $aka)";
-		print $xml '<aka>', wide_to_xml($aka), "</aka>\n\t\t\t\t";
+		$both_xmls->print('<aka>')->print(wide_to_xml($aka))->print("</aka>\n\t\t\t\t");
 	}
 
 	my $start_of_paragraph = 0;
@@ -4022,7 +4026,7 @@ sub print_person
 					$end_of_sentence = 1;
 					$start_of_paragraph = 1;
 
-					print $xml "<orphaned>$orphaned_year</orphaned>\n\t\t\t\t";
+					$both_xmls->print("<orphaned>$orphaned_year</orphaned>\n\t\t\t\t");
 					push @{$orphans{$orphaned_year}}, $person->xref();
 				}
 			}
@@ -7436,14 +7440,7 @@ sub print_person
 							@phrases = ();
 						}
 
-						my $service = 'military';
-						if(my $notes = notes(record => $event)) {
-							if($notes =~ /Navy/i) {
-								$service = 'navy';
-							} elsif(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i) || ($notes =~ /\sregiment/i) || ($notes =~ /soldier/i)) {
-								$service = 'army';
-							}
-						}
+						my $service = service($event);
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^from /) {
 								$bio .= ' ' unless($bio =~ /\s$/);
@@ -8726,9 +8723,9 @@ sub print_person
 			# utf8::decode($s);
 			$s = wide_to_xml($s);
 			$s =~ s/\s\s+/ /g;
-			print $xml $s;
+			$both_xmls->print($s);
 		}
-		print $xml "\n\t\t\t</en>\n\t\t</bio>";
+		$both_xmls->print("\n\t\t\t</en>\n\t\t</bio>");
 	}
 	print $csv '!';
 
@@ -8740,17 +8737,24 @@ sub print_person
 			if($father && (my $f = person_line_html({ person => $father, year => $year }))) {
 				print $html "<li>$f</li>";
 				print $csv person_line_csv({ person => $father, year => $year });
-				print $xml "\n\t\t<father>\n\t\t\t<xref>", $father->xref(),
-					"</xref>\n\t\t\t<first_name>", wide_to_xml(given_names($father)), "</first_name>\n\t\t\t<surname>",
-					wide_to_xml(normalize_name($father->surname())), "</surname>\n\t\t</father>";
+				$both_xmls->print("\n\t\t<father>\n\t\t\t<xref>")
+					->print($father->xref())
+					->print("</xref>\n\t\t\t<first_name>")
+					->print(wide_to_xml(given_names($father)))
+					->print("</first_name>\n\t\t\t<surname>")
+					->print(wide_to_xml(normalize_name($father->surname())))
+					->print("</surname>\n\t\t</father>");
 			}
 			print $csv '!';
 			if($mother && (my $m = person_line_html({ person => $mother, year => $year }))) {
 				print $html "<li>$m</li>";
 				print $csv person_line_csv({ person => $mother, year => $year });
-				print $xml "\n\t\t<mother>\n\t\t\t<xref>", $mother->xref(),
-					"</xref>\n\t\t\t<first_name>", wide_to_xml(given_names($mother)), "</first_name>\n\t\t\t<surname>",
-					wide_to_xml(normalize_name($mother->surname())), "</surname>\n\t\t</mother>";
+				$both_xmls->print("\n\t\t<mother>\n\t\t\t<xref>")->print($mother->xref())
+					->print("</xref>\n\t\t\t<first_name>")
+					->print(wide_to_xml(given_names($mother)))
+					->print("</first_name>\n\t\t\t<surname>")
+					->print(wide_to_xml(normalize_name($mother->surname())))
+					->print("</surname>\n\t\t</mother>");
 			}
 			print $html '</ol>';
 		} else {
@@ -8767,13 +8771,13 @@ sub print_person
 			next if($line eq '');
 			if(!$printed_children_header) {
 				print $html '<h2>Children</h2><ol>';
-				print $xml "\n\t\t<children>";
+				$both_xmls->print("\n\t\t<children>");
 				$printed_children_header = 1;
 			}
 			print $html "<li>$line</li>";
 			my $x = wide_to_xml($line);
 			$x =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
-			print $xml "\n\t\t\t<child>$x</child>";
+			$both_xmls->print("\n\t\t\t<child>$x</child>");
 			if(length($c)) {
 				$c .= '----' . person_line_csv({ person => $child, year => $year });
 			} else {
@@ -8802,7 +8806,7 @@ sub print_person
 		}
 		if($printed_children_header) {
 			print $html '</ol>';
-			print $xml "\n\t\t</children>";
+			$both_xmls->print("\n\t\t</children>");
 		}
 		print $csv $c;
 	} else {
@@ -8819,7 +8823,7 @@ sub print_person
 			# TODO: add citations from dbpedia
 			print "Create $citationcount citations\n" if($opts{'v'});
 			print $html '<h2>Citations</h2><ol>';
-			print $xml "\n\t\t<citations>";
+			$both_xmls->print("\n\t\t<citations>");
 			my $ufinder = URI::Find::Schemeless->new(sub {
 				my($uri, $orig_uri) = @_;
 
@@ -8934,10 +8938,12 @@ sub print_person
 				print $csv '----' if($index > 1);
 				print $csv $h;
 				print $html "<li>$h</li>";
-				print $xml "\n\t\t\t<citation>", wide_to_xml(string => $c), '</citation>';
+				$both_xmls->print("\n\t\t\t<citation>")
+					->print(wide_to_xml(string => $c))
+					->print('</citation>');
 			}
 			print $html '</ol>';
-			print $xml "\n\t\t</citations>";
+			$both_xmls->print("\n\t\t</citations>");
 
 			if($opts{'w'}) {
 				# People alive during the years when censuses have been available must
@@ -9079,8 +9085,7 @@ sub print_person
 									});
 								}
 							}
-						} else {
-							my $b = $grave_modules->new(\%opts);
+						} elsif(my $b = $grave_modules->new(\%opts)) {
 							while(my $url = $b->get_next_entry()) {
 								complain({
 									person => $person,
@@ -9120,7 +9125,7 @@ sub print_person
 			$notes =~ s/<\/p>$//;
 			$notes =~ s/<br>/<br \/>/g;
 			$notes =~ s/<p><\/p>//g;
-			print $xml "\n\t\t<note><p>$notes</p></note>";
+			$both_xmls->print("\n\t\t<note><p>$notes</p></note>");
 			# print $html map { "<p>$_</p>" } @notes;
 		}
 
@@ -9184,7 +9189,7 @@ sub print_person
 						}
 						if(!$printed_media_header) {
 							print $html '<h2>Media</h2>';
-							print $xml "\n\t\t<media>";
+							$both_xmls->print("\n\t\t<media>");
 							$printed_media_header = 1;
 						}
 
@@ -9351,13 +9356,13 @@ sub print_person
 											'<img src="', $escaped_file, "\" alt=\"$escaped_title\" width=\"175\" height=\"$h\">",
 											'</a>';
 										print $csv "/$localfile---$title---$h----";
-										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$escaped_file</file>\n\t\t\t\t<title>$escaped_title</title>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
+										$both_xmls->print("\n\t\t\t<image>\n\t\t\t\t<file>$escaped_file</file>\n\t\t\t\t<title>$escaped_title</title>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>");
 									} else {
 										print $html "<a href=\"$localfile\" target=\"_blank\">",
 											'<img src="', $localfile, "\" width=\"175\" height=\"$h\">",
 											'</a>';
 										print $csv "/$localfile--- ---$h----";
-										print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$escaped_file</file>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>";
+										$both_xmls->print("\n\t\t\t<image>\n\t\t\t\t<file>$escaped_file</file>\n\t\t\t\t<height>$h</height>\n\t\t\t</image>");
 									}
 									if(defined($profile_object) && ($obje eq $profile_object)) {
 										$s_profile_image = "static-site/$localfile";
@@ -9378,13 +9383,13 @@ sub print_person
 											'</a>';
 										print $csv "$file---$title---0----";
 										$title =~ s/&/&amp;/g;
-										print $xml "\n\t\t<image><url>$file</url><title>$title</title></image>";
+										$both_xmls->print("\n\t\t<image><url>$file</url><title>$title</title></image>");
 									} else {
 										print $html "<a href=\"$file\" target=\"_blank\">",
 											"<img src=\"$file\" width=\"175\">",
 											'</a>';
 										print $csv "$file--- ---0----";
-										print $xml "\n\t\t<image><url>$file</url></image>";
+										$both_xmls->print("\n\t\t<image><url>$file</url></image>");
 									}
 									if(defined($profile_object) && ($obje eq $profile_object)) {
 										$s_profile_image = $file;
@@ -9400,13 +9405,13 @@ sub print_person
 										'</a>';
 									print $csv "$file---$title---0----";
 									$title =~ s/&/&amp;/g;
-									print $xml "\n\t\t\t<image>\n\t\t\t\t<url>$escaped_file</url>\n\t\t\t\t<title>$title></title>\n\t\t\t</image>";
+									$both_xmls->print("\n\t\t\t<image>\n\t\t\t\t<url>$escaped_file</url>\n\t\t\t\t<title>$title></title>\n\t\t\t</image>");
 								} else {
 									print $html "<a href=\"$file\" target=\"_blank\">",
 										"<img src=\"$file\" width=\"175\">",
 										'</a>';
 									print $csv "$file--- ---0----";
-									print $xml "\n\t\t\t<image>\n\t\t\t\t<url>$escaped_file</url></image>";
+									$both_xmls->print("\n\t\t\t<image>\n\t\t\t\t<url>$escaped_file</url></image>");
 								}
 								if(defined($profile_object) && ($obje eq $profile_object)) {
 									$s_profile_image = $file;
@@ -9426,17 +9431,17 @@ sub print_person
 								if($title) {
 									$title = HTML::Entities::encode($title);
 									$title =~ s/&acirc;//g;
-									print $xml "\n\t\t\t<image>\n\t\t\t\t<url>$file</url>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>";
+									$both_xmls->print("\n\t\t\t<image>\n\t\t\t\t<url>$file</url>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>");
 								} else {
-									print $xml "\n\t\t\t<image>\n\t\t\t\t<url>$file</url>\n\t\t\t</image>";
+									$both_xmls->print("\n\t\t\t<image>\n\t\t\t\t<url>$file</url>\n\t\t\t</image>");
 								}
 							} else {
 								if($title) {
 									$title = HTML::Entities::encode($title);
 									$title =~ s/\xc3\xab/&#235;/g;	# eumlaut
-									print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>";
+									$both_xmls->print("\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t\t<title>$title</title>\n\t\t\t</image>");
 								} else {
-									print $xml "\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t</image>";
+									$both_xmls->print("\n\t\t\t<image>\n\t\t\t\t<file>$file</file>\n\t\t\t</image>");
 								}
 							}
 						}
@@ -9448,7 +9453,7 @@ sub print_person
 				}
 			}
 			if($printed_media_header) {
-				print $xml "\n\t\t</media>";
+				$both_xmls->print("\n\t\t</media>");
 			}
 		}
 		print $csv '!';
@@ -9588,9 +9593,9 @@ sub print_person
 				my $filename = 'family-tree-' . $person->xref();
 				my $dim = Image::Info::html_dim(Image::Info::image_info($png));
 				print $csv "/img/$filename.png---$dim---";
-				print $xml "\n\t\t<profile>/img/$filename.png</profile>";
+				$both_xmls->print("\n\t\t<profile>/img/$filename.png</profile>");
 				$tmp->seek(0, SEEK_SET);
-				print $xml "\n\t\t<family_tree>";
+				$both_xmls->print("\n\t\t<family_tree>");
 				foreach my $line(<$tmp>) {
 					chomp $line;
 					print $csv wide_to_html({ string => $line, keep_hrefs => 1 });
@@ -9598,9 +9603,9 @@ sub print_person
 					$line =~ s/>/&gt;/g;
 					$line =~ s/&/&amp;/g;
 					$line =~ s/&amp;amp;/&amp;/g;
-					print $xml wide_to_xml($line);
+					$both_xmls->print(wide_to_xml($line));
 				}
-				print $xml '</family_tree>';
+				$both_xmls->print('</family_tree>');
 			}
 		} elsif(defined($dot)) {
 			complain(warning => "$dot: $!");
@@ -9635,26 +9640,26 @@ sub print_person
 			}
 		}
 
-		print $xml "\n\t\t<events>";
+		$both_xmls->print("\n\t\t<events>");
 		foreach my $event(@place_events) {
 			next if($event =~ /^Living /);	# Already put in above
 
-			print $xml "\n\t\t\t<event>";
+			$both_xmls->print("\n\t\t\t<event>");
 			my $record = $place_records{$event};
-			print $xml "\n\t\t\t\t<text>", wide_to_xml($event), '</text>';
+			$both_xmls->print("\n\t\t\t\t<text>")->print(wide_to_xml($event))->print('</text>');
 			if(my $place = place({ record => $record, nopreposition => 1 })) {
 				$place =~ s/^\s+//;
-				print $xml "\n\t\t\t\t<location>", wide_to_xml($place), '</location>';
+				$both_xmls->print("\n\t\t\t\t<location>")->print(wide_to_xml($place))->print('</location>');
 			}
 			if($record->date()) {
 				my $date = year({ person => $person, record => $record, nopreposition => 1 });
 				$date =~ s/^on //;
 				$date = wide_to_xml($date);
-				print $xml "\n\t\t\t\t<date>$date</date>";
+				$both_xmls->print("\n\t\t\t\t<date>$date</date>");
 			}
-			print $xml "\n\t\t\t</event>";
+			$both_xmls->print("\n\t\t\t</event>");
 		}
-		print $xml "\n\t\t</events>";
+		$both_xmls->print("\n\t\t</events>");
 
 		# Sort put all events at a place on the same pointer
 		# TODO: then sort in date order
@@ -9752,8 +9757,9 @@ sub print_person
 			$map_head =~ s/http:/https:/;
 			$map_head = wide_to_html({ string => $map_head, keep_hrefs => 1, keep_apos => 1 });
 			# utf8::encode($map_head);
-			print $xml "\n\t\t<map>\n\t\t\t<map_head>", MIME::Base64::encode_base64url($map_head),
-				"</map_head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>";
+			$both_xmls->print("\n\t\t<map>\n\t\t\t<map_head>")
+				->print(MIME::Base64::encode_base64url($map_head))
+				->print("</map_head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>");
 			print $csv MIME::Base64::encode_base64url($map_head), '!', MIME::Base64::encode_base64url($map_div), '!';
 			# if($opts{'m'}) {
 				# # Don't include the key in the webpage.
@@ -9774,12 +9780,12 @@ sub print_person
 
 	if($birth_dt && ($opts{'l'} || !$is_alive)) {
 		print $csv $birth_dt->strftime('%Y/%m/%d');
-		print $xml "\n\t\t<birth>", $birth_dt->strftime('%Y/%m/%d'), '</birth>';
+		$both_xmls->print("\n\t\t<birth>")->print($birth_dt->strftime('%Y/%m/%d'))->print('</birth>');
 	}
 	print $csv '!';
 	if($death_dt && ($opts{'l'} || !$is_alive)) {
 		print $csv $death_dt->strftime('%Y/%m/%d');
-		print $xml "\n\t\t<death>", $death_dt->strftime('%Y/%m/%d'), '</death>';
+		$both_xmls->print("\n\t\t<death>")->print($death_dt->strftime('%Y/%m/%d'))->print('</death>');
 	}
 	print $csv '!';
 
@@ -9875,7 +9881,7 @@ sub print_person
 		if($profile_thumbnail) {
 			print $visjs_html "<img src=\"/$profile_thumbnail\" alt=\"", $person->as_string(), "\"><p>";
 			print $csv $profile_thumbnail;
-			print $xml "\n\t\t<thumbnail>$profile_thumbnail</thumbnail>";
+			$both_xmls->print("\n\t\t<thumbnail>$profile_thumbnail</thumbnail>");
 		}
 		$fullbio =~ s/'/\&#39;/g;
 		my $b = wide_to_html($fullbio);
@@ -9920,10 +9926,10 @@ sub print_person
 
 	if(defined($m)) {
 		print $csv "!$m!$sex!";
-		print $xml "\n\t\t<marriage>$m</marriage>\n\t\t<sex>$sex</sex>";
+		$both_xmls->print("\n\t\t<marriage>$m</marriage>\n\t\t<sex>$sex</sex>");
 	} else {
 		print $csv "!!$sex!";
-		print $xml "\n\t\t<sex>$sex</sex>";
+		$both_xmls->print("\n\t\t<sex>$sex</sex>");
 	}
 
 	if($me && $birth_dt && $death_dt) {
@@ -9960,7 +9966,7 @@ sub print_person
 	# TODO:  use known_locations array
 
 	if($geocoder && ($opts{'l'} || !$is_alive) && ($placeofbirth || $placeofdeath)) {
-		print $xml "\n\t\t<locations>";
+		$both_xmls->print("\n\t\t<locations>");
 		if($placeofbirth) {
 			if(my $location = get_location($placeofbirth)) {
 				# if(scalar(@locations) > 1) {
@@ -9969,15 +9975,22 @@ sub print_person
 					# }
 					# red_warning({ person => $person, warning => "Ambiguous birth location $placeofbirth" });
 				# } elsif(!defined($locations[0]->{'error'})) {
-				print $xml "\n\t\t\t<birth>";
+				$both_xmls->print("\n\t\t\t<birth>");
 				if($birth_country) {
-					print $xml "\n\t\t\t\t<country>$birth_country</country>";
+					$both_xmls->print("\n\t\t\t\t<country>$birth_country</country>");
 				}
 				print $csv $location->lat(), ',', $location->long();
-				print $xml "\n\t\t\t\t<lat>", $location->lat(), '</lat>',
-					"\n\t\t\t\t<long>", $location->long(), '</long>',
-					"\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">", $location->long(), $location->lat(), '</point>';
-				print $xml "\n\t\t\t</birth>";
+				$both_xmls->print("\n\t\t\t\t<lat>")
+					->print($location->lat())
+					->print('</lat>')
+					->print("\n\t\t\t\t<long>")
+					->print($location->long())
+					->print('</long>')
+					->print("\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">")
+					->print($location->long())
+					->print($location->lat())
+					->print('</point>')
+					->print("\n\t\t\t</birth>");
 				if($dateofbirth) {
 					push @{$all_locations{get_year_from_date($dateofbirth)}}, {
 						'record' => $birth,
@@ -10001,31 +10014,38 @@ sub print_person
 					# }
 					# red_warning({ person => $person, warning => "Ambiguous death location $placeofdeath" });
 				# } elsif(!defined($locations[0]->{'error'})) {
-				print $xml "\n\t\t\t<death>";
+				$both_xmls->print("\n\t\t\t<death>");
 				if($death_country) {
-					print $xml "\n\t\t\t\t<country>$death_country</country>";
+					$both_xmls->print("\n\t\t\t\t<country>$death_country</country>");
 				}
 				print $csv $location->lat(), ',', $location->long();
-				print $xml "\n\t\t\t\t<lat>", $location->lat(), '</lat>',
-					"\n\t\t\t\t<long>", $location->long(), '</long>',
-					"\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">", $location->long(), $location->lat(), '</point>';
-				print $xml "\n\t\t\t</death>";
+				$both_xmls->print("\n\t\t\t\t<lat>")
+					->print($location->lat())
+					->print('</lat>')
+					->print("\n\t\t\t\t<long>")
+					->print($location->long())
+					->print('</long>')
+					->print("\n\t\t\t\t<point xmlns=\"http://www.opengis.net/gml\">")
+					->print($location->long())
+					->print($location->lat())
+					->print('</point>')
+					->print("\n\t\t\t</death>");
 			} else {
 				complain({ person => $person, warning => "Unknown death location $placeofdeath" });
 			}
 		}
 		print $csv '!';
 		if(scalar(@residencelist)) {
-			print $xml "\n\t\t\t<residences>";
+			$both_xmls->print("\n\t\t\t<residences>");
 			# Print the residence list to the XML file.
 			# If the residence doesn't change place from one record to the next, only print the date
 			my $new_place = 1;
 			my $iterator = Array::Iterator->new({ __array__ => \@residencelist });
 			while(my $residence = $iterator->get_next()) {
-				print $xml "\n\t\t\t\t<residence>" if($new_place);
+				$both_xmls->print("\n\t\t\t\t<residence>") if($new_place);
 
 				if(my $rdate = $residence->date()) {
-					print $xml "\n\t\t\t\t\t<date>$rdate</date>";
+					$both_xmls->print("\n\t\t\t\t\t<date>$rdate</date>");
 				}
 
 				if($new_place && (my $rplace = place({ person => $person, record => $residence, nopreposition => 1, encode => 0 }))) {
@@ -10035,22 +10055,21 @@ sub print_person
 					$rplace =~ s/ñ/&#x0F1;/g;
 					$rplace =~ s/\s&\s/ &amp; /g;
 
-					print $xml "\n\t\t\t\t\t<location>$rplace</location>";
+					$both_xmls->print("\n\t\t\t\t\t<location>$rplace</location>");
 				}
 
 				my $peek = $iterator->peek();
 				if(defined($peek) && places_are_the_same({ person => $person, first => $residence, second => $peek })) {
 					$new_place = 0;
 				} else {
+					$both_xmls->print("\n\t\t\t\t</residence>");
 					$new_place = 1;
 				}
-
-				print $xml "\n\t\t\t\t</residence>" if($new_place);
 			}
-			print $xml "\n\t\t\t</residences>";
+			$both_xmls->print("\n\t\t\t</residences>");
 		}
 
-		print $xml "\n\t\t</locations>";
+		$both_xmls->print("\n\t\t</locations>");
 
 		my $xref = $person->xref();
 		my $military_count = 0;
@@ -10058,55 +10077,84 @@ sub print_person
 			if($event->can('type') && (my $type = $event->type())) {
 				if($type eq 'Military service') {
 					if($military_count == 0) {
-						print $xml "\n\t\t<military>";
+						$both_xmls->print("\n\t\t<military>");
 						$all_military{$xref} = ();
 					}
 					$military_count++;
+
+					$both_xmls->print("\n\t\t\t<entry>")
+						->print("\n\t\t\t\t<service>", ucfirst(service($event)), '</service>');
+
 					my $entry;
-					print $xml "\n\t\t\t<entry>";
 					if(my $date = year(record => $event)) {
-						print $xml "\n\t\t\t\t<date>",
-							"\n\t\t\t\t\t$date",
-							"\n\t\t\t\t</date>";
+						$both_xmls->print("\n\t\t\t\t<date>");
+						if($date =~ /^from (.+) to (.+)$/) {
+							my ($from, $to) = ($1, $2);
+
+							# Validate that the "to" date is after the "from" date
+							if(datecmp($from, $to) >= 0) {
+								complain({
+									person => $person,
+									warning => "To is before from in military service '$date'"
+								});
+							}
+							# Will fail if we just have a year
+							if(my $from_dt = date_to_datetime(date => $from)) {
+								$from = $from_dt->strftime('%Y/%m/%d');
+							}
+							if(my $to_dt = date_to_datetime(date => $to)) {
+								$to = $to_dt->strftime('%Y/%m/%d');
+							}
+
+							$entry->{'from'} = $from;
+							$entry->{'to'} = $to;
+
+							$both_xmls->print("\n\t\t\t\t\t<from>$from</from>")
+								->print("\n\t\t\t\t\t<to>$to</to>");
+						} else {
+							$both_xmls->print("\n\t\t\t\t\t$date");
+						}
+						$both_xmls->print("\n\t\t\t\t</date>");
 						$entry->{'date'} = $date;
 					}
 					if(my $place = place({ person => $person, record => $event, nopreposition => 1 })) {
 						$place =~ s/^\s+//;
 						$entry->{'place'} = $place;
 						$place = wide_to_xml($place);
-						print $xml "\n\t\t\t\t<location>",
-							"\n\t\t\t\t\t$place",
-							"\n\t\t\t\t</location>";
+						$both_xmls->print("\n\t\t\t\t<location>")
+							->print("\n\t\t\t\t\t$place")
+							->print("\n\t\t\t\t</location>");
 					}
 					if(my $notes = notes(record => $event, note_locations => \@note_locations)) {
 						$notes = lcfirst($notes) unless($notes =~ /^(RAF|Royal Navy)/);
 						$notes =~ s/[\s\.]+$//;
 						$notes =~ s/<br>/ /g;
 						$notes = wide_to_xml($notes);
-						print $xml "\n\t\t\t\t<notes>",
-							"\n\t\t\t\t\t", wide_to_xml($notes),
-							"\n\t\t\t\t</notes>";
+						$both_xmls->print("\n\t\t\t\t<notes>")
+							->print("\n\t\t\t\t\t")
+							->print(ucfirst($notes))
+							->print("\n\t\t\t\t</notes>");
 						$entry->{'notes'} = $notes;
 					}
-					print $xml "\n\t\t\t</entry>";
+					$both_xmls->print("\n\t\t\t</entry>");
 					push @{$all_military{$xref}}, $entry;
 				}
 			}
 		}
 		if($military_count > 0) {
-			print $xml "\n\t\t</military>";
+			$both_xmls->print("\n\t\t</military>");
 		}
 
 		if(scalar(@occupations)) {
-			print $xml "\n\t\t<occupations>";
+			$both_xmls->print("\n\t\t<occupations>");
 
 			foreach my $occupation(@occupations) {
 				$occupation =~ s/&/&amp;/g;
-				print $xml "\n\t\t\t<occupation>$occupation</occupation>";
+				$both_xmls->print("\n\t\t\t<occupation>$occupation</occupation>");
 				push @{$all_occupations{$occupation}}, $xref;
 			}
 
-			print $xml "\n\t\t</occupations>";
+			$both_xmls->print("\n\t\t</occupations>");
 		}
 	} else {
 		print $csv '!!';
@@ -10146,18 +10194,21 @@ sub print_person
 
 		print $html '<h2>Known Issues</h2>';
 		print $csv map { wide_to_html({ string => $_, keep_hrefs => 1 }) } @issues;
-		print $xml "\n\t\t<issues>";
+		$both_xmls->print("\n\t\t<issues>");
 		foreach my $issue(@issues) {
 			print $html wide_to_html({ string => $issue, keep_hrefs => 1 });
 			$issue =~ s/^<p>//;
 			$issue =~ s/<\/p>$//;
 			$issue = wide_to_xml($issue);
-			print $xml "\n\t\t\t<issue>$issue</issue>";
+			$both_xmls->print("\n\t\t\t<issue>$issue</issue>");
 		}
-		print $xml "\n\t\t</issues>";
+		$both_xmls->print("\n\t\t</issues>");
 	}
 	print $html '</body></html>';
 	close $html;
+	print $person_xml "\n\t</person>\n</table>\n";
+	close $person_xml;
+	chmod 0444, File::Spec->catfile('dynamic-site', 'data', 'people', $person->xref() . '.xml');
 
 	$printed{$person->xref()} = 1;
 
@@ -13106,21 +13157,13 @@ sub date_parser_cached
 # Try hard to convert a Gedcom date to a DateTime object.
 sub date_to_datetime
 {
-	my %params;
+	my $params = get_params('date', @_);
 
-	if(ref($_[0]) eq 'HASH') {
-		%params = %{$_[0]};
-	} elsif(scalar(@_) % 2 == 0) {
-		%params = @_;
-	} else {
-		$params{'date'} = shift;
-	}
-
-	if(my $date = $params{'date'}) {
+	if(my $date = $params->{'date'}) {
 		# if($date !~ /^(bef|abt|aft).?\s/i) {
 		if(($date !~ /^(bef|abt|aft)/i) && ($date !~ /\sor\s/)) {
-			$params{'quiet'} = 1 if(!$opts{'w'});
-			return $dfg->parse_datetime(%params);
+			$params->{'quiet'} = 1 if(!$opts{'w'});
+			return $dfg->parse_datetime(%{$params});
 		}
 	}
 	return;	# undef
@@ -13876,6 +13919,17 @@ sub datecmp($$)
 		} elsif(($left =~ /\//) && ($left =~ /^[a-z\/]+\s+(.+)/i)) {
 			# e.g. "Oct/Nov/Dec 1950"
 			$left = $1;
+		}
+
+		if(($left =~ /^\d{3,4}/) && ($right =~ /^\d{3,4}/)) {
+			# e.g. 1929/06/26 <=> 1939
+			$left =~ /^(\d{3,4})/;
+			my $start = $1;
+			$right =~ /^(\d{3,4})/;
+			my $end = $1;
+			if($start != $end) {
+				return $start <=> $end;
+			}
 		}
 
 		# e.g. "1802 or 1803"
@@ -16013,6 +16067,22 @@ sub given_names
 		$given =~ s/\.$//;
 		return $given;
 	}
+}
+
+# Which service did this person serve in?
+sub service
+{
+	my $params = get_params('event', @_);
+
+	if(my $notes = notes(record => $params->{'event'})) {
+		if($notes =~ /Navy/i) {
+			return 'navy';
+		}
+		if(($notes =~ /^army\.?$/i) || ($notes =~ /\sarmy\s/i) || ($notes =~ /\sregiment/i) || ($notes =~ /soldier/i)) {
+			return 'army';
+		}
+	}
+	return 'military';
 }
 
 # Helper routine to parse the arguments given to a function,
