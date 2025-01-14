@@ -6487,7 +6487,8 @@ sub print_person
 				} else {
 					if(!$start_of_paragraph) {
 						$bio .= '</p><p>';
-						$phrase->set('</p><p>');
+						$bio_dt->append('</p><p>');
+						$start_of_paragraph = 1;
 					}
 					# See if this person was born, lived and died all in the same county
 					if((scalar(@residencelist) > 3) && $birth_country && $death_country && ($birth_country eq $death_country)) {
