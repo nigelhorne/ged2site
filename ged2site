@@ -1796,6 +1796,10 @@ if($opts{'w'}) {
 					$summary = 'Unsure if living with parent in childhood or not';
 				} elsif($warning =~ /^The places .+ seem similar/) {
 					$summary = 'Similar sounding place names - check for typos';
+				} elsif($warning =~ /^Ignoring Newspaper Death Notice /) {
+					$summary = 'Ignoring Newspaper Death Notice';
+				} elsif($warning =~ /^Possible burial link /) {
+					$summary = 'Possible Burial Information';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
@@ -9082,7 +9086,7 @@ sub print_person
 								while(my $url = $b->get_next_entry()) {
 									complain({
 										person => $person,
-										warning => "possible burial link $url"
+										warning => "Possible burial link $url"
 									});
 								}
 							}
@@ -9090,7 +9094,7 @@ sub print_person
 							while(my $url = $b->get_next_entry()) {
 								complain({
 									person => $person,
-									warning => "possible burial link $url"
+									warning => "Possible burial link $url"
 								});
 							}
 						}
