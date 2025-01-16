@@ -10064,6 +10064,10 @@ sub print_person
 				$both_xmls->print("\n\t\t\t\t<residence>") if($new_place);
 
 				if(my $rdate = $residence->date()) {
+					# Dates in the XML files are of the format YYYY/MM/DDD
+					if(my $rdate_dt = date_to_datetime(date => $rdate)) {
+						$rdate = $rdate_dt->strftime('%Y/%m/%d');
+					}
 					$both_xmls->print("\n\t\t\t\t\t<date>$rdate</date>");
 				}
 

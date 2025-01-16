@@ -6,6 +6,8 @@ use warnings;
 use strict;
 use Ged2site::Display;
 use DateTime::Format::Genealogy;
+use File::Slurp;
+use XML::Simple;
 
 our @ISA = ('Ged2site::Display');
 
@@ -140,6 +142,9 @@ sub html
 					_add_event(\@events, "Left the $service", $entry, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
 				}
 			}
+
+			# TODO
+			# my $person = _get_person(\%args, \%params);
 		}
 
 		# Sort events by year in ascending order
@@ -194,6 +199,20 @@ sub _add_event
 		month => $month,
 		day => $day
 	};
+}
+
+# Helper: Get a hashref of the data for this person
+sub _get_person
+{
+	my($args, $params) = @_;
+
+	# Read in the .../data/people/$xref.xml file
+	my $xml_string = File::Slurp::read_file(File::Spec->catfile($args->{'database_dir'}, 'people', $params->{'entry'}) . '.xml');
+
+	# Parse the XML string
+	if(my $person = XML::Simple->new(ForceArray => 0, KeyAttr => [])->XMLin($xml_string)) {
+		return $person->{'person'};
+	}
 }
 
 1;
