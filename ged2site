@@ -9673,7 +9673,10 @@ sub print_person
 			if($record->date()) {
 				my $date = year({ person => $person, record => $record, nopreposition => 1 });
 				$date =~ s/^[io]n //;
-				$date = wide_to_xml($date);
+				# Dates in the XML files are of the format YYYY/MM/DDD
+				if(my $rdate_dt = date_to_datetime(date => $date)) {
+					$date = $rdate_dt->strftime('%Y/%m/%d');
+				}
 				$both_xmls->print("\n\t\t\t\t<date>$date</date>");
 			}
 			$both_xmls->print("\n\t\t\t</event>");
