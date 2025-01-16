@@ -12538,12 +12538,12 @@ sub person_line_csv
 
 	if($opts{'l'} || !is_alive(%params)) {
 		if(my $dob = dateofbirth($person)) {
-			return '<a href="?page=people&entry=' . $person->xref() . '">' .
+			return '<a href="?page=people&amp;entry=' . $person->xref() . '">' .
 				wide_to_html(given_names($person)) .
 				'</a> was born ' .
 				year({ person => $person, date => $dob });
 		} elsif(my $bd = get_value({ person => $person, value => 'baptism date' })) {
-			return '<a href="?page=people&entry=' . $person->xref() . '">' .
+			return '<a href="?page=people&amp;entry=' . $person->xref() . '">' .
 				wide_to_html(given_names($person)) . "</a> was born c. $bd";
 		}
 		return '';
