@@ -7283,6 +7283,7 @@ sub print_person
 							last;
 						}
 					}
+
 					# If there's a location in the object, add that to the known locations
 					if((my $place = $obje->place()) && (my $date = $obje->date())) {
 						my $dt = date_to_datetime($date);
@@ -7299,8 +7300,8 @@ sub print_person
 								'location' => $location
 							};
 							# Add it to the map of where a person has been
-							$place_records{"$title: " . year({ person => $person, string => $date })} = $place;
-							die "DEBUGGING: $place";
+							$place_records{"$title: " . year({ person => $person, string => $date })} = $obje;
+							warn "DEBUGGING: object has a location: $place";
 						}
 					}
 				}
@@ -7929,6 +7930,7 @@ sub print_person
 								last;
 							}
 						}
+
 						# If there's a location in the object, add that to the known locations
 						if((my $place = $obje->place()) && (my $date = $obje->date())) {
 							my $dt = date_to_datetime($date);
@@ -7945,8 +7947,8 @@ sub print_person
 									'location' => $location
 								};
 								# Add it to the map of where a person has been
-								$place_records{"$title: " . year({ person => $person, string => $date })} = $place;
-								die "DEBUGGING: $place";
+								$place_records{"$title: " . year({ person => $person, string => $date })} = $obje;
+								warn "DEBUGGING: object has a location: $place";
 							}
 						}
 					}
@@ -7954,7 +7956,6 @@ sub print_person
 					$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
 					$phrase = Data::Text->new();
 					@phrases = ();
-
 				}
 			}
 		}
@@ -8744,9 +8745,15 @@ sub print_person
 				print $csv person_line_csv({ person => $father, year => $year });
 				$both_xmls->print("\n\t\t<father>\n\t\t\t<xref>")
 					->print($father->xref())
-					->print("</xref>\n\t\t\t<first_name>")
-					->print(wide_to_xml(given_names($father)))
-					->print("</first_name>\n\t\t\t<surname>")
+					->print('</xref>');
+				if(my $given_names = given_names($father)) {
+					if(length($given_names)) {
+						$both_xmls->print("\n\t\t\t<first_name>")
+							->print(wide_to_xml($given_names))
+							->print('</first_name>');
+					}
+				}
+				$both_xmls->print("\n\t\t\t<surname>")
 					->print(wide_to_xml(normalize_name($father->surname())))
 					->print("</surname>\n\t\t</father>");
 			}
@@ -8754,10 +8761,17 @@ sub print_person
 			if($mother && (my $m = person_line_html({ person => $mother, year => $year }))) {
 				print $html "<li>$m</li>";
 				print $csv person_line_csv({ person => $mother, year => $year });
-				$both_xmls->print("\n\t\t<mother>\n\t\t\t<xref>")->print($mother->xref())
-					->print("</xref>\n\t\t\t<first_name>")
-					->print(wide_to_xml(given_names($mother)))
-					->print("</first_name>\n\t\t\t<surname>")
+				$both_xmls->print("\n\t\t<mother>\n\t\t\t<xref>")
+					->print($mother->xref())
+					->print('</xref>');
+				if(my $given_names = given_names($mother)) {
+					if(length($given_names)) {
+						$both_xmls->print("\n\t\t\t<first_name>")
+							->print(wide_to_xml($given_names))
+							->print('</first_name>');
+					}
+				}
+				$both_xmls->print("\n\t\t\t<surname>")
 					->print(wide_to_xml(normalize_name($mother->surname())))
 					->print("</surname>\n\t\t</mother>");
 			}
@@ -9658,7 +9672,7 @@ sub print_person
 			}
 			if($record->date()) {
 				my $date = year({ person => $person, record => $record, nopreposition => 1 });
-				$date =~ s/^on //;
+				$date =~ s/^[io]n //;
 				$date = wide_to_xml($date);
 				$both_xmls->print("\n\t\t\t\t<date>$date</date>");
 			}
