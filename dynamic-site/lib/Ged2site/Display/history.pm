@@ -17,6 +17,11 @@ sub html
 {
 	my $self = shift;
 
+	my $logger = $self->{'_logger'};
+	if($logger) {
+		$logger->debug(__PACKAGE__, ': entering html()');
+	}
+
 	# Allow arguments to be passed as either a hash reference or a list
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
@@ -74,7 +79,7 @@ sub html
 			# Process mother and father
 			foreach my $relation ('mother', 'father') {
 				if(my $parent = $person->{$relation}) {
-					if(my $xref = $parent =~ /&entry=(\w+)">/ && $1) {
+					if(my $xref = $parent =~ /&amp;entry=(\w+)">/ && $1) {
 						# Fetch details of this parent
 						if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
 							# If the parent has a valid date of birth, format it
@@ -91,7 +96,7 @@ sub html
 
 			# Process children (if any)
 			foreach my $child (split(/----/, $person->{'children'} || '')) {
-				if(my $xref = $child =~ /&entry=(\w+)">/ && $1) {
+				if(my $xref = $child =~ /&amp;entry=(\w+)">/ && $1) {
 					# Fetch details of this child
 					if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
 						# If the child has a valid date of birth, format it
