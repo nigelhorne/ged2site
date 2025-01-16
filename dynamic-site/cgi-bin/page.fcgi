@@ -500,6 +500,8 @@ sub doit
 		# Pass in handles to the databases
 		print $display->as_string({
 			cachedir => $cachedir,
+			databasedir => $database_dir,
+			database_dir => $database_dir,
 			people => $people,
 			censuses => $censuses,
 			changes => $changes,
@@ -513,7 +515,6 @@ sub doit
 			surname_date => $surname_date,
 			twins => $twins,
 			military => $military,
-			databasedir => $database_dir
 		});
 		if($vwflog && open(my $fout, '>>', $vwflog)) {
 			print $fout

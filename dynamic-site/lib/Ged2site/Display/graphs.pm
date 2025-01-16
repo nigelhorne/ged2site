@@ -1105,7 +1105,7 @@ sub _birth_countries
 	my $self = shift;
 	my $args = shift;
 
-	return $self->_build_countries($args->{'databasedir'}, 'birth_countries');
+	return $self->_build_countries($args->{'database_dir'}, 'birth_countries');
 }
 
 # Count of in which country folks were born
@@ -1116,16 +1116,16 @@ sub _death_countries
 	my $self = shift;
 	my $args = shift;
 
-	return $self->_build_countries($args->{'databasedir'}, 'death_countries');
+	return $self->_build_countries($args->{'database_dir'}, 'death_countries');
 }
 
 sub _build_countries
 {
 	my $self = shift;
-	my $databasedir = shift;
+	my $database_dir = shift;
 	my $tag = shift;
 
-	my $json_file = File::Spec->catfile($databasedir, 'facts.json');
+	my $json_file = File::Spec->catfile($database_dir, 'facts.json');
 
 	if(open(my $json, '<', $json_file)) {
 		my $facts = JSON::MaybeXS->new()->utf8()->decode(<$json>);

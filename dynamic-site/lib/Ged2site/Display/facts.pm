@@ -21,7 +21,7 @@ sub html {
 	};
 	my %params = %{$self->{'_info'}->params({ allow => $allowed })};
 
-	my $json_file = File::Spec->catfile($args{'databasedir'}, 'facts.json');
+	my $json_file = File::Spec->catfile($args{'database_dir'}, 'facts.json');
 
 	my $people = $args{'people'};
 	my $p;

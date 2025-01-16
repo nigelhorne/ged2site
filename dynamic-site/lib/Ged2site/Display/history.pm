@@ -71,15 +71,17 @@ sub html
 
 			# Process mother and father
 			foreach my $relation ('mother', 'father') {
-				if(my $xref = $person->{$relation} =~ /&entry=(\w+)">/ && $1) {
-					# Fetch details of this parent
-					if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
-						# If the parent has a valid date of birth, format it
-						if(my ($year, $month, $day) = _parse_date($other->{'dod'})) {
-							next if defined($yod) && $year > $yod;
+				if(my $parent = $person->{$relation}) {
+					if(my $xref = $parent =~ /&entry=(\w+)">/ && $1) {
+						# Fetch details of this parent
+						if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
+							# If the parent has a valid date of birth, format it
+							if(my ($year, $month, $day) = _parse_date($other->{'dod'})) {
+								next if defined($yod) && $year > $yod;
 
-							# Add a "Death of parent" event to the timeline
-							_add_event(\@events, "Death of $relation", $xref, $other->{'title'}, $year, $month, $day);
+								# Add a "Death of parent" event to the timeline
+								_add_event(\@events, "Death of $relation", $xref, $other->{'title'}, $year, $month, $day);
+							}
 						}
 					}
 				}
