@@ -9676,6 +9676,8 @@ sub print_person
 				# Dates in the XML files are of the format YYYY/MM/DDD
 				if(my $rdate_dt = date_to_datetime(date => $date)) {
 					$date = $rdate_dt->strftime('%Y/%m/%d');
+				} else {
+					$date = wide_to_xml($date);
 				}
 				$both_xmls->print("\n\t\t\t\t<date>$date</date>");
 			}
