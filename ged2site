@@ -10232,6 +10232,8 @@ sub print_person
 		}
 		$both_xmls->print("\n\t\t</issues>");
 	}
+	undef $both_xmls;	# Ensure the close below really does close person_xml
+
 	print $html '</body></html>';
 	close $html;
 	print $person_xml "\n\t</person>\n</table>\n";
