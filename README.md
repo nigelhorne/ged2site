@@ -231,6 +231,35 @@ ged2site goes out of its way to support all of these,
 such as different location and date formats.
 If your data shows issues with this aim, let me know.
 
+## Premium Support
+
+Premium support covers:
+
+### Consulting
+
+Expertise in setting up, customizing, and maintaining ged2site.
+
+### Training
+
+Paid training sessions, webinars, or workshops.
+
+### Technical Support
+
+Premium support plans with a guaranteed response time and direct assistance.
+
+### Family History Website
+
+Host your family history securely and beautifully.
+By sending your Gedcom, preserving your family’s legacy online has never been easier.
+Whether you're just starting your genealogy journey or managing a massive archive,
+just send your Gedcom and I'll do the rest.
+
+### Dual License
+
+Ged2site is free to use for personal single user, single computer use only
+All other users (including Commercial, Charity, Educational, Government)
+must apply in writing for a licence for use.
+
 ## Bugs
 
 If you see this message in your log file:
