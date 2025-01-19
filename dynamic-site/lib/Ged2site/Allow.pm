@@ -19,24 +19,10 @@ use Error;
 
 use constant DSHIELD => 'https://secure.dshield.org/api/sources/attacks/100/2012-03-08';
 
-our %blacklist_countries = (
-	'BY' => 1,
-	'MD' => 1,
-	'RU' => 1,
-	'CN' => 1,
-	'BR' => 1,
-	'UY' => 1,
-	'TR' => 1,
-	'MA' => 1,
-	'VE' => 1,
-	'SA' => 1,
-	'CY' => 1,
-	'CO' => 1,
-	'MX' => 1,
-	'IN' => 1,
-	'RS' => 1,
-	'PK' => 1,
-	'UA' => 1,
+# TODO: Remove code duplicated with CGI::Allow
+# Blacklist of country codes (hardcoded for now)
+my %blacklist = map { $_ => 1 } qw(
+	BG BR CN CO CY IN IR KR LT MA MD MX PK RS RU SA TR TW UY VE VN ZA
 );
 
 our %blacklist_agents = (
