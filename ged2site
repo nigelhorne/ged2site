@@ -59,7 +59,7 @@ no lib '.';
 
 use	constant	ASSUME_NOT_LIVING => 120;
 
-my @needfull;
+my @needfull;	# Tracks required modules to be installed
 
 # Install Pre-requisites
 BEGIN {
@@ -110,6 +110,7 @@ BEGIN {
 		}
 	}
 
+	# Attempt to load each module and track missing ones
 	foreach my $module(@modules) {
 		eval "use $module";
 		if($@) {
@@ -148,6 +149,7 @@ BEGIN {
 		}
 	}
 
+	# Attempt to load each module and track missing ones
 	if(scalar(@needfull)) {
 		my $list = join(' ', @needfull);
 		print "Installing $list\n";
@@ -155,6 +157,7 @@ BEGIN {
 		# system("cpan -i $list");
 		system('perl -MCPAN -e \'CPAN::Shell->install("' . join('", "', @needfull) . '")\'');
 	}
+
 	# $Devel::FIXME::REPAIR_INC = 1;
 
 	# FIXME
@@ -178,6 +181,7 @@ BEGIN {
 	};
 }
 
+# Retry loading missing modules after installation
 foreach my $module (@needfull) {
 	my ($name, $version) = $module =~ /(.+?)\s(.+)?$/;
 	$name ||= $module;
