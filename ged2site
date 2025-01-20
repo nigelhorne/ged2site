@@ -5794,12 +5794,12 @@ sub print_person
 					# Find if they are an adult living with an adult sibling or in-law
 					# if($all_residences_have_date && $birth_dt) {
 					if($all_residences_have_date && defined($age)) {
-						my $printed_sibling = 0;
-						my $r = $residence;
-						next if($r->date() ne $rdate);
-						my $place = place({ person => $person, record => $r, nopreposition => 1 });
+						next if($residence->date() ne $rdate);
+
+						my $place = place({ person => $person, record => $residence, nopreposition => 1 });
 						next if(!defined($place));
 						my $first = 1;
+						my $printed_sibling = 0;
 
 						if($age >= 35) {
 							# Safe to assume both are adults at this time
@@ -6292,6 +6292,8 @@ sub print_person
 									   $event->date() && ($event->date() eq $rdate) &&
 									   $residence->address() &&
 									   places_are_the_same({ person => $child, first => $residence, second => $event, exact => 1 })) {
+										# Only print once living with a relative after death of spouse
+										# FIXME: would be better to note if someone was living with a different person
 										if($child->sex() eq 'F') {
 											push @{$living_with{'daughter'}}, $child;
 											$spdeath_dt = undef;
