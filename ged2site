@@ -15797,11 +15797,8 @@ sub dbpedia
 	my $params = get_params(undef, @_);
 
 	my $person = $params->{'person'};
-	my $yod = $params->{'yod'};
 	my $birth_dt = $params->{'birth_dt'};
 	my $yob = $params->{'yob'};
-	my $birth_country = $params->{'birth_country'};
-	my $dbpedia = Class::Simple->new();
 
 	if(defined($birth_dt)) {
 		if(!ref($birth_dt)) {
@@ -15815,8 +15812,10 @@ sub dbpedia
 		$yob = $birth_dt->year();
 	}
 
+	# Get the full name of the person and sanitize by removing slashes
 	my $name = $person->name();
 	$name =~ s/\///g;
+
 	$nameparser->parse($name);
 	my %name_components = $nameparser->components();
 	my $firstname = $name_components{'given_name_1'} // $person->given_names() // $name_components{'initials_1'};
@@ -15840,6 +15839,10 @@ sub dbpedia
 	if(($firstname ne '?') && (my $resp = $cached_browser->get($url))) {
 		if($resp->is_success()) {
 			if(my $arrayofresults = XML::Hash->new()->fromXMLStringtoHash($resp->decoded_content())->{'ArrayOfResults'}) {
+				my $yod = $params->{'yod'};
+				my $birth_country = $params->{'birth_country'};
+				my $dbpedia = Class::Simple->new();
+
 				RESULT: foreach my $result(@{$arrayofresults->{'Result'}}) {
 					if($result->{'Classes'}->{'Class'} &&
 					   (ref($result->{'Classes'}->{'Class'}) eq 'ARRAY')) {
