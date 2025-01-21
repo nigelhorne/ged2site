@@ -8800,9 +8800,27 @@ sub print_person
 				$printed_children_header = 1;
 			}
 			print $html "<li>$line</li>";
-			my $x = wide_to_xml($line);
-			$x =~ s/&Atilde;&laquo;/&#235;/g;	# ACOM bizarre
-			$both_xmls->print("\n\t\t\t<child>$x</child>");
+			$both_xmls->print("\n\t\t\t<child>\n\t\t\t\t<xref>")
+				->print($child->xref())
+				->print('</xref>');
+			if(my $cdob = dateofbirth($child)) {
+				if(my $cbirth_dt = date_to_datetime(date => $cdob)) {
+					$both_xmls->print("\n\t\t\t\t<birth>")->print($cbirth_dt->strftime('%Y/%m/%d'))->print('</birth>');
+				}
+			}
+			if(my $cdod = dateofdeath($child)) {
+				if(my $cdeath_dt = date_to_datetime(date => $cdod)) {
+					$both_xmls->print("\n\t\t\t\t<death>")->print($cdeath_dt->strftime('%Y/%m/%d'))->print('</death>');
+				}
+			}
+			if(my $given_names = given_names($child)) {
+				if(length($given_names)) {
+					$both_xmls->print("\n\t\t\t\t<first_name>")
+						->print(wide_to_xml($given_names))
+						->print('</first_name>');
+				}
+			}
+			$both_xmls->print("\n\t\t\t</child>");
 			if(length($c)) {
 				$c .= '----' . person_line_csv({ person => $child, year => $year });
 			} else {

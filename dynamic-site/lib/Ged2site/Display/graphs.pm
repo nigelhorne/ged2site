@@ -135,7 +135,7 @@ sub _ageatdeathbysex
 			}
 			next if($yod < 1840);
 			my $age = $yod - $yob;
-			next if ($age < 20);
+			next if($age < 20);
 			$yod -= $yod % BUCKETYEARS;
 			if($counts{$yod}) {
 				$counts{$yod}++;
@@ -363,33 +363,63 @@ sub _infantdeaths
 	return { datapoints => $datapoints };
 }
 
+# Plot the time difference, in months, between the date of the first marriage and the birth date of the eldest child for everyone in the database.
+# The graph is a collection of data points representing the frequency of these time differences.
+# It's slow because it goes through all the entries in the database.
 sub _firstborn
 {
+	# Retrieve object instance and arguments
 	my $self = shift;
 	my $args = shift;
+
+	# Hash to store month differences and their frequencies
 	my %months;
 
+	# Log entry into the subroutine if a logger exists
+	if($self->{'logger'}) {
+		$self->{'logger'}->trace(__PACKAGE__, ': ', __LINE__, ': entering _firstborn()');
+	}
+
+	# Retrieve people data from arguments
 	my $people = $args->{'people'};
 
+	# Initialize DateTime::Format::Natural if not already initialized
 	$dfn ||= DateTime::Format::Natural->new();
+
+	# Variable to track the maximum month difference
 	my $max;
-	foreach my $person($people->selectall_hash()) {
+
+	# Iterate over all people records
+	foreach my $person ($people->selectall_hash()) {
+		# Proceed only if the person has children and marriage data
 		if($person->{'children'} && $person->{'marriages'}) {
+			# Extract the date of the first marriage
 			my $dom = $person->{'marriages'};
 			if($dom =~ /^(.+?)-/) {
-				$dom = $1;	# use the first marriage
+				$dom = $1;	# Use the first marriage
 			}
+
+			# Variable to track the eldest child
 			my $eldest;
-			CHILD: foreach my $child(split(/----/, $person->{'children'})) {
-				if($child =~ /page=people&entry=([IP]\d+)"/) {
+
+			# Process each child of the person
+			CHILD: foreach my $child (split(/----/, $person->{'children'})) {
+				# Extract the child's entry ID and fetch its details
+				if($child =~ /page=people&amp;entry=([IP]\d+)"/) {
 					$child = $people->fetchrow_hashref({ entry => $1 });
+
+					# Retrieve the date of birth of the child
 					my $dob = $child->{'dob'};
-					next CHILD unless($dob);
+					next CHILD unless ($dob);	# Skip if DOB is undefined
+
+					# Reformat the DOB to a standard format (DD/MM/YYYY)
 					if($dob =~ /^(\d{3,4})\/(\d{2})\/(\d{2})$/) {
 						$dob = "$3/$2/$1";
 					} else {
-						next CHILD;
+						next CHILD;	# Skip if DOB format is invalid
 					}
+
+					# Update the eldest child based on the earliest DOB
 					if(defined($eldest)) {
 						my $candidate = $self->_date_to_datetime($dob);
 						if($candidate < $eldest) {
@@ -400,10 +430,16 @@ sub _firstborn
 					}
 				}
 			}
+
+			# Calculate the difference in months if an eldest child exists
 			if(defined($eldest)) {
 				my $d = $eldest->subtract_datetime($self->_date_to_datetime($dom));
-				my $months = $d->months() + ($d->years() * 12) - 1;
+				my $months = $d->months() + ($d->years() * 12) - 1;	# Total months difference
+
+				# Update the frequency of this month difference
 				$months{$months}++;
+
+				# Track the maximum month difference
 				if((!defined($max)) || ($months > $max)) {
 					$max = $months;
 				}
@@ -411,9 +447,9 @@ sub _firstborn
 		}
 	}
 
+	# Generate data points for each month difference from 0 to $max
 	my $datapoints;
-
-	foreach my $month(0..$max) {
+	foreach my $month (0 .. $max) {
 		if($months{$month}) {
 			$datapoints .= "{ label: \"$month\", y: $months{$month} },\n";
 		} else {
@@ -421,6 +457,7 @@ sub _firstborn
 		}
 	}
 
+	# Return the generated data points
 	return { datapoints => $datapoints };
 }
 
