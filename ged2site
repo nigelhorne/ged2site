@@ -34,6 +34,7 @@
 # TODO: is there anything that could be better modeled in a 3D way?
 # TODO: data analysis of notes to find extra information
 # TODO: prune old entries from changes.psv (should be configurable how long ago)
+# TODO:	notes_locations already contain lat/long information, so use that in add_marker()
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -9746,6 +9747,7 @@ sub print_person
 			}
 		}
 
+		# Go through the locations discovered in notes
 		# FIXME: Merge into place_records, rather as was done with residencelist
 		foreach my $location(@note_locations) {
 			my $match;
@@ -9760,7 +9762,7 @@ sub print_person
 			next if(!defined($place));	# The text didn't match a location
 			if(defined($current_place) && ($place ne $current_place)) {
 				$current_place =~ s/&rsquo;/'/g;
-				# FIXME: no need to look up again, use $match->longt and lattt
+				# FIXME: no need to look up again, use $match->longt and lat
 				if(!defined($map)) {
 					# my %args = (geocoder => $geocoder, z_index => -1);
 					my %args = (geocoder => $geocoder);
@@ -12350,41 +12352,53 @@ sub notes
 			if(!ref($hr)) {
 				next;
 			}
-			if($hr->{'error'}) {
-				if($hr->{'error'}->{'description'} =~ /^We currently throttle/) {
-					$textgeocoder = undef;
-					last;
-				}
-				# die "$rc: ", $hr->{'error'}->{'description'};
-			} else {
-				my $matches = $hr;
-				if($matches->{'match'}) {
-					$matches = $matches->{'match'};
-				}
-				if(ref($matches) eq 'ARRAY') {
-					my $text;
-					if(length($rc) > 15) {
-						$text = substr($rc, 0, 24) . '...';
-					} else {
-						$text = $rc;
+			if(ref($hr) eq 'HASH') {
+				if($hr->{'error'}) {
+					if($hr->{'error'}->{'description'} =~ /^We currently throttle/) {
+						$textgeocoder = undef;
+						last;
 					}
-					foreach my $match(@{$matches}) {
+					# die "$rc: ", $hr->{'error'}->{'description'};
+				} else {
+					my $matches = $hr;
+					if($matches->{'match'}) {
+						$matches = $matches->{'match'};
+					}
+					if(ref($matches) eq 'ARRAY') {
+						my $text;
+						if(length($rc) > 15) {
+							$text = substr($rc, 0, 24) . '...';
+						} else {
+							$text = $rc;
+						}
+						foreach my $match(@{$matches}) {
+							# print Data::Dumper->new([$match])->Dump();
+							# my $place = $match->{'location'};
+							# print "$place\n";
+							$match->{'text'} = $text;
+							push @{$note_locations}, $match;
+						}
+					} elsif(ref($matches) eq 'HASH') {
+						# my $match = $matches;
 						# print Data::Dumper->new([$match])->Dump();
 						# my $place = $match->{'location'};
-						# print "$place\n";
-						$match->{'text'} = $text;
-						push @{$note_locations}, $match;
+						if(length($rc) > 15) {
+							$hr->{'text'} = substr($rc, 0, 24) . '...';
+						} else {
+							$hr->{'text'} = $rc;
+						}
+						push @{$note_locations}, $hr;
 					}
-				} elsif(ref($matches) eq 'HASH') {
-					# my $match = $matches;
-					# print Data::Dumper->new([$match])->Dump();
-					# my $place = $match->{'location'};
-					if(length($rc) > 15) {
-						$hr->{'text'} = substr($rc, 0, 24) . '...';
-					} else {
-						$hr->{'text'} = $rc;
-					}
-					push @{$note_locations}, $hr;
+				}
+			} elsif(ref($hr) && ($hr->can('lat'))) {
+				# Geo::Location::Point
+				# warn 'TODO: ', Data::Dumper->new([$hr])->Dump(), "\n\t", ref($hr);
+				push @{$note_locations}, {
+					confidence => $hr->confidence(),
+					location => $hr->location(),
+					text => (length($rc) > 15) ? substr($rc, 0, 24) . '...' : $rc,
+					latitude => $hr->lat(),
+					longitude => $hr->long()
 				}
 			}
 		}
@@ -13253,7 +13267,7 @@ sub add_marker
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $person = $params{'person'};
-	my $map = $params{'map'};
+	my $map = $params{'map'};	# HTML::GoogleMaps::V3 object
 	my $place = $params{'place'};
 
 	$place =~ s/\s\s+/ /g;
