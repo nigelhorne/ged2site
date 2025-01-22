@@ -74,7 +74,7 @@ sub html
 		# Fetch person details based on the entry parameter
 		if(my $person = $people->fetchrow_hashref({ entry => $entry })) {
 			# Get the year of death of the person being displayed
-			my ($yod) = _parse_date($person->{'dod'});
+			my ($yod, $mod, $dod) = _parse_date($person->{'dod'});
 
 			# Process mother and father
 			foreach my $relation ('mother', 'father') {
@@ -94,41 +94,46 @@ sub html
 				}
 			}
 
-			# Process children (if any)
-			foreach my $child (split(/----/, $person->{'children'} || '')) {
-				if(my $xref = $child =~ /&amp;entry=(\w+)">/ && $1) {
-					# Fetch details of this child
-					if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
-						# If the child has a valid date of birth, format it
-						if(my ($year, $month, $day) = _parse_date($other->{'dob'})) {
-							# Add a "Birth of child" event to the timeline
-							_add_event(\@events, 'Birth of child', $xref, $other->{'title'}, $year, $month, $day);
-						}
-						if(my ($year, $month, $day) = _parse_date($other->{'dod'})) {
-							next if defined($yod) && $year > $yod;
-							my $event_type = $language eq 'de' ? 'Todesfall von Kind' :
-								$language eq 'fr' ? "Mort d'enfant" :
-								'Death of child';
-							# Add a "Death of child" event to the timeline
-							_add_event(\@events, $event_type, $xref, $other->{'title'}, $year, $month, $day);
+			if(defined($yod)) {
+				# Process children (if any)
+				foreach my $child (split(/----/, $person->{'children'} || '')) {
+					if(my $xref = $child =~ /&amp;entry=(\w+)">/ && $1) {
+						# Fetch details of this child
+						if(my $other = $people->fetchrow_hashref({ entry => $xref })) {
+							# If the child has a valid date of birth, format it
+							if(my ($year, $month, $day) = _parse_date($other->{'dob'})) {
+								# Add a "Birth of child" event to the timeline
+								_add_event(\@events, 'Birth of child', $xref, $other->{'title'}, $year, $month, $day);
+							}
+							if(my ($year, $month, $day) = _parse_date($other->{'dod'})) {
+								if($year < $yod) {
+									my $event_type = $language eq 'de' ? 'Todesfall von Kind' :
+										$language eq 'fr' ? "Mort d'enfant" :
+										'Death of child';
+									# Add a "Death of child" event to the timeline
+									_add_event(\@events, $event_type, $xref, $other->{'title'}, $year, $month, $day);
+								}
+							}
 						}
 					}
 				}
-			}
 
-			# Process spouse
-			# TODO: Add support for people married more than once
-			if(my $xref = $person->{'bio'} =~ /married <a href=.+?entry=(.+?)">/ && $1) {
-				# Fetch details of this spouse
-				if(my $spouse = $people->fetchrow_hashref({ entry => $xref })) {
-					# If the spouse has a valid date of death, format it
-					if(my ($year, $month, $day) = _parse_date($spouse->{'dod'})) {
-						# Only include on this person's timeline if the spouse died
-						#	before they did
-						next if defined($yod) && $year > $yod;
-						my $event_type = $spouse->{'sex'} eq 'M' ? 'Death of husband' : 'Death of wife';
-						# Add a "Death of spouse" event to the timeline
-						_add_event(\@events, $event_type, $xref, $spouse->{'title'}, $year, $month, $day);
+				# Process spouse
+				# TODO: Add support for people married more than once
+				if(my $xref = $person->{'bio'} =~ /married <a href=.+?entry=(.+?)">/ && $1) {
+					# Fetch details of this spouse
+					if(my $spouse = $people->fetchrow_hashref({ entry => $xref })) {
+						# If the spouse has a valid date of death, format it
+						if(my ($year, $month, $day) = _parse_date($spouse->{'dod'})) {
+							# Only include on this person's timeline if the spouse died
+							#	before they did
+							if(($year < $yod) ||
+							   (($year == $yod) && ($month < $mod))) {
+								my $event_type = ($spouse->{'sex'} eq 'M') ? 'Death of husband' : 'Death of wife';
+								# Add a "Death of spouse" event to the timeline
+								_add_event(\@events, $event_type, $xref, $spouse->{'title'}, $year, $month, $day);
+							}
+						}
 					}
 				}
 			}
@@ -153,7 +158,9 @@ sub html
 		}
 
 		# Sort events by year in ascending order
-		@events = sort { $a->{'year'} <=> $b->{'year'} } @events;
+		@events = sort {
+			$a->{'year'} == $b->{'year'} ? $a->{'month'} <=> $b->{'month'} : $a->{'year'} <=> $b->{'year'}
+		} @events;
 	} else {
 		# If no specific "entry" is provided, fetch events for all people
 		@events = $history->selectall_hash();

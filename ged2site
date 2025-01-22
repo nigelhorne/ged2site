@@ -1186,8 +1186,8 @@ var options = {
     }
 
     // attach events to the navigation buttons
-    document.getElementById('zoomIn').onclick   = function () { timeline.zoomIn( 0.2); };
-    document.getElementById('zoomOut').onclick  = function () { timeline.zoomOut( 0.2); };
+    document.getElementById('zoomIn').onclick = function () { timeline.zoomIn( 0.2); };
+    document.getElementById('zoomOut').onclick = function () { timeline.zoomOut( 0.2); };
     document.getElementById('moveLeft').onclick = function () { move( 0.2); };
 	document.getElementById('moveRight').onclick = function () { move(-0.2); };
 </script>
@@ -9157,8 +9157,9 @@ sub print_person
 		   (my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations }))) {
 			print "Handling notes\n" if($opts{'v'});
 			print $html "<h2>Notes</h2>$notes";
+			# No Need to to note_locations, it was just done
 			print $csv wide_to_html({
-				string => notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations, encode => 0 }),
+				string => notes({ person => $person, paragraph => 1, record => $person, encode => 0 }),
 				keep_hrefs => 1
 			});
 			$notes = wide_to_xml($notes);
@@ -12321,7 +12322,7 @@ sub notes
 		if($record) {
 			$region = $record->place();
 		}
-		if(!$region && (my $person = $params->{'person'})) {
+		if(!$region && $person) {
 			$region = get_value({ person => $person, value => 'birth place' });
 			if(!$region) {
 				$region = get_value({ person => $person, value => 'death place' });
@@ -12329,13 +12330,13 @@ sub notes
 		}
 		if($region && ($region =~ /^.+,\s([[a-z\s]+)$/i)) {
 			if($1 =~ /(England|United Kingdom)/i) {
-				$region = 'gb';
+				$region = 'GB';
 			} elsif($1 =~ /(USA|US|United States)/i) {
-				$region = 'us';
+				$region = 'US';
 			} elsif(lc($1) eq 'Canada') {
-				$region = 'ca';
+				$region = 'CA';
 			} elsif(lc($1) eq 'Australia') {
-				$region = 'au';
+				$region = 'AU';
 			} else {
 				$region = undef;
 			}
@@ -12343,7 +12344,11 @@ sub notes
 
 		# Scan the notes for locations to include in the map
 		if($freegeocoder) {
-			@matches = $freegeocoder->geocode(scantext => $rc, region => $region);
+			my @ignore_words = ('church', 'dale', 'law', 'middle');
+			if($person) {
+				push @ignore_words, given_names($person), $person->surname();
+			}
+			@matches = $freegeocoder->geocode(scantext => $rc, region => $region, ignore_words => \@ignore_words);
 		} elsif($textgeocoder && ($rc =~ /[\s,]/)) {
 			@matches = $textgeocoder->geocode(scantext => $rc, region => $region);
 		}
@@ -12363,6 +12368,7 @@ sub notes
 					my $matches = $hr;
 					if($matches->{'match'}) {
 						$matches = $matches->{'match'};
+						print __LINE__, ': (DEBUG) ', Data::Dumper->new([$matches])->Dump();
 					}
 					if(ref($matches) eq 'ARRAY') {
 						my $text;
@@ -12375,24 +12381,29 @@ sub notes
 							# print Data::Dumper->new([$match])->Dump();
 							# my $place = $match->{'location'};
 							# print "$place\n";
-							$match->{'text'} = $text;
+							$match->{'text'} = wide_to_html($text);
+							print __LINE__, ': (DEBUG) ', Data::Dumper->new([$match])->Dump();
 							push @{$note_locations}, $match;
 						}
 					} elsif(ref($matches) eq 'HASH') {
-						# my $match = $matches;
-						# print Data::Dumper->new([$match])->Dump();
-						# my $place = $match->{'location'};
-						if(length($rc) > 15) {
-							$hr->{'text'} = substr($rc, 0, 24) . '...';
-						} else {
-							$hr->{'text'} = $rc;
+						my $match = $matches;
+						if($match->{'country'} && (uc($match->{'country'}) eq $region)) {
+							# my $place = $match->{'location'};
+							if(length($rc) > 15) {
+								$match->{'text'} = wide_to_html(substr($rc, 0, 24)) . '...';
+							} else {
+								$match->{'text'} = $rc;
+							}
+							print __LINE__, ': (DEBUG) ', Data::Dumper->new([$match])->Dump();
+							push @{$note_locations}, $match;
 						}
-						push @{$note_locations}, $hr;
 					}
 				}
-			} elsif(ref($hr) && ($hr->can('lat'))) {
+			} elsif(ref($hr) eq 'ARRAY') {
+				warn 'TODO: ', Data::Dumper->new([$hr])->Dump();
+			} elsif($hr->can('lat') && defined($region) && ($hr->country() eq $region)) {
 				# Geo::Location::Point
-				# warn 'TODO: ', Data::Dumper->new([$hr])->Dump(), "\n\t", ref($hr);
+				warn 'TODO: ', Data::Dumper->new([$hr])->Dump(), "\n\t", ref($hr), "\n\t", $hr->as_string();
 				push @{$note_locations}, {
 					confidence => $hr->confidence(),
 					location => $hr->location(),

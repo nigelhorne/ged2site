@@ -447,6 +447,14 @@ sub _firstborn
 		}
 	}
 
+	if(!defined($max)) {
+		# "Can't happen" unless there's something wrong with the parser
+		if($self->{'logger'}) {
+			$self->{'logger'}->warn(__PACKAGE__, ': _firstborn(): ', __LINE__, ': max is undefined');
+		}
+		return { error => 'max is undefined' }
+	}
+
 	# Generate data points for each month difference from 0 to $max
 	my $datapoints;
 	foreach my $month (0 .. $max) {
