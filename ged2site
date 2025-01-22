@@ -12344,9 +12344,10 @@ sub notes
 
 		# Scan the notes for locations to include in the map
 		if($freegeocoder) {
-			my @ignore_words = ('church', 'dale', 'law', 'middle');
+			my @ignore_words = ('church', 'dale', 'law', 'middle', 'back', 'hill', 'british', 'street');
 			if($person) {
-				push @ignore_words, given_names($person), $person->surname();
+				# Don't find places that match the person's name
+				push @ignore_words, split(/\s/, given_names($person)), $person->surname();
 			}
 			@matches = $freegeocoder->geocode(scantext => $rc, region => $region, ignore_words => \@ignore_words);
 		} elsif($textgeocoder && ($rc =~ /[\s,]/)) {
@@ -12373,7 +12374,7 @@ sub notes
 					if(ref($matches) eq 'ARRAY') {
 						my $text;
 						if(length($rc) > 15) {
-							$text = substr($rc, 0, 24) . '...';
+							$text = substr($rc, 0, 32) . '...';
 						} else {
 							$text = $rc;
 						}
@@ -12390,11 +12391,11 @@ sub notes
 						if($match->{'country'} && (uc($match->{'country'}) eq $region)) {
 							# my $place = $match->{'location'};
 							if(length($rc) > 15) {
-								$match->{'text'} = wide_to_html(substr($rc, 0, 24)) . '...';
+								$match->{'text'} = wide_to_html(substr($rc, 0, 32)) . '...';
 							} else {
 								$match->{'text'} = $rc;
 							}
-							print __LINE__, ': (DEBUG) ', Data::Dumper->new([$match])->Dump();
+							print __LINE__, ": (DEBUG)\n\t$rc\n\t", Data::Dumper->new([$match])->Dump();
 							push @{$note_locations}, $match;
 						}
 					}
