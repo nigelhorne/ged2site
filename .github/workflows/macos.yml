@@ -22,7 +22,7 @@ jobs:
         run: perl -V
       - name: Install Dependencies
         run: |
-          export PATH=$PATH:/opt/homebrew/Cellar/perl/5.40.0/bin/
+          export PATH=$PATH:/opt/homebrew/Cellar/perl/5.40.1/bin/
           cpan -iT File::Spec ExtUtils::MakeMaker App::cpanminus
           cpan -fi CGI::ACL
           cpanm -vin Geo::Coder::Free
