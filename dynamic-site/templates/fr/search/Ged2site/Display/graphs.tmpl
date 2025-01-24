@@ -9,7 +9,7 @@
 		<meta name="object" content="Index">
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2023 Nigel Horne, all rights reserved">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne, all rights reserved">
 		[% IF graph == 'ageatdeath' %]
 			[% SET title = 'Adult Life Expectancy' %]
 		[% ELSIF graph == 'birthmonth' %]
@@ -38,10 +38,10 @@
 			[% SET title = 'How Family Size Changes over Time' %]
 		[% ELSIF graph == 'motherchildren' %]
 			[% SET title = 'Nombre des enfants par femmes' %]
+		[% ELSIF graph == 'birth_countries' %]
+			[% SET title = 'Pays de Naissance' %]
 		[% ELSE %]
 			[% SET title = 'Family Tree Analytics' %]
-		[% ELSIF graph == 'birth_countries' %]
-			[% SET title = 'Country of Birth' %]
 		[% END %]
 		<title>[% title %]</title>
 		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A ged2site webpage">
