@@ -13043,60 +13043,60 @@ sub must_predate
 
 sub is_alive
 {
-	my %params;
+	my $params = get_params('person', @_);
+	my $person = $params->{'person'};
 
-	if(ref($_[0]) eq 'HASH') {
-		%params = %{$_[0]};
-	} elsif(scalar(@_) % 2 == 0) {
-		%params = @_;
-	} else {
-		$params{'person'} = shift;
-	}
+	# Early exit for death or burial records
+	return 0 if($person->get_record('death') || dateofdeath($person));
+	return 0 if($person->get_record('burial'));
 
-	my $person = $params{'person'};
-
-	if($person->get_record('death') || dateofdeath($person)) {
-		return 0;
-	}
-	if($person->get_record('burial')) {
-		return 0;
-	}
+	# Determine date of birth
 	my $dob = dateofbirth($person);
 
 	if(!defined($dob)) {
-		# If the residences of this person was some time ago, they should be dead by now
-		foreach my $event(get_all_residences($person)) {
+		# Use residence events to infer death if no DOB is available
+		foreach my $event (get_all_residences($person)) {
 			if(my $edate = $event->date()) {
 				if(my $eyear = get_year_from_date($edate)) {
 					if($eyear <= 1900) {
-						complain({ person => $person, warning => "Was alive in $eyear but can't find death information" });
+						complain(person => $person, warning => "Was alive in $eyear but can't find death information");
 						return 0;
 					}
 				}
 			}
 		}
-		return 0;	# Err on the side of caution
-				# TODO: Look at children's lifespan for a clue
+		# TODO: Look at children's lifespan for a clue
+		return 0;	# Assume not alive if no DOB or heuristic data
 	}
 
-	my $year = (localtime)[5];
-	$year += 1900 if($year < 1900);
+	my $current_year = (localtime)[5] + 1900;
 
-	if(($dob =~ /^\d{3,4}$/) && ($dob < ($year - ASSUME_NOT_LIVING))) {
+	# Check age based on year of birth
+	if(($dob =~ /^\d{3,4}$/) && ($dob < ($current_year - ASSUME_NOT_LIVING))) {
 		return 0;
 	}
+
+	# Handle approximate birth dates like "abt 1900"
 	if($dob =~ /^abt (\d{4})$/i) {
 		$dob = $1;
 	}
+
+	# Parse and check full dates
 	if(($dob =~ /^\d/) && ($dob !~ /[a-z]$/i)) {
-		if(my $d = date_parser_cached(date => $dob)) {
-			$d = $dfn->parse_datetime($d->{'canonical'});
-			if($d->strftime('%Y') < ($year - ASSUME_NOT_LIVING)) {
-				return 0;
+		if(my $parsed_date = eval { date_parser_cached(date => $dob) }) {
+			if(my $canonical_date = eval { $dfn->parse_datetime($parsed_date->{'canonical'}) }) {
+				if($canonical_date->strftime('%Y') < ($current_year - ASSUME_NOT_LIVING)) {
+					return 0;
+				}
+			} else {
+				complain(person => $person, warning => "Failed to parse canonical date for DOB: $dob");
 			}
+		} else {
+			complain(person => $person, warning => "Failed to parse DOB: $dob");
 		}
 	}
-	return 1;
+
+	return 1;	# Default to alive if no conditions matched
 }
 
 sub make_filename_from_person
