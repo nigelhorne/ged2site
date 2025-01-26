@@ -153,8 +153,8 @@ sub html
 				}
 			}
 
-			# TODO
-			# my $person = _get_person(\%args, \%params);
+			# Give the template access to the person's details
+			$template_args->{'person'} = _get_person(\%args, \%params);
 		}
 
 		# Sort events by year in ascending order

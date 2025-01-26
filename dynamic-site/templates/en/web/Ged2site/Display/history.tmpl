@@ -4,7 +4,7 @@
 	<head>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		[% IF name %]
-			<title>History of [% name %]</title>
+			<title>Timeline of [% name %]</title>
 		[% ELSE %]
 			<title>History of [% SiteTitle.join(' ') %]</title>
 		[% END %]
@@ -31,12 +31,13 @@
 	<body class="page">
 		<center>
 			[% IF name %]
-				<h1>History of [% name %]</h1>
+				<h1>Timeline of [% name %]</h1>
 			[% ELSE %]
 				<h1>History of [% SiteTitle.join(' ') %]</h1>
 			[% END %]
 			<p>
 				[ <a href="?page=home">Home</a> ] |
+				[ <a href="?page=people&amp;entry=[%- person.xref %]">Biography</a> ] |
 				[ <a href="?page=censuses">Census Index</a> ] |
 				[ <a href="?page=surnames">Surname Index</a> ] |
 				[ <a href="?page=todo">To Do</a> ] |
