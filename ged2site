@@ -13041,10 +13041,18 @@ sub must_predate
 	}
 }
 
+# Determine whether a person is likely to be alive based on various factors,
+# including records of death or burial, date of birth, past residence events,
+# and clues derived from their children’s and parent's records.
 sub is_alive
 {
 	my $params = get_params('person', @_);
 	my $person = $params->{'person'};
+
+	# Validate input parameters
+	if(!defined($person)) {
+		die 'is_alive(): person parameter is required';
+	}
 
 	# Early exit for death or burial records
 	return 0 if($person->get_record('death') || dateofdeath($person));
@@ -13052,6 +13060,8 @@ sub is_alive
 
 	# Determine date of birth
 	my $dob = dateofbirth($person);
+
+	my $current_year = (localtime)[5] + 1900;
 
 	if(!defined($dob)) {
 		# Use residence events to infer death if no DOB is available
@@ -13065,19 +13075,42 @@ sub is_alive
 				}
 			}
 		}
-		# TODO: Look at children's lifespan for a clue
-		return 0;	# Assume not alive if no DOB or heuristic data
-	}
 
-	my $current_year = (localtime)[5] + 1900;
+		# Look at children's records for lifespan clues
+		# my @children = $person->children();
+		my @children = map { $_->children() } $person->fams();
+		foreach my $child (@children) {
+			if(my $child_dob = dateofbirth($child)) {
+				if(my $cyob = get_year_from_date($child_dob)) {
+					if($cyob <= 1900) {
+						log_warning($person, "Assuming not alive based on child born in $child_dob");
+						return 0;
+					}
+				}
+			}
+		}
+
+		# Look at a parent's records for further clues
+		if(my $parent = $person->father() || $person->mother()) {
+			if(my $parent_dob = dateofbirth($parent)) {
+				if(my $pyob = get_year_from_date($parent_dob)) {
+					if($pyob <= 1900) {
+						log_warning($person, "Assuming not alive based on parent born in $parent_dob");
+						return 0;
+					}
+				}
+			}
+		}
+		return 1;	# Assume alive if no DOB or heuristic data
+	}
 
 	# Check age based on year of birth
 	if(($dob =~ /^\d{3,4}$/) && ($dob < ($current_year - ASSUME_NOT_LIVING))) {
 		return 0;
 	}
 
-	# Handle approximate birth dates like "abt 1900"
-	if($dob =~ /^abt (\d{4})$/i) {
+	# Handle approximate birth dates like "abt 1900" or variations
+	if ($dob =~ /^abt\s*(\d{4})$/i) {
 		$dob = $1;
 	}
 
@@ -13089,10 +13122,10 @@ sub is_alive
 					return 0;
 				}
 			} else {
-				complain(person => $person, warning => "Failed to parse canonical date for DOB: $dob");
+				complain(person => $person, warning => "is_alive(): Failed to parse canonical date for DOB: $dob");
 			}
 		} else {
-			complain(person => $person, warning => "Failed to parse DOB: $dob");
+			complain(person => $person, warning => "is_alive(): Failed to parse DOB: $dob");
 		}
 	}
 
