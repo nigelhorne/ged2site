@@ -13083,7 +13083,7 @@ sub is_alive
 			if(my $child_dob = dateofbirth($child)) {
 				if(my $cyob = get_year_from_date($child_dob)) {
 					if($cyob <= 1900) {
-						log_warning($person, "Assuming not alive based on child born in $child_dob");
+						complain(person => $person, warning => "Assuming not alive based on child born in $child_dob");
 						return 0;
 					}
 				}
@@ -13095,7 +13095,7 @@ sub is_alive
 			if(my $parent_dob = dateofbirth($parent)) {
 				if(my $pyob = get_year_from_date($parent_dob)) {
 					if($pyob <= 1900) {
-						log_warning($person, "Assuming not alive based on parent born in $parent_dob");
+						complain(person => $person, warning => "Assuming not alive based on parent born in $parent_dob");
 						return 0;
 					}
 				}
