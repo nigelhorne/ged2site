@@ -3,6 +3,10 @@ package main;
 # VWF is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
+=head1 NAME
+
+VWF::Utils - Random subroutines for VWF
+
 =head1 VERSION
 
 Version 0.01
