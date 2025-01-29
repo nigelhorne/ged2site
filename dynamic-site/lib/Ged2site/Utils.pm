@@ -1,11 +1,11 @@
-package main;
+package Ged2site::Utils;
 
 # VWF is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
 =head1 NAME
 
-VWF::Utils - Random subroutines for VWF
+Ged2site::Utils - Random subroutines for VWF
 
 =head1 VERSION
 
@@ -17,6 +17,10 @@ our $VERSION = '0.01';
 
 use strict;
 use warnings;
+
+use Exporter qw(import);
+
+our @EXPORT = qw(create_disc_cache create_memory_cache distance);
 
 use CHI;
 use Data::Dumper;

@@ -9,7 +9,7 @@
 #	LANG=en_GB root_dir=$(pwd)/.. ./page.fcgi page=home
 # To mimic a French mobile site:
 #	root_dir=$(pwd)/.. ./page.fcgi mobile=1 page=home lang=fr
-# To turn off linting of HTML on a search-engine landing page
+# To turn off the linting of HTML on a search-engine landing page
 #	LANG=en_GB root_dir=$(pwd)/.. ./page.fcgi --search-engine page=home lint_content=0
 
 use strict;
@@ -24,8 +24,8 @@ BEGIN {
 	$ENV{'PATH'} = '/usr/local/bin:/bin:/usr/bin';	# For insecurity
 }
 
-use Log::WarnDie 0.09;
 use Log::Log4perl qw(:levels);	# Put first to cleanup last
+use Log::WarnDie 0.09;
 use CGI::ACL;
 use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info;
@@ -42,21 +42,22 @@ use Error qw(:try);
 use File::Spec;
 use POSIX qw(strftime);
 use Time::HiRes;
+
 # FIXME: Gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
 # use Taint::Runtime qw($TAINT taint_env);
 use autodie qw(:all);
 
-# use File::HomeDir;
+# Where to find the Ged2site modules
 # use lib File::HomeDir->my_home() . '/lib/perl5';
 
 # use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
 			# i.e. the contents of the lib directory in the
 			# distribution
-
-# Where to find the Ged2site modules
 use lib CGI::Info::script_dir() . '/../lib';
+use lib File::HomeDir->my_home() . '/lib/perl5';
 
 use Ged2site::Config;
+use Ged2site::Utils;
 use Error::DB::Open;
 
 # $TAINT = 1;
@@ -162,6 +163,7 @@ my $military = Ged2site::DB::military->new();
 my $requestcount = 0;
 my $handling_request = 0;
 my $exit_requested = 0;
+my %blacklisted_ip;
 
 # CHI->stats->enable();
 
@@ -397,33 +399,44 @@ sub doit
 	}
 
 	# Access control checks
-	if($ENV{'REMOTE_ADDR'} && $acl->all_denied(lingua => $lingua)) {
-		print "Status: 403 Forbidden\n",
-			"Content-type: text/plain\n",
-			"Pragma: no-cache\n\n";
+	if(my $remote_addr = $ENV{'REMOTE_ADDR'}) {
+		my $reason;
+		if($acl->all_denied(lingua => $lingua)) {
+			$reason = 'Denied by CGI::ACL';
+		} elsif(blacklist($info)) {
+			$reason = 'Blacklisted for attempting to break in';
+		}
+		if($reason) {
+			# Client has been blocked
+			print "Status: 403 Forbidden\n",
+				"Content-type: text/plain\n",
+				"Pragma: no-cache\n\n";
 
-		unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-			print "Access Denied\n";
+			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
+				print "Access Denied\n";
+			}
+			$logger->info("$remote_addr: access denied: $reason");
+			$info->status(403);
+			if($vwflog && open(my $fout, '>>', $vwflog)) {
+				print $fout
+					'"', $info->domain_name(), '",',
+					'"', strftime('%F %T', localtime), '",',
+					'"', $remote_addr, '",',
+					'"', $lingua->country(), '",',
+					'"', $info->browser_type(), '",',
+					'"', $lingua->language(), '",',
+					'403,',
+					'"",',
+					'"', $info->as_string(), '",',
+					'"', $warnings, '",',
+					'"', $reason, '"',
+					"\n";
+				close($fout);
+			}
+			return;
 		}
-		$logger->info($ENV{'REMOTE_ADDR'}, ': access denied');
-		$info->status(403);
-		if($vwflog && open(my $fout, '>>', $vwflog)) {
-			print $fout
-				'"', $info->domain_name(), '",',
-				'"', strftime('%F %T', localtime), '",',
-				'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
-				'"', $lingua->country(), '",',
-				'"', $info->browser_type(), '",',
-				'"', $lingua->language(), '",',
-				'403,',
-				'"",',
-				'"', $info->as_string(), '",',
-				'"', $warnings, '"',
-				"\n";
-			close($fout);
-		}
-		return;
 	}
+
 
 	my $args = {
 		info => $info,
@@ -665,6 +678,26 @@ sub choose
 			"/cgi-bin/page.fcgi?page=mailto\n",
 			"/cgi-bin/page.fcgi?page=meta_data\n";
 	}
+}
+
+sub blacklist
+{
+	if(my $remote = $ENV{'REMOTE_ADDR'}) {
+		if($blacklisted_ip{$remote}) {
+			$info->status(301);
+			return 1;
+		}
+
+		my $info = shift;
+		if(my $string = $info->as_string()) {
+			if(($string =~ /SELECT.+AND.+/) || ($string =~ /ORDER BY /) || ($string =~ / OR NOT /) || ($string =~ / AND \d+=\d+/) || ($string =~ /THEN.+ELSE.+END/) || ($string =~ /.+AND.+SELECT.+/) || ($string =~ /\sAND\s.+\sAND\s/) || ($string =~ /AND\sCASE\sWHEN/)) {
+				$blacklisted_ip{$remote} = 1;
+				$info->status(301);
+				return 1;
+			}
+		}
+	}
+	return 0;
 }
 
 # False positives we don't need in the logs
