@@ -12402,7 +12402,7 @@ sub notes
 				}
 			} elsif(ref($hr) eq 'ARRAY') {
 				warn 'TODO: ', Data::Dumper->new([$hr])->Dump();
-			} elsif($hr->can('lat') && defined($region) && ($hr->country() eq $region)) {
+			} elsif($hr->can('lat') && defined($region) && $hr->country() && ($hr->country() eq $region)) {
 				# Geo::Location::Point
 				warn 'TODO: ', Data::Dumper->new([$hr])->Dump(), "\n\t", ref($hr), "\n\t", $hr->as_string();
 				push @{$note_locations}, {
