@@ -16,13 +16,13 @@ use strict;
 use warnings;
 # use diagnostics;
 
-no lib '.';
-
 BEGIN {
 	# Sanitize environment variables
 	delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
 	$ENV{'PATH'} = '/usr/local/bin:/bin:/usr/bin';	# For insecurity
 }
+
+no lib '.';
 
 use Log::Log4perl qw(:levels);	# Put first to cleanup last
 use Log::WarnDie 0.09;
@@ -30,8 +30,8 @@ use CGI::ACL;
 use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info;
 use CGI::Lingua 0.61;
+use CHI;
 use Class::Simple;
-use Database::Abstraction 0.05;
 use File::Basename;
 # use CGI::Alert $ENV{'SERVER_ADMIN'} || 'you@example.com';
 use FCGI;
@@ -41,18 +41,18 @@ use Log::Any::Adapter;
 use Error qw(:try);
 use File::Spec;
 use POSIX qw(strftime);
+use Readonly;
 use Time::HiRes;
 
-# FIXME: Gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
+# FIXME: Sometimes gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
 # use Taint::Runtime qw($TAINT taint_env);
 use autodie qw(:all);
 
 # Where to find the Ged2site modules
-# use lib File::HomeDir->my_home() . '/lib/perl5';
-
-# use lib '/usr/lib';	# This needs to point to the Ged2site directory lives,
+# use lib '/usr/lib';	# This needs to point to the VWF directory lives,
 			# i.e. the contents of the lib directory in the
 			# distribution
+# use lib '../lib';
 use lib CGI::Info::script_dir() . '/../lib';
 use lib File::HomeDir->my_home() . '/lib/perl5';
 
@@ -63,8 +63,11 @@ use Error::DB::Open;
 # $TAINT = 1;
 # taint_env();
 
+# Set rate limit parameters
+Readonly my $MAX_REQUESTS => 100;	# Max requests allowed
+Readonly my $TIME_WINDOW => 10 * 60;	# Time window in seconds (10 minutes)
+
 my $info = CGI::Info->new();
-my $script_dir = $info->script_dir();
 my $config;
 my @suffixlist = ('.pl', '.fcgi');
 my $script_name = basename($info->script_name(), @suffixlist);
@@ -84,34 +87,37 @@ my $infocache;
 my $linguacache;
 my $buffercache;
 
-Log::Log4perl->init("$script_dir/../conf/$script_name.l4pconf");
+my $script_dir = $info->script_dir();
+Log::Log4perl::init("$script_dir/../conf/$script_name.l4pconf");
 my $logger = Log::Log4perl->get_logger($script_name);
 Log::WarnDie->dispatcher($logger);
 
-# my $pagename = "Ged2site::Display::$script_name";
+# my $pagename = "VWF::Display::$script_name";
 # eval "require $pagename";
-use Ged2site::Display::home;
-use Ged2site::Display::people;
-use Ged2site::Display::censuses;
-use Ged2site::Display::surnames;
-use Ged2site::Display::history;
-use Ged2site::Display::todo;
-use Ged2site::Display::calendar;
-use Ged2site::Display::changes;
-use Ged2site::Display::descendants;
-use Ged2site::Display::graphs;
-use Ged2site::Display::emigrants;
-use Ged2site::Display::intermarriages;
-use Ged2site::Display::locations;
-use Ged2site::Display::orphans;
-use Ged2site::Display::ww1;
-use Ged2site::Display::ww2;
-use Ged2site::Display::military;
-use Ged2site::Display::twins;
-use Ged2site::Display::reports;
-use Ged2site::Display::facts;
-use Ged2site::Display::mailto;
-use Ged2site::Display::meta_data;
+
+# Loaded later, only when needed
+# use Ged2site::Display::home;
+# use Ged2site::Display::people;
+# use Ged2site::Display::censuses;
+# use Ged2site::Display::surnames;
+# use Ged2site::Display::history;
+# use Ged2site::Display::todo;
+# use Ged2site::Display::calendar;
+# use Ged2site::Display::changes;
+# use Ged2site::Display::descendants;
+# use Ged2site::Display::graphs;
+# use Ged2site::Display::emigrants;
+# use Ged2site::Display::intermarriages;
+# use Ged2site::Display::locations;
+# use Ged2site::Display::orphans;
+# use Ged2site::Display::ww1;
+# use Ged2site::Display::ww2;
+# use Ged2site::Display::military;
+# use Ged2site::Display::twins;
+# use Ged2site::Display::reports;
+# use Ged2site::Display::facts;
+# use Ged2site::Display::mailto;
+# use Ged2site::Display::meta_data;
 
 use Ged2site::DB::people;
 if($@) {
@@ -143,6 +149,7 @@ Database::Abstraction::init({
 my $people = Ged2site::DB::people->new();
 if($@) {
 	$logger->error($@);
+	Log::WarnDie->dispatcher(undef);
 	die $@;
 }
 my $censuses = Ged2site::Data::censuses->new();
@@ -167,7 +174,15 @@ my %blacklisted_ip;
 
 # CHI->stats->enable();
 
-my $acl = CGI::ACL->new()->deny_country(country => ['RU', 'CN'])->allow_ip('131.161.0.0/16')->allow_ip('127.0.0.1');
+my $rate_limit_cache;	# Rate limit clients by IP address
+Readonly my @rate_limit_trusted_ips => ('127.0.0.1', '192.168.1.1');
+
+Readonly my @blacklist_country_list => (
+	'BY', 'MD', 'RU', 'CN', 'BR', 'UY', 'TR', 'MA', 'VE', 'SA', 'CY',
+	'CO', 'MX', 'IN', 'RS', 'PK', 'UA', 'XH'
+);
+
+my $acl = CGI::ACL->new()->deny_country(country => \@blacklist_country_list)->allow_ip('108.44.193.70')->allow_ip('127.0.0.1');
 
 sub sig_handler {
 	$exit_requested = 1;
@@ -201,9 +216,6 @@ $SIG{__DIE__} = $SIG{__WARN__} = sub {
 
 # my $request = FCGI::Request($stdin, $stdout, $stderr);
 my $request = FCGI::Request();
-
-# It would be really good to send 429 to search engines when there are more than, say, 5 requests being handled.
-# But I don't think that's possible with the FCGI module
 
 # Main request loop
 while($handling_request = ($request->Accept() >= 0)) {
@@ -339,7 +351,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 }
 
 # Clean up resources before shutdown
-$logger->info("Shutting down");
+$logger->info('Shutting down');
 if($buffercache) {
 	$buffercache->purge();
 }
@@ -355,7 +367,9 @@ sub doit
 	$logger->debug('In doit - domain is ', $info->domain_name());
 
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+
 	$config ||= Ged2site::Config->new({ logger => $logger, info => $info, debug => $params{'debug'} });
+	$vwflog ||= $config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log');
 	$infocache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
 
 	my $options = {
@@ -372,17 +386,11 @@ sub doit
 	}
 	$info = CGI::Info->new($options);
 
-	if(!defined($info->param('page'))) {
-		$logger->info('No page given in ', $info->as_string());
-		choose();
-		return;
-	}
-
 	$linguacache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'CGI::Lingua');
 
 	# Language negotiation
 	my $lingua = CGI::Lingua->new({
-		supported => [ 'en-gb', 'fr' ],
+		supported => [ 'en-gb' ],
 		cache => $linguacache,
 		info => $info,
 		logger => $logger,
@@ -390,7 +398,55 @@ sub doit
 		syslog => $syslog,
 	});
 
-	$vwflog ||= $config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log');
+	# Configure cache for rate limiting (change to create_disc_cache for persistence)
+	$rate_limit_cache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'rate_limit');
+
+	# Get client IP
+	my $client_ip = $ENV{'REMOTE_ADDR'} || 'unknown';
+
+	# Check and increment request count
+	my $request_count = $rate_limit_cache->get($client_ip) || 0;
+
+	# Rate limit by IP
+	unless(grep { $_ eq $client_ip } @rate_limit_trusted_ips) {	# Bypass rate limiting
+		if($request_count >= $MAX_REQUESTS) {
+			# Block request: Too many requests
+			print "Status: 429 Too Many Requests\n",
+				"Content-type: text/plain\n",
+				"Pragma: no-cache\n\n";
+
+			$logger->warn("Too many requests from $client_ip");
+			# TODO: Work out how to add the "Retry-After" header, setting to $TIME_WINDOW
+			$info->status(429);
+
+			if($vwflog && open(my $fout, '>>', $vwflog)) {
+				print $fout
+					'"', $info->domain_name(), '",',
+					'"', strftime('%F %T', localtime), '",',
+					'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
+					'"', $lingua->country(), '",',
+					'"', $info->browser_type(), '",',
+					'"', $lingua->language(), '",',
+					'429,',
+					'"",',
+					'"', $info->as_string(), '",',
+					'"",',
+					'""',
+					"\n";
+				close($fout);
+			}
+			return;
+		}
+	}
+
+	# Increment request count
+	$rate_limit_cache->set($client_ip, $request_count + 1, $TIME_WINDOW);
+
+	if(!defined($info->param('page'))) {
+		$logger->info('No page given in ', $info->as_string());
+		choose();
+		return;
+	}
 
 	my $warnings = '';
 	if(my $w = $info->warnings()) {
@@ -437,8 +493,11 @@ sub doit
 		}
 	}
 
-
 	my $args = {
+		generate_etag => 1,
+		generate_last_modified => 1,
+		compress_content => 1,
+		generate_304 => 1,
 		info => $info,
 		optimise_content => 1,
 		logger => $logger,
@@ -489,17 +548,49 @@ sub doit
 	eval {
 		my $page = $info->param('page');
 		$page =~ s/#.*$//;
-
-		$display = do {
-			my $class = "Ged2site::Display::$page";
-			eval { $class->new($args) };
-		};
-		if(!defined($display)) {
-			$logger->info("Unknown page $page");
+		if($page =~ /\//) {
+			# Block "page=/etc/passwd" and "page=http://www.google.com"
+			$logger->info("Blocking '/' in $page");
+			$info->status(403);
+			$log->status(403);
 			$invalidpage = 1;
-		} elsif(!$display->can('as_string')) {
-			$logger->warn("Problem understanding $page");
-			undef $display;
+		} else {
+			# Remove all non alphanumeric characters in the name of the page to be loaded
+			$page =~ s/\W//;
+			my $display_module = "Ged2site::Display::$page";
+
+			# TODO: consider creating a whitelist of valid modules
+			$logger->debug("doit(): Loading module $display_module from @INC");
+			eval "require $display_module";
+			if($@) {
+				$logger->debug("Failed to load module $display_module: $@");
+				$logger->info("Unknown page $page");
+				$invalidpage = 1;
+				if($info->status() == 200) {
+					$info->status(404);
+				}
+			} else {
+				$display_module->import();
+				# use Class::Inspector;
+				# my $methods = Class::Inspector->methods($display_module);
+				# print "$display_module exports ", join(', ', @{$methods}), "\n";
+				$display = do {
+					eval { $display_module->new($args) };
+				};
+				if(!defined($display)) {
+					if($@) {
+						$logger->warn("$display_module->new(): $@");
+					}
+					$logger->info("Unknown page $page");
+					$invalidpage = 1;
+					if($info->status() == 200) {
+						$info->status(404);
+					}
+				} elsif(!$display->can('as_string')) {
+					$logger->warn("Problem understanding $page");
+					undef $display;
+				}
+			}
 		}
 	};
 
@@ -540,7 +631,8 @@ sub doit
 				$info->status(), ',',
 				'"', ($log->template() ? $log->template() : ''), '",',
 				'"', $info->as_string(), '",',
-				'"', $warnings, '"',
+				'"', $warnings, '",',
+				'"', $error ? $error : '', '"',
 				"\n";
 			close($fout);
 		}
@@ -557,7 +649,8 @@ sub doit
 				$info->status(), ',',
 				'"",',
 				'"', $info->as_string(), '",',
-				'"', $warnings, '"',
+				'"', $warnings, '",',
+				'"', $error ? $error : '', '"',
 				"\n";
 			close($fout);
 		}
@@ -585,8 +678,7 @@ sub doit
 				"Pragma: no-cache\n\n";
 
 			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "Software error - contact the webmaster\n",
-					"$error\n";
+				print "Software error - contact the webmaster\n";
 			}
 			$info->status(500);
 			$log->status(500);
@@ -613,7 +705,8 @@ sub doit
 				$info->status(), ',',
 				'"",',
 				'"', $info->as_string(), '",',
-				'"', $warnings, '"',
+				'"', $warnings, '",',
+				'"', $error ? $error : '', '"',
 				"\n";
 			close($fout);
 		}
@@ -680,6 +773,7 @@ sub choose
 	}
 }
 
+# Is this client trying to attack us?
 sub blacklist
 {
 	if(my $remote = $ENV{'REMOTE_ADDR'}) {
