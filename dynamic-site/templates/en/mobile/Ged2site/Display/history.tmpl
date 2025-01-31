@@ -49,7 +49,9 @@
 						[% IF $event.day && $event.month %]
 							[% day.format("0:0:0 $event.day:$event.month:$year") %]
 						[% END %]
-						<a href="?page=people&amp;entry=[% event.xref %]">[% event.title %]</a>:
+						[% IF event.xref %]
+							<a href="?page=people&amp;entry=[% event.xref %]">[% event.title %]</a>:
+						[% END %]
 						[% event.event %]
 					</li>
 				[% END %]

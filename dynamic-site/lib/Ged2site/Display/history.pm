@@ -151,15 +151,15 @@ sub html
 
 							# Add joining military service to the timeline
 							if($from =~ /\d{3,4}/) {
-								_add_event(\@events, "Joined the $service", $entry, $events[0]->{'title'}, $from, undef, undef);
+								_add_event(\@events, "Joined the $service", undef, $events[0]->{'title'}, $from, undef, undef);
 							} elsif(my $start_dt = $dfg->parse_datetime($from)) {
-								_add_event(\@events, "Joined the $service", $entry, $events[0]->{'title'}, $start_dt->year(), $start_dt->month(), $start_dt->day());
+								_add_event(\@events, "Joined the $service", undef, $events[0]->{'title'}, $start_dt->year(), $start_dt->month(), $start_dt->day());
 							}
 							# Add leaving military service to the timeline
 							if($to =~ /\d{3,4}/) {
-								_add_event(\@events, "Left the $service", $entry, $events[0]->{'title'}, $to, undef, undef);
+								_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $to, undef, undef);
 							} elsif(my $end_dt = $dfg->parse_datetime($to)) {
-								_add_event(\@events, "Left the $service", $entry, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
+								_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
 							}
 						}
 					}
@@ -170,11 +170,11 @@ sub html
 
 				# Add joining military service to the timeline
 				if(my $start_dt = $dfg->parse_datetime($start)) {
-					_add_event(\@events, "Joined the $service", $entry, $events[0]->{'title'}, $start_dt->year(), $start_dt->month(), $start_dt->day());
+					_add_event(\@events, "Joined the $service", undef, $events[0]->{'title'}, $start_dt->year(), $start_dt->month(), $start_dt->day());
 				}
 				# Add leaving military service to the timeline
 				if(my $end_dt = $dfg->parse_datetime($end)) {
-					_add_event(\@events, "Left the $service", $entry, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
+					_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
 				}
 			}
 		}

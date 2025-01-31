@@ -1895,28 +1895,54 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	while(my $e = shift @sorted_events) {
 		$e = $all_events{$e};
 		my $date = $e->{'date'};
-		if(!(defined($year)) || ($date->year() != $year)) {
-			$year = $date->year();
-			if($year) {
-				print $fout '</ul>';
+		if(ref($date)) {
+			if(!(defined($year)) || ($date->year() != $year)) {
+				if($year) {
+					print $fout '</ul>';
+				}
+				$year = $date->year();
+				print $fout "<h2>$year</h2><ul>";
 			}
-			print $fout "<h2>$year</h2><ul>";
+			my $person = $e->{'person'};
+			my $string = wide_to_html($person->as_string());
+			print $fout '<li>', @{$dtl->month_format_wide()}[$date->month() - 1], ' ',
+				$date->day(), ': <a href="',
+				make_filename_from_person(person => $person), '">',
+				"$string</a>: ",
+				$e->{'event'},
+				'</li>';
+			print $csv "$index!$year!",
+				$date->month(), '!',
+				$date->day(), '!',
+				$person->xref(), '!',
+				"$string!",
+				$e->{'event'},
+				"\n";
+		} elsif($date =~ /^\d{3,4}$/) {
+			# date is a simple scalar just with the year
+			if(!(defined($year)) || ($date != $year)) {
+				if($year) {
+					print $fout '</ul>';
+				}
+				$year = $date;
+				print $fout "<h2>$year</h2><ul>";
+			}
+			my $person = $e->{'person'};
+			my $string = wide_to_html($person->as_string());
+			print $fout '<li>',
+				'<a href="',
+				make_filename_from_person(person => $person), '">',
+				"$string</a>: ",
+				$e->{'event'},
+				'</li>';
+			print $csv "$index!$year!",
+				'!',
+				'!',
+				$person->xref(), '!',
+				"$string!",
+				$e->{'event'},
+				"\n";
 		}
-		my $person = $e->{'person'};
-		my $string = wide_to_html($person->as_string());
-		print $fout '<li>', @{$dtl->month_format_wide()}[$date->month() - 1], ' ',
-			$date->day(), ': <a href="',
-			make_filename_from_person(person => $person), '">',
-			"$string</a>: ",
-			$e->{'event'},
-			'</li>';
-		print $csv "$index!$year!",
-			$date->month(), '!',
-			$date->day(), '!',
-			$person->xref(), '!',
-			"$string!",
-			$e->{'event'},
-			"\n";
 		$index++;
 	}
 	close $csv;
@@ -2822,12 +2848,18 @@ sub print_person
 		# RT114091
 		if($birth_dt && ($birth_dt >= $year_1000)) {
 			$all_events{'B' . $person->xref()} = { person => $person, event => 'Birth', date => $birth_dt };
+		} elsif($yob) {
+			$all_events{'B' . $person->xref()} = { person => $person, event => 'Birth', date => $yob };
 		}
 		if($marriage_dt && ($marriage_dt >= $year_1000)) {
 			$all_events{'M' . $person->xref()} = { person => $person, event => 'Marriage', date => $marriage_dt };
+		} elsif($dateofmarriage) {
+			$all_events{'M' . $person->xref()} = { person => $person, event => 'Marriage', date => $dateofmarriage };
 		}
 		if($death_dt && ($death_dt >= $year_1000)) {
 			$all_events{'D' . $person->xref()} = { person => $person, event => 'Death', date => $death_dt };
+		} elsif($yod) {
+			$all_events{'D' . $person->xref()} = { person => $person, event => 'Death', date => $yod };
 		}
 	}
 
