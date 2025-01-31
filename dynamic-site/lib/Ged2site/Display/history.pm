@@ -138,8 +138,33 @@ sub html
 				}
 			}
 
+			# Give the template access to the person's details
+			$template_args->{'person'} = _get_person(\%args, \%params);
+
 			# Did this person serve in the military?
-			if($person->{'bio'} =~ /served in the (.+?) from (.+?) to (.+? \d{4})/) {
+			if(my $military = $template_args->{'person'}->{'military'}) {
+				foreach my $entry($military->{'entry'}) {
+					my $service = $entry->{'service'} // 'Military';
+					if(my $date = $entry->{'date'}) {
+						if((my $from = $date->{'from'}) && (my $to = $date->{'to'})) {
+							my $dfg = DateTime::Format::Genealogy->new();
+
+							# Add joining military service to the timeline
+							if($from =~ /\d{3,4}/) {
+								_add_event(\@events, "Joined the $service", $entry, $events[0]->{'title'}, $from, undef, undef);
+							} elsif(my $start_dt = $dfg->parse_datetime($from)) {
+								_add_event(\@events, "Joined the $service", $entry, $events[0]->{'title'}, $start_dt->year(), $start_dt->month(), $start_dt->day());
+							}
+							# Add leaving military service to the timeline
+							if($to =~ /\d{3,4}/) {
+								_add_event(\@events, "Left the $service", $entry, $events[0]->{'title'}, $to, undef, undef);
+							} elsif(my $end_dt = $dfg->parse_datetime($to)) {
+								_add_event(\@events, "Left the $service", $entry, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
+							}
+						}
+					}
+				}
+			} elsif($person->{'bio'} =~ /served in the (.+?) from (.+?) to (.+? \d{4})[\s\.]/) {
 				my ($service, $start, $end) = ($1, $2, $3);
 				my $dfg = DateTime::Format::Genealogy->new();
 
@@ -152,9 +177,6 @@ sub html
 					_add_event(\@events, "Left the $service", $entry, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
 				}
 			}
-
-			# Give the template access to the person's details
-			$template_args->{'person'} = _get_person(\%args, \%params);
 		}
 
 		# Sort events by year in ascending order

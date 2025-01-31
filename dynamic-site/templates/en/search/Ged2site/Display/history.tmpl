@@ -31,7 +31,9 @@
 			<ul>
 				[% FOREACH event IN events.$year %]
 					<li>
-						[% day.format("0:0:0 $event.day:$event.month:$year") %]
+						[% IF $event.day && $event.month %]
+							[% day.format("0:0:0 $event.day:$event.month:$year") %]
+						[% END %]
 						[% event.title %]
 						[% event.event %]
 					</li>

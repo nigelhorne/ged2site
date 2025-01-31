@@ -46,7 +46,9 @@
 			<ul>
 				[% FOREACH event IN events.$year %]
 					<li>
-						[% day.format("0:0:0 $event.day:$event.month:$year") %]
+						[% IF $event.day && $event.month %]
+							[% day.format("0:0:0 $event.day:$event.month:$year") %]
+						[% END %]
 						<a href="?page=people&amp;entry=[% event.xref %]">[% event.title %]</a>:
 						[% event.event %]
 					</li>
