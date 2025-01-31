@@ -1,6 +1,7 @@
 package Ged2site::Display::history;
 
-# Display the history page
+# Generate HTML for the timeline/history page,
+# displaying life events (e.g., births, deaths, marriages, military service) either for a specific individual or across all entries in the database. 
 
 use warnings;
 use strict;
@@ -11,7 +12,6 @@ use XML::Simple;
 
 our @ISA = ('Ged2site::Display');
 
-# Generate HTML for the history page
 # TODO: This would be much better if it could quickly get to the information in the XML file people.xml
 sub html
 {
@@ -19,7 +19,7 @@ sub html
 
 	my $logger = $self->{'_logger'};
 	if($logger) {
-		$logger->debug(__PACKAGE__, ': entering html()');
+		$logger->trace(__PACKAGE__, ': entering html()');
 	}
 
 	# Allow arguments to be passed as either a hash reference or a list

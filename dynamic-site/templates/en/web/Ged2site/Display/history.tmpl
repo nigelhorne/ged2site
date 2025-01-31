@@ -75,7 +75,7 @@
 						<div class="ss-right module">
 							<p>
 								[% FOREACH event IN events.$year %]
-									[% IF $event.day && $event.month %]
+									[% IF event.day && event.month %]
 										[% day.format("0:0:0 $event.day:$event.month:$year") %]
 									[% END %]
 									[% IF event.xref %]
@@ -92,7 +92,7 @@
 						<div class="ss-left module">
 							<p>
 								[% FOREACH event IN events.$year %]
-									[% IF $event.day && $event.month %]
+									[% IF event.day && event.month %]
 										[% day.format("0:0:0 $event.day:$event.month:$year") %]
 									[% END %]
 									[% IF event.xref %]
