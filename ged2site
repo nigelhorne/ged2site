@@ -1805,6 +1805,8 @@ if($opts{'w'}) {
 					$summary = 'Ignoring Newspaper Death Notice';
 				} elsif($warning =~ /^Possible burial link /) {
 					$summary = 'Possible Burial Information';
+				} elsif($warning =~ /^Assuming not alive based on/) {
+					$summary = 'Death Record Missing for People Assumed Dead';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
