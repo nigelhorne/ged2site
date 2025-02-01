@@ -181,7 +181,11 @@ sub html
 
 		# Sort events by year in ascending order
 		@events = sort {
-			$a->{'year'} == $b->{'year'} ? $a->{'month'} <=> $b->{'month'} : $a->{'year'} <=> $b->{'year'}
+			if(defined($a->{'month'}) && defined($b->{'month'})) {
+                                $a->{'year'} == $b->{'year'} ? $a->{'month'} <=> $b->{'month'} : $a->{'day'} <=> $b->{'day'}
+                        } else {
+                                $a->{'year'} <=> $b->{'year'}
+                        }
 		} @events;
 	} else {
 		# If no specific "entry" is provided, fetch events for all people
