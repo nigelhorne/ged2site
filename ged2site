@@ -14084,8 +14084,19 @@ sub datecmp($$)
 			}
 		}
 
-		# e.g. "1802 or 1803"
+		if($left =~ /(\d{3,4})/) {
+			my $start = $1;
+			if($right =~ /(\d{3,4})/) {
+				# e.g. 26 Aug 1744 <=> 1673-02-22T00:00:00
+				my $end = $1;
+				if($start != $end) {
+					return $start <=> $end;
+				}
+			}
+		}
+
 		if($left =~ /^(\d{3,4})\sor\s(\d{3,4})$/) {
+			# e.g. "1802 or 1803"
 			my($start, $end) = ($1, $2);
 			if($start == $end) {
 				complain("the years are the same '$left'");
@@ -14171,6 +14182,18 @@ sub datecmp($$)
 				return 0;
 			}
 		}
+
+		if($left =~ /(\d{3,4})/) {
+			my $start = $1;
+			if($right =~ /(\d{3,4})/) {
+				# e.g. 26 Aug 1744 <=> 1673-02-22T00:00:00
+				my $end = $1;
+				if($start != $end) {
+					return $start <=> $end;
+				}
+			}
+		}
+
 		# if(!$dfg->parse_datetime($right)) {
 			# my $i = 0;
 			# while((my @call_details = caller($i++))) {
