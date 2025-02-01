@@ -60,6 +60,8 @@ no lib '.';
 
 use	constant	ASSUME_NOT_LIVING => 120;
 
+sub datecmp($$);
+
 my @needfull;	# Tracks required modules to be installed
 
 # Install Pre-requisites
@@ -1888,7 +1890,7 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	print $fout ' | [ <a href="calendar/index.html">Calendar</a> ]</center><br>',
 		'<ul>';
 	# my @sorted_events = Sort::Key::DateTime::dtkeysort { $all_events{$_}->{'date'} } keys %all_events;
-	my @sorted_events = sort { datecmp($a) <=> datecmp($b) } keys %all_events;
+	my @sorted_events = sort { datecmp($a, $b) } keys %all_events;
 	my $year;
 	my $index = 1;
 	open(my $csv, '>', 'dynamic-site/data/history.csv');
