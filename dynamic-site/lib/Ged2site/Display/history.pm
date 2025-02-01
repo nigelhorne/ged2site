@@ -181,7 +181,7 @@ sub html
 
 		# Sort events by year in ascending order
 		@events = sort {
-			if(defined($a->{'month'}) && defined($b->{'month'})) {
+			if($a->{'month'} && $b->{'month'}) {
                                 $a->{'year'} == $b->{'year'} ? $a->{'month'} <=> $b->{'month'} : $a->{'day'} <=> $b->{'day'}
                         } else {
                                 $a->{'year'} <=> $b->{'year'}
