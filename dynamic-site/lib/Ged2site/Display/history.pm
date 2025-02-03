@@ -7,6 +7,7 @@ use warnings;
 use strict;
 use Ged2site::Display;
 use DateTime::Format::Genealogy;
+use Error;
 use File::Slurp;
 use XML::Simple;
 
@@ -146,21 +147,29 @@ sub html
 				foreach my $entry($military->{'entry'}) {
 					my $service = $entry->{'service'} // 'Military';
 					if(my $date = $entry->{'date'}) {
-						if((my $from = $date->{'from'}) && (my $to = $date->{'to'})) {
-							my $dfg = DateTime::Format::Genealogy->new();
+						if(ref($date) eq 'HASH') {
+							if((my $from = $date->{'from'}) && (my $to = $date->{'to'})) {
+								my $dfg = DateTime::Format::Genealogy->new();
 
-							# Add joining military service to the timeline
-							if($from =~ /\d{3,4}/) {
-								_add_event(\@events, "Joined the $service", undef, $events[0]->{'title'}, $from, undef, undef);
-							} elsif(my $start_dt = $dfg->parse_datetime($from)) {
-								_add_event(\@events, "Joined the $service", undef, $events[0]->{'title'}, $start_dt->year(), $start_dt->month(), $start_dt->day());
+								# Add joining military service to the timeline
+								if(my ($year, $month, $day) = _parse_date($from)) {
+									_add_event(\@events, "Joined the $service", undef, $events[0]->{'title'}, $year, $month, $day);
+								} elsif(my $start_dt = $dfg->parse_datetime($from)) {
+									_add_event(\@events, "Joined the $service", undef, $events[0]->{'title'}, $start_dt->year(), $start_dt->month(), $start_dt->day());
+								} elsif($from =~ /\d{3,4}/) {
+									_add_event(\@events, "Joined the $service", undef, $events[0]->{'title'}, $from, undef, undef);
+								}
+								# Add leaving military service to the timeline
+								if(my ($year, $month, $day) = _parse_date($to)) {
+									_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $year, $month, $day);
+								} elsif(my $end_dt = $dfg->parse_datetime($to)) {
+									_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
+								} elsif($to =~ /\d{3,4}/) {
+									_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $to, undef, undef);
+								}
 							}
-							# Add leaving military service to the timeline
-							if($to =~ /\d{3,4}/) {
-								_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $to, undef, undef);
-							} elsif(my $end_dt = $dfg->parse_datetime($to)) {
-								_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
-							}
+						} else {
+							throw Error::Simple($template_args->{'person'}->{'xref'} . ": military->service->date isn't a HASH");
 						}
 					}
 				}
@@ -182,10 +191,10 @@ sub html
 		# Sort events by year in ascending order
 		@events = sort {
 			if($a->{'month'} && $b->{'month'}) {
-                                $a->{'year'} == $b->{'year'} ? $a->{'month'} <=> $b->{'month'} : $a->{'day'} <=> $b->{'day'}
-                        } else {
-                                $a->{'year'} <=> $b->{'year'}
-                        }
+				$a->{'year'} == $b->{'year'} ? $a->{'month'} <=> $b->{'month'} : $a->{'day'} <=> $b->{'day'}
+			} else {
+				$a->{'year'} <=> $b->{'year'}
+			}
 		} @events;
 	} else {
 		# If no specific "entry" is provided, fetch events for all people
