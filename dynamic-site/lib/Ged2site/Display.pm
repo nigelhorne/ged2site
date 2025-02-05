@@ -439,6 +439,8 @@ sub html {
 			ABSOLUTE => 1,
 		});
 
+		$self->_debug({ message => __PACKAGE__ . ': ' . __LINE__ . ': Passing these to the template: ' . join(', ', keys %{$vals}) });
+
 		# Process the template
 		if(!$template->process($filename, $vals, \$rc)) {
 			if(my $err = $template->error()) {

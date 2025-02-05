@@ -101,7 +101,7 @@ sub html {
 	# Fetch person details from the database
 	my $person_details = $people->fetchrow_hashref($params);
 	unless($person_details) {
-		die 'Lookup failed: No matching record found for given parameters';
+		die 'Lookup failed: No matching record found for given parameters: ', join(', ', keys %{$params});
 	}
 
 	# Render the response with person details
