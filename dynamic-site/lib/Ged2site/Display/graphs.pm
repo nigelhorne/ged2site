@@ -51,7 +51,8 @@ our $mapper = {
 
 # Call the correct routine from the "graphs" parameter using the "mapper" table
 #	and pass all that routine's return values to the graphs.tmpl file
-sub html {
+sub html
+{
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 

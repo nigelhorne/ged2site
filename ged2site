@@ -6712,7 +6712,7 @@ sub print_person
 				Lingua::Conjunction->separator_phrase(';');
 				Lingua::Conjunction->penultimate(1);
 				$bio .= "$s " . conjunction(@residencestringarray);
-				$phrase->append("$s " . conjunction(@residencestringarray));
+				$phrase->append([ "$s ", conjunction(@residencestringarray)]);
 				Lingua::Conjunction->separator_phrase(',');
 				Lingua::Conjunction->penultimate(0);
 

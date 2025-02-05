@@ -10,12 +10,37 @@
 		<meta name="object" content="Index">
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne, all rights reserved">
 		<title>[% SiteTitle %]: Meta Data</title>
 		[% IF keywords %]
 			<meta name="keywords" content="[% keywords %]" />
 		[% END %]
 		<link rel="stylesheet" type="text/css" href="/css/style.css" />
+		[% IF datapoints %]
+			<script>
+			window.onload = function() {
+
+			var chart = new CanvasJS.Chart("chartContainer", {
+				animationEnabled: true,
+				title: {
+					text: "Browser breakdown by type"
+				},
+				data: [{
+					type: "pie",
+					startAngle: 240,
+					// yValueFormatString: "##0.00\"%\"",
+					 yValueFormatString: "##0",
+					indexLabel: "{label} {y}",
+					dataPoints: [
+						[% datapoints %]
+					]
+				}]
+			});
+			chart.render();
+
+			}
+			</script>
+		[% END %]
 	</head>
 
 	<body>
@@ -29,6 +54,10 @@
 			country: [% lingua.country() %]<br>
 			requested_language: [% lingua.requested_language() %]<br>
 			language_code_alpha2: [% lingua.language_code_alpha2() %]
+		[% END %]
+		[% IF datapoints %]
+			<div id="chartContainer" style="height: 370px; width: 100%;"></div>
+			<script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
 		[% END %]
 	</body>
 </html>

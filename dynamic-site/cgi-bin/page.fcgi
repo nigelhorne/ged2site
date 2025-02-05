@@ -137,6 +137,7 @@ use Ged2site::DB::surname_date;
 use Ged2site::DB::twins;
 use Ged2site::DB::military;
 use Ged2site::DB::locations;
+use Ged2site::Data::vwf_log;
 
 my $database_dir = "$script_dir/../data";
 Database::Abstraction::init({
@@ -165,6 +166,8 @@ my $name_date = Ged2site::DB::name_date->new();
 my $surname_date = Ged2site::DB::surname_date->new();
 my $twins = Ged2site::DB::twins->new();
 my $military = Ged2site::DB::military->new();
+# FIXME - support $config->vwflog();
+my $vwf_log = Ged2site::Data::vwf_log->new({ directory => $info->logdir(), filename => 'vwf.log', no_entry => 1 });
 
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
@@ -231,10 +234,12 @@ while($handling_request = ($request->Accept() >= 0)) {
 		Log::Any::Adapter->set('Stdout', log_level => 'trace');
 		$logger = Log::Any->get_logger(category => $script_name);
 		Log::WarnDie->dispatcher($logger);
+		Database::Abstraction::init({ logger => $logger });
 		$people->set_logger($logger);
 		$name_date->set_logger($logger);
 		$surname_date->set_logger($logger);
 		$info->set_logger($logger);
+		$vwf_log->set_logger($logger);
 		# $Config::Auto::Debug = 1;
 
 		# TODO:  Make this neater
@@ -619,6 +624,7 @@ sub doit
 			surname_date => $surname_date,
 			twins => $twins,
 			military => $military,
+			vwf_log => $vwf_log,
 		});
 		if($vwflog && open(my $fout, '>>', $vwflog)) {
 			print $fout
