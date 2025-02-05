@@ -247,6 +247,8 @@ my @modules = ();
 @needfull = ();
 my $grave_modules;
 
+$opts{'w'} = 1 if($opts{'f'});
+
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
 	push @modules, 'File::Spec', 'XML::Hash';
 
