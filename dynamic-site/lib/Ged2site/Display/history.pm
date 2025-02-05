@@ -168,6 +168,16 @@ sub html
 									_add_event(\@events, "Left the $service", undef, $events[0]->{'title'}, $to, undef, undef);
 								}
 							}
+						} elsif(!ref($date)) {
+                                                        # Add military service to the timeline
+							my $dfg = DateTime::Format::Genealogy->new();
+                                                        if(my ($year, $month, $day) = _parse_date($date)) {
+                                                                _add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $year, $month, $day);
+                                                        } elsif(my $end_dt = $dfg->parse_datetime($date)) {
+                                                                _add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
+                                                        } elsif($date =~ /\d{3,4}/) {
+                                                                _add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $date, undef, undef);
+                                                        }
 						} else {
 							throw Error::Simple($template_args->{'person'}->{'xref'} . ": military->service->date isn't a HASH");
 						}

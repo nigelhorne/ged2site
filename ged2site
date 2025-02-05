@@ -10208,7 +10208,9 @@ sub print_person
 							$both_xmls->print("\n\t\t\t\t\t<from>$from</from>")
 								->print("\n\t\t\t\t\t<to>$to</to>");
 						} else {
-							$both_xmls->print("\n\t\t\t\t\t$date");
+							my $xml_date = $date;
+							$xml_date =~ s/^in\s+//i;	# E.g. "in 1942"
+							$both_xmls->print("\n\t\t\t\t\t$xml_date");
 						}
 						$both_xmls->print("\n\t\t\t\t</date>");
 						$entry->{'date'} = $date;
