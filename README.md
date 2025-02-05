@@ -22,7 +22,7 @@ Typical usage:
 
     ged2site -cFdh 'Your Name' gedfile.ged
 
-You will then have two sites created in sub directories
+You will then have two sites created in sub-directories
 - static-site is static HTML (no CGI),
 - dynamic-site is a [VWF](//github.com/nigelhorne/vwf) based website which uses templates to support more than one
 language and present different content to mobile/web/search-engine clients.
@@ -33,7 +33,7 @@ by you to create the look and feel of the website that you want.
 The dynamic site contains more data visualisation such as trend analysis,
 time-lapse views and heatmaps in a visually appealing way.
 
-If you decide to use the static site, just copy files in the static-site directory to your web-server.
+If you use the static site, copy files in the static-site directory to your web server.
 
 If you decide to use the dynamic site first create a $hostname.com file in the
 conf directory (use default as a template),
@@ -47,7 +47,7 @@ The configuration file can be in any number of formats including INI and XML.
     disc_cache: where long-term information is stored, such as copies of output to see if HTTP 304 can be returned
     contact: your name and e-mail address
 
-Then upload the dynamic-site directory to your web-server.
+Then upload the dynamic-site directory to your web server.
 The databases are in CSV format. To speed up access you can convert to SQLite
 format using
 [csv2sqlite](http://search.cpan.org/~rwstauner/App-csv2sqlite/),
@@ -58,7 +58,7 @@ which you should run on each of the .csv files.
 Every time you upload a new site ensure that you remove the "save_to" directory and the disc cache,
 since they contain cached copies of pages that will be inconsistent with the new site.
 
-Finally, for the dynamic site, set-up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
+Finally, for the dynamic site, set up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
 
 ## Installation and Pre-Requisites
 
@@ -73,7 +73,7 @@ or [Perlbrew](https://perlbrew.pl/).
 
 Running the program for the first time with no
 arguments should install them,
-of course that will fail if you don't have the privilege,
+of course, that will fail if you don't have the privilege,
 in which case you'll need to add them by hand.
 To install by hand you'll either have to use local::lib or perlbrew.
 Of course you could also run ged2site as root,
@@ -86,7 +86,7 @@ though I've not tested that.
 You'll also need to install to get calendars to appear on the dynamic sites
 [gedcom](https://github.com/nigelhorne/gedcom).
 
-On FreeBSD you'll need to
+On FreeBSD, you'll need to
 "sudo pkg install pkgconf gdlib graphviz ImageMagick7;
 cd /usr/local/lib;
 sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so"
@@ -106,7 +106,7 @@ The options to ged2site are:
 | -l   | include living people |
 | -L n | Limit to n records |
 | -m   | Generate a Google map on each page showing events |
-| -J   | Google Maps JavaScript API key (used to display the map). Set the key's application restriction to website |
+| -J   | Google Maps JavaScript API key (used to display the map). Set the key's application restriction to the website |
 | -G   | Google Maps geolocation API key (used to populate the map) |
 | -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcom](//github.com/nigelhorne/gedcom)* |
 | -W   | don't colorize warning output |
@@ -140,9 +140,9 @@ so it also works as a Gedcom to XML converter.
 
 ## Ancestry on Windows
 
-I use FindMyPast on Linux, because export of images is better on FMP and
+I use FindMyPast on Linux because the export of images is better on FMP and
 because Linux.  I recognise that many folks use Ancestry on Windows, so I
-have this rough guide which works for me, but understand that you'll still
+have this rough guide that works for me but understand that you'll still
 need to be an advanced Windows user, this is not for the Novice.  If you
 still need help, e-mail me or put an issue on github.com/nigelhorne/ged2site.
 
@@ -176,7 +176,7 @@ as input.
 I strongly suggest adding this to your .htaccess file:
 
 ```
-# disallow access to special directories and feed back a 404 error
+# disallow access to special directories and feedback a 404 error
 RedirectMatch 404 /\\.svn(/|$)
 RedirectMatch 404 /\\.git(/|$)
 
@@ -280,12 +280,12 @@ FTM or download from the other tree to your desktop and upload to your tree.
 There will be numerous strange handling of Gedcoms since it's not that tightly
 observed by websites.
 
-If you see lumpy English text in the output, or just plain mistakes,
+If you see lumpy English text in the output or just plain mistakes,
 please e-mail me or add a bug report to github.com/nigelhorne/ged2site.
 
 Profile pictures are not handled with output from Ancestry.  Findmypast is handled correctly.
 
-The story telling format is hard coded, it would be useful if it were configurable.
+The storytelling format is hard coded, it would be useful if it were configurable.
 
 ## Acknowledgements
 
@@ -307,7 +307,7 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 ## See Also
 
-* [gedcom](https://github.com/nigelhorne/gedcom) - a general purpose utility for Gedcom files
+* [gedcom](https://github.com/nigelhorne/gedcom) - a general-purpose utility for Gedcom files
 * [gedcmp](https://github.com/nigelhorne/gedcmp) - compare two Gedcoms
 * [The Perl-GEDCOM Mailing List](https://www.miskatonic.org/pg/) - dead mailing list, you can check the archives
 
