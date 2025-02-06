@@ -154,7 +154,7 @@ if($@) {
 	die $@;
 }
 my $censuses = Ged2site::Data::censuses->new();
-my $changes = Ged2site::Data::changes->new();
+my $changes = Ged2site::Data::changes->new(no_entry => 1);
 my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::Data::history->new();
 my $orphans = Ged2site::Data::orphans->new();
