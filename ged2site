@@ -10351,7 +10351,7 @@ sub print_person
 		# Add entries to the changes.psv file
 		if($opts{'l'} || !$is_alive) {
 			if(defined($person_in_last_run)) {
-				if($birth_dt) {
+				if($birth_dt && ($birth_dt =~ /\d{3,4}/)) {
 					my $b = $birth_dt->strftime('%Y/%m/%d');
 					my $change;
 					if($birth_in_last_run) {
@@ -10368,7 +10368,7 @@ sub print_person
 						push @{$changes{'changes'}}, $p;
 					}
 				}
-				if($marriage_dt) {
+				if($marriage_dt && ($marriage_dt =~ /\d{3,4}/)) {
 					my $m = $marriage_dt->strftime('%Y/%m/%d');
 					my $change;
 					if($marriage_in_last_run) {
@@ -10385,7 +10385,7 @@ sub print_person
 						push @{$changes{'changes'}}, $p;
 					}
 				}
-				if($death_dt) {
+				if($death_dt && ($death_dt =~ /\d{3,4}/)) {
 					my $d = $death_dt->strftime('%Y/%m/%d');
 					my $change;
 					if($death_in_last_run) {
