@@ -2,6 +2,8 @@ package Ged2site::Display::changes;
 
 # Display changes template file
 
+# It's a sort of blog of the changes made to the Gedcom file between runs of ged2site
+
 use warnings;
 use strict;
 use Ged2site::Display;
@@ -19,7 +21,8 @@ sub html {
 		'lint_content' => qr/^\d$/,
 	};
 	my %params = %{$info->params({ allow => $allowed })};
-	return '' if(delete($params{'page'}) ne 'changes');
+
+	return '' if($params{'page'} ne 'changes');
 
 	my $people = $args{'people'};
 	my @change_records = $args{'changes'}->selectall_hash();
