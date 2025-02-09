@@ -33,20 +33,26 @@
 				[ <a href="/visjs.html">Timeline</a> ]
 			</center>
 			[% IF changes %]
-				[% FOREACH change IN changes %]
-					[% IF change.date != date %]
-						[% IF date %]
-							</ul>
-						[% END %]
-						[% date = change.date %]
-						<h2>[% date %]</h2>
+				[% FOREACH days IN changes %]
+					<h2>[% days.key %]</h2>
+					[% FOREACH changesonthisday IN days.value %]
 						<ul id="nav">
+						<h3>[% changesonthisday.key %]</h3>
+						[% FOREACH entry IN changesonthisday.value %]
+							<!--
+								[% USE Dumper %]
+								[% Dumper.dump(entry) %]
+							-->
+							<li>
+								<a href="?page=people&amp;entry=[%- entry.record.xref %]">[% entry.person.title %]</a>
+								[% IF entry.record.change != 'New person' %]
+									: [% entry.record.change %]
+								[% END %]
+							</li>
+						[% END %]
+						</ul>
 					[% END %]
-					<li>
-						<a href="?page=people&amp;entry=[%- change.xref %]">[% change.person.title %]</a>: [% change.change %]
-					</li>
 				[% END %]
-				</ul>
 			[% ELSE %]
 				<p>There are no recent changes to your family tree.</p>
 			[% END %]

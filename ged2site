@@ -1412,7 +1412,7 @@ if(scalar(%changes) && (open(my $fout, '>', 'static-site/changes.html'))) {
 	if(!-r 'changes.psv') {
 		# First run - put in the heading row
 		open(my $log, '>', 'changes.psv');
-		print $log "date|xref|changes\n";
+		print $log "date|xref|change\n";
 		close $log;
 	}
 	# Keep a copy in the current directory so that it's not trashed
