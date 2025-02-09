@@ -3296,7 +3296,7 @@ sub print_person
 			$phrase->append(i18n('child'));
 		}
 
-		if(($language eq 'French') && ($father->as_string =~ /^[aehiou]/i)) {
+		if(($language eq 'French') && ($father->as_string() =~ /^[aehiou]/i)) {
 			$phrase->append(" d'");
 		} else {
 			$phrase->append(i18n(' of '));
@@ -13180,9 +13180,9 @@ sub is_alive
 
 sub make_filename_from_person
 {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = get_params('person', @_);
 
-	my $person = $params{'person'};
+	my $person = $params->{'person'};
 
 	die if(!defined($person));
 
@@ -13258,7 +13258,7 @@ sub make_filename_from_object
 	$rc =~ s/-$//;
 
 	utf8::decode($rc);
-	return Unicode::Diacritic::Strip::strip_diacritics($rc);
+	return Unicode::Diacritic::Strip::strip_diacritics($object->xref() . "-$rc");
 }
 
 # Parse Gedcom format dates

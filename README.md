@@ -313,9 +313,14 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 
 ## LICENSE AND COPYRIGHT
 
-Copyright 2015-2024 Nigel Horne.
+Copyright 2015-2025 Nigel Horne.
 
 This program is released under the following licence: GPL2 for personal use on
 a single computer.
 All other users (for example Commercial, Charity, Educational, Government)
 must apply in writing for a licence for use from Nigel Horne at `<njh at nigelhorne.com>`.
+
+## Support
+
+Please report any bugs or feature requests to the author.
+This module is provided as-is without any warranty.
