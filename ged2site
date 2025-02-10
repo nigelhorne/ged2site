@@ -7498,12 +7498,37 @@ sub print_person
 							@phrases = ();
 						}
 
-						my $service = service($event);
+						my $service = ucfirst(service($event));
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^from /) {
 								$bio .= ' ' unless($bio =~ /\s$/);
 								$bio .= "$pronoun served in the $service $date";
 								$phrase->set("$pronoun served in the $service $date");
+								if(defined($dateofmarriage) && ($dateofmarriage =~ /(\d{3,4})$/)) {
+									my $yom = $1;
+
+									my @dates = $dfg->parse_datetime($date);
+									if($dates[1]) {
+										if($marriage_dt &&
+										   ($dates[1]->year() == $marriage_dt->year())) {
+											if(datecmp($dates[1], $marriage_dt) > 0) {
+												$bio .= ', just before ';
+												$phrase->append(', just before ');
+											} else {
+												$bio .= ', just after ';
+												$phrase->append(', just after ');
+											}
+											$bio .= lcfirst($pronoun) . ' married ' . $spouses[0]->as_string();
+											$phrase->append(lcfirst($pronoun))->append(' married ')->append($spouses[0]->as_string());
+
+										}
+									} elsif($date =~ /^from (\d{3,4}) to (\d{3,4})$/) {
+										if($2 == $yom) {
+											$bio .= ' the year ' . lcfirst($pronoun) . ' married ' . $spouses[0]->as_string();
+											$phrase->append(', the year ')->append(lcfirst($pronoun))->append(' married ')->append($spouses[0]->as_string());
+										}
+									}
+								}
 							} else {
 								if($date =~ /^on /) {
 									$bio .= ucfirst($date) . ' ';
