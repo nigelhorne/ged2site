@@ -28,12 +28,23 @@
 			[% SET title = 'Average distance between places of birth and death' %]
 		[% ELSIF graph == 'birth_countries' %]
 			[% SET title = 'Country of Birth' %]
+		[% ELSIF graph == 'death_countries' %]
+			[% SET title = 'Country of Death' %]
+		[% ELSIF graph == 'name_date_m' %]
+			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
+			[% SET title = 'Male First Name Popularity' %]
+		[% ELSIF graph == 'name_date_f' %]
+			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
+			[% SET title = 'Female First Name Popularity' %]
+		[% ELSIF graph == 'surname_date' %]
+			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
+			[% SET title = 'Surname Popularity' %]
 		[% ELSE %]
 			<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 		<title>[% title %]</title>
 		[% IF datapoints %]
 			<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script> -->
@@ -184,6 +195,16 @@
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph, which shows the trend of generation gaps over the years, only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
+		[% ELSIF graph == 'birth_countries' %]
+			<p>Shows the countries of birth on both sides of the family of all adults in the tree.<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'death_countries' %]
+			<p>
+				Shows the countries of death on both sides of the family of all adults in the tree.
+			<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'percentagedying' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
@@ -195,6 +216,60 @@
 				are assuming to be missing a death record.
 				These differences could cause anomolies.
 			</p>
+		[% ELSIF name_date %]
+			<div id="header_container">
+				<center>
+					[% IF graph == 'name_date_m' %]
+						<h1>Male First Name Popularity</h1>
+					[% ELSE %]
+						<h1>Female First Name Popularity</h1>
+					[% END %]
+				</center>
+			</div>
+			<div id="container">
+				<center>
+					[ <a href="?page=people&amp;home=1">Home</a> ] |
+					[ <a href="?page=censuses">Census Index</a> ] |
+					[ <a href="?page=surnames">Surname Index</a> ] |
+					[ <a href="?page=history">Family History</a> ] |
+					[ <a href="?page=todo">Aufgabe</a> ] |
+					[ <a href="?page=calendar">Kalendar</a> ] |
+					[% IF graph %]
+						[ <a href="?page=graphs">Analytics</a> ] |
+					[% END %]
+					[ <a href="?page=emigrants">Emigrants</a> ] |
+					[ <a href="/visjs.html">Timeline</a> ]
+				</center>
+				[% FOREACH year IN name_date %]
+					<h2>[% year.year * 25 %]</h2>
+					[% year.data %]
+				[% END %]
+			</div>
+		[% ELSIF surname_date %]
+			<div id="header_container">
+				<center>
+					<h1>Surname Popularity</h1>
+				</center>
+			</div>
+			<div id="container">
+				<center>
+					[ <a href="?page=people&amp;home=1">Home</a> ] |
+					[ <a href="?page=censuses">Census Index</a> ] |
+					[ <a href="?page=surnames">Surname Index</a> ] |
+					[ <a href="?page=history">Family History</a> ] |
+					[ <a href="?page=todo">To Do</a> ] |
+					[ <a href="?page=calendar">Calendar</a> ] |
+					[% IF graph %]
+						[ <a href="?page=graphs">Analytics</a> ] |
+					[% END %]
+					[ <a href="?page=emigrants">Emigrants</a> ] |
+					[ <a href="/visjs.html">Timeline</a> ]
+				</center>
+				[% FOREACH year IN surname_date %]
+					<h2>[% year.year * 25 %]</h2>
+					[% year.data %]
+				[% END %]
+			</div>
 		[% ELSE %]
 			<h1>Choose a Graph</h1>
 			<center>
@@ -208,8 +283,14 @@
 				<a href="?page=graphs&graph=sex" class="myButton">Sex of people born in each year</a><br><br>
 				<a href="?page=graphs&graph=dist" class="myButton">Average distance between birth and death</a><br><br>
 				<a href="?page=graphs&amp;graph=percentagedying" class="myButton">Percentage of the people dying</a><br><br>
-				<a href="?page=graphs&graph=ageatfirstchild" class="myButton">Age of Parents at birth of first child</a><br><br>
+				<a href="?page=graphs&amp;graph=ageatfirstchild" class="myButton">Age of Parents at birth of first child</a><br><br>
 				<a href="?page=graphs&graph=ageatlastchild" class="myButton">Age of Parents at birth of last child</a><br><br>
+				<a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a><br><br>
+				<a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a><br><br>
+				<a href="?page=graphs&amp;graph=death_countries">Country of Death</a><br><br>
+				<a href="?page=graphs&amp;graph=name_date_m">Male first name popularity</a><br><br>
+				<a href="?page=graphs&amp;graph=name_date_f">Female first name popularity</a><br><br>
+				<a href="?page=graphs&amp;graph=surname_date">Surname popularity</a><br><br>
 			</center>
 		[% END %]
 		<center><font size="+2">
@@ -222,7 +303,7 @@
 		</font></center>
 		<p align="right">
 			<i>
-			<a href="https://github.com/nigelhorne/ged2site">Ged2site</a> hat diese Internetseite erstellt.
+			<a href="//github.com/nigelhorne/ged2site">Ged2site</a> hat diese Internetseite erstellt.
 			[% IF updated %]
 				[% USE date %]
 				Last updated on [% date.format(time = updated, format = '%d %b %Y', locale = lingua.language_code_alpha2) %]
