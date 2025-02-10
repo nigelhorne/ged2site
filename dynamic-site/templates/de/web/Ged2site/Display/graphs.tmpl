@@ -236,9 +236,9 @@
 						[% IF graph == 'dist' %]
 							title: '[% units %]',
 						[% ELSIF graph == 'familysizetime' %]
-							title: "Number of Children",
+							title: "Zahl der Kinder",
 						[% ELSIF graph == 'motherchildren' %]
-							title: "Number of Mothers",
+							title: "Zahl der M&uuml;tter",
 							includeZero: false,
 						[% ELSIF graph == 'infantdeaths' %]
 							title: 'Percentage',
@@ -263,7 +263,7 @@
 						},
 					[% ELSIF graph == 'motherchildren' %]
 						axisX: {
-							title: "Number of Children",
+							title: "Zahl der Kinder",
 						},
 					[% END %]
 					animationEnabled: true,	// change to false
