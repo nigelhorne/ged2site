@@ -83,8 +83,7 @@ You can also try
 ```cpan -i lazy && perl -Mlazy ged2site && perl -Mlazy dynamic/cgi-bin/page.cgi```
 though I've not tested that.
 
-You'll also need to install to get calendars to appear on the dynamic sites
-[gedcom](https://github.com/nigelhorne/gedcom).
+You'll also need to install [gedcom](https://github.com/nigelhorne/gedcom) to get calendars to appear on the dynamic sites.
 
 On FreeBSD, you'll need to
 "sudo pkg install pkgconf gdlib graphviz ImageMagick7;
