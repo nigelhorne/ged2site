@@ -2801,6 +2801,12 @@ sub print_person
 				$facts->{'oldest_age'}->{'xref'} = $person->xref();
 			}
 
+			# Kepp a list of those who lived over 100
+			if($age_at_death->years() >= 100) {
+				push @{$facts->{'people_over_100'}->{'xrefs'}}, $person->xref();
+				$facts->{'people_over_100'}->{'count'}++;
+			}
+
 			# Calculate the average age of adults death on both sides of the family
 			if($me && ((my $age = $age_at_death->years()) >= 20)) {
 				my $mr;

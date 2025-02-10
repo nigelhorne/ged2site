@@ -412,6 +412,12 @@ sub doit
 	# Check and increment request count
 	my $request_count = $rate_limit_cache->get($client_ip) || 0;
 
+	my $warnings = '';
+	if(my $w = $info->warnings()) {
+		my @warnings = map { $_->{'warning'} } @{$w};
+		$warnings = join(';', @warnings);
+	}
+
 	if(!-r $vwflog) {
 		# First run - put in the heading row
 		open(my $log, '>', $vwflog);
@@ -443,7 +449,7 @@ sub doit
 					'429,',
 					'"",',
 					'"', $info->as_string(), '",',
-					'"",',
+					'"', $warnings, '"',
 					'""',
 					"\n";
 				close($fout);
@@ -459,12 +465,6 @@ sub doit
 		$logger->info('No page given in ', $info->as_string());
 		choose();
 		return;
-	}
-
-	my $warnings = '';
-	if(my $w = $info->warnings()) {
-		my @warnings = map { $_->{'warning'} } @{$w};
-		$warnings = join(';', @warnings);
 	}
 
 	# Access control checks

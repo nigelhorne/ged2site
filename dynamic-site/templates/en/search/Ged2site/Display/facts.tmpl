@@ -9,7 +9,7 @@
 		<meta name="object" content="Index">
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne, all rights reserved">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne, all rights reserved">
 		<meta name="description" content="Facts for [% SiteTitle.join(' ') %] - A ged2site webpage">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		[% USE Math %]
@@ -114,6 +114,19 @@
 					[% facts.longest_marriage.years %] years,
 					[% facts.longest_marriage.months %] months and
 					[% facts.longest_marriage.days %] days
+				</p>
+			[% END %]
+			[% IF facts.people_over_100 %]
+				<p>
+					There
+					[% IF facts.people_over_100.count == 1 %]
+						is 1 person who was over 100 when they died
+					[% ELSE %]
+						are [% facts.people_over_100.count %] people who were over 100 when they died
+					[% END %]
+					[% FOREACH person IN facts.people_over_100.people %]
+						<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
+					[% END %]
 				</p>
 			[% END %]
 		[% END %]

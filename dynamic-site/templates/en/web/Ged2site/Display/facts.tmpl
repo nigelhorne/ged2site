@@ -7,7 +7,7 @@
 			<meta http-equiv="Content-Language" content="English">
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
-		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 		[% USE Math %]
 	</head>
 	<body>
@@ -66,7 +66,7 @@
 							Person who lived the longest:
 							<a href="?page=people&amp;entry=[%- facts.oldest_age.person.entry %]">[% facts.oldest_age.person.title %]</a> who lived for
 							[% facts.oldest_age.years %] years
-							[% IF %facts.oldest_age.months %], months[% END %]
+							[% facts.oldest_age.months %], months
 							and
 							[% facts.oldest_age.days %] days
 						</li>
@@ -130,6 +130,23 @@
 							[% facts.longest_marriage.years %] years,
 							[% facts.longest_marriage.months %] months and
 							[% facts.longest_marriage.days %] days
+						</li>
+					[% END %]
+					[% IF facts.people_over_100 %]
+						<li>
+							There
+							[% IF facts.people_over_100.count == 1 %]
+								is 1 person who was over 100 when they died
+							[% ELSE %]
+								are [% facts.people_over_100.count %] people who were over 100 when they died
+							[% END %]
+							<ul>
+								[% FOREACH person IN facts.people_over_100.people %]
+									<li>
+										<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
+									</li>
+								[% END %]
+							</ul>
 						</li>
 					[% END %]
 				</ul>
