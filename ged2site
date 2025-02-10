@@ -11966,9 +11966,7 @@ sub place
 		} elsif($province =~ /^Qu.+bec$/) {
 			if($language eq 'French') {
 				$province = "Qu\N{U+00E9}bec";
-				if($town eq 'Montréal') {
-					$town = "Montr\N{U+00E9}al";
-				}
+				$town =~ s/é/\N{U+00E9}/g;
 				$rc->fr("$town, Qu\N{U+00E9}bec, Canada");
 			} else {
 				$province = 'Quebec';
@@ -11997,6 +11995,7 @@ sub place
 			$rc->en($place);
 			if(my $t = $places->translate({ place => $1, from => 'en', to => $lang })) {
 				$place = "$t$2, $3";
+				$place =~ s/é/\N{U+00E9}/g;
 				$rc->set(lang => $lang, string => $place);
 			}
 		}
