@@ -5,7 +5,8 @@ html{font-family: 'Dosis', sans-serif;-ms-text-size-adjust:100%;-webkit-text-siz
 /* MAIN
 ========================== */ 
 body{
-	background: #e7e7e7;
+	font:16px times,"times new roman",georgia,serif;
+	background:white
 }
 a{
 	font-family:font-family: 'Dosis', sans-serif;
