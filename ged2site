@@ -16583,7 +16583,8 @@ married::verheiratet
 mother::Mutter
 of::von
 of %d children::von %d Kindern
-on the father's side::Auf der Seite deines Vaters
+on the father's side::väterlicherseits
+on the mother's side::mütterlicherseits
 parents::Eltern
 she::sie
 sister::Schwester
