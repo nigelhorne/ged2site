@@ -4289,8 +4289,8 @@ sub print_person
 								$parentheses = 1;
 							}
 							if($language eq 'French') {
-								$bio .= "avec qu'" . lcfirst($pronoun);
-								$phrase->append("avec qu'" . lcfirst($pronoun));
+								$bio .= 'avec qui ' . lcfirst($pronoun);
+								$phrase->append('avec qui ' . lcfirst($pronoun));
 							} elsif($language eq 'German') {
 								$bio .= 'mit wem ' . lcfirst($pronoun);
 								$phrase->append('mit wem ' . lcfirst($pronoun));
@@ -6721,7 +6721,11 @@ sub print_person
 				}
 
 				print Data::Dumper->new([\@residencestringarray])->Dump() if($opts{'v'});
-				Lingua::Conjunction->separator_phrase(';');
+				if($language eq 'French') {
+					Lingua::Conjunction->separator_phrase(' ;');
+				} else {
+					Lingua::Conjunction->separator_phrase(';');
+				}
 				Lingua::Conjunction->penultimate(1);
 				$bio .= "$s " . conjunction(@residencestringarray);
 				$phrase->append([ "$s ", conjunction(@residencestringarray)]);
