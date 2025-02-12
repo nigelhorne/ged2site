@@ -778,7 +778,8 @@ sub choose
 			"/cgi-bin/page.fcgi?page=reports\n",
 			"/cgi-bin/page.fcgi?page=facts\n",
 			"/cgi-bin/page.fcgi?page=mailto\n",
-			"/cgi-bin/page.fcgi?page=meta_data\n";
+			"/cgi-bin/page.fcgi?page=meta_data\n",
+			"/cgi-bin/page.fcgi?page=xml\n";
 	}
 }
 

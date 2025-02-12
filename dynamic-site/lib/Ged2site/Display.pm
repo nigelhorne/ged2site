@@ -365,6 +365,7 @@ sub set_cookie
 	return $self;
 }
 
+# Returns the HTTP header section, terminated by an empty line
 sub http
 {
 	my $self = shift;
