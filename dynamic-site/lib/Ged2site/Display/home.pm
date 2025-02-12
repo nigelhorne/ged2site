@@ -14,6 +14,11 @@ sub html {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
+	my $logger = $self->{'_logger'};
+	if($logger) {
+		$logger->trace(__PACKAGE__, ': entering html()');
+	}
+
 	my $info = $self->{_info};
 	die unless($info);
 
@@ -24,10 +29,6 @@ sub html {
 	};
 	my %params = %{$info->params({ allow => $allowed })};
 
-	delete $params{'page'};
-	delete $params{'lint_content'};
-	delete $params{'lang'};
-
 	my $history = $args{'history'};
 	my $today = DateTime->today(time_zone => $self->{_lingua}->time_zone());
 	my $events = $history->selectall_hashref({
@@ -35,6 +36,15 @@ sub html {
 		month => $today->month()
 	});
 
+	# Get the people database handle
+	my $people = $args{'people'};
+
+	foreach my $event(@{$events}) {
+		# Fetch person details based on the entry parameter
+		$event->{'person'} = $people->fetchrow_hashref({ entry => $event->{'xref'} });
+	}
+
+	# Sort in chronological order (we only care about the year)
 	my @e = sort { $a->{'year'} <=> $b->{'year'} } values @{$events};
 
 	return $self->SUPER::html(

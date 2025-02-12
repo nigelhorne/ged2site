@@ -2,7 +2,10 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en" dir="ltr">
 	<head>
-		<meta charset="utf8">
+		[% IF lint_content == 0 %]
+			[%# HTML::Lint doesn't know about HTML5 %]
+			<meta charset="utf-8">
+		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 		<title>[% SiteTitle.join(' ') %]</title>
@@ -24,7 +27,13 @@
 				<h3>[% event.year %]</h3>
 				[% year = event.year %]
 			[% END %]
-			<p><a href="?page=people&amp;entry=[%- event.xref %]">[% event.title %]</a>: [% event.event %]</p>
+			<p>
+				<a href="?page=people&amp;entry=[%- event.xref %]">[% event.title %]</a>: [% event.event %]
+				[% IF event.person.profile_thumbnail %]
+					<a href="?page=people&amp;entry=[%- event.xref %]">
+						<img src="[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width = "70"></a>
+				[% END %]
+			</p>
 		[% END %]
 		<center><font size="+2">
 			[ <a href="?page=people&amp;home=1">Home Person</a> ]<br>

@@ -10,7 +10,7 @@
 		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
 		<link rel="stylesheet" href="/css/sprite.css" type="text/css">
 		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
-		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 		<title>[% SiteTitle.join(' ') %]</title>
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
@@ -29,6 +29,7 @@
 				<div class="social_media">
 					<div class="non-printable">
 						<!-- pop-up code from http://www.quackit.com/html/codes/html_popup_window_code.cfm -->
+						<!--
 						<script type="text/javascript">
 							// Popup window code
 							var popupWindow = null;
@@ -39,6 +40,7 @@
 								popupWindow = window.open(url,winName,settings)
 							}
 						</script>
+						-->
 						<!-- images from http://www.socicon.com/generator.php -->
 						<!-- code from https://simplesharebuttons.com/html-share-buttons/ -->
 						[% USE env = EnvHash %]
@@ -108,6 +110,10 @@
 						[% ELSE %]
 							[% event.event %]
 						[% END %]
+						[% IF event.person.profile_thumbnail %]
+							<a href="?page=people&amp;entry=[%- event.xref %]">
+								<img src="[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width = "70"></a>
+						[% END %]
 					</p>
 				[% END %]
 			</div>
@@ -127,6 +133,7 @@
 			[% END %]
 			</i>
 		</p>
+		<!--
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 		<script src="//cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
 		<script>
@@ -134,5 +141,6 @@
 			  \$('.popup-link').magnificPopup({type:'image'});
 			});
 		</script>
+		-->
 	</body>
 </html>

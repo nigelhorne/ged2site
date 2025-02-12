@@ -66,16 +66,16 @@ sub html
 		# Get the people database handle
 		my $people = $args{'people'};
 
-		# Get the language to display, using these methods:
-		#	1: Use the lang parameter given in the URL
-		#	2: If that's not set, use CGI::Lingua to interrogate the browser's setting
-		#	3: Fall back to English
-		my $language = lc($params{'lang'} || $self->{'_lingua'}->language_code_alpha2() || 'en');
-
 		# Fetch person details based on the entry parameter
 		if(my $person = $people->fetchrow_hashref({ entry => $entry })) {
 			# Get the year of death of the person being displayed
 			my ($yod, $mod, $dod) = _parse_date($person->{'dod'});
+
+			# Get the language to display, using these methods:
+			#	1: Use the lang parameter given in the URL
+			#	2: If that's not set, use CGI::Lingua to interrogate the browser's setting
+			#	3: Fall back to English
+			my $language = lc($params{'lang'} || $self->{'_lingua'}->language_code_alpha2() || 'en');
 
 			# Process mother and father
 			foreach my $relation ('mother', 'father') {
