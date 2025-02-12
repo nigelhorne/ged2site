@@ -9235,14 +9235,14 @@ sub print_person
 				string => notes({ person => $person, paragraph => 1, record => $person, encode => 0 }),
 				keep_hrefs => 1
 			});
-			$notes = wide_to_xml($notes);
-			# $notes =~ s/</&lt;/g;
-			# $notes =~ s/>/&gt;/g;
-			$notes =~ s/\s*&excl;/!/g;
 			$notes =~ s/^<p>//;
 			$notes =~ s/<\/p>$//;
 			$notes =~ s/<br>/<br \/>/g;
 			$notes =~ s/<p><\/p>//g;
+			$notes = wide_to_xml($notes);
+			# $notes =~ s/</&lt;/g;
+			# $notes =~ s/>/&gt;/g;
+			$notes =~ s/\s*&excl;/!/g;
 			$both_xmls->print("\n\t\t<note><p>$notes</p></note>");
 			# print $html map { "<p>$_</p>" } @notes;
 		}
@@ -13720,6 +13720,7 @@ sub get_all_occupations
 			($occupation eq 'work on farm') ||
 			($occupation eq 'Agricultural Lab') ||
 			($occupation eq 'Agril Labourer') ||
+			($occupation eq 'Labourer Ag') ||
 			($occupation eq 'Labourer (Ag)')) {
 			$occupation = 'Agricultural Labourer';
 		} elsif($occupation eq 'Poultry Farming') {
@@ -16410,6 +16411,7 @@ sisters::sisters
 son::son
 sons::sons
 the same day as::the same day as
+the husband::the husband
 the wife::the wife
 they::they
 times::times
@@ -16505,6 +16507,7 @@ sister-in-law::belle-sœur
 sisters::sœurs
 son::fils
 the same day as::le même jour comme
+the husband::le marie
 the wife::la femme
 they:M:ils
 they:F:elles
@@ -16592,6 +16595,7 @@ son::Sohn
 the head of household::der Haushaltsvorstand
 the same day as::die gleichen Tag als
 times::fache
+the husband::der Mann
 the wife::die Frau
 they::Sie
 to::nach
