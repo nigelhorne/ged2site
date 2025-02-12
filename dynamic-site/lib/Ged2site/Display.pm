@@ -138,21 +138,29 @@ sub new {
 
 	Template::Filters->use_html_entities();
 
+	# _ names included for legacy reasons, they will go away
 	my $self = {
-		_config => $config,
-		_info => $info,
-		_logger => $args{logger},
+		cachedir => $args{cachedir},
 		_cachedir => $args{cachedir},
+		config => $config,
+		_config => $config,
+		info => $info,
+		_info => $info,
+		logger => $args{logger},
+		_logger => $args{logger},
 		%args,
 	};
 
 	if(my $lingua = $args{'lingua'}) {
+		$self->{'lingua'} = $lingua;
 		$self->{'_lingua'} = $lingua;
 	}
 	if(my $key = $info->param('key')) {
+		$self->{'key'} = $key;
 		$self->{'_key'} = $key;
 	}
 	if(my $page = $info->param('page')) {
+		$self->{'page'} = $page;
 		$self->{'_page'} = $page;
 	}
 
@@ -342,6 +350,10 @@ sub get_template_path
 	return $filename;
 }
 
+# Sets cookie values in the object.
+# Takes either a hash reference or a list of key-value pairs as input.
+# Iterates over the CGI parameters and stores them in the object's _cookies hash.
+# Returns the object itself, allowing for method chaining.
 sub set_cookie
 {
 	my $self = shift;
@@ -356,6 +368,7 @@ sub set_cookie
 sub http
 {
 	my $self = shift;
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	# Handle session cookies
 	# TODO: Only session cookies as the moment
@@ -370,14 +383,19 @@ sub http
 	# TODO: Change the headers, e.g. character set, based on the language
 	# my $language = $self->{_lingua} ? $self->{_lingua}->language() : 'English';
 
-	# Determine content type
-	my $filename = $self->get_template_path();
 	my $rc;
-	if ($filename =~ /\.txt$/) {
-		$rc = "Content-Type: text/plain\n";
+	if($params{'Content-Type'}) {
+		# Allow the content type to be forceably set
+		$rc = $params{'Content-Type'} . "\n";
 	} else {
-		binmode(STDOUT, ':utf8');
-		$rc = "Content-Type: text/html; charset=UTF-8\n";
+		# Determine content type
+		my $filename = $self->get_template_path();
+		if ($filename =~ /\.txt$/) {
+			$rc = "Content-Type: text/plain\n";
+		} else {
+			binmode(STDOUT, ':utf8');
+			$rc = "Content-Type: text/html; charset=UTF-8\n";
+		}
 	}
 
 	# Security headers
