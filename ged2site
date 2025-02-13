@@ -4888,6 +4888,10 @@ sub print_person
 									# $_->given_names() . '</a>'
 							# } @children);
 							if(my $decoded = conjunction(map { given_names($_) } @children)) {
+								if($language eq 'French') {
+									$bio .= ' ';
+									$phrase->append(' ');
+								}
 								$bio .= ": $decoded";
 								$phrase->append(": $decoded");
 							}
@@ -11125,7 +11129,7 @@ sub Gedcom::Individual::relationship_up
 					1 << 24 | 2 => 'Neffe',
 					1 << 24 | 3 => 'great-nephew',
 					1 << 24 | 4 => 'great-great-nephew',
-					2 << 24 | 1 => 'Onkle',
+					2 << 24 | 1 => 'Onkel',
 					2 << 24 | 2 => 'Cousin',
 					2 << 24 | 3 => 'first cousin once-removed',
 					2 << 24 | 4 => 'first cousin twice-removed',
@@ -16600,6 +16604,7 @@ the wife::die Frau
 they::Sie
 to::nach
 today::heute
+twice::zweimal
 was::war
 was born::wurde geboren
 was married to %s::war mit %s verheiratet
