@@ -38,17 +38,21 @@ sub html {
 		# Retrieve the person entry for this entry in the change table
 		#	and make it available to the template
 		# FIXME: this can take some time
+		my $person = $people->fetchrow_hashref(entry => $record->{'xref'});
+		next if(!defined($person));	# Was added then removed
+		next if($person->{'alive'});	# ged2site is suppost to not put in records of living people
+
 		my $change_key = $record->{'change'};
 		if($change_key =~ /^Added date of birth/) {
 			$change_key = 'Added Birth Date';
 		} elsif($change_key =~ /^Added date of marriage/) {
 			$change_key = 'Added Marriage Date';
 		} elsif($change_key =~ /^New person/) {
-			$change_key = 'New People';
+			$change_key = 'Added People';
 		}
 		push @{$changes->{$record->{'date'}}->{$change_key}}, {
 			'record' => $record,
-			'person' => $people->fetchrow_hashref(entry => $record->{'xref'})
+			'person' => $person
 		};
 	}
 	return $self->SUPER::html({ changes => $changes, updated => $args{'changes'}->updated() });

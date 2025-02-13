@@ -22,7 +22,7 @@
 		</div>
 		<div id="container">
 			<center>
-				[ <a href="?page=people&amp;home=1">Home</a> ] |
+				[ <a href="?page=home">Home</a> ] |
 				[ <a href="?page=censuses">Census Index</a> ] |
 				[ <a href="?page=surnames">Surname Index</a> ] |
 				[ <a href="?page=history">Family History</a> ] |
@@ -36,14 +36,14 @@
 				[% FOREACH days IN changes %]
 					<h2>[% days.key %]</h2>
 					[% FOREACH changesonthisday IN days.value %]
-						<ul id="nav">
 						<h3>[% changesonthisday.key %]</h3>
+						<ul>
 						[% FOREACH entry IN changesonthisday.value %]
 							<!--
 								[% USE Dumper %]
 								[% Dumper.dump(entry) %]
 							-->
-							<li>
+							<li style="margin-left: 10%;">
 								<a href="?page=people&amp;entry=[%- entry.record.xref %]">[% entry.person.title %]</a>
 								[% IF entry.record.change != 'New person' %]
 									: [% entry.record.change %]
