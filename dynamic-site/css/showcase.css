@@ -1,0 +1,126 @@
+/* https://www.w3schools.com/howto/howto_css_portfolio_gallery.asp */
+/* NJH - See additions from web.css at the bottom */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f1f1f1;
+  padding: 20px;
+  // font-family: Arial;
+        font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+	/*background: #d6d6d6;	/* Best to agree with the colour that ged2site uses for Graphviz's background */
+        font-size: 14px
+}
+
+/* Center website */
+.main {
+  max-width: 1000px;
+  margin: auto;
+}
+
+// h1 {
+  // font-size: 50px;
+  // word-break: break-all;
+// }
+
+.row {
+  margin: 8px -16px;
+}
+
+/* Add padding BETWEEN each column (if you want) */
+.row,
+.row > .column {
+  padding: 8px;
+}
+
+/* Create four equal columns that floats next to each other */
+.column {
+  float: left;
+  width: 25%;
+}
+
+/* Clear floats after rows */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Content */
+.content {
+  background-color: white;
+  padding: 10px;
+}
+
+/* Responsive layout - makes a two column-layout instead of four columns */
+@media screen and (max-width: 900px) {
+  .column {
+    width: 50%;
+  }
+}
+
+/* Responsive layout - makes the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+  }
+}
+
+/* From web.css */
+.social_media {
+        position: fixed;
+        left: 75%;
+        width: 20%;
+}
+
+#header_container {
+	background:#378de5;
+	color:white;
+	border:1px solid #666;
+	height:110px;
+	left:0;
+	position:fixed;
+	width:100%;
+	top:0;
+	padding: 10px;
+	z-index: 999
+}
+
+#header {
+	line-height:100px;
+	margin:0 auto;
+	width:940px;
+	text-align:center;
+}
+
+#container {
+	margin:0 auto;
+	overflow:auto;
+	padding:80px 0;
+	/*width:940px;*/
+	margin: 25px 25% 0 5%;
+}
+#content{}
+
+#container img {
+	border: 7px solid #fff;
+	margin: 5px
+}
+
+#footer_container {
+	background:#eee;
+	border:1px solid #666;
+	bottom:0;
+	height:60px;
+	left:0;
+	position:fixed;
+	width:100%;
+}
+
+#footer {
+	line-height:60px;
+	margin:0 auto;
+	width:940px;
+	text-align:center;
+}

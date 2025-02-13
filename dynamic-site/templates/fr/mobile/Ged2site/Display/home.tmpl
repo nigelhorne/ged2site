@@ -31,6 +31,10 @@
 				[% ELSE %]
 					[% event.event %]
 				[% END %]
+				[% IF event.person.profile_thumbnail %]
+					<a href="?page=people&amp;entry=[%- event.xref %]">
+						<img src="/[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width = "70"></a>
+				[% END %]
 			</p>
 		[% END %]
 		<center><font size="+2">
