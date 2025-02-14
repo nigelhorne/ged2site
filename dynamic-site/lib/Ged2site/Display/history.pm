@@ -240,6 +240,10 @@ sub _parse_date
 		$day =~ s/^0//;
 		return ($year, $month, $day);
 	}
+
+	if($date =~ /^\d{3,4}$/) {
+		return $date;	# Only the year is known
+	}
 	return;
 }
 

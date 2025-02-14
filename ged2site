@@ -9906,15 +9906,27 @@ sub print_person
 
 	undef %place_records;
 
-	if($birth_dt && ($opts{'l'} || !$is_alive)) {
-		print $csv $birth_dt->strftime('%Y/%m/%d');
-		$both_xmls->print("\n\t\t<birth>")->print($birth_dt->strftime('%Y/%m/%d'))->print('</birth>');
+	# Stash the birth and death dates (or years if all that is known)
+	if($opts{'l'} || !$is_alive) {
+		if($birth_dt) {
+			print $csv $birth_dt->strftime('%Y/%m/%d');
+			$both_xmls->print("\n\t\t<birth>")->print($birth_dt->strftime('%Y/%m/%d'))->print('</birth>');
+		} elsif($yob) {
+			print $csv $yob;
+			$both_xmls->print("\n\t\t<birth>$yob</birth>");
+		}
+		print $csv '!';
+		if($death_dt) {
+			print $csv $death_dt->strftime('%Y/%m/%d');
+			$both_xmls->print("\n\t\t<death>")->print($death_dt->strftime('%Y/%m/%d'))->print('</death>');
+		} elsif($yod) {
+			print $csv $yod;
+			$both_xmls->print("\n\t\t<death>$yod</death>");
+		}
+	} else {
+		print $csv '!';
 	}
-	print $csv '!';
-	if($death_dt && ($opts{'l'} || !$is_alive)) {
-		print $csv $death_dt->strftime('%Y/%m/%d');
-		$both_xmls->print("\n\t\t<death>")->print($death_dt->strftime('%Y/%m/%d'))->print('</death>');
-	}
+
 	print $csv '!';
 
 	my $dt;
