@@ -10230,7 +10230,7 @@ sub print_person
 						->print("\n\t\t\t\t<service>", ucfirst(service($event)), '</service>');
 
 					my $entry;
-					if(my $date = year(record => $event)) {
+					if(my $date = year(record => $event, nopreposition => 1)) {
 						$both_xmls->print("\n\t\t\t\t<date>");
 						if($date =~ /^from (.+) to (.+)$/) {
 							my ($from, $to) = ($1, $2);
@@ -10257,7 +10257,7 @@ sub print_person
 								->print("\n\t\t\t\t\t<to>$to</to>");
 						} else {
 							my $xml_date = $date;
-							$xml_date =~ s/^in\s+//i;	# E.g. "in 1942"
+							$xml_date =~ s/^[on]n\s+//i;	# E.g. "in 1942" or "on 28 May 1920"
 							$both_xmls->print("\n\t\t\t\t\t$xml_date");
 						}
 						$both_xmls->print("\n\t\t\t\t</date>");
@@ -11625,6 +11625,8 @@ sub year
 	}
 
 	if($string =~ /^\d{3,4}$/) {
+		return $string if($params->{'nopreposition'});
+
 		if($language eq 'French') {
 			return "en $string";
 		}
