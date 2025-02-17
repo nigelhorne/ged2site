@@ -1,7 +1,8 @@
 package Ged2site::Display::history;
 
 # Generate HTML for the timeline/history page,
-# displaying life events (e.g., births, deaths, marriages, military service) either for a specific individual or across all entries in the database. 
+# displaying life events (e.g., births, deaths, marriages, military service),
+# whether for a specific individual or across all entries in the database. 
 
 use warnings;
 use strict;
@@ -54,8 +55,8 @@ sub html
 	if(my $entry = $params{'entry'}) {
 		# Fetch timeline events for a specific person
 
-		# TODO: handle situation where look up fails
-		# TODO: add items such as emigration (need to work out year), world events
+		# TODO: handle the situation where a look-up fails
+		# TODO: add items such as emigration (need to work out the year), world events
 		@events = $history->selectall_hash({ xref => $entry });
 
 		# If events are found, pass the person's name to the template
@@ -145,6 +146,7 @@ sub html
 			# Did this person serve in the military?
 			if(my $military = $template_args->{'person'}->{'military'}) {
 				foreach my $entry($military->{'entry'}) {
+					next unless(ref($entry) eq 'HASH');
 					my $service = $entry->{'service'} // 'Military';
 					if(my $date = $entry->{'date'}) {
 						if(ref($date) eq 'HASH') {
