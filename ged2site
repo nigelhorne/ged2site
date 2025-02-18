@@ -83,12 +83,11 @@ BEGIN {
 		'HTML::Entities', 'Image::Info', 'JSON',
 		'List::Util',
 		'LWP::Simple::WithCache', 'MIME::Base64',
-		'LWP::UserAgent::Cached', 'Mozilla::CA',
+		'LWP::UserAgent::Cached', 'Mozilla::CA', 'Math::Round',
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached',
-		'HTML::GoogleMaps::V3 0.13', 'Math::Round',
 		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
 		'URI', 'URI::Find::Schemeless',
@@ -319,14 +318,30 @@ if($opts{'m'} || $opts{'w'}) {
 if($opts{'v'}) {
 	push @modules, 'Log::Any::Adapter';
 }
+
+my $config;
+
+eval { $config = Config::Auto::parse() };
+
+my $javascript_key;	# e.g. Google Maps API key set to application
+			# restriction = 'websites'.  Add your site there.
+my $maps_module;
+if($opts{'J'}) {
+	$javascript_key = $opts{'J'};
+	$maps_module = 'HTML::GoogleMaps::V3';
+} elsif($config && $config->{'google_maps_javascript_key'}) {
+	$javascript_key = $config->{'google_maps_javascript_key'};
+	$maps_module = 'HTML::GoogleMaps::V3';
+} else {
+	$maps_module = 'HTML::OSM';
+}
+
+push @modules, $maps_module;
+
 if($opts{'w'} && $opts{'c'}) {
 	# If you have a locally written module to look up entries,
 	# list them in gedcom.config,
 	# otherwise use Genealogy::FindaGrave
-	my $config;
-
-	eval { $config = Config::Auto::parse() };
-
 	if($config && $config->{'grave_modules'}) {
 		$grave_modules = $config->{'grave_modules'};
 
@@ -525,32 +540,20 @@ my $fortyyears = DateTime::Duration->new(years => 40);
 # my $fetcher;
 my $year_1000 = DateTime->new(year => 1000, month => 1, day => 1);
 
-my $config;
-
-eval { $config = Config::Auto::parse() };
-
 my %gp_args = (apiver => 3);
-my $geolocation_key;
+my $google_maps_geolocation_key;
 if($opts{'G'}) {
-	$geolocation_key = $opts{'G'};
+	$google_maps_geolocation_key = $opts{'G'};
 } elsif($ENV{'GMAP_KEY'}) {	# Compatibility with various CPAN modules
-	$geolocation_key = $ENV{'GMAP_KEY'};
-} elsif($config && $config->{'google_maps_geolocation_key'}) {
-	$geolocation_key = $config->{'google_maps_geolocation_key'};
+	$google_maps_geolocation_key = $ENV{'GMAP_KEY'};
+} elsif($config && $config->{'google_maps_google_maps_geolocation_key'}) {
+	$google_maps_geolocation_key = $config->{'google_maps_google_maps_geolocation_key'};
 }
-$gp_args{'key'} = $geolocation_key;
-$gp_args{'api_key'} = $geolocation_key;
+$gp_args{'key'} = $google_maps_geolocation_key;
+$gp_args{'api_key'} = $google_maps_geolocation_key;
 my $l = $ENV{'LANG'};
 if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 	$gp_args{'language'} = lc($1);
-}
-
-my $javascript_key;	# e.g. Google Maps API key set to application
-			# restriction = 'websites'.  Add your site there.
-if($opts{'J'}) {
-	$javascript_key = $opts{'J'};
-} elsif($config && $config->{'google_maps_javascript_key'}) {
-	$javascript_key = $config->{'google_maps_javascript_key'};
 }
 
 my $geocoder;
@@ -660,7 +663,7 @@ if($opts{'m'} || $opts{'w'}) {
 	}
 	$geocoder->push({ regex => qr/^[\w\s]+,\s*[\w\s]+,\s*(UK|England|Wales|Scotland)$/i, geocoder => $freegeocoder });
 
-	if($geolocation_key) {
+	if($google_maps_geolocation_key) {
 		# DST isn't that good for the UK
 		# $geocoder->push({ regex => qr/(UK|United Kingdom|England|USA|US|United States|Wales)$/i, geocoder => Geo::Coder::DataScienceToolkit->new() })
 		$geocoder->push({ regex => qr/^\d.+?,.+?,\s*(USA|US|United States)$/i, geocoder => Geo::Coder::US::Census->new() })
@@ -729,7 +732,7 @@ if($opts{'m'} || $opts{'w'}) {
 	});
 
 	# G::C::GooglePlaces
-	$ua->throttle({ 'maps.googleapis.com' => 0.1 }) unless($geolocation_key);
+	$ua->throttle({ 'maps.googleapis.com' => 0.1 }) unless($google_maps_geolocation_key);
 	$ua->ssl_opts(verify_hostname => 0);	# prevent "Can't connect to geocode.xyz:443 (certificate verify failed)"
 	$geocoder->ua($ua);
 
@@ -1284,6 +1287,7 @@ if(scalar(%all_locations)) {
 
 	$index = 1;
 
+	# FIXME: in HTML::OSM mode, the body only shows the last location
 	open(my $locations_xml, '>', 'dynamic-site/data/locations.xml');
 	print $locations_xml "<locations>\n\t<maps>\n";
 	my ($head, $body);
@@ -1306,7 +1310,7 @@ if(scalar(%all_locations)) {
 		if($javascript_key) {
 			$args{'api_key'} = $javascript_key;
 		}
-		my $map = HTML::GoogleMaps::V3->new(%args);
+		my $map = $maps_module->new(%args);
 		foreach my $place(keys %markers) {
 			my @annotations = @{$markers{$place}};
 			my $html;
@@ -1339,8 +1343,10 @@ if(scalar(%all_locations)) {
 	# close $csv;
 	undef %all_locations;
 
-	$body =~ s/</&lt;/g;
-	$body =~ s/>/&gt;/g;
+	# $body =~ s/</&lt;/g;
+	# $body =~ s/>/&gt;/g;
+	$body = wide_to_html($body);
+	$body =~ s/&copy;/&#x0A9;/g;
 	print $locations_xml "\t</maps>\n\t<body>$body</body>\n</locations>\n";
 	close $locations_xml;
 }
@@ -2325,8 +2331,12 @@ sub print_person
 	}
 	print $html '</head>';
 	if($opts{'m'}) {
-		print $html "<body onload=\"html_googlemaps_initialize()\">";
-	} elsif($geolocation_key) {
+		if($maps_module eq 'HTML::GoogleMaps::V3') {
+			print $html "<body onload=\"html_googlemaps_initialize()\">";
+		} else {
+			print $html '<body>';
+		}
+	} elsif($google_maps_geolocation_key) {
 		die "$0: -G makes no sense without -m";
 	} else {
 		print $html '<body>';
@@ -9805,7 +9815,7 @@ sub print_person
 						if($javascript_key) {
 							$args{'api_key'} = $javascript_key;
 						}
-						$map = HTML::GoogleMaps::V3->new(%args);
+						$map = $maps_module->new(%args);
 						$map->center($current_place);
 					}
 					add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
@@ -9847,7 +9857,7 @@ sub print_person
 					if($javascript_key) {
 						$args{'api_key'} = $javascript_key;
 					}
-					$map = HTML::GoogleMaps::V3->new(%args);
+					$map = $maps_module->new(%args);
 					$map->center($current_place);
 				}
 				add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
@@ -9866,7 +9876,7 @@ sub print_person
 				if($javascript_key) {
 					$args{'api_key'} = $javascript_key;
 				}
-				$map = HTML::GoogleMaps::V3->new(%args);
+				$map = $maps_module->new(%args);
 				$map->center($current_place);
 			}
 			add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
@@ -9884,6 +9894,19 @@ sub print_person
 			$map_head =~ s/\n\n*/\n/g;
 			$map_head =~ s/http:/https:/;
 			$map_head = wide_to_html({ string => $map_head, keep_hrefs => 1, keep_apos => 1 });
+			if($map_div =~ /[^[:ascii:]]/) {
+				# Fix the URL to not have wide characters
+				my $ufinder = URI::Find::Schemeless->new(sub {
+					# my($uri, $orig_uri) = @_;
+					my $orig_uri = $_[1];
+
+					$orig_uri =~ s/á/a/g;
+					$orig_uri =~ s/ó/o/g;
+					return $orig_uri;
+				});
+				$ufinder->find(\$map_div);
+				$map_div = wide_to_html({ string => $map_div, keep_hrefs => 1, keep_apos => 1 });
+			}
 			# utf8::encode($map_head);
 			$both_xmls->print("\n\t\t<map>\n\t\t\t<map_head>")
 				->print(MIME::Base64::encode_base64url($map_head))
@@ -9893,9 +9916,7 @@ sub print_person
 				# # Don't include the key in the webpage.
 				# $map_head =~ s/\?key=\w+?"/"/;
 			# }
-			print $html wide_to_html({ string => $map_head, keep_hrefs => 1 }),
-				'<h2>Map</h2>', wide_to_html({ string => $map_div, keep_hrefs => 1 }),
-				"\n";
+			print $html "$map_head<h2>Map</h2><center>$map_div</center>\n";
 		} else {
 			print $csv '!!';
 		}
@@ -13430,7 +13451,11 @@ sub add_marker
 	# https://www.google.com/maps/place/81+Keightly+Rd,+Greencastle,+Putnam,+IN,+USA
 	# TODO: If BMAP_KEY is set, use Bing maps instead
 	#	If GMAP_KEY is not set, use OpenStreetMaps
-	$place_link = "<a href=\"https://www.google.com/maps/place/$place_link\">$place</a>";
+	if($maps_module eq 'HTML::GoogleMaps::V3') {
+		$place_link = "<a href=\"https://www.google.com/maps/place/$place_link\">$place</a>";
+	} else {
+		$place_link = "<a href=\"https://nominatim.openstreetmap.org/ui/search.html?q=$place_link\">$place</a>";
+	}
 
 	if(my $annotation = $params{'annotation'}) {
 		$place =~ s/é/&eacute;/g;
