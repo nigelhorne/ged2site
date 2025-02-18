@@ -12483,7 +12483,7 @@ sub notes
 					my $matches = $hr;
 					if($matches->{'match'}) {
 						$matches = $matches->{'match'};
-						print __LINE__, ': (DEBUG) ', Data::Dumper->new([$matches])->Dump();
+						warn '(DEBUG) ', Data::Dumper->new([$matches])->Dump();
 					}
 					if(ref($matches) eq 'ARRAY') {
 						my $text;
@@ -12497,7 +12497,7 @@ sub notes
 							# my $place = $match->{'location'};
 							# print "$place\n";
 							$match->{'text'} = wide_to_html($text);
-							print __LINE__, ': (DEBUG) ', Data::Dumper->new([$match])->Dump();
+							warn '(DEBUG) ', Data::Dumper->new([$match])->Dump();
 							push @{$note_locations}, $match;
 						}
 					} elsif(ref($matches) eq 'HASH') {
@@ -12509,7 +12509,7 @@ sub notes
 							} else {
 								$match->{'text'} = $rc;
 							}
-							print __LINE__, ": (DEBUG)\n\t$rc\n\t", Data::Dumper->new([$match])->Dump();
+							warn "(DEBUG)\n\t$rc\n\t", Data::Dumper->new([$match])->Dump();
 							push @{$note_locations}, $match;
 						}
 					}
@@ -12518,7 +12518,7 @@ sub notes
 				warn 'TODO: ', Data::Dumper->new([$hr])->Dump();
 			} elsif($hr->can('lat') && defined($region) && $hr->country() && ($hr->country() eq $region)) {
 				# Geo::Location::Point
-				warn 'TODO: ', Data::Dumper->new([$hr])->Dump(), "\n\t", ref($hr), "\n\t", $hr->as_string();
+				warn '(DEBUG): ', Data::Dumper->new([$hr])->Dump(), "\n\t", ref($hr), "\n\t", $hr->as_string();
 				push @{$note_locations}, {
 					confidence => $hr->confidence(),
 					location => $hr->location(),
