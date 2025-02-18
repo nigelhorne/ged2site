@@ -7,6 +7,7 @@ use strict;
 # TODO: More than just BMD, for example baptisms and travelling
 
 use Ged2site::Display;
+use DateTime;
 
 our @ISA = ('Ged2site::Display');
 
