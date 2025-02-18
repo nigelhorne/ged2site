@@ -104,7 +104,7 @@ The options to ged2site are:
 | -h   | set the home person |
 | -l   | include living people |
 | -L n | Limit to n records |
-| -m   | Generate a Google map on each page showing events |
+| -m   | Generate a map on each page showing events |
 | -J   | Google Maps JavaScript API key (used to display the map): set the key's application restriction to the website. If not set, use OpenStreetMaps |
 | -G   | Google Maps geolocation API key (used to populate the map) |
 | -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcom](//github.com/nigelhorne/gedcom)* |
