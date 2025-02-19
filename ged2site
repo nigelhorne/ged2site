@@ -6697,15 +6697,21 @@ sub print_person
 					# Lingua::EN::Inflect::WORDLIST(@residencestringarray, {sep => '; ', conj => i18n('and')});
 				my $s = ', ';
 				if(scalar(@residencestringarray) < 3) {
-					$s .= lcfirst($pronoun);
-					if(is_alive($person)) {
-						if($first->date()) {
-							$s .= i18n(' was living');
-						} else {
-							$s .= i18n(' has lived');
-						}
+					if($language eq 'German') {
+						# Since it's just after a date, lose the comma and ensure the verb will be the
+						# second thing in the sentence
+						$s = ' lebte ' . lcfirst($pronoun);
 					} else {
-						$s .= i18n(' lived');
+						$s .= lcfirst($pronoun);
+						if(is_alive($person)) {
+							if($first->date()) {
+								$s .= i18n(' was living');
+							} else {
+								$s .= i18n(' has lived');
+							}
+						} else {
+							$s .= i18n(' lived');
+						}
 					}
 				} else {
 					if($all_in_county) {
