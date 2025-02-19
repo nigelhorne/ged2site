@@ -329,6 +329,7 @@ my $maps_module;
 if($opts{'J'}) {
 	$javascript_key = $opts{'J'};
 	$maps_module = 'HTML::GoogleMaps::V3';
+	# push @modules, 'Sub::Override';
 } elsif($config && $config->{'google_maps_javascript_key'}) {
 	$javascript_key = $config->{'google_maps_javascript_key'};
 	$maps_module = 'HTML::GoogleMaps::V3';
@@ -425,6 +426,13 @@ foreach my $module(@modules) {
 	# if($version && ($module::VERSION < $version)) {
 		# die "$module: need $version got ", $module::VERSION;
 	# }
+}
+
+if($maps_module eq 'HTML::GoogleMaps::V3') {
+	# Nice idea, but it doesn't do what I think it should do
+	# Sub::Override->new("${maps_module}::_text_to_point" => sub { ged2site_text_to_point(@_) });
+	# So do this instead
+	*HTML::GoogleMaps::V3::_text_to_point = sub { ged2site_text_to_point(@_) };
 }
 
 umask(0077);	# Don't let PII become publicly readable
@@ -14443,7 +14451,9 @@ sub wills
 	return @wills;
 }
 
-sub HTML::GoogleMaps::V3::_text_to_point {
+# Overridden HTML::GoogleMaps::V3::_text_to_point
+sub ged2site_text_to_point
+{
     my ( $self,$point_text ) = @_;
 
     # IE, already a long/lat pair
