@@ -9450,9 +9450,9 @@ sub print_person
 							next OBJE if($pass == 2);
 							if($title) {
 								print "Process image $title\n" if($opts{'v'});
+								next if($titlehistory{$title});
 								my $escaped_title = wide_to_html($title);
 								print $html "<h3>$escaped_title</h3>";
-								next if($titlehistory{$title});
 								$titlehistory{$title} = 1;
 							} else {
 								print "Process file with no title\n" if($opts{'v'});
