@@ -215,7 +215,6 @@ use autodie qw(:all);
 # use Lingua::EN::AddressParse;
 # use Memoize;
 use POSIX;
-use Array::Iterator::BiDirectional;
 
 sub get_location($);
 
@@ -4399,7 +4398,7 @@ sub print_person
 								if($phrase->length()) {
 									push @phrases, $phrase;
 									$phrase = Data::Text->new();
-									$bio .= ', ';
+									$bio .= ','  if(!$parentheses);
 								}
 							}
 						} elsif($numberofchildrenwiththisspouse > 1) {
@@ -5501,7 +5500,7 @@ sub print_person
 			my $printed_father_same_place;
 			my $printed_mother_same_place;
 
-			my $iterator = Array::Iterator::BiDirectional->new({ __array__ => \@residencelist });
+			my $iterator = Array::Iterator->new({ __array__ => \@residencelist });
 			while(my $residence = $iterator->get_next()) {
 				my $rdate = $residence->date();
 				my $residencestring;
