@@ -9565,7 +9565,9 @@ sub print_person
 						} else {
 							next OBJE if($pass == 1);
 							print "Process non-image $title\n" if($opts{'v'} && $title);
-							print $html "<a href=\"$file\" target=\"_blank\">",
+							my $escaped_file = $file;
+							$escaped_file =~ s/&/&amp;/g;
+							print $html "<a href=\"$escaped_file\" target=\"_blank\">",
 								$title ? HTML::Entities::encode($title) : 'Media',
 								'</a>';
 							print $csv "$file---",
