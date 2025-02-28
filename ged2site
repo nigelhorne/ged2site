@@ -9838,7 +9838,7 @@ sub print_person
 					$current_place = $place;
 				}
 				my $text = $event;
-				$text =~ s/\/.+//;	# Remove count e.g. when more than one residence
+				# $text =~ s/\/.+//;	# Remove count e.g. when more than one residence
 				if($event !~ /^Living /) {	# Already put in above
 					if($record->date()) {
 						$text .= ' ' . year({ person => $person, record => $record });
@@ -9907,6 +9907,7 @@ sub print_person
 			$map_head =~ s/\n\n*/\n/g;
 			$map_head =~ s/http:/https:/;
 			$map_head = wide_to_html({ string => $map_head, keep_hrefs => 1, keep_apos => 1 });
+			$map_head =~ s/(^|\n)[\n\s]*/$1/g;	# Remove blank lines
 			if($map_div =~ /[^[:ascii:]]/) {
 				# Fix the URL to not have wide characters
 				my $ufinder = URI::Find::Schemeless->new(sub {
