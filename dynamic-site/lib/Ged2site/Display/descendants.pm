@@ -16,7 +16,7 @@ sub html {
 	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'descendants',
-		'entry' => qr/^[PI]\d+$/,
+		'entry' => qr/^[PI]_?\d+$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
 	};

@@ -54,8 +54,8 @@ sub create_disc_cache {
 		throw Error::Simple('root_dir is not optional') unless($root_dir);
 
 		if($logger) {
-			$logger->warn(Data::Dumper->new([$config])->Dump());
-			$logger->warn('disc_cache not defined in ', $config->{'config_path'}, ' falling back to BerkeleyDB');
+			# $logger->warn(Data::Dumper->new([$config])->Dump());
+			$logger->info('disc_cache not defined in ', $config->{'config_path'}, ' falling back to BerkeleyDB');
 		}
 		return CHI->new(driver => 'BerkeleyDB', root_dir => $root_dir, namespace => $args->{'namespace'});
 	}
@@ -136,7 +136,8 @@ sub create_memory_cache {
 	my $driver = $config->{memory_cache}->{driver};
 	unless(defined($driver)) {
 		if($logger) {
-			$logger->warn('memory_cache not defined in ', $config->{'config_path'}, ' falling back to memory');
+			# $logger->warn(Data::Dumper->new([$config])->Dump());
+			$logger->info('memory_cache not defined in ', $config->{'config_path'}, ' falling back to memory');
 		}
 		# return CHI->new(driver => 'Memcached', servers => [ '127.0.0.1:11211' ], namespace => $args->{'namespace'});
 		# return CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => $args->{'namespace'});
