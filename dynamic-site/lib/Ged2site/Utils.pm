@@ -27,6 +27,7 @@ use Data::Dumper;
 use DBI;
 use Error;
 use Log::Any::Adapter;
+use Params::Get;
 
 BEGIN {
 	Log::Any::Adapter->set('Log4perl');
@@ -42,7 +43,7 @@ Supports multiple cache drivers, including BerkeleyDB, DBI, and Redis.
 =cut
 
 sub create_disc_cache {
-	my $args = get_params(undef, @_);
+	my $args = Params::Get::get_params(undef, @_);
 
 	my $config = $args->{'config'};
 	throw Error::Simple('config is not optional') unless($config);
@@ -127,13 +128,13 @@ Supports multiple cache drivers, including SharedMem, Memory, and Redis.
 =cut
 
 sub create_memory_cache {
-	my $args = get_params(undef, @_);
+	my $args = Params::Get::get_params(undef, @_);
 
 	my $config = $args->{'config'};
 	throw Error::Simple('config is not optional') unless($config);
 
 	my $logger = $args->{'logger'};
-	my $driver = $config->{memory_cache}->{driver};
+	my $driver = $config->{'memory_cache'}->{driver};
 	unless(defined($driver)) {
 		if($logger) {
 			$logger->debug(Data::Dumper->new([$config])->Dump());
@@ -143,7 +144,7 @@ sub create_memory_cache {
 		# return CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => $args->{'namespace'});
 		# return CHI->new(driver => 'SharedMem', max_size => 1024, shm_size => 16 * 1024, shm_key => 98766789, namespace => $args->{'namespace'});
 		return CHI->new(driver => 'Memory', datastore => {});
-}
+	}
 	if($logger) {
 		$logger->debug('memory cache via ', $config->{memory_cache}->{driver}, ', namespace: ', $args->{'namespace'});
 	}
@@ -199,39 +200,6 @@ sub create_memory_cache {
 		$chi_args{'redis_options'} = \%redis_options;
 	}
 	return CHI->new(%chi_args);
-}
-
-=head2	get_params
-
-Parse the arguments given to a function,
-allowing the caller to call the function in anyway that they want e.g. foo('bar'), foo(arg => 'bar'), foo({ arg => 'bar' })
-all mean the same when called _get_params('arg', @_);
-
-=cut
-
-sub get_params
-{
-	my $default = shift;
-
-	# Directly return hash reference if the first parameter is a hash reference
-	return $_[0] if ref $_[0] eq 'HASH';
-
-	my %rc;
-	my $num_args = scalar @_;
-
-	# Populate %rc based on the number and type of arguments
-	if(($num_args == 1) && (defined $default)) {
-		# %rc = ($default => shift);
-		return { $default => shift };
-	} elsif($num_args == 1) {
-		throw Error::Simple('Usage: ' . __PACKAGE__ . '->' . (caller(1))[3] . '()');
-	} elsif($num_args == 0 && defined $default) {
-		throw Error::Simple('Usage: ' . __PACKAGE__ . '->' . (caller(1))[3] . '($default => \$val)');
-	} elsif(($num_args % 2) == 0) {
-		%rc = @_;
-	}
-
-	return \%rc;
 }
 
 =head2 distance
