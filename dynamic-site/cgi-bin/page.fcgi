@@ -292,8 +292,9 @@ while($handling_request = ($request->Accept() >= 0)) {
 	Log::Any::Adapter->set( { category => $script_name }, 'Log4perl');
 	$logger = Log::Any->get_logger(category => $script_name);
 	$logger->info("Request $requestcount: ", $ENV{'REMOTE_ADDR'});
-	$people->set_logger($logger);
 	$info->set_logger($logger);
+	$people->set_logger($logger);
+	$vwf_log->set_logger($logger);
 
 	my $start = [Time::HiRes::gettimeofday()];
 
@@ -772,6 +773,7 @@ sub vwflog($$$$$$)
 	my $warnings = join('; ',
 		grep defined, map { (($_->{'level'} eq 'warn') || ($_->{'level'} eq 'notice')) ? $_->{'message'} : undef } @{$info->messages()}
 	);
+	$warnings ||= '';
 
 	if(open(my $fout, '>>', $vwflog)) {
 		print $fout
