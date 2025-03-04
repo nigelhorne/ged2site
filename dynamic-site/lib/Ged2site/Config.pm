@@ -26,23 +26,23 @@ use File::Spec;
 
 =head2 new
 
-# Takes four optional arguments:
-#	info (CGI::Info object)
-#	logger
-#	config_directory - used when the configuration directory can't be worked out
-#	config_file - name of the configuration file - otherwise determined dynamically
-#	config (ref to hash of values to override in the config file
+Takes four optional arguments:
+	info (CGI::Info object)
+	logger
+	config_directory - used when the configuration directory can't be worked out
+	config_file - name of the configuration file - otherwise determined dynamically
+	config (ref to hash of values to override in the config file
 
-# Values in the file are overridden by what's in the environment
+Values in the file are overridden by what's in the environment
 
 =cut
 
-sub new {
+sub new
+{
 	my $proto = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $class = ref($proto) || $proto;
-
 	my $info = $args{info} || CGI::Info->new();
 
 	if($args{'logger'}) {
