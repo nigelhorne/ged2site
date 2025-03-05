@@ -4,16 +4,16 @@
 
 Create a Stunning Family Tree Website from Your Gedcom File!
 
-Turn your Gedcom file into a fully interactive family tree website with Ged2site.
+Turn your Gedcom file into a fully interactive family tree website with Ged2Site.
 This powerful tool transforms your genealogical data into a beautifully structured HTML site,
 making it easy to share your family history with others.
 
-Check out a live example of a genealogy website built with Ged2site:
+Check out a live example of a genealogy website built with Ged2Site:
 [Nigel Horne's Family Tree](https://genealogy.nigelhorne.com).
 
 ## Need Help?
 
-Ged2site is a feature-rich and advanced tool, and while it’s designed to be accessible, setting up a genealogy website can be complex.
+Ged2Site is a feature-rich and advanced tool, and while it’s designed to be accessible, setting up a genealogy website can be complex.
 If you’re a genealogist without an IT background, I’d be happy to assist you.
 Reach out to me at <njh at nigelhorne.com> for professional support.
 
@@ -40,7 +40,7 @@ by you to create the look and feel of the website that you want.
 The dynamic site contains more data visualisation such as trend analysis,
 time-lapse views and heatmaps in a visually appealing way.
 
-## How to Use Ged2site
+## How to Use Ged2Site
 
 To generate your family tree website, run the following command:
 
@@ -109,35 +109,66 @@ If you want logging, edit the `page.l4pconf` file to configure it to your needs.
 
 Once you've completed these steps, your **dynamic family tree website** will be live and optimized.
 
-## Installation and Pre-Requisites
+## **Installing Dependencies for Ged2Site**  
 
-Ged2site uses many CPAN modules which it will try to install if they are not
-on your system.
-If it doesn't have the necessary privilege to install the modules it will
-fail on starting up with "permission denied" errors.
-This is most likely because you're not running as root
-(which is of course how it should be)
-and you're not using [local::lib](https://metacpan.org/pod/local::lib),
-or [Perlbrew](https://perlbrew.pl/).
+### **Automatic Installation**  
+Ged2Site relies on multiple **CPAN modules**.
+If they are missing, the program will attempt to **install them automatically** when you run it for the first time **without any arguments**:  
 
-Running the program for the first time with no
-arguments should install them,
-of course, that will fail if you don't have the privilege,
-in which case you'll need to add them by hand.
-To install by hand you'll either have to use local::lib or perlbrew.
-Of course you could also run ged2site as root,
-but I strongly advise you don't do that.
+```
+ged2site
+```
 
-You can also try
-```cpan -i lazy && perl -Mlazy ged2site && perl -Mlazy dynamic/cgi-bin/page.cgi```
-though I've not tested that.
+However, this **may fail** with a "permission denied" error if:  
+- You are **not running as root** (which is the correct and safer way).  
+- You are **not using** tools like [local::lib](https://metacpan.org/pod/local::lib) or [Perlbrew](https://perlbrew.pl/).  
 
-You'll also need to install [gedcom](https://github.com/nigelhorne/gedcom) to get calendars to appear on the dynamic sites.
+### **Manual Installation (If Automatic Installation Fails)**  
+If the modules do not install automatically, you have three options:  
 
-On FreeBSD, you'll need to
-"sudo pkg install pkgconf gdlib graphviz ImageMagick7;
-cd /usr/local/lib;
-sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so"
+1. **Use `local::lib`** (Recommended)  
+   - Set up `local::lib` by following [these instructions](https://metacpan.org/pod/local::lib).  
+   - Install missing modules manually with CPAN:  
+     ```
+     cpan install Module::Name
+     ```
+
+2. **Use Perlbrew**  
+   - Install [Perlbrew](https://perlbrew.pl/) to manage your Perl environment.  
+   - Install modules within your Perlbrew-managed environment.
+
+3. **Run Ged2Site as Root** (Not Recommended)  
+   - You **can** run it as root, but this **is not advised** due to security risks.
+
+### **Alternative Installation Method (Experimental)**  
+You can also try installing dependencies with:  
+
+```
+cpan -i lazy && perl -Mlazy ged2site && perl -Mlazy dynamic/cgi-bin/page.cgi
+```
+
+**Note:** This method is **untested** and may not work.
+
+### **Installing Gedcom (Required for Calendars)**  
+To enable calendar features on the **dynamic site**, you **must install Gedcom**:  
+
+```
+git clone https://github.com/nigelhorne/gedcom.git
+cd gedcom
+perl Makefile.PL && make && make install
+```
+
+### **Additional Setup for FreeBSD**  
+If you're using **FreeBSD**, install required packages and create symbolic links:  
+
+```
+sudo pkg install pkgconf gdlib graphviz ImageMagick7
+cd /usr/local/lib
+sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so
+```
+
+### **Final Check**  
+Once dependencies are installed, **try running Ged2Site again**. If you still encounter issues, ensure your Perl environment is properly configured using `local::lib` or `Perlbrew`.
 
 ## Runtime Options
 
@@ -304,7 +335,7 @@ just send your Gedcom and I'll do the rest.
 
 ### Dual License
 
-Ged2site is free to use for personal single user, single computer use only
+Ged2Site is free to use for personal single user, single computer use only
 All other users (including Commercial, Charity, Educational, Government)
 must apply in writing for a licence for use.
 
@@ -337,7 +368,7 @@ The storytelling format is hard coded, it would be useful if it were configurabl
 
 ## XML File Generation
 
-Ged2site generates an XML file for each individual in the database.
+Ged2Site generates an XML file for each individual in the database.
 These files are primarily used to create dynamic content for websites.
 However, in principle, they can be imported into any data viewing system that supports XML.
 

@@ -130,7 +130,7 @@ sub html
 							# Only include on this person's timeline if the spouse died
 							#	before they did
 							if(($year < $yod) ||
-							   (($year == $yod) && defined($mod) && ($month < $mod))) {
+							   (($year == $yod) && defined($month) && defined($mod) && ($month < $mod))) {
 								my $event_type = ($spouse->{'sex'} eq 'M') ? 'Death of husband' : 'Death of wife';
 								# Add a "Death of spouse" event to the timeline
 								_add_event(\@events, $event_type, $xref, $spouse->{'title'}, $year, $month, $day);
