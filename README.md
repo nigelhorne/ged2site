@@ -53,43 +53,61 @@ This will create two website versions in separate folders:
 
 What’s the Difference?
 * Static Site:
-+ Basic HTML, easy to use, no extra setup required.
+	* Basic HTML, easy to use, no extra setup required.
 * Dynamic Site:
-+ Supports multiple languages.
-+ Adapts content for mobile, web, and search engines.
-+ Improves SEO and user experience.
-+ Easier to customize for a unique look and feel.
-+ Includes data visualizations like trend analysis, time-lapse views, and heatmaps.
+	* Supports multiple languages.
+	* Adapts content for mobile, web, and search engines.
+	* Improves SEO and user experience.
+	* Easier to customize for a unique look and feel.
+	* Includes data visualizations like trend analysis, time-lapse views, and heatmaps.
 
 If you want a flexible, visually rich, and customizable family tree website, the dynamic site is the better option.
 
-## Publishing Your Site
+## **How to Publish Your Site**
 
-If you use the static site, copy files in the static-site directory to your web server.
+### **For the Static Site**
+If you're using the **static site**,
+simply **copy all files from the `static-site` directory** to your web server.
+No extra setup is needed.
 
-If you decide to use the dynamic site,
-first create a $hostname.com file in the conf directory (use default as a template),
-then modify the contents of the template tree so that the site looks as you want it.
-The configuration file can be in any number of formats including INI and XML.
+### **For the Dynamic Site**
+If you prefer the **dynamic site**,
+follow these steps:
 
-    root_dir: /full/path/to/website directory
-    SiteTitle: The title of your website
-    memory_cache: where short-term volatile information is stored, such as the country of origin of the client
-    disc_cache: where long-term information is stored, such as copies of output to see if HTTP 304 can be returned
-    contact: your name and e-mail address
+#### **1. Create a Configuration File**
+- Go to the `conf` directory and create a new file named after your website's hostname (e.g., `yourdomain.com`).
+- Use the `default` file as a template.
+- Update the configuration file with key details:
 
-Then upload the dynamic-site directory to your web server.
-The databases are in CSV format. To speed up access you can convert to SQLite
-format using
-[csv2sqlite](http://search.cpan.org/~rwstauner/App-csv2sqlite/),
-which you should run on each of the .csv files.
+  ```
+  root_dir: /full/path/to/your/website
+  SiteTitle: Your Website Title
+  memory_cache: Stores short-term data like user locations
+  disc_cache: Stores long-term data for caching and performance
+  contact: Your Name and Email Address
+  ```
 
-    csv2sqlite -o sep_char='!' -o allow_loose_quotes=1 people.csv people.sql
+#### **2. Customize the Site**
+Modify the **template files** to change the website’s design and layout to match your needs.
 
-Every time you upload a new site ensure that you remove the "save\_to" directory and the disc cache,
-since they contain cached copies of pages that will be inconsistent with the new site.
+#### **3. Upload to Your Web Server**
+Copy the entire `dynamic-site` directory to your web server.
 
-Finally, for the dynamic site, set up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
+#### **4. Optimize Your Database (Optional)**
+The dynamic site stores data in **CSV files**, but for faster performance, you can **convert them to SQLite** using [`csv2sqlite`](http://search.cpan.org/~rwstauner/App-csv2sqlite/).
+
+Run this command on each CSV file:
+```
+csv2sqlite -o sep_char='!' -o allow_loose_quotes=1 people.csv people.sql
+```
+
+#### **5. Clear Old Cache**
+Before uploading a new version of your site, **delete the `save_to` directory and the disc cache** to remove outdated page copies.
+
+#### **6. Set Up Logging (Optional)**
+If you want logging, edit the `page.l4pconf` file to configure it to your needs.
+
+Once you've completed these steps, your **dynamic family tree website** will be live and optimized.
 
 ## Installation and Pre-Requisites
 
