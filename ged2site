@@ -10084,6 +10084,7 @@ sub print_person
 				}
 			}
 		} else {
+			my $index;
 			foreach my $spouse(@spouses) {
 				my $date;
 				# FIXME: if the spouse has been married more than once we'll get the wrong date
@@ -10109,11 +10110,39 @@ sub print_person
 
 	if(defined($m)) {
 		print $csv "!$m!$sex!";
-		$both_xmls->print("\n\t\t<marriage>$m</marriage>\n\t\t<sex>$sex</sex>");
 	} else {
 		print $csv "!!$sex!";
-		$both_xmls->print("\n\t\t<sex>$sex</sex>");
 	}
+
+	# Write the spouse information, including marriage info, to the person's XML file
+	if(($opts{'l'} || !$is_alive) && scalar(@spouses)) {
+		$both_xmls->print("\n\t\t<marriages>");
+
+		my @marriages = $person->get_record('fams marriage');
+		if(scalar(@marriages) == 0) {
+			@marriages = $person->get_record('marriage');
+		}
+		my $index = 0;
+
+		# Write the information for each marriage
+		foreach my $spouse(@spouses) {
+			next if((!$opts{'l'}) && is_alive($spouse));	# Don't stash if this spouse is still alive
+			$both_xmls->print("\n\t\t\t<marriage>");
+			if(scalar(@spouses) == 1) {
+				$both_xmls->print("\n\t\t\t\t<date>$m</date>") if(defined($m));
+				$both_xmls->print("\n\t\t\t\t<spouse>", $spouses[0]->xref(), '</spouse>');
+			} elsif(my $marriage = $marriages[$index++]) {
+				if(my $mdate = $marriage->date()) {
+					$both_xmls->print("\n\t\t\t\t<date>$mdate</date>");
+				}
+				$both_xmls->print("\n\t\t\t\t<spouse>", $spouse->xref(), '</spouse>');
+			}
+			$both_xmls->print("\n\t\t\t</marriage>");
+		}
+
+		$both_xmls->print("\n\t\t</marriages>");
+	};
+	$both_xmls->print("\n\t\t<sex>$sex</sex>");
 
 	if($me && $birth_dt && $death_dt) {
 		# Calculate the birth and death countries of adults on both sides of the tree

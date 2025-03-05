@@ -2,7 +2,7 @@ package Ged2site::Display::history;
 
 # Generate HTML for the timeline/history page,
 # displaying life events (e.g., births, deaths, marriages, military service),
-# whether for a specific individual or across all entries in the database. 
+# whether for a specific individual or across all entries in the database.
 
 use warnings;
 use strict;
@@ -120,7 +120,7 @@ sub html
 					}
 				}
 
-				# Process spouse
+				# Process spouse death information
 				# TODO: Add support for people married more than once
 				if(my $xref = $person->{'bio'} =~ /married <a href=.+?entry=(.+?)">/ && $1) {
 					# Fetch details of this spouse
@@ -138,11 +138,26 @@ sub html
 						}
 					}
 				}
+
 			}
 
 			# Give the template access to the person's details
 			$template_args->{'person'} = _get_person(\%args, \%params);
 
+			# Add the marriages' details - spouse name and date
+			if(my $marriages = $template_args->{'person'}->{'marriages'}) {
+				if($marriages->{'marriage'}) {
+					# Ignore marriage info in the history.csv file; TODO - don't put it in
+					@events = grep defined($_), map { $_->{'event'} ne 'Marriage' ? $_ : undef } @events;
+					foreach my $marriage($marriages->{'marriage'}) {
+						if(my $spouse = $people->fetchrow_hashref({ entry => $marriage->{'spouse'} })) {
+							if(my ($year, $month, $day) = _parse_date($marriage->{'date'})) {
+								_add_event(\@events, 'Marriage', $marriage->{'spouse'}, $spouse->{'title'}, $year, $month, $day);
+							}
+						}
+					}
+				}
+			}
 			# Did this person serve in the military?
 			if(my $military = $template_args->{'person'}->{'military'}) {
 				foreach my $entry($military->{'entry'}) {

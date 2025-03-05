@@ -2,21 +2,28 @@
 
 # ged2site
 
-Convert a Gedcom file to HTML to create a family tree website.
+Create a Stunning Family Tree Website from Your Gedcom File!
 
-An example genealogy website that was produced by ged2site is available
-at https://genealogy.nigelhorne.com.
+Turn your Gedcom file into a fully interactive family tree website with Ged2site.
+This powerful tool transforms your genealogical data into a beautifully structured HTML site,
+making it easy to share your family history with others.
 
-This is quite complex software, so if you are a genealogist looking to create
-a website and aren't an IT guru,
-it would be better to e-mail me on `<njh at nigelhorne.com>` for professional help.
-The software is aimed to be useful for people with limited genealogical knowledge.
-If you contact me, please let me know the program you're using to create your
-Gedcom file, and the operating system you are using.
+Check out a live example of a genealogy website built with Ged2site:
+[Nigel Horne's Family Tree](https://genealogy.nigelhorne.com).
 
-It's been tested more extensively with Gedcoms exported and downloaded from
+## Need Help?
+
+Ged2site is a feature-rich and advanced tool, and while it’s designed to be accessible, setting up a genealogy website can be complex.
+If you’re a genealogist without an IT background, I’d be happy to assist you.
+Reach out to me at <njh at nigelhorne.com> for professional support.
+
+## Compatibility
+
+It's been extensively tested with Gedcoms exported and downloaded from
 FindMyPast and Family Tree Maker, though it should work fine with other systems
 such as GenesReunited and Ancestry.
+
+## Usage
 
 Typical usage:
 
@@ -26,19 +33,43 @@ You will then have two sites created in sub-directories
 - static-site is static HTML (no CGI),
 - dynamic-site is a [VWF](//github.com/nigelhorne/vwf) based website which uses templates to support more than one
 language and present different content to mobile/web/search-engine clients.
-This allows for better SEO and a seemless experience on mobile as well as desktops
+This allows for better SEO and a seamless experience on mobile as well as desktops
 in a multi-lingual environment.
 This is much more easily customisable
 by you to create the look and feel of the website that you want.
 The dynamic site contains more data visualisation such as trend analysis,
 time-lapse views and heatmaps in a visually appealing way.
 
+## How to Use Ged2site
+
+To generate your family tree website, run the following command:
+
+    ged2site -cFdh 'Your Name' gedfile.ged
+
+This will create two website versions in separate folders:
+
+* static-site – A simple, no-frills HTML website that works without CGI.
+* dynamic-site – A more advanced website powered by [VWF](https://github.com/nigelhorne/vwf).
+
+What’s the Difference?
+* Static Site:
++ Basic HTML, easy to use, no extra setup required.
+* Dynamic Site:
++ Supports multiple languages.
++ Adapts content for mobile, web, and search engines.
++ Improves SEO and user experience.
++ Easier to customize for a unique look and feel.
++ Includes data visualizations like trend analysis, time-lapse views, and heatmaps.
+
+If you want a flexible, visually rich, and customizable family tree website, the dynamic site is the better option.
+
+## Publishing Your Site
+
 If you use the static site, copy files in the static-site directory to your web server.
 
-If you decide to use the dynamic site first create a $hostname.com file in the
-conf directory (use default as a template),
-then modify the contents of the template tree so that the site looks as you
-want it.
+If you decide to use the dynamic site,
+first create a $hostname.com file in the conf directory (use default as a template),
+then modify the contents of the template tree so that the site looks as you want it.
 The configuration file can be in any number of formats including INI and XML.
 
     root_dir: /full/path/to/website directory
@@ -55,7 +86,7 @@ which you should run on each of the .csv files.
 
     csv2sqlite -o sep_char='!' -o allow_loose_quotes=1 people.csv people.sql
 
-Every time you upload a new site ensure that you remove the "save_to" directory and the disc cache,
+Every time you upload a new site ensure that you remove the "save\_to" directory and the disc cache,
 since they contain cached copies of pages that will be inconsistent with the new site.
 
 Finally, for the dynamic site, set up the logging, if you want any.  To do that modify the page.l4pconf file to taste.
@@ -285,6 +316,29 @@ please e-mail me or add a bug report to github.com/nigelhorne/ged2site.
 Profile pictures are not handled with output from Ancestry.  Findmypast is handled correctly.
 
 The storytelling format is hard coded, it would be useful if it were configurable.
+
+## XML File Generation
+
+Ged2site generates an XML file for each individual in the database.
+These files are primarily used to create dynamic content for websites.
+However, in principle, they can be imported into any data viewing system that supports XML.
+
+### File Location
+
+The XML files are stored in the following directory:
+
+```
+.../dynamic_site/data/people/${xref}.XML
+```
+
+Each file is named based on the unique xref identifier assigned to the individual.
+
+### Usage
+
+The XML files enable dynamic content generation on websites.
+They can be parsed and imported into other data visualization or genealogy tools,
+the structured format allows easy integration with third-party systems.
+For further details on the XML structure and how to use these files, refer to the XML Schema Documentation or contact the Nigel Horne.
 
 ## Acknowledgements
 
