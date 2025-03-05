@@ -10,7 +10,7 @@
 		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
 		[% IF person %]
 			<title>[% person.title %]</title>
-			<meta name="description" content="About [% person.title %] - A ged2site webpage">
+			<meta name="description" content="About [% person.title %] - A Ged2Site webpage">
 		[% ELSIF home %]
 			<title>[% SiteTitle.join(' ') %]</title>
 		[% ELSE %]
@@ -24,7 +24,7 @@
 				//STOP HIDING-->
 			</script>
 			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=home">
-			<meta name="description" content="[% SiteTitle.join(' ') %] - A ged2site webpage">
+			<meta name="description" content="[% SiteTitle.join(' ') %] - A Ged2Site webpage">
 		[% END %]
 		[% IF person.map_head %]
 			[% decode_base64url(person.map_head) %]
@@ -229,7 +229,7 @@
 			</div>
 		[% ELSIF home %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
-			<p><font color="red" size="+2">Home record not found - probably '-h' flag wasn't set given to ged2site</font></p>
+			<p><font color="red" size="+2">Home record not found - probably '-h' flag wasn't set given to Ged2Site</font></p>
 		[% ELSE %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
 			<center><img src="/images/page-loader.gif" height="300" width="300" alt="loading icon"></center>
@@ -242,7 +242,7 @@
 				<br>
 			[% END %]
 			<i>
-				Cette site web a &eacute;t&eacute; cr&eacute;&eacute; par <a href="https://github.com/nigelhorne/ged2site">ged2site</a>.
+				Cette site web a &eacute;t&eacute; cr&eacute;&eacute; par <a href="https://github.com/nigelhorne/ged2site">Ged2Site</a>.
 				[% IF updated %]
 					[% USE date %]
 					Derni&egrave;re modification le [% date.format(time = updated, format = '%d %b %Y', locale = lingua.language_code_alpha2) %]

@@ -9,7 +9,7 @@
 		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
 		[% IF person %]
 			<title>[% person.title %]</title>
-			<meta name="description" content="About [% person.title %] - A ged2site webpage">
+			<meta name="description" content="About [% person.title %] - A Ged2Site webpage">
 		[% ELSIF home %]
 			<title>[% SiteTitle.join(' ') %]</title>
 		[% ELSE %]
@@ -23,7 +23,7 @@
 				//STOP HIDING-->
 			</script>
 			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=home">
-			<meta name="description" content="[% SiteTitle.join(' ') %] - A ged2site webpage">
+			<meta name="description" content="[% SiteTitle.join(' ') %] - A Ged2Site webpage">
 		[% END %]
 		[% IF person.map_head %]
 			[% decode_base64url(person.map_head) %]
@@ -228,7 +228,7 @@
 			</div>
 		[% ELSIF home %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
-			<p><font color="red" size="+2">Home record not found - probably '-h' flag wasn't set given to ged2site</font></p>
+			<p><font color="red" size="+2">Home record not found - probably '-h' flag wasn't set given to Ged2Site</font></p>
 		[% ELSE %]
 			<h1>[% SiteTitle.join(' ') %]</h1>
 			<center><img src="/images/page-loader.gif" height="300" width="300" alt="loading icon"></center>
@@ -241,7 +241,7 @@
 				<br>
 			[% END %]
 			<i>
-			<a href="https://github.com/nigelhorne/ged2site">Ged2site</a> hat diese Internetseite erstellt.
+			<a href="https://github.com/nigelhorne/ged2site">Ged2Site</a> hat diese Internetseite erstellt.
 			[% IF updated %]
 				[% USE date %]
 				Last updated on [% date.format(time = updated, format = '%d %b %Y', locale = lingua.language_code_alpha2) %]

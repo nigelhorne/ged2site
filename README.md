@@ -144,7 +144,7 @@ If the modules do not install automatically, you have three options:
 You can also try installing dependencies with:  
 
 ```
-cpan -i lazy && perl -Mlazy ged2site && perl -Mlazy dynamic/cgi-bin/page.cgi
+cpan -i lazy && perl -Mlazy ged2site && perl -Mlazy dynamic-site/cgi-bin/page.cgi
 ```
 
 **Note:** This method is **untested** and may not work.
@@ -170,52 +170,54 @@ sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so
 ### **Final Check**  
 Once dependencies are installed, **try running Ged2Site again**. If you still encounter issues, ensure your Perl environment is properly configured using `local::lib` or `Perlbrew`.
 
-## Runtime Options
+## Runtime Options  
 
-The options to ged2site are:
+Ged2Site comes with various options that let you customize how your family tree website is generated.
+Here’s what each option does:  
 
-| Flag | Meaning |
-| ---- | ------- |
-| -c   | Give citations |
-| -d   | Download copies of objects and media and include them on the generated website rather than link to them, useful if the objects are on pay sites such as FMP |
-| -f   | treat warnings as fatal, implies -w |
-| -F   | print a family tree (requires GraphViz) |
-| -g   | Generate Google verification file - see www.google.com/webmasters/verification Don't include the .html at the end of the code |
-| -h   | set the home person |
-| -l   | include living people |
-| -L n | Limit to n records |
-| -m   | Generate a map on each page showing events |
-| -J   | Google Maps JavaScript API key (used to display the map): set the key's application restriction to the website. If not set, use OpenStreetMaps |
-| -G   | Google Maps geolocation API key (used to populate the map) |
-| -w   | print warning about inconsistent data - a sort of lint for Gedcom files, may not do as many as *[gedcom](//github.com/nigelhorne/gedcom)* |
-| -W   | don't colorize warning output |
-| -x f | Given a location of people.xml from a previous run, add to a blog of changes (TODO)
+### Command-Line Flags  
 
-NOTE: when you use the -m option, your Google API key will be included in the output,
-so ensure that you restrict the key's use just to this app on your host's IP.
+| Flag | Description |
+| ---- | ----------- |
+| `-c` | Include citations in the output. |
+| `-d` | Download and embed media files (e.g., images, documents) instead of linking to them. This is useful for paid sites like FindMyPast (FMP). |
+| `-f` | Treat warnings as errors (stops execution if warnings occur). Implies `-w`. |
+| `-F` | Generate a graphical family tree (requires GraphViz). |
+| `-g` | Generate a Google verification file for search engine indexing. Enter the verification code **without** the `.html` extension. |
+| `-h` | Set the home (starting) person in the tree. |
+| `-l` | Include living people in the generated site. |
+| `-L n` | Limit the output to **n** records. |
+| `-m` | Add an interactive map to each page showing event locations. |
+| `-J` | Provide a Google Maps JavaScript API key for displaying maps. The key should have an application restriction for your website. If omitted, OpenStreetMaps is used. |
+| `-G` | Provide a Google Maps Geolocation API key for mapping event locations. |
+| `-w` | Enable warnings for inconsistent data (like a lint tool for Gedcom files). |
+| `-W` | Disable colorized warning output. |
+| `-x f` | Use a previous `people.xml` file to track changes and generate a blog (TODO feature). |
 
-Data privacy and handling of sensitive data is important,
-the default configuration works hard to avoid sharing information about living people.
+### Important Notes  
 
-If [gedcom](https://github.com/nigelhorne/gedcom) is installed,
-ged2site will also create a calendar of births and deaths,
-one page for each month in the current year.
+- If you use the `-m` option (maps), **your Google API key will be included in the website’s code**. To protect it, restrict the key’s use to your host’s IP address.  
+- By default, Ged2Site is designed to **protect the privacy of living individuals**.  
 
-Some of the options can be stored in *ged2site.conf*:
+### Additional Features  
 
-| Flag | Meaning |
-| ---- | ------- |
-| -h   |  home |
-| -g   |  google_verification |
-| -G   |  google_maps_geolocation_key (also can be stored in the `GMAP_KEY` environment variable) |
-| -J   |  google_maps_javascript_key |
+- If [Gedcom](https://github.com/nigelhorne/gedcom) is installed, Ged2Site can generate a **calendar of births and deaths**, with a dedicated page for each month of the current year.  
+- Ged2Site produces an **XML file (`people.xml`)** containing parsed output, which can be used in other genealogy software for queries. This means it also functions as a **Gedcom-to-XML converter**.  
 
-You can get free API keys from Google at https://console.developers.google.com/apis/credentials.
+### Configuration File (`ged2site.conf`)  
 
-ged2site also creates an XML file,
-people.xml,
-of parsed output which you can use in querying software,
-so it also works as a Gedcom to XML converter.
+Some options can be stored in a configuration file instead of passing them every time in the command line:  
+
+| Flag | Configuration Key |
+| ---- | ----------------- |
+| `-h` | `home` (home person) |
+| `-g` | `google_verification` (Google site verification) |
+| `-G` | `google_maps_geolocation_key` (can also be set via `GMAP_KEY` environment variable) |
+| `-J` | `google_maps_javascript_key` |
+
+### Getting API Keys  
+
+To use Google Maps or site verification features, get free API keys from [Google API Console](https://console.developers.google.com/apis/credentials).
 
 ## Ancestry on Windows
 
@@ -333,11 +335,18 @@ By sending your Gedcom, preserving your family’s legacy online has never been 
 Whether you're just starting your genealogy journey or managing a massive archive,
 just send your Gedcom and I'll do the rest.
 
-### Dual License
+## **Ged2Site License Agreement**  
 
-Ged2Site is free to use for personal single user, single computer use only
-All other users (including Commercial, Charity, Educational, Government)
-must apply in writing for a licence for use.
+### **Personal Use:**  
+Ged2Site is **free to use** for a **single individual** on **one computer** for **personal, non-commercial purposes only**.  
+
+### **Restricted Use:**  
+Any other use—including but not limited to **commercial, charitable, educational, or government organizations**—**requires a written license agreement**.  
+
+### **License Application:**  
+Organizations or individuals falling outside the personal-use terms **must request written permission** and obtain a license before using Ged2Site.  
+
+For licensing inquiries, please contact: **< njh @ nigelhorne.com >**.
 
 ## Bugs
 
@@ -416,11 +425,6 @@ Magnific Popup http://dimsemenov.com/plugins/magnific-popup/
 ## LICENSE AND COPYRIGHT
 
 Copyright 2015-2025 Nigel Horne.
-
-This program is released under the following licence: GPL2 for personal use on
-a single computer.
-All other users (for example Commercial, Charity, Educational, Government)
-must apply in writing for a licence for use from Nigel Horne at `<njh at nigelhorne.com>`.
 
 ## Support
 
