@@ -143,7 +143,7 @@ sub create_memory_cache {
 		# return CHI->new(driver => 'Memcached', servers => [ '127.0.0.1:11211' ], namespace => $args->{'namespace'});
 		# return CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => $args->{'namespace'});
 		# return CHI->new(driver => 'SharedMem', max_size => 1024, shm_size => 16 * 1024, shm_key => 98766789, namespace => $args->{'namespace'});
-		return CHI->new(driver => 'Memory', datastore => {});
+		return CHI->new(driver => 'Memory', global => 1);
 	}
 	if($logger) {
 		$logger->debug('memory cache via ', $config->{memory_cache}->{driver}, ', namespace: ', $args->{'namespace'});

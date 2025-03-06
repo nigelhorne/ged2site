@@ -589,6 +589,7 @@ sub doit
 		# Pass in handles to the databases
 		print $display->as_string({
 			cachedir => $cachedir,
+			config => $config,
 			databasedir => $database_dir,
 			database_dir => $database_dir,
 			people => $people,

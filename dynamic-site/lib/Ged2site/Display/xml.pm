@@ -6,6 +6,7 @@ use warnings;
 use strict;
 use File::Slurp;
 use Ged2site::Display;
+use Ged2site::Utils;
 
 our @ISA = ('Ged2site::Display');
 
@@ -26,9 +27,6 @@ sub html
 	# Allow arguments to be passed as either a hash reference or a list
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	# Access the CGI::Info object
-	my $info = $self->{_info};
-
 	# Define the allowed parameters with their respective validation rules
 	my $allowed = {
 		page => 'xml',	# Static value for the page
@@ -39,11 +37,16 @@ sub html
 		gclid => qr/^\w+$/i,	# Google tracking information
 	};
 
+	$self->{'cache'} ||= create_memory_cache(config => $args{config}, logger => $logger, namespace => __PACKAGE__);
+
+	# Access the CGI::Info object
+	my $info = $self->{_info};
+
 	# Extract parameters from the request, applying the validation rules
 	my %params = %{$info->params({ allow => $allowed })};
 
 	if(my $entry = $params{'entry'}) {
-		return _get_person(\%args, \%params);
+		return $self->{'cache'}->compute($entry, sub { _get_person(\%args, \%params) });
 	}
 	return $self->SUPER::html({ error => 'entry parameter not given' });
 }
