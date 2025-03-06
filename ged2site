@@ -385,7 +385,7 @@ foreach my $module(@modules) {
 	}
 	if($@) {
 		if($version) {
-			my $s = `cpan -D $module_name | grep /`;
+			my $s = `cpan -D $module_name | grep / | grep -v Reading`;
 
 			chomp($s);
 			$s =~ s/^\s+//;
