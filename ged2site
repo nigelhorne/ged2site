@@ -88,6 +88,7 @@ BEGIN {
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached',
+		'Scalar::Util',
 		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
 		'URI', 'URI::Find::Schemeless',
@@ -6861,7 +6862,8 @@ sub print_person
 
 	# Sort the events by date
 	if(all_records_have_date({ person => $person, records => \@events }) && (scalar(@events) > 0)) {
-		@events = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @events;
+		# @events = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @events;
+		@events = sort { datecmp($a, $b) } @events;
 	}
 
 	# Let's remove things that aren't relevant that may
@@ -10547,7 +10549,7 @@ sub all_records_have_date
 		# Check if the date is valid and matches required format
 		if((!defined $date) || ($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
 		    ($date =~ /[\/\-]/) || ($date =~ / to /) || !date_parser_cached(date => $date)) {
-			if((defined($date)) && ($date !~ / to /) && ($date !~ /[\/\-]/)) {
+			if((defined($date)) && ($date !~ / to /) && ($date !~ /[\/\-]/) && ($date !~ /^abt/i)) {
 				# Log a warning if date is invalid
 				complain({
 					person => $person,
@@ -13990,8 +13992,8 @@ sub journey
 		# print STDERR "\t", $call_details[1], ':', $call_details[2], ' calling function ', $call_details[3], "\n";
 	# }
 
-	if($doa && ($doa =~ /(\d{3,4})$/)) {
-		$yoa = $1;
+	if($doa && ($doa =~ /\d{3,4}$/)) {
+		$yoa = get_year_from_date($doa);
 		$doa =~ s/\s+?\d{3,4}//;
 		if($dod && ($dod =~ /(\d{3,4})$/)) {
 			$yod = $1;
@@ -14144,6 +14146,13 @@ sub datecmp($$)
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
 		return 0;
+	}
+
+	if(Scalar::Util::blessed($left) && $left->can('date')) {
+		$left = $left->date();
+	}
+	if(Scalar::Util::blessed($right) && $right->can('date')) {
+		$right = $right->date();
 	}
 
 	return 0 if($left eq $right);
