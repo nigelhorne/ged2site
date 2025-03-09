@@ -3244,7 +3244,8 @@ sub print_person
 					}
 				}
 				if($all_siblings_have_dob) {
-					@siblings = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => dateofbirth($_))}[0]->{'canonical'}) } @siblings;
+					# @siblings = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => dateofbirth($_))}[0]->{'canonical'}) } @siblings;
+					@siblings = sort { datecmp(dateofbirth($a), dateofbirth($b)) } @siblings;
 				}
 				my $age_index = 1;	# count of siblings born before $person + 1 (i.e. where $person is in the date order)
 				$print_sibling_count = 1;
@@ -5477,7 +5478,8 @@ sub print_person
 			}
 			if($all_residences_have_date && (scalar(@residencelist) > 1)) {
 				print "Sort the residences\n" if($opts{'v'});
-				@residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
+				# @residencelist = Sort::Key::DateTime::dtkeysort { $dfn->parse_datetime(@{$date_parser->parse(date => $_->date())}[0]->{'canonical'}) } @residencelist;
+				@residencelist = sort { datecmp($a, $b) } @residencelist;
 			}
 
 			my $count = 0;
@@ -6673,8 +6675,8 @@ sub print_person
 							$bio .= 'Throughout ' . lc($person->possessive()) . ' life';
 						}
 					} else {
-						$bio .= ucfirst(i18n('during %s life', lc($person->possessive())));
-						$phrase->append(ucfirst(i18n('during %s life', lc($person->possessive()))));
+						$bio .= ucfirst(i18n(person => $person, format => 'during %s life', args => lc($person->possessive())));
+						$phrase->set(ucfirst(i18n(person => $person, format => 'during %s life', args => lc($person->possessive()))));
 					}
 				}
 
@@ -15193,7 +15195,7 @@ sub i18n
 
 	if(ref($_[0]) eq 'HASH') {
 		%params = %{$_[0]};
-	} elsif((scalar(@_) % 2 == 0) && ref($_[1])) {
+	} elsif(((scalar(@_) % 2) == 0) && ref($_[1])) {
 		%params = @_;
 	} else {
 		$params{'format'} = lc(shift);
