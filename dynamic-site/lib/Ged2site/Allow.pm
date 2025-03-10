@@ -137,6 +137,7 @@ sub allow {
 
 				my $ids = CGI::IDS->new();
 				$ids->set_scan_keys(scan_keys => 1);
+				delete($params->{'fbclid'});    # Facebook key is OK
 				my $impact = $ids->detect_attacks(request => $params);
 				if($impact > 0) {
 					if($logger) {
