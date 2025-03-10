@@ -14238,6 +14238,14 @@ sub datecmp($$)
 			}
 			$left = $start
 		} elsif($left !~ /^\d{3,4}$/) {
+			if($left =~ /^\d{4}\-\d{2}\-\d{2}$/) {
+				# e.g. 1941-08-02
+				my @l = $dfg->parse_datetime($left);
+				if(my $rc = $l[1] || $l[0]) {
+					$left = $rc;
+				}
+			}
+
 			if(($left !~ /[a-z]/i) || ($left =~ /[a-z]$/)) {
 				my $i = 0;
 				while((my @call_details = caller($i++))) {
