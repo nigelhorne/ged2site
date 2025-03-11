@@ -14240,20 +14240,15 @@ sub datecmp($$)
 		} elsif($left !~ /^\d{3,4}$/) {
 			if($left =~ /^\d{4}\-\d{2}\-\d{2}$/) {
 				# e.g. 1941-08-02
-				my @l = $dfg->parse_datetime($left);
-				if(my $rc = $l[1] || $l[0]) {
-					$left = $rc;
-				}
-			}
-
-			if(($left !~ /[a-z]/i) || ($left =~ /[a-z]$/)) {
+			} elsif(($left !~ /[a-z]/i) || ($left =~ /[a-z]$/)) {
 				my $i = 0;
 				while((my @call_details = caller($i++))) {
 					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 				}
 				die "Date parse failure: left = '$left' ($left <=> $right)";
 			}
-			my @l = $dfg->parse_datetime($left);
+
+			my @l = $dfg->parse_datetime({ date => $left, quiet => 1 });
 			my $rc = $l[1] || $l[0];
 			if(!defined($rc)) {
 				my $i = 0;
@@ -14344,7 +14339,7 @@ sub datecmp($$)
 			# }
 			# die join('<=>', @_);
 		# }
-		my @r = $dfg->parse_datetime($right);
+		my @r = $dfg->parse_datetime({ date => $right, quiet => 1 });
 		if(!defined($r[0])) {
 			if($right =~ /[\s\/](\d{4})$/) {
 				# e.g. cmp "1891 <=> Oct/Nov/Dec 1892"
