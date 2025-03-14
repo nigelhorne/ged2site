@@ -280,14 +280,15 @@ ExpiresByType text/javascript "access plus 1 day"
 
 ## Environment Variables
 
-For compatibility with other code, these environment variables are honoured:
+`Ged2Site` honours the following environment variables for improved compatibility:
 
-    BMAP_KEY: Bing (virtualearth.net) API Key
-    GEONAMES_USE: geonames.org registered username
-    GMAP_KEY: Google Places (maps.googleapis.com) API Key
-    LANG: some handling of en_GB and en_US translating between then, fr_FR is a work in progress
-    OPENADDR_HOME: directory of data from http://results.openaddresses.io/
-    REDIS_SERVER: ip:port pair of where to cache geo-coding data
+* BMAP_KEY - Bing (virtualearth.net) API Key
+* GEONAMES_USER - geonames.org registered username
+* GMAP_KEY - Google Places (maps.googleapis.com) API Key
+* LANG - some handling of en_GB and en_US translating between then, fr_FR is a work in progress
+* OPENADDR_HOME - directory of data from http -//results.openaddresses.io/
+* REDIS_SERVER - ip:port pair of where to cache geo-coding data
+* OPENAI_KEY - experimental: use the key from openai.com to enhance the text
 
 ## Debugging and Developing
 
