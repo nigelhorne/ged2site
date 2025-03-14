@@ -109,39 +109,39 @@ If you want logging, edit the `page.l4pconf` file to configure it to your needs.
 
 Once you've completed these steps, your **dynamic family tree website** will be live and optimized.
 
-## **Installing Dependencies for Ged2Site**  
+## **Installing Dependencies for Ged2Site**
 
-### **Automatic Installation**  
+### **Automatic Installation**
 Ged2Site relies on multiple **CPAN modules**.
-If they are missing, the program will attempt to **install them automatically** when you run it for the first time **without any arguments**:  
+If they are missing, the program will attempt to **install them automatically** when you run it for the first time **without any arguments**:
 
 ```
 ged2site
 ```
 
-However, this **may fail** with a "permission denied" error if:  
-- You are **not running as root** (which is the correct and safer way).  
-- You are **not using** tools like [local::lib](https://metacpan.org/pod/local::lib) or [Perlbrew](https://perlbrew.pl/).  
+However, this **may fail** with a "permission denied" error if:
+- You are **not running as root** (which is the correct and safer way).
+- You are **not using** tools like [local::lib](https://metacpan.org/pod/local::lib) or [Perlbrew](https://perlbrew.pl/).
 
-### **Manual Installation (If Automatic Installation Fails)**  
-If the modules do not install automatically, you have three options:  
+### **Manual Installation (If Automatic Installation Fails)**
+If the modules do not install automatically, you have three options:
 
-1. **Use `local::lib`** (Recommended)  
-   - Set up `local::lib` by following [these instructions](https://metacpan.org/pod/local::lib).  
-   - Install missing modules manually with CPAN:  
+1. **Use `local::lib`** (Recommended)
+   - Set up `local::lib` by following [these instructions](https://metacpan.org/pod/local::lib).
+   - Install missing modules manually with CPAN:
      ```
      cpan install Module::Name
      ```
 
-2. **Use Perlbrew**  
-   - Install [Perlbrew](https://perlbrew.pl/) to manage your Perl environment.  
+2. **Use Perlbrew**
+   - Install [Perlbrew](https://perlbrew.pl/) to manage your Perl environment.
    - Install modules within your Perlbrew-managed environment.
 
-3. **Run Ged2Site as Root** (Not Recommended)  
+3. **Run Ged2Site as Root** (Not Recommended)
    - You **can** run it as root, but this **is not advised** due to security risks.
 
-### **Alternative Installation Method (Experimental)**  
-You can also try installing dependencies with:  
+### **Alternative Installation Method (Experimental)**
+You can also try installing dependencies with:
 
 ```
 cpan -i lazy && perl -Mlazy ged2site && perl -Mlazy dynamic-site/cgi-bin/page.cgi
@@ -149,8 +149,8 @@ cpan -i lazy && perl -Mlazy ged2site && perl -Mlazy dynamic-site/cgi-bin/page.cg
 
 **Note:** This method is **untested** and may not work.
 
-### **Installing Gedcom (Required for Calendars)**  
-To enable calendar features on the **dynamic site**, you **must install Gedcom**:  
+### **Installing Gedcom (Required for Calendars)**
+To enable calendar features on the **dynamic site**, you **must install Gedcom**:
 
 ```
 git clone https://github.com/nigelhorne/gedcom.git
@@ -158,8 +158,8 @@ cd gedcom
 perl Makefile.PL && make && make install
 ```
 
-### **Additional Setup for FreeBSD**  
-If you're using **FreeBSD**, install required packages and create symbolic links:  
+### **Additional Setup for FreeBSD**
+If you're using **FreeBSD**, install required packages and create symbolic links:
 
 ```
 sudo pkg install pkgconf gdlib graphviz ImageMagick7
@@ -167,15 +167,15 @@ cd /usr/local/lib
 sudo ln -s libMagick++-7.so libMagickCore-7.Q16HDRI.so
 ```
 
-### **Final Check**  
+### **Final Check**
 Once dependencies are installed, **try running Ged2Site again**. If you still encounter issues, ensure your Perl environment is properly configured using `local::lib` or `Perlbrew`.
 
-## Runtime Options  
+## Runtime Options
 
 Ged2Site comes with various options that let you customize how your family tree website is generated.
-Here’s what each option does:  
+Here’s what each option does:
 
-### Command-Line Flags  
+### Command-Line Flags
 
 | Flag | Description |
 | ---- | ----------- |
@@ -194,19 +194,19 @@ Here’s what each option does:
 | `-W` | Disable colorized warning output. |
 | `-x f` | Use a previous `people.xml` file to track changes and generate a blog (TODO feature). |
 
-### Important Notes  
+### Important Notes
 
-- If you use the `-m` option (maps), **your Google API key will be included in the website’s code**. To protect it, restrict the key’s use to your host’s IP address.  
-- By default, Ged2Site is designed to **protect the privacy of living individuals**.  
+- If you use the `-m` option (maps), **your Google API key will be included in the website’s code**. To protect it, restrict the key’s use to your host’s IP address.
+- By default, Ged2Site is designed to **protect the privacy of living individuals**.
 
-### Additional Features  
+### Additional Features
 
-- If [Gedcom](https://github.com/nigelhorne/gedcom) is installed, Ged2Site can generate a **calendar of births and deaths**, with a dedicated page for each month of the current year.  
-- Ged2Site produces an **XML file (`people.xml`)** containing parsed output, which can be used in other genealogy software for queries. This means it also functions as a **Gedcom-to-XML converter**.  
+- If [Gedcom](https://github.com/nigelhorne/gedcom) is installed, Ged2Site can generate a **calendar of births and deaths**, with a dedicated page for each month of the current year.
+- Ged2Site produces an **XML file (`people.xml`)** containing parsed output, which can be used in other genealogy software for queries. This means it also functions as a **Gedcom-to-XML converter**.
 
-### Configuration File (`ged2site.conf`)  
+### Configuration File (`ged2site.conf`)
 
-Some options can be stored in a configuration file instead of passing them every time in the command line:  
+Some options can be stored in a configuration file instead of passing them every time in the command line:
 
 | Flag | Configuration Key |
 | ---- | ----------------- |
@@ -215,7 +215,7 @@ Some options can be stored in a configuration file instead of passing them every
 | `-G` | `google_maps_geolocation_key` (can also be set via `GMAP_KEY` environment variable) |
 | `-J` | `google_maps_javascript_key` |
 
-### Getting API Keys  
+### Getting API Keys
 
 To use Google Maps or site verification features, get free API keys from [Google API Console](https://console.developers.google.com/apis/credentials).
 
@@ -336,16 +336,16 @@ By sending your Gedcom, preserving your family’s legacy online has never been 
 Whether you're just starting your genealogy journey or managing a massive archive,
 just send your Gedcom and I'll do the rest.
 
-## **Ged2Site License Agreement**  
+## **Ged2Site License Agreement**
 
-### **Personal Use:**  
-Ged2Site is **free to use** for a **single individual** on **one computer** for **personal, non-commercial purposes only**.  
+### **Personal Use:**
+Ged2Site is **free to use** for a **single individual** on **one computer** for **personal, non-commercial purposes only**.
 
-### **Restricted Use:**  
-Any other use—including but not limited to **commercial, charitable, educational, or government organizations**—**requires a written license agreement**.  
+### **Restricted Use:**
+Any other use—including but not limited to **commercial, charitable, educational, or government organizations**—**requires a written license agreement**.
 
-### **License Application:**  
-Organizations or individuals falling outside the personal-use terms **must request written permission** and obtain a license before using Ged2Site.  
+### **License Application:**
+Organizations or individuals falling outside the personal-use terms **must request written permission** and obtain a license before using Ged2Site.
 
 For licensing inquiries, please contact: **< njh @ nigelhorne.com >**.
 
