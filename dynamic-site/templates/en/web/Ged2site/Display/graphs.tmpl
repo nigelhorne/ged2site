@@ -343,17 +343,25 @@
 					animationEnabled: true,	// change to false
 					data: [
 						{
-							// Change type to "bar", "area", "spline", "pie","column"etc.
-							type: "line",
-							showInLegend: true,
+							// Change type to "bar", "area", "spline", "pie", "column" etc.
+							[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
+								type: "column",
+							[% ELSE %]
+								type: "line",
+							[% END %]
 							name: "Male",
+							showInLegend: true,
 							color: "#F08080",
 							dataPoints: [
 								[% mdatapoints %]
 							]
 						}, {
-							// Change type to "bar", "area", "spline", "pie","column"etc.
-							type: "line",
+							// Change type to "bar", "area", "spline", "pie", "column" etc.
+							[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
+								type: "column",
+							[% ELSE %]
+								type: "line",
+							[% END %]
 							name: "Female",
 							showInLegend: true,
 							color: "#20B2AA",

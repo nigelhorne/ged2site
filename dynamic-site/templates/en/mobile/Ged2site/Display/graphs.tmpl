@@ -50,11 +50,160 @@
 			[% SET title = 'Choose a graph' %]
 		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A Ged2Site webpage">
 		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 		<title>[% title %]</title>
-		[% IF datapoints %]
-			<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script> -->
-			<script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script> -->
+		<script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+		[% IF datapoints.M %]
+			<script type="text/javascript">
+
+			window.onload = function () {
+				var chartM = new CanvasJS.Chart("chartContainerM", {
+					theme: "theme1",	//theme2
+					title: {
+						text: "[% title %] (Men)"
+					},
+					zoomEnabled: false,
+					axisY: {
+						[% IF graph == 'ageatdeath' %]
+							includeZero: false,
+							title: 'Age at Death',
+						[% ELSIF graph == 'percentagedying' %]
+							title: 'Percentage',
+						[% END %]
+						gridThickness: 0
+					},
+					[% IF graph == 'ageatdeath' %]
+						axisX: {
+							title: 'Year of Death'
+						},
+					[% END %]
+					toolTip: {
+						shared:true
+					},
+					legend: {
+						verticalAlign: "center",
+						horizontalAlign: "right"
+					},
+					animationEnabled: true,	// change to false
+					data: [
+						{
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							type: "line",
+							showInLegend: true,
+							[% IF graph == 'ageatdeath' %]
+								name: "Values",
+							[% END %]
+							color: "#F08080",
+							dataPoints: [
+								[% datapoints.M %]
+							]
+						},
+						[% IF bestfit.M %]
+							{
+								// Change type to "bar", "area", "spline", "pie","column" etc.
+								type: "line",
+								[% IF graph == 'ageatdeath' %]
+									lineDashType: "dash",
+									connectNullData: true,
+									nullDataLineDashType: "dot",
+									name: "Trend",
+								[% END %]
+								showInLegend: true,
+								color: "#20B2AA",
+								dataPoints: [
+									[% bestfit.M %]
+								]
+							},
+						[% END %]
+					],
+					legend: {
+						cursor: "pointer",
+						itemclick:function(e){
+							if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else{
+								e.dataSeries.visible = true;
+							}
+							chartM.render();
+						}
+					}
+				});
+				var chartF = new CanvasJS.Chart("chartContainerF", {
+					theme: "theme1",	//theme2
+					title: {
+						text: "[% title %] (Women)"
+					},
+					zoomEnabled: false,
+					axisY: {
+						[% IF graph == 'ageatdeath' %]
+							includeZero: false,
+							title: 'Age at Death',
+						[% END %]
+						gridThickness: 0
+					},
+					[% IF graph == 'ageatdeath' %]
+						axisX: {
+							title: 'Year of Death'
+						},
+					[% END %]
+					toolTip: {
+						shared:true
+					},
+					legend: {
+						verticalAlign: "center",
+						horizontalAlign: "right"
+					},
+					animationEnabled: true,	// change to false
+					data: [
+						{
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							type: "line",
+							showInLegend: true,
+							[% IF graph == 'ageatdeath' %]
+								name: "Values",
+							[% END %]
+							color: "#F08080",
+							dataPoints: [
+								[% datapoints.F %]
+							]
+						},
+						[% IF bestfit.F %]
+						{
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							type: "line",
+							[% IF graph == 'ageatdeath' %]
+								lineDashType: "dash",
+								connectNullData: true,
+								nullDataLineDashType: "dot",
+								name: "Trend",
+							[% END %]
+							showInLegend: true,
+							color: "#20B2AA",
+							dataPoints: [
+								[% bestfit.F %]
+							]
+						},
+						[% END %]
+					],
+					legend: {
+						cursor: "pointer",
+						itemclick:function(e){
+							if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else{
+								e.dataSeries.visible = true;
+							}
+							chartF.render();
+						}
+					}
+				});
+				chartM.render();
+				chartF.render();
+			}
+			</script>
+		[% ELSIF datapoints %]
 			<script type="text/javascript">
 
 			window.onload = function () {
@@ -66,8 +215,15 @@
 					axisY: {
 						[% IF graph == 'dist' %]
 							title: '[% units %]',
-						[% ELSIF graph == 'ageatdeath' %]
+						[% ELSIF graph == 'familysizetime' %]
+							title: "Number of Children",
+						[% ELSIF graph == 'motherchildren' %]
+							title: "Number of Mothers",
 							includeZero: false,
+						[% ELSIF graph == 'infantdeaths' %]
+							title: 'Percentage',
+						[% ELSIF graph == 'distcount' %]
+							title: "Number of People",
 						[% END %]
 						gridThickness: 0
 					},
@@ -78,27 +234,61 @@
 							intervalType: "month"
 						},
 						zoomEnabled: true,
+					[% ELSIF graph == 'dist' %]
+						zoomEnabled: true,
+					[% ELSIF graph == 'distcount' %]
+						zoomEnabled: true,
+						axisX: {
+							title: '[% units %]'
+						},
+					[% ELSIF graph == 'motherchildren' %]
+						axisX: {
+							title: "Number of Children",
+						},
 					[% END %]
 					animationEnabled: true,	// change to false
 					data: [
-					{
-						// Change type to "bar", "area", "spline", "pie","column" etc.
-						[% IF graph == 'birthmonth' || graph == 'firstborn' || graph == 'deathmonth' || graph == 'marriagemonth' %]
-							type: "column",
-						[% ELSE %]
-							type: "line",
-						[% END %]
-						dataPoints: [
-							[% datapoints %]
-						]
-					}
+						{
+							// Change type to "bar", "area", "spline", "pie","column" etc.
+							[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' || graph == 'firstborn' || graph == 'motherchildren' %]
+								type: "column",
+							[% ELSE %]
+								type: "line",
+							[% END %]
+							dataPoints: [
+								[% datapoints %]
+							]
+						}
 					]
 				});
 				chart.render();
 			}
 			</script>
+		[% ELSIF mdata && fdata %]
+			<script type="text/javascript">
+
+			window.onload = function () {
+				var chartM = new CanvasJS.Chart("chartContainerM", {
+					theme: "theme1",	//theme2
+					title:{
+						text: "[% title %] (Mother's side)"
+					},
+					animationEnabled: true,	// change to false
+					data: [ [% mdata %] ]
+				});
+				var chartF = new CanvasJS.Chart("chartContainerF", {
+					theme: "theme1",	//theme2
+					title:{
+						text: "[% title %] (Father's side)"
+					},
+					animationEnabled: true,	// change to false
+					data: [ [% fdata %] ]
+				});
+				chartF.render();
+				chartM.render();
+			}
+			</script>
 		[% ELSIF mdatapoints && fdatapoints %]
-			<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
 			<script type="text/javascript">
 
 			window.onload = function () {
@@ -107,9 +297,22 @@
 					title: {
 						text: "[% title %]"
 					},
+					[% IF graph == 'sex' %]
+						zoomEnabled: true,
+					[% END %]
 					axisY: {
+						[% IF graph == 'sex' %]
+							title: 'Percentage',
+							minimum: 0,
+							maximum: 100,
+						[% END %]
 						gridThickness: 0
 					},
+					[% IF graph == 'ageatmarriage' %]
+					axisX: {
+						title: 'Year of Marriage'
+					},
+					[% END %]
 					toolTip: {
 						shared:true
 					},
@@ -120,29 +323,28 @@
 					animationEnabled: true,	// change to false
 					data: [
 						{
-							// Change type to "bar", "area", "spline", "pie","column"etc.
+							// Change type to "bar", "area", "spline", "pie", "column" etc.
 							[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
 								type: "column",
 							[% ELSE %]
 								type: "line",
 							[% END %]
-							showInLegend: true,
 							name: "Male",
+							showInLegend: true,
 							color: "#F08080",
 							dataPoints: [
 								[% mdatapoints %]
 							]
-						},
-						{
-							// Change type to "bar", "area", "spline", "pie","column"etc.
+						}, {
+							// Change type to "bar", "area", "spline", "pie", "column" etc.
 							[% IF graph == 'birthmonth' || graph == 'marriagemonth' || graph == 'deathmonth' %]
 								type: "column",
 							[% ELSE %]
 								type: "line",
 							[% END %]
+							name: "Female",
 							showInLegend: true,
 							color: "#20B2AA",
-							name: "Female",
 							dataPoints: [
 								[% fdatapoints %]
 							]
@@ -201,16 +403,6 @@
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>This graph, which shows the trend of generation gaps over the years, only includes data when the year of births of parents and children are known.</p>
 			<p>This graph only includes data from 5 year periods that contain at least 5 births.</p>
-		[% ELSIF graph == 'birth_countries' %]
-			<p>Shows the countries of birth on both sides of the family of all adults in the tree.<p>
-			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
-			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
-		[% ELSIF graph == 'death_countries' %]
-			<p>
-				Shows the countries of death on both sides of the family of all adults in the tree.
-			<p>
-			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
-			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
 		[% ELSIF graph == 'percentagedying' %]
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 			<p>
@@ -222,15 +414,21 @@
 				are assuming to be missing a death record.
 				These differences could cause anomolies.
 			</p>
-		[% ELSIF name_date %]
+		[% ELSIF graph == 'birth_countries' %]
+			<p>
+				Shows the countries of birth on both sides of the family of all adults in the tree.
+			<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'death_countries' %]
+			<p>
+				Shows the countries of death on both sides of the family of all adults in the tree.
+			<p>
+			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
+			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
+		[% ELSIF graph == 'name_date_m' || graph == 'name_date_f' %]
 			<div id="header_container">
-				<center>
-					[% IF graph == 'name_date_m' %]
-						<h1>Male First Name Popularity</h1>
-					[% ELSE %]
-						<h1>Female First Name Popularity</h1>
-					[% END %]
-				</center>
+				<center><h1>[% title %]</h1></center>
 			</div>
 			<div id="container">
 				<center>
@@ -291,12 +489,12 @@
 				<a href="?page=graphs&amp;graph=percentagedying" class="myButton">Percentage of the people dying</a><br><br>
 				<a href="?page=graphs&amp;graph=ageatfirstchild" class="myButton">Age of Parents at birth of first child</a><br><br>
 				<a href="?page=graphs&graph=ageatlastchild" class="myButton">Age of Parents at birth of last child</a><br><br>
-				<a href="?page=graphs&amp;graph=percentagedying">Percentage of the people dying</a><br><br>
-				<a href="?page=graphs&amp;graph=birth_countries">Country of Birth</a><br><br>
-				<a href="?page=graphs&amp;graph=death_countries">Country of Death</a><br><br>
-				<a href="?page=graphs&amp;graph=name_date_m">Male first name popularity</a><br><br>
-				<a href="?page=graphs&amp;graph=name_date_f">Female first name popularity</a><br><br>
-				<a href="?page=graphs&amp;graph=surname_date">Surname popularity</a><br><br>
+				<a href="?page=graphs&amp;graph=percentagedying" class="myButton">Percentage of the people dying</a><br><br>
+				<a href="?page=graphs&amp;graph=birth_countries" class="myButton">Country of Birth</a><br><br>
+				<a href="?page=graphs&amp;graph=death_countries" class="myButton">Country of Death</a><br><br>
+				<a href="?page=graphs&amp;graph=name_date_m" class="myButton">Male first name Popularity</a><br><br>
+				<a href="?page=graphs&amp;graph=name_date_f" class="myButton">Female first name Popularity</a><br><br>
+				<a href="?page=graphs&amp;graph=surname_date" class="myButton">Surname Popularity</a><br><br>
 			</center>
 		[% END %]
 		<center><font size="+2">
