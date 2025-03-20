@@ -983,20 +983,9 @@ my $obituaries;
 my $wills;
 
 if($opts{'w'}) {
-	my $opts;
-	if(my $redis = $ENV{'REDIS_SERVER'}) {
-		$opts->{'cache'} = CHI->new(
-			driver => 'Redis',
-			namespace => $script_name,
-			server => $redis,
-			debug => $opts{'v'}
-		);
-	} else {
-		$opts->{'cache'} = CHI->new(
-			driver => 'File',
-			root_dir => $cachedir,
-		);
-	}
+	my $opts = {
+		cache => CHI->new(driver => 'Memory', global => 1)
+	};
 	if($logger) {
 		$opts->{'logger'} = $logger;
 	}
