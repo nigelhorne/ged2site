@@ -161,6 +161,12 @@ sub html
 								throw Error::Simple($template_args->{'person'}->{'xref'} . ": marriage isn't a HASH");
 							}
 						}
+					} elsif(my $marriage = $marriages->{'marriage'}) {
+						if(my $spouse = $people->fetchrow_hashref({ entry => $marriage->{'spouse'} })) {
+							if(my ($year, $month, $day) = _parse_date($marriage->{'date'})) {
+								_add_event(\@events, 'Marriage', $marriage->{'spouse'}, $spouse->{'title'}, $year, $month, $day);
+							}
+						}
 					} else {
 						throw Error::Simple($template_args->{'person'}->{'xref'} . ": marriages isn't an ARRAY");
 					}
@@ -194,15 +200,15 @@ sub html
 								}
 							}
 						} elsif(!ref($date)) {
-                                                        # Add military service to the timeline
+							# Add military service to the timeline
 							my $dfg = DateTime::Format::Genealogy->new();
-                                                        if(my ($year, $month, $day) = _parse_date($date)) {
-                                                                _add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $year, $month, $day);
-                                                        } elsif(my $end_dt = $dfg->parse_datetime($date)) {
-                                                                _add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
-                                                        } elsif($date =~ /\d{3,4}/) {
-                                                                _add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $date, undef, undef);
-                                                        }
+							if(my ($year, $month, $day) = _parse_date($date)) {
+								_add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $year, $month, $day);
+							} elsif(my $end_dt = $dfg->parse_datetime($date)) {
+								_add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $end_dt->year(), $end_dt->month(), $end_dt->day());
+							} elsif($date =~ /\d{3,4}/) {
+								_add_event(\@events, "Serving in the $service", undef, $events[0]->{'title'}, $date, undef, undef);
+							}
 						} else {
 							throw Error::Simple($template_args->{'person'}->{'xref'} . ": military->service->date isn't a HASH");
 						}
