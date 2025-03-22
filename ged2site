@@ -11724,7 +11724,7 @@ sub year
 			}
 		}
 		if(!defined($params->{'circa'})) {
-			$params->{'circa'} //= '<i>c.</i>';
+			$params->{'circa'} //= '<i>' . (($language eq 'German') ? 'um' : 'c.') . '</i>';
 		}
 		if($language ne 'English') {
 			my $d = $date_parser->parse(date => $rc);
