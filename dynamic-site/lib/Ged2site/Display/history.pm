@@ -149,16 +149,20 @@ sub html
 				if($marriages->{'marriage'}) {
 					# Ignore marriage info in the history.csv file; TODO - don't put it in
 					@events = grep defined($_), map { $_->{'event'} ne 'Marriage' ? $_ : undef } @events;
-					foreach my $marriage(@{$marriages->{'marriage'}}) {
-						if(ref($marriage) eq 'HASH') {
-                                                        if(my $spouse = $people->fetchrow_hashref({ entry => $marriage->{'spouse'} })) {
-                                                                if(my ($year, $month, $day) = _parse_date($marriage->{'date'})) {
-                                                                        _add_event(\@events, 'Marriage', $marriage->{'spouse'}, $spouse->{'title'}, $year, $month, $day);
-                                                                }
-                                                        }
-                                                } else {
-                                                        throw Error::Simple($template_args->{'person'}->{'xref'} . ": marriage isn't a HASH");
-                                                }
+					if(ref($marriages->{'marriage'}) eq 'ARRAY') {
+						foreach my $marriage(@{$marriages->{'marriage'}}) {
+							if(ref($marriage) eq 'HASH') {
+								if(my $spouse = $people->fetchrow_hashref({ entry => $marriage->{'spouse'} })) {
+									if(my ($year, $month, $day) = _parse_date($marriage->{'date'})) {
+										_add_event(\@events, 'Marriage', $marriage->{'spouse'}, $spouse->{'title'}, $year, $month, $day);
+									}
+								}
+							} else {
+								throw Error::Simple($template_args->{'person'}->{'xref'} . ": marriage isn't a HASH");
+							}
+						}
+					} else {
+						throw Error::Simple($template_args->{'person'}->{'xref'} . ": marriages isn't an ARRAY");
 					}
 				}
 			}
