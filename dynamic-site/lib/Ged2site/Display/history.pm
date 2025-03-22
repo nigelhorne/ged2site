@@ -149,7 +149,7 @@ sub html
 				if($marriages->{'marriage'}) {
 					# Ignore marriage info in the history.csv file; TODO - don't put it in
 					@events = grep defined($_), map { $_->{'event'} ne 'Marriage' ? $_ : undef } @events;
-					foreach my $marriage($marriages->{'marriage'}) {
+					foreach my $marriage(@{$marriages->{'marriage'}}) {
 						if(ref($marriage) eq 'HASH') {
                                                         if(my $spouse = $people->fetchrow_hashref({ entry => $marriage->{'spouse'} })) {
                                                                 if(my ($year, $month, $day) = _parse_date($marriage->{'date'})) {
