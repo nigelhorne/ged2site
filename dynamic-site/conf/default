@@ -1,9 +1,18 @@
-# root_dir: /home/you/ged2site/dynamic-site
-SiteTitle: The Family Tree of *yourname*
-# memory_cache: driver=Memcached server=127.0.0.1,192.168.1.2
-# memory_cache: driver=File, root_dir=/tmp/cache
-memory_cache: driver=Null
-# disc_cache: driver=File, root_dir=/tmp/cache
-disc_cache: driver=DBI, connect=dbi:SQLite:dbname=/tmp/cache/genealogy.sqlite
-twitter: yourtwitterhandle
-contact: name=Your Name Goes Here, email=you@example.com
+<?xml version="1.0"?>
+<config>
+	<memory_cache>
+		<driver>Null</driver>
+	</memory_cache>
+	<SiteTitle>The Family Tree of *yourname*</SiteTitle>
+	<twitter>yourtwitterhandle</twitter>
+	<contact>name=Your Name Goes Here, email=you@example.com</contact>
+	<!--
+	<disc_cache>
+		<driver>DBI</driver>
+		<connect>dbi:SQLite:dbname=/tmp/cache/genealogy.sqlite</connect>
+	-->
+	<disc_cache>
+		<driver>File</driver>
+		<root_dir>/tmp/cache</root_dir>
+	</disc_cache>
+</config>
