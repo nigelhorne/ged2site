@@ -89,7 +89,7 @@ BEGIN {
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached',
 		'Scalar::Util',
-		'Sort::Key::DateTime', 'Text::Names', 'Text::Names::GB',
+		'Sort::Key::DateTime', 'String::Random', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
 		'URI', 'URI::Find::Schemeless',
 		'Locale::AU', 'Locale::CA', 'Locale::US',
@@ -13363,7 +13363,11 @@ sub make_filename_from_object
 	$rc =~ s/-$//;
 
 	utf8::decode($rc);
-	return Unicode::Diacritic::Strip::strip_diacritics($object->xref() . "-$rc");
+	if($object->xref()) {
+		return Unicode::Diacritic::Strip::strip_diacritics($object->xref() . "-$rc");
+	}
+	# Why would an object not have an xref?
+	return String::Random->new()->randpattern('ssssss') . "-$rc";
 }
 
 # Parse Gedcom format dates
