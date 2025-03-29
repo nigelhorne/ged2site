@@ -99,8 +99,11 @@ sub new {
 			);
 
 			unless($throttler->try_push(key => $ENV{'REMOTE_ADDR'})) {
-				sleep(1);
-				die "$ENV{REMOTE_ADDR} connexion throttled";
+				$info->status(429);	# Too many requests
+				sleep(1);	# Slow down attackers
+				if($args{'logger'}) {
+					$args{'logger'}->warn("$ENV{REMOTE_ADDR} connexion throttled");
+				}
 			}
 		};
 		if($@) {
