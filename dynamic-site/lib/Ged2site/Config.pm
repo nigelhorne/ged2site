@@ -2,11 +2,17 @@ package Ged2site::Config;
 
 =head1 NAME
 
-Ged2site::Config - Site independent configuration file
+Ged2site::Config - Site-independent configuration file
+
+=head1 VERSION
+
+Version 0.01
 
 =cut
 
-# Ged2site is licensed under GPL2.0 for personal use only
+our $VERSION = '0.01';
+
+# VWF is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
 # Usage is subject to licence terms.
