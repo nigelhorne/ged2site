@@ -7092,8 +7092,9 @@ sub print_person
 						$bio .= "$pronoun was serving in the military";
 						$phrase->append("$pronoun was serving in the military");
 					} else {
-						$bio .= ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
-						$phrase->append(ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military');
+						my $service = ucfirst($date) . ' ' . lcfirst($pronoun) . ' was serving in the military';
+						$bio .= $service;
+						$phrase->append($service);
 					}
 				} else {
 					$bio .= "</p><p>$pronoun served in the military";
@@ -16508,6 +16509,7 @@ and::et
 around::environ
 arrived:M:est arrivé
 arrived:F:est arrivée
+army::armée
 at::à
 before %s::avant le %s
 between::entre
