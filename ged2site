@@ -15524,6 +15524,13 @@ sub extract_family_info
 	# Remove blank fields from the main family hash
 	%family = map { $_ => $family{$_} } grep { defined $family{$_} && $family{$_} ne '' } keys %family;
 
+	# Remove empty arrays the family hash
+	foreach my $key (keys %family) {
+		if (ref($family{$key}) eq 'ARRAY' && @{$family{$key}} == 0) {
+			delete $family{$key};
+		}
+	}
+
 	return \%family;
 }
 
