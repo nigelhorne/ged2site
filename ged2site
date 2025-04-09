@@ -15335,10 +15335,16 @@ sub add_death_notes
 		$phrase->append(" ($cause)");
 	}
 	if(my $notes = notes({ person => $person, record => $death, paragraph => 0 })) {
+		if($opts{'w'} && (my $family = extract_family_info($notes))) {
+			# TODO: handle obituary data verification
+			$Data::Dumper::Maxdepth = 0;
+			# die $notes, Data::Dumper->new([$family])->Dump();
+			warn "TODO: $notes", Data::Dumper->new([$family])->Dump();
+		}
 		# FIXME: If the notes are so long they go over
 		#	a page split into more than one page
 		#	properly rather than don't print, as now
-		if((!$opts{'B'}) || (length($notes) < 4000)) {
+		if(length($notes) < 4000) {
 			$notes =~ tr/\r//;
 			$notes =~ tr/\n/ /;
 			$notes =~ s/\.$//;
@@ -15348,6 +15354,173 @@ sub add_death_notes
 	}
 }
 
+# Parse obituary text and extract structured family relationship data, including details about children, parents, spouse, siblings, grandchildren, and other relatives.
+# The routine processes the obituary content to identify and organize relevant family information into a clear, structured hash.
+
+# FIXME:  add more general code, e.g. where it looks for father, also look for mother
+
+# It returns a hash reference containing structured family information,
+# with each family member's data organized into distinct categories such as children, spouse, parents, siblings, etc.
+
+# Test data:
+# Helen Mae (McBeath) Girvan, age 89 years passed away at the Kenneth E. Spencer Memorial Home on Friday December 12th, 2008.  Born in Peters Mills, Kent Co.  on April 9th, 1919 she was the daughter of the late Richmond and Lilly (Peters) McBeath, and the wife of the late Ian Stuart Girvan (1987).  An adherent of Gunningsville Baptist church, Helen was an organist in both the United and Presbyterian churches in Rexton where she also taught school on a local license.  Following her marriage she became a Sunday school teacher and was a Life Time member of the Hillsborough UCW and the Womens Institute.  Later in life she was involved as a volunteer at the Lakeview Salvation Army Nursing Home and was the membership chairman of the Salvation Army Home League.  She is survived by her children Gwen Steeves (Leslie) of Riverview, NB, Ian (Terry) Girvan of Surrey, BC, and Carol Girvan of Dartmouth, NS; grandchildren Stacey and Tara Steeves; as well as several nieces and nephews.  Besides her husband she is predeceased by her sisters Dorothy Knowles, and Audrey Little; and brothers Stanley and Harold McBeath.  By personal request there will be no visitation at the funeral home
+
+# And https://funeral-notices.co.uk/notice/adams/5244000
+
+sub extract_family_info
+{
+	my $text = shift;
+	my %family;
+
+	# Helper to extract people from a specific section and remove empty entries
+	sub extract_people_section {
+		my $section = shift;
+		return unless $section;
+
+		$section =~ s/\s+and\s+/, /g;  # Ensure "and" is treated as a separator
+		$section =~ s/([A-Za-z]+),\s+([A-Z]{2})/$1<<COMMA>>$2/g;
+		my @entries = split /\s*,\s*/, $section;
+
+		my @people;
+		foreach my $entry (@entries) {
+			$entry =~ s/<<COMMA>>/, /g;
+
+			my ($name, $spouse, $location) = ('', '', '');
+
+			# Match "Ian (Terry) Girvan of Surrey, BC"
+			if ($entry =~ /^(\w+)\s+\(([^)]+)\)\s+(\w+)\s+of\s+(.+)$/) {
+				$name = "$1 $3"; $spouse = $2; $location = $4;
+			}
+			# Match "Gwen Steeves (Leslie) of Riverview, NB"
+			elsif ($entry =~ /^(.+?)\s+\(([^)]+)\)\s+of\s+(.+)$/) {
+				$name = $1; $spouse = $2; $location = $3;
+			}
+			# Match "Carol Girvan of Dartmouth, NS"
+			elsif ($entry =~ /^(.+?)\s+of\s+(.+)$/) {
+				$name = $1; $location = $2;
+			}
+			# Match names only (e.g. for siblings)
+			else {
+				$name = $entry;
+			}
+
+			next if !$name;  # Skip if name is empty
+
+			# Create a hash and filter out blank fields
+			my %person = (
+				name	 => $name,
+				spouse   => $spouse,
+				location => $location,
+			);
+			
+			# Remove blank fields
+			%person = map { $_ => $person{$_} } grep { defined $person{$_} && $person{$_} ne '' } keys %person;
+
+			push @people, \%person;
+		}
+		return \@people;
+	}
+
+	# Correct extraction of children (skipping "his/her")
+	if ($text =~ /survived by (his|her) children\s*([^\.;]+)/i) {
+		my $children_text = $2;
+		$family{children} = extract_people_section($children_text);
+	} elsif ($text =~ /Loving father of\s*([^\.;]+)/i) {  # Look for the phrase "Loving father of"
+		# Correct extraction of children (skipping "his/her")
+		my $children_text = $1;
+		$family{children} = extract_people_section($children_text);
+	}
+
+	# Extract grandchildren
+	$family{grandchildren} = [ split /\s*(?:,|and)\s*/i, ($text =~ /grandchildren\s+([^\.;]+)/i)[0] || '' ];
+
+	# Extract siblings (sisters and brothers) correctly, skipping "her" or "his"
+	if ($text =~ /predeceased by (his|her) sisters?\s*([^;]+);?/i) {
+		my $sisters_text = $2;
+		$family{sisters} = extract_people_section($sisters_text);
+	}
+
+	if ($text =~ /predeceased by (his|her) brothers?\s*([^;]+);?/i) {
+		my $brothers_text = $2;
+		$family{brothers} = extract_people_section($brothers_text);
+	}
+
+	# Detect nieces/nephews
+	$family{nieces_nephews} = ($text =~ /as well as several nieces and nephews/i) ? ['several nieces and nephews'] : [];
+
+	# Extract spouse details
+	$family{spouse} = extract_people_section('wife of the late', $text);
+
+	# Extract parents and clean the names by removing unnecessary details
+	if ($text =~ /daughter of the late\s+(.+?)\s+and\s+(.+)/i) {
+		my $parent1 = $1;
+		my $parent2 = $2;
+
+		# Remove anything after the first comma in each parent's name
+		$parent1 =~ s/,.*//;
+		$parent2 =~ s/,.*//;
+
+		# Remove blank location field if empty
+		$family{parents} = [
+			{
+				name	 => $parent1,
+				# no location field included as it is empty
+			},
+			{
+				name	 => $parent2,
+				# no location field included as it is empty
+			},
+		];
+	}
+
+	# Extract spouse's death year and remove the "(year)" from the name
+	if ($text =~ /wife of the late\s+([\w\s]+)\s+\((\d{4})\)/) {
+		if (@{$family{spouse}} > 0) {
+			my $name = $1;
+			my $death_year = $2;
+
+			# Remove the death year part from the spouse's name
+			$name =~ s/\s*\(\d{4}\)//;
+
+			$family{spouse}[0]{name} = $name;
+			$family{spouse}[0]{death_year} = $death_year;
+		}
+	}
+
+	# Ensure spouse location is properly handled
+	if (exists $family{spouse} && defined $family{spouse}[0]{location} && $family{spouse}[0]{location} eq 'the late') {
+		delete $family{spouse}[0]{location};
+	}
+
+	# Extract the funeral information
+	if ($text =~ /funeral service.*?at\s+([^\n]+)\s+on\s+([^\n]+)\s+at\s+([^\n]+)/i) {
+		$family{funeral} = {
+			location => $1,
+			date	 => $2,
+			time	 => $3,
+		};
+	}
+
+	# Extract father-in-law and mother-in-law information (if present)
+	if ($text =~ /father-in-law to\s+([A-Za-z\s]+)/) {
+		my $father_in_law = $1;
+		$family{father_in_law} = [{
+			name => $father_in_law
+		}];
+	}
+
+	if ($text =~ /mother-in-law to\s+([A-Za-z\s]+)/) {
+		my $mother_in_law = $1;
+		$family{mother_in_law} = [{
+			name => $mother_in_law
+		}];
+	}
+
+	# Remove blank fields from the main family hash
+	%family = map { $_ => $family{$_} } grep { defined $family{$_} && $family{$_} ne '' } keys %family;
+
+	return \%family;
+}
 # Get the weather for the day
 sub weather
 {
