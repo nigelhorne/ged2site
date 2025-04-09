@@ -15448,9 +15448,6 @@ sub extract_family_info
 	# Detect nieces/nephews
 	$family{nieces_nephews} = ($text =~ /as well as several nieces and nephews/i) ? ['several nieces and nephews'] : [];
 
-	# Extract spouse details
-	$family{spouse} = extract_people_section('wife of the late', $text);
-
 	# Extract parents and clean the names by removing unnecessary details
 	if ($text =~ /daughter of the late\s+(.+?)\s+and\s+(.+)/i) {
 		my $parent1 = $1;
@@ -15474,16 +15471,24 @@ sub extract_family_info
 	}
 
 	# Extract spouse's death year and remove the "(year)" from the name
-	if ($text =~ /wife of the late\s+([\w\s]+)\s+\((\d{4})\)/) {
-		if (@{$family{spouse}} > 0) {
-			my $name = $1;
-			my $death_year = $2;
+	if($text =~ /wife of the late\s+([\w\s]+)\s+\((\d{4})\)/) {
+		my $name = $1;
+		my $death_year = $2;
+		$family{'spouse'} ||= [];
 
-			# Remove the death year part from the spouse's name
-			$name =~ s/\s*\(\d{4}\)//;
+		# Remove the death year part from the spouse's name
+		$name =~ s/\s*\(\d{4}\)//;
 
-			$family{spouse}[0]{name} = $name;
-			$family{spouse}[0]{death_year} = $death_year;
+		push @{$family{'spouse'}}, {
+			name => $name,
+			death_year => $death_year
+		}
+	} elsif($text =~ /husband to the late\s([\w\s]+)[\s\.]/i) {
+		my $name = $1;
+		$family{'spouse'} ||= [];
+
+		push @{$family{'spouse'}}, {
+			name => $name,
 		}
 	}
 
@@ -15521,6 +15526,7 @@ sub extract_family_info
 
 	return \%family;
 }
+
 # Get the weather for the day
 sub weather
 {
