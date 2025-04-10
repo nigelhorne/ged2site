@@ -15483,13 +15483,16 @@ sub extract_family_info
 			name => $name,
 			death_year => $death_year
 		}
+	} elsif($text =~ /wife of\s+([\w\s]+)/) {
+		my $name = $1;
+		$family{'spouse'} ||= [];
+
+		push @{$family{'spouse'}}, { name => $name }
 	} elsif($text =~ /husband to the late\s([\w\s]+)[\s\.]/i) {
 		my $name = $1;
 		$family{'spouse'} ||= [];
 
-		push @{$family{'spouse'}}, {
-			name => $name,
-		}
+		push @{$family{'spouse'}}, { name => $name }
 	}
 
 	# Ensure spouse location is properly handled
