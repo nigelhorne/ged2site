@@ -15406,6 +15406,7 @@ sub extract_family_info
 
 			next if !$name;  # Skip if name is empty
 			next if($name =~ /^father-in-law\sto\s/);	# Skip follow ons
+			last if($name =~ /^devoted\s/i);
 
 			# Create a hash and filter out blank fields
 			my %person = (
@@ -15425,6 +15426,10 @@ sub extract_family_info
 	# Correct extraction of children (skipping "his/her")
 	if ($text =~ /survived by (his|her) children\s*([^\.;]+)/i) {
 		my $children_text = $2;
+		$family{children} = extract_people_section($children_text);
+	} elsif ($text =~ /Loving mum to\s*([^\.;]+)/i) {  # Look for the phrase "Loving father of"
+		# Correct extraction of children (skipping "his/her")
+		my $children_text = $1;
 		$family{children} = extract_people_section($children_text);
 	} elsif ($text =~ /Loving father of\s*([^\.;]+)/i) {  # Look for the phrase "Loving father of"
 		# Correct extraction of children (skipping "his/her")
