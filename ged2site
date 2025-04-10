@@ -15405,6 +15405,7 @@ sub extract_family_info
 			}
 
 			next if !$name;  # Skip if name is empty
+			next if($name =~ /^father-in-law\sto\s/);	# Skip follow ons
 
 			# Create a hash and filter out blank fields
 			my %person = (
