@@ -152,10 +152,14 @@ sub html
 					if(ref($marriages->{'marriage'}) eq 'ARRAY') {
 						foreach my $marriage(@{$marriages->{'marriage'}}) {
 							if(ref($marriage) eq 'HASH') {
-								if(my $spouse = $people->fetchrow_hashref({ entry => $marriage->{'spouse'} })) {
-									if(my ($year, $month, $day) = _parse_date($marriage->{'date'})) {
-										_add_event(\@events, 'Marriage', $marriage->{'spouse'}, $spouse->{'title'}, $year, $month, $day);
+								if($marriage->{'spouse'}) {
+									if(my $spouse = $people->fetchrow_hashref({ entry => $marriage->{'spouse'} })) {
+										if(my ($year, $month, $day) = _parse_date($marriage->{'date'})) {
+											_add_event(\@events, 'Marriage', $marriage->{'spouse'}, $spouse->{'title'}, $year, $month, $day);
+										}
 									}
+								} elsif($logger) {
+									$logger->notice($template_args->{'person'}->{'xref'}, ': Spouse missing from marriage entry');
 								}
 							} else {
 								throw Error::Simple($template_args->{'person'}->{'xref'} . ": marriage isn't a HASH");
