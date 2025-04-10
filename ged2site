@@ -15510,18 +15510,15 @@ sub extract_family_info
 	}
 
 	# Extract father-in-law and mother-in-law information (if present)
-	if ($text =~ /father-in-law to\s+([A-Za-z\s]+)/) {
+	if($text =~ /father-in-law to\s+([A-Za-z\s]+)/) {
 		my $father_in_law = $1;
-		$family{father_in_law} = [{
-			name => $father_in_law
-		}];
-	}
-
-	if ($text =~ /mother-in-law to\s+([A-Za-z\s]+)/) {
+		$family{children_in_law} = [{ name => $father_in_law }];
+	} elsif($text =~ /mother-in-law to\s+([A-Za-z\s]+)/i) {
 		my $mother_in_law = $1;
-		$family{mother_in_law} = [{
-			name => $mother_in_law
-		}];
+		$family{children_in_law} = [ split /\s*(?:,|and)\s*/i, ($text =~ /mother-in-law to\s+([^\.;]+)/i)[0] || '' ];
+		if(scalar($family{children_in_law} == 0)) {
+			$family{children_in_law} = [{ name => $mother_in_law }];
+		}
 	}
 
 	# Remove blank fields from the main family hash
