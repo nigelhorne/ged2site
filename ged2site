@@ -15439,6 +15439,20 @@ sub extract_family_info
 
 	# Extract grandchildren
 	$family{grandchildren} = [ split /\s*(?:,|and)\s*/i, ($text =~ /grandchildren\s+([^\.;]+)/i)[0] || '' ];
+	if((!defined($family{'grandchildren'})) || (($#{$family{'grandchildren'}}) <= 0)) {
+		# handle devoted Grandma to Tom, Dick, and Harry and loved Mother-in-law to Jack and Jill"
+		my ($grandchildren_str) = $text =~ /Grandma to (.*?)(?: and loved|$)/;
+		# Normalize and split into individual names
+		my @grandchildren;
+		if($grandchildren_str) {
+			@grandchildren = split /,\s*|\s+and\s+/, $grandchildren_str;
+		}
+		if(scalar(@grandchildren)) {
+			$family{'grandchildren'} = \@grandchildren;
+		} else {
+			$family{grandchildren} = [ split /\s*(?:,|and)\s*/i, ($text =~ /grandma\sto\s+([^\.;]+)/i)[0] || '' ];
+		}
+	}
 
 	# Extract siblings (sisters and brothers) correctly, skipping "her" or "his"
 	if ($text =~ /predeceased by (his|her) sisters?\s*([^;]+);?/i) {
