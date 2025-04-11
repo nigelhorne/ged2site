@@ -139,6 +139,7 @@ use Ged2site::DB::surname_date;
 use Ged2site::DB::twins;
 use Ged2site::DB::military;
 use Ged2site::DB::locations;
+use Ged2site::DB::places;
 use Ged2site::Data::vwf_log;
 
 my $database_dir = "$script_dir/../data";
@@ -162,8 +163,8 @@ my $history = Ged2site::Data::history->new();
 my $orphans = Ged2site::Data::orphans->new();
 my $todo = Ged2site::DB::todo->new();
 my $intermarriages = Ged2site::DB::intermarriages->new();
-# TODO: why are these arguments needed?
-my $locations = Ged2site::DB::locations->new(directory => $database_dir, logger => $logger);
+my $locations = Ged2site::DB::locations->new();
+my $places = Ged2site::DB::places->new();
 my $name_date = Ged2site::DB::name_date->new();
 my $surname_date = Ged2site::DB::surname_date->new();
 my $twins = Ged2site::DB::twins->new();
@@ -243,6 +244,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		$surname_date->set_logger($logger);
 		$info->set_logger($logger);
 		$locations->set_logger($logger);
+		$places->set_logger($logger);
 		$vwf_log->set_logger($logger);
 		# $Config::Auto::Debug = 1;
 
@@ -296,6 +298,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 	$info->set_logger($logger);
 	$people->set_logger($logger);
 	$locations->set_logger($logger);
+	$places->set_logger($logger);
 	$vwf_log->set_logger($logger);
 
 	my $start = [Time::HiRes::gettimeofday()];
@@ -606,6 +609,7 @@ sub doit
 			changes => $changes,
 			locations => $locations,
 			orphans => $orphans,
+			places => $places,
 			surnames => $surnames,
 			history => $history,
 			intermarriages => $intermarriages,

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" dir="ltr">
+<head>
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+	<meta http-equiv="Content-Language" content="en-gb">
+	<meta name="robots" content="INDEX,FOLLOW">
+	<meta name="language" content="ENGLISH">
+	<meta name="object" content="Index">
+	<meta name="owner" content="Nigel Horne">
+	<meta name="Author" content="Nigel Horne">
+	[% IF twitter %]
+		<meta name="twitter:site" content="@[% twitter %]">
+		[% IF SiteTitle %]
+			<meta name="twitter:title" content="[% SiteTitle.English.join(' ') %]">
+		[% END %]
+	[% END %]
+	<title>
+		[% IF title %]
+			[% title %]
+		[% ELSIF person && person.entry %]
+			[% person.entry %]
+		[% ELSIF state %]
+			People in [% state %]
+		[% ELSIF country %]
+			People in [% country %]
+		[% ELSIF countries %]
+			Countries in [% SiteTitle.join(' ') %]
+		[% ELSE %]
+			People by Location
+		[% END %]
+	</title>
+	[% IF keywords %]
+		<meta name="keywords" content="[% keywords %]" />
+	[% END %]
+	[% IF person %]
+		[% IF person.title %]
+			<meta name="description" content="[% person.title %]" />
+		[% ELSE %]
+			<meta name="description" content="[% person.entry %] [% person.state %] [% person.country %]" />
+		[% END %]
+	[% ELSIF state %]
+		<meta name="description" content="A searchable directory of people local to [% state %]" />
+	[% ELSIF country %]
+		<meta name="description" content="A searchable directory of people in [% country %]" />
+	[% ELSE %]
+		<meta name="description" content="A searchable directory of people" />
+	[% END %]
+	<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+	[% USE env = EnvHash %]
+</head>
+	<body>
+		<div id="header_container">
+			<center>
+				[% IF person %]
+					<h1>People for [% entry %] in [% SiteTitle.join(' ') %]</h1>
+				[% ELSIF countries %]
+					<h1>Countries in [% SiteTitle.join(' ') %]</h1>
+				[% ELSE %]
+					<h1>Places for [% SiteTitle.join(' ') %]</h1>
+				[% END %]
+				[% IF error %]
+					<p><font color="red" size="+2">[% error %]</font></p>
+				[% END %]
+			</center>
+		</div>
+		<div id="container">
+			<center>
+				[ <a href="?page=home">Home</a> ] |
+				[ <a href="?page=people&amp;home=1">Home Person</a> ] |
+				[ <a href="?page=censuses">Census Index</a> ] |
+				[ <a href="?page=surnames">Surname Index</a> ] |
+				[ <a href="?page=history">Family History</a> ] |
+				[ <a href="?page=todo">To Do</a> ] |
+				[ <a href="?page=calendar">Calendar</a> ] |
+				[% IF entry %]
+					[ <a href="?page=locations">Locations by Year</a> ] |
+				[% ELSE %]
+					[ <a href="?page=reports">Reports</a> ] |
+				[% END %]
+				[ <a href="/visjs.html">Timeline</a> ]
+			</center>
+			[% IF person %]
+				<h1>[% person.entry %]</h1>
+				[% IF person.state %]
+					[% IF country == 'United States' || country == 'Canada' %]
+						<h2>[% person.state %], [% person.country %]</h2>
+					[% ELSE %]
+						<h2>[% FOREACH word IN person.state.lower.split(' ') %] [% word.ucfirst -%][% END %], [% person.country %]</h2>
+					[% END %]
+				[% ELSE %]
+					<h2>[% person.country %]</h2>
+				[% END %]
+			[% ELSIF people %]
+				<h1>
+					[% IF state %]
+						People in
+						[% IF state == '%' %]
+							[% country %]
+						[% ELSIF country == 'United States' || country == 'Canada' %]
+							[% state %]
+						[% ELSE %]
+							[% FOREACH word IN state.lower.split(' ') %][% word.ucfirst %] [% END %]
+						[% END %]
+					[% END %]
+				</h1>
+			[% ELSIF country %]
+				<h1>People in [% country %]</h1>
+			[% ELSE %]
+				<h1>Search People by Location</h1>
+			[% END %]
+			[% IF error %]
+				<p><center><font color="red" size="+2">[% error %]</font><center></p>
+			[% END %]
+	</div>
+	[% IF person %]
+		FILL IN INFORMATION HERE
+	[% ELSIF people %]
+		<div id="shop-body-nav">
+			<ul id="shop-body-nav">
+				[% FOREACH person IN people %]
+					<li><a href="?page=places&amp;entry=[%- person.entry | uri %]&amp;country=[%- country | uri %]">[% person.entry %]</a></li>
+				[% END %]
+				[% IF (country == 'United States') || (country == 'Australia') %]
+					<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
+				[% ELSIF country == 'Canada' %]
+					<li><a href="?page=places&amp;country=[%- country | uri %]">Other Provinces</a></li>
+				[% ELSE %]
+					<li><a href="?page=places&amp;country=[%- country | uri %]">Other Counties in [% country %]</a></li>
+				[% END %]
+				<li><a href="?page=places">Other Countries</a></li>
+			</ul>
+		</div>
+	[% ELSIF countries %]
+		<h2>Choose a Country</h2>
+		<ul id="shop-body-nav">
+			[% FOREACH country IN countries %]
+				<li><a href="?page=places&amp;country=[%- country.replace(' ', '+') %]">[% country %]</a></li>
+			[% END %]
+		</ul>
+	[% ELSIF states %]
+		<h2>
+			[% IF (country == 'United States') || (country == 'Australia') %]
+				Choose a State
+			[% ELSIF country == 'Canada' %]
+				Choose a Province
+			[% ELSE %]
+				Choose a County
+			[% END %]
+		</h2>
+		<ul id="nav">
+			[% FOREACH state IN states %]
+				<li><a href="?page=places&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN state.lower.split(' ') %] [% word.ucfirst %] [% END %]</a></li>
+			[% END %]
+			<li><a href="?page=places">Other Countries</a></li>
+		</ul>
+	[% END %]
+</body>
+</html>
