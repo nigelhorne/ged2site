@@ -1206,6 +1206,8 @@ if(!$opts{'w'}) {
 	print "\n$index records processed\n";
 }
 
+undef %all_residences;
+
 if(scalar(%censuses)) {
 	print "Creating census index\n";
 
@@ -1276,19 +1278,18 @@ if(scalar(%censuses)) {
 	undef %censuses;
 }
 
-if(scalar(%all_locations)) {
+if(scalar(%all_locations)) {	# opts{'m'} will be enabled
 	print "Creating locations database\n";
 
-	# I don't think I ever used this, so I'm removing it for now
-	# open($csv, '>', 'dynamic-site/data/locations.csv');
-	# print $csv "entry!location!person!year!date\n";
-
-	$index = 1;
+	open($csv, '>', 'dynamic-site/data/locations.csv');
+	print $csv "entry!location!person!year!date\n";
 
 	# FIXME: in HTML::OSM mode, the body only shows the last location
 	open(my $locations_xml, '>', 'dynamic-site/data/locations.xml');
 	print $locations_xml "<locations>\n\t<maps>\n";
 	my ($head, $body);
+	$index = 1;
+
 	# Sort numerically: https://www.oreilly.com/library/view/perl-cookbook/1565922433/ch04s15.html
 	foreach my $year(sort { $a <=> $b } keys(%all_locations)) {
 		my %markers;
@@ -1296,10 +1297,10 @@ if(scalar(%all_locations)) {
 			my $place = place(record => $l->{'record'}, nopreposition => 1);
 			$place =~ s/^\s*//;
 			push @{$markers{$place}}, $l;
-			# print $csv "$index!$place!",
-				# $l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
-				# "$year!",
-				# $l->{'date'}, "\n";
+			print $csv "$index!$place!",
+				$l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
+				"$year!",
+				$l->{'date'}, "\n";
 			$index++;
 		}
 
@@ -1338,7 +1339,7 @@ if(scalar(%all_locations)) {
 			wide_to_xml($head),
 			"\n\t\t\t</head>\n\t\t</map>\n";
 	}
-	# close $csv;
+	close $csv;
 	undef %all_locations;
 
 	# $body =~ s/</&lt;/g;
@@ -1348,6 +1349,17 @@ if(scalar(%all_locations)) {
 	print $locations_xml "\t</maps>\n\t<body>$body</body>\n</locations>\n";
 	close $locations_xml;
 }
+
+# if(scalar(%all_residences)) {
+	# $Data::Dumper::Maxdepth = 1;
+	# my $tulip = $all_residences{'I372497774729'};
+	# foreach my $r (@{$tulip}) {
+		# print $r->place(), "\n";
+	# }
+	# die scalar keys %all_residences;
+
+	# undef %all_residences;
+# }
 
 if(scalar(%all_military)) {
 	print "Creating military records\n";
@@ -3571,9 +3583,9 @@ sub print_person
 	my $end_of_sentence = 0;
 	my $printed_and = 0;
 	my $bio_dt = Data::Text->new();	# This is used to generate the dynamic text
+	my @residences = get_all_residences($person);
 
 	my @childrenunknownparent;
-	my @residences = get_all_residences($person);
 	if($opts{'l'} || !$is_alive) {
 		my $all_children_are_alive = 1;
 
@@ -5359,7 +5371,7 @@ sub print_person
 				if($residence->can('place') || $residence->isa('Class::Simple::Readonly::Cached')) {
 					my $place = $residence->place();
 					if(my $address = $residence->address()) {
-						if(ref($address) eq 'Gedcom::Record') {
+						if($address->isa('Gedcom::Record')) {
 							$place = getaddress($address);
 						} elsif($place) {
 							$place = "$address, $place";
@@ -8049,7 +8061,7 @@ sub print_person
 								};
 								# Add it to the map of where a person has been
 								$place_records{"$title: " . year({ person => $person, string => $date })} = $obje;
-								warn "DEBUGGING: object has a location: $place";
+								warn "DEBUGGING: '$title': object has a location: $place";
 							}
 						}
 					}
