@@ -15,7 +15,7 @@ sub html {
 	my $info = $self->{_info};
 	my $allowed = {
 		'page' => 'locations',
-		'year' => qr/^\d{3,4}$/,
+		'entry' => qr/^\d{3,4}$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
 		'lint_content' => qr/^\d$/,
 	};
@@ -34,7 +34,7 @@ sub html {
 		}
 
 		return $self->SUPER::html({
-			head => $db->head(year => $params{'year'}),
+			head => $db->head(entry => $params{'entry'}),
 			locations => \@locations,
 			updated => $db->updated()
 		});
