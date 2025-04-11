@@ -1282,7 +1282,7 @@ if(scalar(%all_locations)) {	# opts{'m'} will be enabled
 	print "Creating locations database\n";
 
 	open($csv, '>', 'dynamic-site/data/locations.csv');
-	print $csv "entry!location!person!year!date\n";
+	print $csv "entry!country!state!town!person!year!date\n";
 
 	# FIXME: in HTML::OSM mode, the body only shows the last location
 	open(my $locations_xml, '>', 'dynamic-site/data/locations.xml');
@@ -1297,8 +1297,21 @@ if(scalar(%all_locations)) {	# opts{'m'} will be enabled
 			my $place = place(record => $l->{'record'}, nopreposition => 1);
 			$place =~ s/^\s*//;
 			push @{$markers{$place}}, $l;
+			my @areas = split/,\s*/,$place;
+			my @country_state_town;
+			if(scalar(@areas) >= 3) {
+				@country_state_town = reverse @areas[-3..-1];
+			} elsif(scalar(@areas) == 2) {
+				@country_state_town = reverse ('', @areas[-2..-1]);
+			} elsif(scalar(@areas) == 1) {
+				@country_state_town = ($place, '', '');
+			} else {
+				die 'BUG: place is empty';
+			}
+			$place = join('!', @country_state_town);
 			print $csv "$index!$place!",
-				$l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
+				# $l->{'person'}->as_string({ middle_names => 1, include_years => 1 }), '!',
+				$l->{'person'}->xref(), '!',
 				"$year!",
 				$l->{'date'}, "\n";
 			$index++;
