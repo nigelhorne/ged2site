@@ -21,15 +21,15 @@ sub head {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $year = $args{'year'} || shift;
+	my $entry = $args{'entry'} || shift;
 
-	if(!defined($self->{'locations'})) {
-		$self->_open();
-	}
+	# if(!defined($self->{'locations'})) {
+		# $self->_open();
+	# }
 	# print Data::Dumper->new([$self->{'locations'}->{'maps'}->{'map'}])->Dump();
 	# exit;
 	foreach my $location(@{$self->{'locations'}->{'maps'}->{'map'}}) {
-		if($location->{'year'} == $year) {
+		if($location->{'entry'} == $entry) {
 			return $location->{'head'};
 		}
 	}

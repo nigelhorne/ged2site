@@ -58,11 +58,13 @@
 					-->
 					[% locations.0.body %]
 				[% ELSE %]
+						[% USE Dumper %]
+						[% Dumper.dump(locations) %]
 					<ul id="nav">
 						<!-- Ged2Site sorts them numerically -->
 						[% FOREACH map IN locations.0.maps.map %]
 							<li>
-								<a href="?page=locations&amp;year=[%- map.year %]">[% map.year %]</a>
+								<a href="?page=locations&amp;year=[%- map.entry %]">[% map.entry %]</a>
 							</li>
 						[% END %]
 					</ul>

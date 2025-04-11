@@ -1279,19 +1279,20 @@ if(scalar(%censuses)) {
 }
 
 if(scalar(%all_locations)) {	# opts{'m'} will be enabled
-	print "Creating locations database\n";
+	print "Creating locations and places databases\n";
 
-	open($csv, '>', 'dynamic-site/data/locations.csv');
+	open($csv, '>', 'dynamic-site/data/places.csv');
 	print $csv "entry!country!state!town!person!year!date\n";
 
 	# FIXME: in HTML::OSM mode, the body only shows the last location
 	open(my $locations_xml, '>', 'dynamic-site/data/locations.xml');
-	print $locations_xml "<locations>\n\t<maps>\n";
+	print $locations_xml '<?xml version="1.0" encoding="US-ASCII"?>', "\n",
+		"<locations>\n\t<maps>\n";
 	my ($head, $body);
 	$index = 1;
 
-	# Sort numerically: https://www.oreilly.com/library/view/perl-cookbook/1565922433/ch04s15.html
-	foreach my $year(sort { $a <=> $b } keys(%all_locations)) {
+	# Sort reverse numerically: https://www.oreilly.com/library/view/perl-cookbook/1565922433/ch04s15.html
+	foreach my $year(sort { $b <=> $a } keys(%all_locations)) {
 		my %markers;
 		foreach my $l(@{$all_locations{$year}}) {
 			my $place = place(record => $l->{'record'}, nopreposition => 1);
@@ -1348,7 +1349,7 @@ if(scalar(%all_locations)) {	# opts{'m'} will be enabled
 		($head, $body) = $map->onload_render();
 		$head =~ s/\n\n*/\n/g;
 		$head =~ s/http:/https:/;
-		print $locations_xml "\t\t<map>\n\t\t\t<year>$year</year>\n\t\t\t<head>",
+		print $locations_xml "\t\t<map>\n\t\t\t<entry>$year</entry>\n\t\t\t<head>",
 			wide_to_xml($head),
 			"\n\t\t\t</head>\n\t\t</map>\n";
 	}
@@ -1358,8 +1359,10 @@ if(scalar(%all_locations)) {	# opts{'m'} will be enabled
 	# $body =~ s/</&lt;/g;
 	# $body =~ s/>/&gt;/g;
 	$body = wide_to_html($body);
+	$body =~ s/^\n+//;
 	$body =~ s/&copy;/&#x0A9;/g;
-	print $locations_xml "\t</maps>\n\t<body>$body</body>\n</locations>\n";
+	$body =~ s/\n+$//;
+	print $locations_xml "\t</maps>\n\t<body>$body\n\t</body>\n</locations>\n";
 	close $locations_xml;
 }
 

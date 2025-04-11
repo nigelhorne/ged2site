@@ -242,6 +242,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		$name_date->set_logger($logger);
 		$surname_date->set_logger($logger);
 		$info->set_logger($logger);
+		$locations->set_logger($logger);
 		$vwf_log->set_logger($logger);
 		# $Config::Auto::Debug = 1;
 
@@ -294,6 +295,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 	$logger->info("Request $requestcount: ", $ENV{'REMOTE_ADDR'});
 	$info->set_logger($logger);
 	$people->set_logger($logger);
+	$locations->set_logger($logger);
 	$vwf_log->set_logger($logger);
 
 	my $start = [Time::HiRes::gettimeofday()];
