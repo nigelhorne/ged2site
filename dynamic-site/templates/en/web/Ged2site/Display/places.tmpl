@@ -114,6 +114,7 @@
 				<!-- TODO - display the name -->
 				<li><a href="?page=people&amp;entry=[%- xref | uri %]">[% people.$xref %]</a></li>
 			[% END %]
+			<li><a href="?page=places&amp;country=[%- country | uri %]&amp;state=[%- state | uri %]">Other Towns in [% state %]</a></li>
 			[% IF (country == 'United States') || (country == 'Australia') %]
 				<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
 			[% ELSIF country == 'Canada' %]
