@@ -36,6 +36,11 @@ sub html {
 		delete $params{'lint_content'};
 		delete $params{'lang'};
 
+		if($params{'country'} && $params{'state'} && $params{'town'} && $params{'entry'}) {
+			# Get a specific person
+			my $person = _get_person(\%args, \%params);
+			return $self->SUPER::html({ country => $params{'country'}, state => $params{'state'}, town => $params{'town'}, person => $person, %params });
+		}
 		if($params{'country'} && $params{'state'} && $params{'town'}) {
 			# List the people in this town
 			my $orig_country = $params{'country'};
@@ -149,6 +154,20 @@ sub html {
 
 	# Locations database doesn't exist
 	return $self->SUPER::html();
+}
+
+# Helper: Get a hashref of the data for this person
+sub _get_person
+{
+	my($args, $params) = @_;
+
+	# Read in the .../data/people/$xref.xml file
+	my $xml_string = File::Slurp::read_file(File::Spec->catfile($args->{'database_dir'}, 'people', $params->{'entry'}) . '.xml');
+
+	# Parse the XML string
+	if(my $person = XML::Simple->new(ForceArray => 0, KeyAttr => [])->XMLin($xml_string)) {
+		return $person->{'person'};
+	}
 }
 
 1;

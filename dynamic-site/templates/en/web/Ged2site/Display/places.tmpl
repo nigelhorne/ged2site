@@ -16,10 +16,8 @@
 		[% END %]
 	[% END %]
 	<title>
-		[% IF title %]
-			[% title %]
-		[% ELSIF person && person.entry %]
-			[% person.entry %]
+		[% IF person %]
+			[% person.title | html_entity %]
 		[% ELSIF towns %]
 			Towns in [% state %]
 		[% ELSIF country %]
@@ -35,7 +33,7 @@
 	[% END %]
 	[% IF person %]
 		[% IF person.title %]
-			<meta name="description" content="[% person.title %]" />
+			<meta name="description" content="[% person.title | html_entity %]" />
 		[% ELSE %]
 			<meta name="description" content="[% person.entry %] [% person.state %] [% person.country %]" />
 		[% END %]
@@ -53,7 +51,7 @@
 		<div id="header_container">
 			<center>
 				[% IF person %]
-					<h1>People for [% entry %] in [% SiteTitle.join(' ') %]</h1>
+					<h1>[% person.name %] in [% SiteTitle.join(' ') %]</h1>
 				[% ELSIF towns %]
 					<h1>Towns in [% state %]</h1>
 				[% ELSIF states %]
@@ -88,13 +86,32 @@
 				<p><center><font color="red" size="+2">[% error %]</font><center></p>
 			[% END %]
 	</div>
-	[% IF entry %]
-		FILL IN INFORMATION HERE
+	[% IF person %]
+		<!--
+			[% USE Dumper %]
+			[% Dumper.dump(person) %]
+		-->
+		<h2>[% person.title | html_entity %]</h2>
+			<ul id="nav">
+				<li><a href="?page=places&amp;country=[%- country | uri %]&amp;[%- state | uri %]">Other Towns in [% state %], [% country %]</a></li>
+				[% IF (country == 'United States') || (country == 'Australia') %]
+					<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
+				[% ELSIF country == 'Canada' %]
+					<li><a href="?page=places&amp;country=[%- country | uri %]">Other Provinces</a></li>
+				[% ELSE %]
+					<li><a href="?page=places&amp;country=[%- country | uri %]">Other Counties in [% country %]</a></li>
+				[% END %]
+				<li><a href="?page=places">Other Countries</a></li>
+			</ul>
 	[% ELSIF people %]
 		<h2>Choose a Person</h2>
 		<ul id="nav">
 			[% FOREACH xref IN people %]
+				<!--
 				<li><a href="?page=places&amp;entry=[%- xref | uri %]&amp;country=[%- country | uri %]&amp;state=[%- state | uri %]&amp;town=[%- town | uri %]">[% xref %]</a></li>
+				-->
+				<!-- TODO - display the name -->
+				<li><a href="?page=people&amp;entry=[%- xref | uri %]">[% xref %]</a></li>
 			[% END %]
 			[% IF (country == 'United States') || (country == 'Australia') %]
 				<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
