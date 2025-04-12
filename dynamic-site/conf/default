@@ -5,7 +5,10 @@
 	</memory_cache>
 	<SiteTitle>The Family Tree of *yourname*</SiteTitle>
 	<twitter>yourtwitterhandle</twitter>
-	<contact>name=Your Name Goes Here, email=you@example.com</contact>
+	<contact>
+		<name>Your Name Goes Here</name>
+		<email>you@example.com</email>
+	</contact>
 	<!--
 	<disc_cache>
 		<driver>DBI</driver>
