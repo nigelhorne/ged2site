@@ -21,7 +21,7 @@
 		[% ELSIF towns %]
 			Towns in [% state %]
 		[% ELSIF states %]
-			Counties in [% country %]
+			States in [% country %]
 		[% ELSIF countries %]
 			Countries in [% SiteTitle.join(' ') %]
 		[% ELSE %]
@@ -95,7 +95,7 @@
 		<h2>[% person.title | html_entity %]</h2>
 			<ul id="nav">
 				<li><a href="?page=places&amp;country=[%- country | uri %]&amp;[%- state | uri %]">Other Towns in [% state %], [% country %]</a></li>
-				[% IF (country == 'United States') || (country == 'Australia') %]
+				[% IF (country == 'USA') || (country == 'Australia') %]
 					<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
 				[% ELSIF country == 'Canada' %]
 					<li><a href="?page=places&amp;country=[%- country | uri %]">Other Provinces</a></li>
@@ -115,7 +115,7 @@
 				<li><a href="?page=people&amp;entry=[%- xref | uri %]">[% people.$xref %]</a></li>
 			[% END %]
 			<li><a href="?page=places&amp;country=[%- country | uri %]&amp;state=[%- state | uri %]">Other Towns in [% state %]</a></li>
-			[% IF (country == 'United States') || (country == 'Australia') %]
+			[% IF (country == 'USA') || (country == 'Australia') %]
 				<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
 			[% ELSIF country == 'Canada' %]
 				<li><a href="?page=places&amp;country=[%- country | uri %]">Other Provinces</a></li>
@@ -133,7 +133,7 @@
 		</ul>
 	[% ELSIF states %]
 		<h2>
-			[% IF (country == 'United States') || (country == 'Australia') %]
+			[% IF (country == 'USA') || (country == 'Australia') %]
 				Choose a State
 			[% ELSIF country == 'Canada' %]
 				Choose a Province
@@ -153,7 +153,13 @@
 			[% FOREACH town IN towns %]
 				<li><a href="?page=places&amp;town=[%- town | uri %]&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN town.lower.split(' ') %][% word.ucfirst %][% END %]</a></li>
 			[% END %]
-			<li><a href="?page=places&amp;country=[% country | uri %]">Other Counties in [% country %]</a></li>
+			[% IF (country == 'USA') || (country == 'Australia') %]
+				<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
+			[% ELSIF country == 'Canada' %]
+				<li><a href="?page=places&amp;country=[%- country | uri %]">Other Provinces</a></li>
+			[% ELSE %]
+				<li><a href="?page=places&amp;country=[%- country | uri %]">Other Counties in [% country %]</a></li>
+			[% END %]
 			<li><a href="?page=places">Other Countries</a></li>
 		</ul>
 	[% END %]
