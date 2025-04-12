@@ -55,10 +55,11 @@ sub html {
 				}
 			}
 			my @people = $places->xref({ distinct => 1, %params });
-			@people = sort grep { defined } @people;
+			my %people = map { $_ => $places->name({ xref => $_, distinct => 1 }) } sort grep { defined } @people;
+			undef @people;
 			$params{'country'} = $orig_country;
 			# Add params because country may have been changed
-			return $self->SUPER::html({ country => $params{'country'}, state => $params{'state'}, town => $params{'town'}, people => \@people, %params });
+			return $self->SUPER::html({ country => $orig_country, state => $params{'state'}, town => $params{'town'}, people => \%people, %params });
 		}
 		if($params{'country'} && $params{'state'}) {
 			# List the towns in this counties/states/provinces

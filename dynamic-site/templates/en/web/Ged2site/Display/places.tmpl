@@ -106,12 +106,12 @@
 	[% ELSIF people %]
 		<h2>Choose a Person</h2>
 		<ul id="nav">
-			[% FOREACH xref IN people %]
+			[% FOREACH xref IN people.keys %]
 				<!--
 				<li><a href="?page=places&amp;entry=[%- xref | uri %]&amp;country=[%- country | uri %]&amp;state=[%- state | uri %]&amp;town=[%- town | uri %]">[% xref %]</a></li>
 				-->
 				<!-- TODO - display the name -->
-				<li><a href="?page=people&amp;entry=[%- xref | uri %]">[% xref %]</a></li>
+				<li><a href="?page=people&amp;entry=[%- xref | uri %]">[% people.$xref %]</a></li>
 			[% END %]
 			[% IF (country == 'United States') || (country == 'Australia') %]
 				<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
