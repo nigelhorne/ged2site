@@ -22,6 +22,7 @@ sub html {
 	my $allow = {
 		'country' => qr/^[A-Z\s]+$/i,
 		'state' => qr/^[A-Z\s]+$/i,
+		'town' => qr/^[A-Z\s]+$/i,
 		'entry' => undef,
 		'page' => 'places',
 		'year' => qr/^\d{3,4}$/,
@@ -35,23 +36,48 @@ sub html {
 		delete $params{'lint_content'};
 		delete $params{'lang'};
 
-		if((!$params{'country'}) || ($params{'country'} eq 'default')) {
-			# List the countries
-			if(!defined($countries)) {
-				my @c = sort $places->country(distinct => 1);
-				$countries = \@c;
+		if($params{'country'} && $params{'state'} && $params{'town'}) {
+			# List the people in this town
+			my $orig_country = $params{'country'};
+			if(!$places->state({ country => $orig_country })) {
+				$lcm ||= Locale::Country::Multilingual->new();
+				$params{'country'} = $lcm->code2country($lcm->country2code($orig_country , 'LOCALE_CODE_ALPHA2', $self->{_lingua}->language_code_alpha2()), 'en');
+				unless(defined($params{'country'})) {
+					$params{'country'} = $self->{_lingua}->country();
+				}
+				if($logger) {
+					$logger->debug('Translated country to English, now ', $params{'country'});
+				}
 			}
-
-			if((!defined($self->{_lingua})) || ($self->{_lingua}->requested_language() =~ /^English/)) {
-				return $self->SUPER::html({ countries => $countries });
-			}
-			$lcm ||= Locale::Country::Multilingual->new();
-			my $code = Locale::Language::language2code($self->{_lingua}->requested_language());
-			my @locale_countries = map { encode_entities($lcm->code2country($lcm->country2code($_), $code)) } @{$countries};
-			return $self->SUPER::html({ countries => \@locale_countries });
+			my @people = $places->xref({ distinct => 1, %params });
+			@people = sort grep { defined } @people;
+			$params{'country'} = $orig_country;
+			# Add params because country may have been changed
+			return $self->SUPER::html({ country => $params{'country'}, state => $params{'state'}, town => $params{'town'}, people => \@people, %params });
 		}
-		if($params{'country'} && (!$params{'state'}) && !$params{'entry'}) {
+		if($params{'country'} && $params{'state'}) {
+			# List the towns in this counties/states/provinces
+			# FIXME: include those where no town is known
+			my $orig_country = $params{'country'};
+			if(!$places->state({ country => $orig_country })) {
+				$lcm ||= Locale::Country::Multilingual->new();
+				$params{'country'} = $lcm->code2country($lcm->country2code($orig_country , 'LOCALE_CODE_ALPHA2', $self->{_lingua}->language_code_alpha2()), 'en');
+				unless(defined($params{'country'})) {
+					$params{'country'} = $self->{_lingua}->country();
+				}
+				if($logger) {
+					$logger->debug('Translated country to English, now ', $params{'country'});
+				}
+			}
+			my @towns = $places->town({ distinct => 1, %params });
+			@towns = sort grep { defined } @towns;
+			$params{'country'} = $orig_country;
+			# Add params because country may have been changed
+			return $self->SUPER::html({ country => $params{'country'}, state => $params{'state'}, towns => \@towns, %params });
+		}
+		if($params{'country'}) {
 			# List the counties/states/provinces in this country
+			# FIXME: include those where no CSP is known
 			my @states;
 			if($params{'country'} eq 'default') {
 				if(my $locale = $self->{_lingua}->locale()) {
@@ -94,9 +120,9 @@ sub html {
 				$params{'country'} = $orig_country;
 			}
 			if((scalar(@states) == 0) || !defined($states[0])) {
-				# We don't have state information on any of the bands
+				# We don't have state information on any of the people
 				# in this country
-				return $self->SUPER::html({ country => $params{'country'}, bands => $places->selectall_hashref(\%params) });
+				return $self->SUPER::html({ country => $params{'country'}, people => $places->selectall_hashref(\%params) });
 			}
 			@states = sort @states;
 			# if(($params{'country'} eq 'United States') || ($params{'country'} eq 'Canada')) {
@@ -106,12 +132,19 @@ sub html {
 			return $self->SUPER::html({ country => $params{'country'}, states => \@states, %params });
 		}
 
-		my @places = $places->places();
-		return $self->SUPER::html({
-			head => $places->head(year => $params{'year'}),
-			places => \@places,
-			updated => $places->updated()
-		});
+		# List the countries
+		if(!defined($countries)) {
+			my @c = sort $places->country(distinct => 1);
+			$countries = \@c;
+		}
+
+		if((!defined($self->{_lingua})) || ($self->{_lingua}->requested_language() =~ /^English/)) {
+			return $self->SUPER::html({ countries => $countries });
+		}
+		$lcm ||= Locale::Country::Multilingual->new();
+		my $code = Locale::Language::language2code($self->{_lingua}->requested_language());
+		my @locale_countries = map { encode_entities($lcm->code2country($lcm->country2code($_), $code)) } @{$countries};
+		return $self->SUPER::html({ countries => \@locale_countries });
 	}
 
 	# Locations database doesn't exist

@@ -20,8 +20,8 @@
 			[% title %]
 		[% ELSIF person && person.entry %]
 			[% person.entry %]
-		[% ELSIF state %]
-			People in [% state %]
+		[% ELSIF towns %]
+			Towns in [% state %]
 		[% ELSIF country %]
 			People in [% country %]
 		[% ELSIF countries %]
@@ -54,10 +54,14 @@
 			<center>
 				[% IF person %]
 					<h1>People for [% entry %] in [% SiteTitle.join(' ') %]</h1>
+				[% ELSIF towns %]
+					<h1>Towns in [% state %]</h1>
+				[% ELSIF states %]
+					<h1>States in [% country %]</h1>
 				[% ELSIF countries %]
 					<h1>Countries in [% SiteTitle.join(' ') %]</h1>
 				[% ELSE %]
-					<h1>Places for [% SiteTitle.join(' ') %]</h1>
+					<h1>People for [% town %]</h1>
 				[% END %]
 				[% IF error %]
 					<p><font color="red" size="+2">[% error %]</font></p>
@@ -74,66 +78,36 @@
 				[ <a href="?page=todo">To Do</a> ] |
 				[ <a href="?page=calendar">Calendar</a> ] |
 				[% IF entry %]
-					[ <a href="?page=locations">Locations by Year</a> ] |
+					[ <a href="?page=places">Find People by Location</a> ] |
 				[% ELSE %]
 					[ <a href="?page=reports">Reports</a> ] |
 				[% END %]
 				[ <a href="/visjs.html">Timeline</a> ]
 			</center>
-			[% IF person %]
-				<h1>[% person.entry %]</h1>
-				[% IF person.state %]
-					[% IF country == 'United States' || country == 'Canada' %]
-						<h2>[% person.state %], [% person.country %]</h2>
-					[% ELSE %]
-						<h2>[% FOREACH word IN person.state.lower.split(' ') %] [% word.ucfirst -%][% END %], [% person.country %]</h2>
-					[% END %]
-				[% ELSE %]
-					<h2>[% person.country %]</h2>
-				[% END %]
-			[% ELSIF people %]
-				<h1>
-					[% IF state %]
-						People in
-						[% IF state == '%' %]
-							[% country %]
-						[% ELSIF country == 'United States' || country == 'Canada' %]
-							[% state %]
-						[% ELSE %]
-							[% FOREACH word IN state.lower.split(' ') %][% word.ucfirst %] [% END %]
-						[% END %]
-					[% END %]
-				</h1>
-			[% ELSIF country %]
-				<h1>People in [% country %]</h1>
-			[% ELSE %]
-				<h1>Search People by Location</h1>
-			[% END %]
 			[% IF error %]
 				<p><center><font color="red" size="+2">[% error %]</font><center></p>
 			[% END %]
 	</div>
-	[% IF person %]
+	[% IF entry %]
 		FILL IN INFORMATION HERE
 	[% ELSIF people %]
-		<div id="shop-body-nav">
-			<ul id="shop-body-nav">
-				[% FOREACH person IN people %]
-					<li><a href="?page=places&amp;entry=[%- person.entry | uri %]&amp;country=[%- country | uri %]">[% person.entry %]</a></li>
-				[% END %]
-				[% IF (country == 'United States') || (country == 'Australia') %]
-					<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
-				[% ELSIF country == 'Canada' %]
-					<li><a href="?page=places&amp;country=[%- country | uri %]">Other Provinces</a></li>
-				[% ELSE %]
-					<li><a href="?page=places&amp;country=[%- country | uri %]">Other Counties in [% country %]</a></li>
-				[% END %]
-				<li><a href="?page=places">Other Countries</a></li>
-			</ul>
-		</div>
+		<h2>Choose a Person</h2>
+		<ul id="nav">
+			[% FOREACH xref IN people %]
+				<li><a href="?page=places&amp;entry=[%- xref | uri %]&amp;country=[%- country | uri %]&amp;state=[%- state | uri %]&amp;town=[%- town | uri %]">[% xref %]</a></li>
+			[% END %]
+			[% IF (country == 'United States') || (country == 'Australia') %]
+				<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
+			[% ELSIF country == 'Canada' %]
+				<li><a href="?page=places&amp;country=[%- country | uri %]">Other Provinces</a></li>
+			[% ELSE %]
+				<li><a href="?page=places&amp;country=[%- country | uri %]">Other Counties in [% country %]</a></li>
+			[% END %]
+			<li><a href="?page=places">Other Countries</a></li>
+		</ul>
 	[% ELSIF countries %]
 		<h2>Choose a Country</h2>
-		<ul id="shop-body-nav">
+		<ul id="nav">
 			[% FOREACH country IN countries %]
 				<li><a href="?page=places&amp;country=[%- country.replace(' ', '+') %]">[% country %]</a></li>
 			[% END %]
@@ -150,9 +124,18 @@
 		</h2>
 		<ul id="nav">
 			[% FOREACH state IN states %]
-				<li><a href="?page=places&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN state.lower.split(' ') %] [% word.ucfirst %] [% END %]</a></li>
+				<li><a href="?page=places&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN state.lower.split(' ') %][% word.ucfirst %][% END %]</a></li>
 			[% END %]
 			<li><a href="?page=places">Other Countries</a></li>
+		</ul>
+	[% ELSIF towns %]
+		<h2>Choose a Town</h2>
+		<ul id="nav">
+			[% FOREACH town IN towns %]
+				<li><a href="?page=places&amp;town=[%- town | uri %]&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN town.lower.split(' ') %][% word.ucfirst %][% END %]</a></li>
+			[% END %]
+			<li><a href="?page=places&amp;country=[% country | uri %]">Other Counties in [% country %]</a></li>
+			<li><a href="?page=places">Other Country</a></li>
 		</ul>
 	[% END %]
 </body>
