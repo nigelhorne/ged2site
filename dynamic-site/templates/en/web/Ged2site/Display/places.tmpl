@@ -143,7 +143,7 @@
 		</h2>
 		<ul id="nav">
 			[% FOREACH state IN states %]
-				<li><a href="?page=places&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN state.lower.split(' ') %][% word.ucfirst %][% END %]</a></li>
+				<li><a href="?page=places&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN state.lower.split(' ') %][% word.ucfirst %] [% END %]</a></li>
 			[% END %]
 			<li><a href="?page=places">Other Countries</a></li>
 		</ul>
@@ -151,7 +151,7 @@
 		<h2>Choose a Town</h2>
 		<ul id="nav">
 			[% FOREACH town IN towns %]
-				<li><a href="?page=places&amp;town=[%- town | uri %]&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN town.lower.split(' ') %][% word.ucfirst %][% END %]</a></li>
+				<li><a href="?page=places&amp;town=[%- town | uri %]&amp;state=[%- state | uri %]&amp;country=[% country | uri %]">[% FOREACH word IN town.lower.split(' ') %][% word.ucfirst %] [% END %]</a></li>
 			[% END %]
 			[% IF (country == 'USA') || (country == 'Australia') %]
 				<li><a href="?page=places&amp;country=[%- country | uri %]">Other States</a></li>
