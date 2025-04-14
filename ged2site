@@ -1062,8 +1062,8 @@ print $visjs_html <<'HEADER';
 <head>
 	<meta charset="utf8">
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
-	<meta name="description" content="Blood relatives timeline - A Ged2Site webpage">
-	<title>Blood Relatives' Timeline</title>
+	<meta name="description" content="Explore a dynamic, interactive family tree with vis.js. Visualise relationships and ancestors within the genealogy project using this unique network graph.">
+	<title>Interactive Family Tree Visualisation</title>
 
 	<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
   <style type="text/css">
@@ -1092,11 +1092,15 @@ print $visjs_html <<'HEADER';
 
 HEADER
 
-print $visjs_html "<body><center><h1>Blood Relatives' Timeline $html_name</h1></center>";
+if($opts{'h'}) {
+	print $visjs_html "<body><center><h1>Interactive Family Tree Visualisation – $opts{'h'} Genealogy Project</h1></center>";
+} else {
+	print $visjs_html "<body><center><h1>Blood Relatives' Timeline $html_name</h1></center>";
+}
 
 print $visjs_html <<'BODY';
 	<center>
-		[ <a href="cgi-bin/page.fcgi?page=people&amp;home=1">Home</a> ] |
+		[ <a href="cgi-bin/page.fcgi?page=home">Home</a> ] |
 		[ <a href="cgi-bin/page.fcgi?page=censuses">Census Index</a> ] |
 		[ <a href="cgi-bin/page.fcgi?page=surnames">Surname Index</a> ] |
 		[ <a href="cgi-bin/page.fcgi?page=history">Family History</a> ] |
@@ -1104,6 +1108,8 @@ print $visjs_html <<'BODY';
 		[ <a href="cgi-bin/page.fcgi?page=calendar">Calendar</a> ]
 	</center>
 	<p><font size=+1>
+		This tool allows you to visualise relationships, track lineage, and delve deeper into the connections between family members, within the family tree.
+		Navigate through generations of the family tree, uncovering connections and discovering heritage in a completely interactive way.
 		Click and move the mouse to move around the timeline.
 		Only people with known birth dates are shown.
 	</font></p>
