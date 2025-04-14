@@ -91,7 +91,7 @@ sub new
 		}
 	}
 
-	# Look for localised configuratins
+	# Look for localised configurations
 	my $language;
 	if(my $lingua = $args{'lingua'}) {
 		$language = $lingua->language_code_alpha2();
@@ -109,7 +109,7 @@ sub new
 	}
 
 	if($args{'debug'}) {
-		# # Not sure this really does anything
+		# Not sure this really does anything
 		# $Config::Auto::Debug = 1;
 
 		if($args{logger}) {
