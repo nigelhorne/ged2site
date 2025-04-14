@@ -159,7 +159,7 @@ if($@) {
 my $censuses = Ged2site::Data::censuses->new();
 my $changes = Ged2site::Data::changes->new(no_entry => 1);
 my $surnames = Ged2site::DB::surnames->new();
-my $history = Ged2site::Data::history->new();
+my $history = Ged2site::Data::history->new(no_fixate => 1);
 my $orphans = Ged2site::Data::orphans->new();
 my $todo = Ged2site::DB::todo->new();
 my $intermarriages = Ged2site::DB::intermarriages->new();
