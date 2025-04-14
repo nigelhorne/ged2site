@@ -8,6 +8,7 @@ use strict;
 
 use Ged2site::Display;
 use DateTime;
+use Data::Reuse;
 
 our @ISA = ('Ged2site::Display');
 
@@ -40,6 +41,7 @@ sub html {
 	# Get the people database handle
 	my $people = $args{'people'};
 
+	# This loop is why the history table can't be fixated
 	foreach my $event(@{$events}) {
 		# Fetch person details based on the entry parameter
 		$event->{'person'} = $people->fetchrow_hashref({ entry => $event->{'xref'} });
@@ -47,6 +49,9 @@ sub html {
 
 	# Sort in chronological order (we only care about the year)
 	my @e = sort { $a->{'year'} <=> $b->{'year'} } values @{$events};
+
+	# Now the values can be fixated
+	Data::Reuse::fixate(@e);
 
 	return $self->SUPER::html(
 		events => \@e,
