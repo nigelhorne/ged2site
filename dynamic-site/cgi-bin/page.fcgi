@@ -370,7 +370,9 @@ if($buffercache) {
 	$buffercache->purge();
 }
 if($rate_limit_cache) {
-	$rate_limit_cache->purge();
+	# Memcached can't purge().
+	# I don't like this hardwired code, it would be better if I could find a way to determine if a driver can run purge()
+	$rate_limit_cache->purge() if($rate_limit_cache->short_driver_name() ne 'Memcached');
 }
 if($info_cache) {
 	$info_cache->purge();
