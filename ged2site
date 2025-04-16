@@ -15497,9 +15497,9 @@ sub extract_family_info
 	$family{nieces_nephews} = ($text =~ /as well as several nieces and nephews/i) ? ['several nieces and nephews'] : [];
 
 	# Extract parents and clean the names by removing unnecessary details
-	if ($text =~ /daughter of the late\s+(.+?)\s+and\s+(.+)/i) {
-		my $parent1 = $1;
-		my $parent2 = $2;
+	if ($text =~ /(son|daughter) of the late\s+(.+?)\s+and\s+(.+?)\./i) {
+		my $parent1 = $2;
+		my $parent2 = $3;
 
 		# Remove anything after the first comma in each parent's name
 		$parent1 =~ s/,.*//;
@@ -15577,8 +15577,22 @@ sub extract_family_info
 		}
 	}
 
+	# Birth info
+	if($text =~ /[^\b]Born in ([^,]+),.*?\b(?:on\s+)?([A-Z][a-z]+ \d{1,2}, \d{4})/i) {
+		$family{birth} = {
+			place => $1,
+			date  => $2,
+		}
+	} elsif($text =~ /[^\b]Born in ([a-z,\.\s]+)\s+on\s+(.+)/i) {
+		$family{'birth'}->{'place'} = $1;
+		if(my $dt = DateTime::Format::Text->parse_datetime($2)) {
+			$family{'birth'}->{date} = $dt->ymd('/');
+		}
+		$family{'birth'}->{'place'} =~ s/\s+$//;
+	}
+
 	# Date of death
-	if($text =~ /\bpassed away\b.*?\b(?:on\s+)?([A-Z][a-z]+ \d{1,2}, \d{4})/i) {
+	if($text =~ /\bpassed away\b.*?\b(?:on\s+)?([A-Z]+ \d{1,2}, \d{4})/i) {
 		$family{death}->{date} = $1;
 	}
 
