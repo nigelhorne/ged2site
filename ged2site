@@ -15456,13 +15456,26 @@ sub extract_family_info
 		my $children_text = $2;
 		$family{children} = extract_people_section($children_text);
 	} elsif ($text =~ /Loving mum to\s*([^\.;]+)/i) {  # Look for the phrase "Loving father of"
-		# Correct extraction of children (skipping "his/her")
 		my $children_text = $1;
 		$family{children} = extract_people_section($children_text);
 	} elsif ($text =~ /Loving father of\s*([^\.;]+)/i) {  # Look for the phrase "Loving father of"
-		# Correct extraction of children (skipping "his/her")
 		my $children_text = $1;
 		$family{children} = extract_people_section($children_text);
+	} else {
+		my @children;
+		while ($text =~ /\b(?:son|daughter),\s*([A-Z][a-z]+(?:\s+\([A-Z][a-z]+\))?)\s*(?:and their children ([^.;]+))?/g) {
+			my $child = $1;
+			my $grandkids = $2;
+			if(my @grandchildren = $grandkids ? split /\s*,\s*|\s+and\s+/, $grandkids : ()) {
+				push @children, {
+					name => $child,
+					grandchildren => \@grandchildren,
+				};
+			} else {
+				push @children, { name => $child }
+			}
+		}
+		$family{children} = \@children if @children;
 	}
 
 	# Extract grandchildren
@@ -15519,9 +15532,10 @@ sub extract_family_info
 	}
 
 	# Extract spouse's death year and remove the "(year)" from the name
-	if($text =~ /wife of the late\s+([\w\s]+)\s+\((\d{4})\)/) {
-		my $name = $1;
-		my $death_year = $2;
+	if($text =~ /(wife|husband) of the late\s+([\w\s]+)\s+\((\d{4})\)/) {
+		my $name = $2;
+		my $death_year = $3;
+
 		$family{'spouse'} ||= [];
 
 		# Remove the death year part from the spouse's name
