@@ -15405,7 +15405,7 @@ sub extract_family_info
 		my $section = shift;
 		return unless $section;
 
-		$section =~ s/\s+and\s+/, /g;  # Ensure "and" is treated as a separator
+		$section =~ s/\s+and\s+/, /g;	# Ensure "and" is treated as a separator
 		$section =~ s/([A-Za-z]+),\s+([A-Z]{2})/$1<<COMMA>>$2/g;
 		my @entries = split /\s*,\s*/, $section;
 
@@ -15531,16 +15531,24 @@ sub extract_family_info
 			name => $name,
 			death_year => $death_year
 		}
-	} elsif($text =~ /wife of\s+([\w\s]+)/) {
-		my $name = $1;
+	} elsif($text =~ /\bmarried ([^,]+),.*?\b(?:on\s+)?([A-Z][a-z]+ \d{1,2}, \d{4})(?:.*?\b(?:at|in)\s+([^.,]+))?/i) {
 		$family{'spouse'} ||= [];
 
-		push @{$family{'spouse'}}, { name => $name }
+		push @{$family{'spouse'}}, {
+			name => $1,
+			married => {
+				date  => $2,
+				place => $3 // '',
+			}
+		};
+	} elsif($text =~ /\b(?:wife|husband) of ([^.,;]+)/i) {
+		$family{'spouse'} ||= [];
+
+		push @{$family{'spouse'}}, { name => $1 }
 	} elsif($text =~ /husband to the late\s([\w\s]+)[\s\.]/i) {
-		my $name = $1;
 		$family{'spouse'} ||= [];
 
-		push @{$family{'spouse'}}, { name => $name }
+		push @{$family{'spouse'}}, { name => $1, status => 'deceased' }
 	}
 
 	# Ensure spouse location is properly handled
