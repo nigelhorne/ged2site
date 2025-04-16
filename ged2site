@@ -15498,12 +15498,34 @@ sub extract_family_info
 	# Extract siblings (sisters and brothers) correctly, skipping "her" or "his"
 	if($text =~ /predeceased by (his|her) sisters?\s*([^;\.]+);?/i) {
 		my $sisters_text = $2;
+		$sisters_text =~ s/^,\s+//;
 		$family{sisters} = extract_people_section($sisters_text);
+	} else {
+		my @siblings;
+
+		while ($text =~ /\bsister,\s*([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)*)(?:,\s*([A-Z][a-z]+))?/g) {
+			$family{'sisters'} ||= [];
+			push @{$family{sisters}}, {
+				name   => $1,
+				status => ($text =~ /\bpredeceased by.*?$1/i) ? 'deceased' : 'living',
+			};
+		}
 	}
 
 	if($text =~ /predeceased by (his|her) brothers?\s*([^;\.]+);?/i) {
 		my $brothers_text = $2;
+		$brothers_text =~ s/^,\s+//;
 		$family{brothers} = extract_people_section($brothers_text);
+	} else {
+		my @siblings;
+
+		while ($text =~ /\bbrother,\s*([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)*)(?:,\s*([A-Z][a-z]+))?/g) {
+			$family{'brothers'} ||= [];
+			push @{$family{brothers}}, {
+				name   => $1,
+				status => ($text =~ /\bpredeceased by.*?$1/i) ? 'deceased' : 'living',
+			};
+		}
 	}
 
 	# Detect nieces/nephews
