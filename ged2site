@@ -15577,6 +15577,26 @@ sub extract_family_info
 		}
 	}
 
+	# Date of death
+	if($text =~ /\bpassed away\b.*?\b(?:on\s+)?([A-Z][a-z]+ \d{1,2}, \d{4})/i) {
+		$family{death}->{date} = $1;
+	}
+
+	# Place of death
+	if($text =~ /\bpassed away\b([a-z0-9\s,]+)\sat\s+(.+?)\./i) {
+		my $place = $2;
+		if($place =~ /(.+)\s+on\s+([A-Z]+ \d{1,2}, \d{4})/i) {
+			$place = $1;
+			$family{death}->{date} = $2;
+		} elsif($place =~ /(.+)\son\s(.+)/) {
+			$place = $1;
+			if(my $dt = DateTime::Format::Text->parse_datetime($2)) {
+				$family{death}->{date} = $dt->ymd('/');
+			}
+		}
+		$family{death}->{place} = $place;
+	}
+
 	# Remove blank fields from the main family hash
 	%family = map { $_ => $family{$_} } grep { defined $family{$_} && $family{$_} ne '' } keys %family;
 
