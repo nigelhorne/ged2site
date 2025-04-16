@@ -1093,7 +1093,7 @@ print $visjs_html <<'HEADER';
 HEADER
 
 if($opts{'h'}) {
-	print $visjs_html "<body><center><h1>Interactive Family Tree Visualisation – $opts{'h'} Genealogy Project</h1></center>";
+	print $visjs_html "<body><center><h1>Interactive Family Tree Visualisation - $opts{'h'} Genealogy Project</h1></center>";
 } else {
 	print $visjs_html "<body><center><h1>Blood Relatives' Timeline $html_name</h1></center>";
 }
