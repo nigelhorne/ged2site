@@ -958,7 +958,8 @@ if($opts{'d'} || $opts{'m'}) {
 	HTTP::Cache::Transparent::init({
 		BasePath => $cachedir,
 		Verbose => $opts{'v'} ? 1 : 0,
-		NoUpdate => 24 * 60 * 60,
+		NoUpdate => 60 * 60 * 24,
+		MaxAge => 30 * 24
 	});
 }
 
@@ -9229,10 +9230,8 @@ sub print_person
 					}
 				}
 				my $lastname = $surname;
-				if(defined($sex) && ($sex eq 'F')) {
-					if(my $husband = $person->husband()) {
-						$lastname = $husband->surname();
-					}
+				if(defined($sex) && ($sex eq 'F') && (my $husband = $person->husband())) {
+					$lastname = $husband->surname();
 				}
 				if($yod && $firstname && $lastname) {
 					my %opts = (
