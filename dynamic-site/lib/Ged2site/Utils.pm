@@ -59,7 +59,7 @@ sub create_disc_cache {
 	# Default to BerkeleyDB if no driver specified
 	unless(defined($driver)) {
 		my $root_dir = $ENV{'root_dir'} || $args->{'root_dir'} || $config->{disc_cache}->{root_dir} || $config->{'root_dir'};
-		throw Error::Simple('root_dir is not optional') unless($root_dir);
+		throw Error::Simple($config->{'config_path'} . ': root_dir is not optional') unless($root_dir);
 
 		if($logger) {
 			$logger->debug(Data::Dumper->new([$config])->Dump());
