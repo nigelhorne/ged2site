@@ -15632,11 +15632,32 @@ sub extract_family_info
 			$family{'birth'}->{date} = $dt->ymd('/');
 		}
 		$family{'birth'}->{'place'} =~ s/\s+$//;
+	} elsif($text =~ /S?he was born (.+)\sin ([a-z,\.\s]+)\s+to\s+(.+?)\sand\s(.+?)\./i) {
+		if(my $dt = DateTime::Format::Text->parse_datetime($1)) {
+			$family{'birth'}->{date} = $dt->ymd('/');
+		}
+		$family{'birth'}->{'place'} = $2;
+		my $father = $3;
+		my $mother = $4;
+		if($mother =~ /(.+)\s+\((.+)\)\s+(.+)/) {
+			$mother = "$1 $2";
+		}
+		$family{parents} = {
+			father => { name => $father },
+			mother => { name => $mother }
+		};
 	}
 
 	# Date of death
 	if($text =~ /\bpassed away\b.*?\b(?:on\s+)?([A-Z]+ \d{1,2}, \d{4})/i) {
 		$family{death}->{date} = $1;
+	}
+
+	# Age at death
+	if($text =~ /,\s(\d{1,3}), of\s/) {
+		if($1 < 110) {
+			$family{'death'}->{'age'} = $1;
+		}
 	}
 
 	# Place of death
