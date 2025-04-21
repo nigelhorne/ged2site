@@ -15470,7 +15470,7 @@ sub extract_family_info
 		$family{children} = extract_people_section($children_text);
 	} else {
 		my @children;
-		while ($text =~ /\b(?:son|daughter),\s*([A-Z][a-z]+(?:\s+\([A-Z][a-z]+\))?)\s*(?:and their children ([^.;]+))?/g) {
+		while($text =~ /\b(?:son|daughter)s?,\s*([A-Z][a-z]+(?:\s+\([A-Z][a-z]+\))?)\s*(?:and their children ([^.;]+))?/g) {
 			my $child = $1;
 			my $grandkids = $2;
 			if(my @grandchildren = $grandkids ? split /\s*,\s*|\s+and\s+/, $grandkids : ()) {
@@ -15646,6 +15646,9 @@ sub extract_family_info
 			father => { name => $father },
 			mother => { name => $mother }
 		};
+		if($text =~ /survived by (his|her) (father|mother)[\s,;]/i) {
+			$family{parents}->{$2}->{'status'} = 'living';
+		}
 	}
 
 	# Date of death
