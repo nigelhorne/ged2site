@@ -15606,6 +15606,13 @@ sub extract_family_info
 			date	 => $2,
 			time	 => $3,
 		};
+	} elsif($text =~ /funeral services.+\sat\s(.+)\sat\s(.+),\swith\s/i) {
+		$family{funeral} = {
+			time	 => $1,
+			location => $2
+		};
+	} elsif($text =~ /funeral services.+\sat\s(.+),\swith\s/i) {
+		$family{funeral} = { location => $1 }
 	}
 
 	# Extract father-in-law and mother-in-law information (if present)
