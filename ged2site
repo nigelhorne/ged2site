@@ -15539,17 +15539,20 @@ sub extract_family_info
 	$family{nieces_nephews} = ($text =~ /as well as several nieces and nephews/i) ? ['several nieces and nephews'] : [];
 
 	# Extract parents and clean the names by removing unnecessary details
-	if ($text =~ /(son|daughter) of the late\s+(.+?)\s+and\s+(.+?)\./i) {
-		my $parent1 = $2;
-		my $parent2 = $3;
+	if($text =~ /(son|daughter) of the late\s+(.+?)\s+and\s+(.+?)\./i) {
+		my $father = $2;
+		my $mother = $3;
 
 		# Remove anything after the first comma in each parent's name
-		$parent1 =~ s/,.*//;
-		$parent2 =~ s/,.*//;
+		$father =~ s/,.*//;
+		$mother =~ s/,.*//;
 
+		if($mother =~ /(.+)\s+\((.+)\)\s+(.+)/) {
+			$mother = "$1 $2";
+		}
 		$family{parents} = {
-			father => { name => $parent1 },
-			mother => { name => $parent2 },
+			father => { name => $father },
+			mother => { name => $mother },
 		};
 	}
 
