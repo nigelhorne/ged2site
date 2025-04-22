@@ -15547,17 +15547,10 @@ sub extract_family_info
 		$parent1 =~ s/,.*//;
 		$parent2 =~ s/,.*//;
 
-		# Remove blank location field if empty
-		$family{parents} = [
-			{
-				name	 => $parent1,
-				# no location field included as it is empty
-			},
-			{
-				name	 => $parent2,
-				# no location field included as it is empty
-			},
-		];
+		$family{parents} = {
+			father => { name => $parent1 },
+			mother => { name => $parent2 },
+		};
 	}
 
 	# Extract spouse's death year and remove the "(year)" from the name
