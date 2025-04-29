@@ -15602,6 +15602,14 @@ sub extract_family_info
 			date	 => $2,
 			time	 => $3,
 		};
+		if($family{'funeral'}->{'date'} =~ /(.+?)\.\s{2,}/) {
+			$family{'funeral'}->{'date'} = $1;
+			if($family{'funeral'}->{'date'} =~ /(.+?)\sat\s(.+)/) {
+				# Wednesday 9th March at 1.15pm.  Friends etc. etc.
+				$family{'funeral'}->{'date'} = $1;
+				$family{'funeral'}->{'time'} = $2;
+			}
+		}
 	} elsif($text =~ /funeral services.+\sat\s(.+)\sat\s(.+),\swith\s/i) {
 		$family{funeral} = {
 			time	 => $1,
