@@ -15584,14 +15584,14 @@ sub extract_family_info
 				place => $3 // '',
 			}
 		};
+	} elsif($text =~ /husband (?:to|of) the late\s([\w\s]+)[\s\.]/i) {
+		$family{'spouse'} ||= [];
+
+		push @{$family{'spouse'}}, { name => $1, status => 'deceased' }
 	} elsif($text =~ /\b(?:wife|husband) of ([^.,;]+)/i) {
 		$family{'spouse'} ||= [];
 
 		push @{$family{'spouse'}}, { name => $1 }
-	} elsif($text =~ /husband to the late\s([\w\s]+)[\s\.]/i) {
-		$family{'spouse'} ||= [];
-
-		push @{$family{'spouse'}}, { name => $1, status => 'deceased' }
 	}
 
 	# Ensure spouse location is properly handled
