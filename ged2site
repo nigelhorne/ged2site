@@ -15491,8 +15491,19 @@ sub extract_family_info
 
 	# Extract grandchildren
 	$family{grandchildren} = [ split /\s*(?:,|and)\s*/i, ($text =~ /grandchildren\s+([^\.;]+)/i)[0] || '' ];
-	while(length($family{'grandchildren'}->[0]) == 0) {
-		shift @{$family{'grandchildren'}};
+	if(scalar @{$family{grandchildren}}) {
+		while((exists $family{'grandchildren'}->[0]) && (length($family{'grandchildren'}->[0]) == 0)) {
+			shift @{$family{'grandchildren'}};
+		}
+		if($family{'grandchildren'}->[0] =~ /brothers/) {
+			if(!exists $family{'brothers'}) {
+				shift @{$family{'grandchildren'}};
+				$family{'brothers'} = extract_people_section(join(', ', @{$family{'grandchildren'}}));
+			}
+			delete $family{grandchildren};
+		}
+	} else {
+		delete $family{grandchildren};
 	}
 	if((!defined($family{'grandchildren'})) || (($#{$family{'grandchildren'}}) <= 0)) {
 		# handle devoted Grandma to Tom, Dick, and Harry and loved Mother-in-law to Jack and Jill"
