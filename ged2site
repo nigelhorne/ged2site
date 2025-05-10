@@ -15491,6 +15491,9 @@ sub extract_family_info
 
 	# Extract grandchildren
 	$family{grandchildren} = [ split /\s*(?:,|and)\s*/i, ($text =~ /grandchildren\s+([^\.;]+)/i)[0] || '' ];
+	while(length($family{'grandchildren'}->[0]) == 0) {
+		shift @{$family{'grandchildren'}};
+	}
 	if((!defined($family{'grandchildren'})) || (($#{$family{'grandchildren'}}) <= 0)) {
 		# handle devoted Grandma to Tom, Dick, and Harry and loved Mother-in-law to Jack and Jill"
 		my ($grandchildren_str) = $text =~ /Grandma to (.*?)(?: and loved|$)/;
