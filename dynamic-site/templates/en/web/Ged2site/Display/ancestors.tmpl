@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Ancestor Tree</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css">
+<link rel="stylesheet" href="https://fperucic.github.io/treant-js/Treant-js.css">
   <style>
     #tree-container {
 	width: 100%;
@@ -12,6 +13,13 @@
     }
     .node-name { font-weight: bold; }
     .node-title { font-size: 0.85em; }
+.deceasedNode .node-name {
+  color: #888;
+}
+.livingNode .node-name {
+  color: #000;
+}
+    
   </style>
 </head>
 <body>
@@ -26,20 +34,26 @@
 
     const treeData = convertToTreant(ancestors);
 
-    new Treant({
-      chart: {
-        container: "#tree-container",
-        node: { collapsable: true },
-        connectors: { type: 'step' },
-        animation: {
-          nodeAnimation: "easeOutBounce",
-          nodeSpeed: 700,
-          connectorsAnimation: "bounce",
-          connectorsSpeed: 700
-        }
-      },
-      nodeStructure: treeData
-    });
+new Treant({
+  chart: {
+    container: "#tree-container",
+    rootOrientation: "NORTH", // top-down
+    nodeAlign: "BOTTOM",
+    connectors: {
+      type: "step"
+    },
+    node: {
+      HTMLclass: "nodeExample1"
+    },
+    animation: {
+      nodeAnimation: "easeOutBounce",
+      nodeSpeed: 700,
+      connectorsAnimation: "bounce",
+      connectorsSpeed: 700
+    }
+  },
+  nodeStructure: treeData
+});
 
 function formatLifespan(person) {
   let parts = [];
@@ -54,6 +68,7 @@ function convertToTreant(person) {
       name: person.name,
       title: formatLifespan(person)
     },
+	HTMLclass: person.death ? "deceasedNode" : "livingNode",
     children: []
   };
   if (person.parents && person.parents.length > 0) {
@@ -61,6 +76,7 @@ function convertToTreant(person) {
   }
   return node;
 }
+
   </script>
 </body>
 </html>
