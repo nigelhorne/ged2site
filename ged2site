@@ -80,7 +80,7 @@ BEGIN {
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Lingua::EN::ABC', 'Lingua::String',
 		'Geo::Parser::Text', 'GIS::Distance',
-		'HTML::Entities', 'Image::Info', 'JSON',
+		'HTML::Entities', 'Image::Info', 'JSON::MaybeXS',
 		'List::Util',
 		'LWP::Simple::WithCache', 'MIME::Base64',
 		'LWP::UserAgent::Cached', 'Mozilla::CA', 'Math::Round',
@@ -131,7 +131,7 @@ BEGIN {
 	# https://cpan.metacpan.org/authors/id/G/GR/GRAY/Geo-Coder-PlaceFinder-0.05.tar.gz
 	eval 'use Geo::Coder::PlaceFinder';
 	if($@) {
-		push @needfull, 'Net::OAuth', 'JSON', 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
+		push @needfull, 'Net::OAuth', 'JSON::MaybeXS', 'F/FR/FRIFFIN/Geo-Coder-PlaceFinder-0.1.tar.gz'
 	}
 
 	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
@@ -191,8 +191,8 @@ foreach my $module (@needfull) {
 	$name ||= $module;
 
 	# Extract module name, replacing hyphens with `::` and removing extensions
-	$name =~ s{.+/}{};     # Remove path if present
-	$name =~ s{-}{::}g;    # Convert hyphens to `::`
+	$name =~ s{.+/}{};	# Remove path if present
+	$name =~ s{-}{::}g;r	# Convert hyphens to `::`
 	$name =~ s{\.tar\.gz$}{}; # Remove file extension
 	$name =~ s{::(\d+)$}{ $1}; # Adjust version formatting if embedded in module name
 
@@ -204,7 +204,7 @@ foreach my $module (@needfull) {
 	$name->import();
 
 	# Uncomment to check version if needed
-	die "$name: need $version, got " . $name->VERSION if $version && $name->VERSION < $version;
+	die "$name: need $version, got ", $name->VERSION if $version && $name->VERSION < $version;
 }
 
 use autodie qw(:all);
@@ -1211,6 +1211,14 @@ close $visjs_html;
 
 if(!$opts{'w'}) {
 	print "\n$index records processed\n";
+}
+
+if($me && (open(my $json, '>', 'dynamic-site/data/people.json'))) {
+	print "Creating JSON tree\n";
+	my $structure = individual_to_hash($me);
+	print $json JSON::MaybeXS::to_json($structure, { pretty => 1 });
+	close $json;
+	link 'dynamic-site/data/people.json', 'static-site/data/people.json';
 }
 
 undef %all_residences;
@@ -16763,6 +16771,27 @@ sub service
 		return i18n('army') if($notes =~ /\b(?:army\.?|regiment|soldier)\b/i);
 	}
 	return 'military';
+}
+
+# Recursive ancestor traversal
+sub individual_to_hash
+{
+	my $person = shift;
+	my $hash = {
+		id    => $person->xref(),
+		name  => $person->as_string({ nee => 1 }),
+		birth => ($person->get_value('birth', 'date') // ''),
+		death => ($person->get_value('death', 'date') // ''),
+		parents => [],
+	};
+
+	for my $parent ($person->father(), $person->mother()) {
+		if($parent) {
+			push @{$hash->{parents}}, individual_to_hash($parent);
+		}
+	}
+
+	return $hash;
 }
 
 # Must all be in lower case

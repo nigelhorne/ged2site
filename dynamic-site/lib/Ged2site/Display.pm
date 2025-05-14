@@ -14,7 +14,7 @@ our $VERSION = '0.01';
 use strict;
 use warnings;
 
-use Config::Auto;
+use Config::Abstraction;
 use CGI::Info;
 use Data::Dumper;
 use File::Spec;
@@ -140,14 +140,8 @@ sub new
 	}
 	my $config;
 	eval {
-		# Try domain-specific config first, then detauls
-		if(-r File::Spec->catdir($config_dir, $info->domain_name())) {
-			$config = Config::Auto::parse($info->domain_name(), path => $config_dir);
-		} elsif (-r File::Spec->catdir($config_dir, 'default')) {
-			$config = Config::Auto::parse('default', path => $config_dir);
-		} else {
-			die 'no suitable config file found';
-		}
+		# Try default first, then domain-specific config first
+		$config = Config::Abstraction->new(config_dirs => [$config_dir], config_files => ['default', $info->domain_name()])->all();
 	};
 	if($@ || !defined($config)) {
 		die "Configuration error: $@: $config_dir/", $info->domain_name();
@@ -359,7 +353,7 @@ sub get_template_path
 
 	my ($fh, $filename) = File::pfopen::pfopen($prefix, $modulepath, 'tmpl:tt:html:htm:txt');
 	if((!defined($filename)) || (!defined($fh))) {
-		throw Error::Simple("Can't find suitable $modulepath html or tmpl file in $prefix in $dir or a subdir");
+		throw Error::Simple("Can't find suitable $modulepath html or tmpl/tt file in $prefix in $dir or a subdir");
 	}
 	close($fh);
 	$self->_debug({ message => "using $filename" });
@@ -456,7 +450,7 @@ sub html {
 	my $filename = $self->get_template_path();
 	my $rc;
 
-	# Handle template files (.tmpl or .t)
+	# Handle template files (.tmpl or .tt)
 	if($filename =~ /.+\.t(mpl|t)$/) {
 		require Template;
 		Template->import();

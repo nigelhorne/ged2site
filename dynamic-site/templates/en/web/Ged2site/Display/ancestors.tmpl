@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ancestor Tree</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css" />
+  <style>
+    #tree-container {
+	width: 100%;
+	height: 800px;
+	margin: 2em auto;
+    }
+    .node-name { font-weight: bold; }
+    .node-title { font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <h1>Ancestor Tree</h1>
+  <div id="tree-container" class="tree"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.min.js"></script>
+  
+<script>
+    const ancestors = [% ancestors %];
+
+    const treeData = convertToTreant(ancestors);
+
+    new Treant({
+      chart: {
+        container: "#tree-container",
+        node: { collapsable: true },
+        connectors: { type: 'step' },
+        animation: {
+          nodeAnimation: "easeOutBounce",
+          nodeSpeed: 700,
+          connectorsAnimation: "bounce",
+          connectorsSpeed: 700
+        }
+      },
+      nodeStructure: treeData
+    });
+
+function formatLifespan(person) {
+  let parts = [];
+  if (person.birth) parts.push("b. " + person.birth);
+  if (person.death) parts.push("d. " + person.death);
+  return parts.join(" • ");
+}
+
+function convertToTreant(person) {
+  const node = {
+    text: {
+      name: person.name,
+      title: formatLifespan(person)
+    },
+    children: []
+  };
+  if (person.parents && person.parents.length > 0) {
+    node.children = person.parents.map(convertToTreant);
+  }
+  return node;
+}
+  </script>
+</body>
+</html>
