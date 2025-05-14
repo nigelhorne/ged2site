@@ -65,7 +65,7 @@
 new Treant({
   chart: {
     container: "#tree-container",
-    rootOrientation: "NORTH", // top-down
+    rootOrientation: "SOUTH", // bottom-up
     nodeAlign: "BOTTOM",
     connectors: {
       type: "step"
@@ -87,7 +87,7 @@ function formatLifespan(person) {
   let parts = [];
   if (person.birth) parts.push("b. " + person.birth);
   if (person.death) parts.push("d. " + person.death);
-  return parts.join(" • ");
+  return parts.join(" - ");
 }
 
 function convertToTreant(person) {
@@ -102,7 +102,7 @@ function convertToTreant(person) {
     HTMLclass: nodeClass,
 	HTMLid: "person-" + person.id,	// for Tooltips
     link: {
-	href: "/cgi-bin/page.fcgi?page=people&amp;entry" + person.id
+	href: "/cgi-bin/page.fcgi?page=people&entry=" + person.id
   },
     children: [],
     extra: {
