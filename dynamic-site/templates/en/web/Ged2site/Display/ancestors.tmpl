@@ -5,6 +5,15 @@
   <title>Ancestor Tree</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css">
   <link rel="stylesheet" href="https://fperucic.github.io/treant-js/Treant-js.css">
+<!-- Tippy.js CSS -->
+<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
+
+<!-- Popper.js (dependency for Tippy.js) -->
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+
+<!-- Tippy.js -->
+<script src="https://unpkg.com/tippy.js@6"></script>
+  
   <style>
     .blackNode, .grayNode {
       border: 2px solid #444;
@@ -37,6 +46,13 @@
     .node-title {
       font-size: 12px;
     }
+.tippy-box[data-theme~='lightgray'] {
+  background-color: #d3d3d3;  /* light gray */
+  color: black;               /* text color for contrast */
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+    
   </style>
 </head>
 <body>
@@ -117,19 +133,30 @@
       return node;
     }
 
+function decodeHtmlEntities(text) {
+  const txt = document.createElement('textarea');
+  txt.innerHTML = text;
+  return txt.value;
+}
     // Function to recursively traverse the tree and set the tooltip
-    function setTooltips(node) {
-      // Set the tooltip for the current node
-      const element = document.getElementById(node.HTMLid);
-      if (element && node.extra && node.extra.tooltip) {
-        element.setAttribute('title', node.extra.tooltip);
-      }
+function setTooltips(node) {
+  const element = document.getElementById(node.HTMLid);
+  if (element && node.extra && node.extra.tooltip) {
+    tippy(element, {
+      content: node.extra.tooltip,  // HTML tooltip content
+      allowHTML: true,
+      interactive: true,
+      delay: [300, 0],
+      placement: 'top',
+        theme: 'lightgray'
+    });
+  }
 
-      // Recursively set tooltips for children
-      if (node.children) {
-        node.children.forEach(setTooltips);
-      }
-    }
+  if (node.children) {
+    node.children.forEach(setTooltips);
+  }
+}
+    
 
     // Apply the tooltip after the tree is rendered
     document.addEventListener("DOMContentLoaded", () => {
