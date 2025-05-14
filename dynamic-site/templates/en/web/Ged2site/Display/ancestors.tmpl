@@ -91,7 +91,8 @@
 
     function convertToTreant(person) {
       const nodeClass = person.death ? "blackNode" : "grayNode";
-      const fullTitle = `${person.name} (b. ${person.birth || "?"}${person.death ? " – d. " + person.death : ""})`;
+      // const fullTitle = `${person.name} (b. ${person.birth || "?"}${person.death ? " – d. " + person.death : ""})`;
+      const fullTitle = person.bio;
 
       const node = {
         text: {

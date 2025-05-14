@@ -1222,7 +1222,7 @@ if($me && (open($people_json, '>', 'dynamic-site/data/people.json'))) {
 	print "Creating JSON tree\n";
 	my $structure = individual_to_hash($me);
 	print $people_json JSON::MaybeXS::to_json($structure, { pretty => 1 });
-	link 'dynamic-site/data/people.json', 'static-site/data/people.json';
+	link 'dynamic-site/data/people.json', 'static-site/people.json';
 }
 
 undef %all_bios;
