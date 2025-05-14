@@ -3,129 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <title>Ancestor Tree</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css">
-<link rel="stylesheet" href="https://fperucic.github.io/treant-js/Treant-js.css">
-<style>
-.blackNode, .grayNode {
-  border: 2px solid #444;
-  border-radius: 8px;
-  color: white;
-  padding: 10px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
-}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css">
+  <link rel="stylesheet" href="https://fperucic.github.io/treant-js/Treant-js.css">
+  <style>
+    .blackNode, .grayNode {
+      border: 2px solid #444;
+      border-radius: 8px;
+      color: white;
+      padding: 10px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+    }
 
-.blackNode {
-  background-color: #000;
-}
+    .blackNode {
+      background-color: #000;
+    }
 
-.grayNode {
-  background-color: #666;
-}
+    .grayNode {
+      background-color: #666;
+    }
 
-.blackNode .node-name,
-.grayNode .node-name,
-.blackNode .node-title,
-.grayNode .node-title {
-  color: white;
-}
+    .blackNode .node-name,
+    .grayNode .node-name,
+    .blackNode .node-title,
+    .grayNode .node-title {
+      color: white;
+    }
 
-.node-name {
-  font-weight: bold;
-  font-size: 16px;
-}
+    .node-name {
+      font-weight: bold;
+      font-size: 16px;
+    }
 
-.node-title {
-  font-size: 12px;
-}
-</style>
-  
+    .node-title {
+      font-size: 12px;
+    }
+  </style>
 </head>
 <body>
   <h1>Ancestor Tree</h1>
   <div id="tree-container" class="tree"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.min.js"></script>
 
-<div style="margin-bottom: 20px;">
-  <strong>Legend:</strong>
-  <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
-    <div style="background-color: #000; width: 20px; height: 20px; border: 1px solid #444;"></div>
-    <span>Deceased</span>
-    <div style="background-color: #666; width: 20px; height: 20px; border: 1px solid #444;"></div>
-    <span>Living</span>
+  <div style="margin-bottom: 20px;">
+    <strong>Legend:</strong>
+    <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+      <div style="background-color: #000; width: 20px; height: 20px; border: 1px solid #444;"></div>
+      <span>Deceased</span>
+      <div style="background-color: #666; width: 20px; height: 20px; border: 1px solid #444;"></div>
+      <span>Living</span>
+    </div>
   </div>
-</div>
-  
-<script>
+
+  <script>
     const ancestors = [% ancestors %];
 
     const treeData = convertToTreant(ancestors);
 
-new Treant({
-  chart: {
-    container: "#tree-container",
-    rootOrientation: "SOUTH", // bottom-up
-    nodeAlign: "BOTTOM",
-    connectors: {
-      type: "step"
-    },
-    node: {
-      HTMLclass: "nodeExample1"
-    },
-    animation: {
-      nodeAnimation: "easeOutBounce",
-      nodeSpeed: 700,
-      connectorsAnimation: "bounce",
-      connectorsSpeed: 700
-    }
-  },
-  nodeStructure: treeData
-});
-
-function formatLifespan(person) {
-  let parts = [];
-  if (person.birth) parts.push("b. " + person.birth);
-  if (person.death) parts.push("d. " + person.death);
-  return parts.join(" - ");
-}
-
-function convertToTreant(person) {
-  const nodeClass = person.death ? "blackNode" : "grayNode";
-  const fullTitle = `${person.name} (b. ${person.birth || "?"}${person.death ? " – d. " + person.death : ""})`;
-
-  const node = {
-    text: {
-      name: person.name,
-      title: formatLifespan(person)
-    },
-    HTMLclass: nodeClass,
-	HTMLid: "person-" + person.id,	// for Tooltips
-    link: {
-	href: "/cgi-bin/page.fcgi?page=people&entry=" + person.id
-  },
-    children: [],
-    extra: {
-      tooltip: fullTitle
-    }
-  };
-
-  if (person.parents && person.parents.length > 0) {
-    node.children = person.parents.map(convertToTreant);
-  }
-
-  return node;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(() => {
-    document.querySelectorAll('.node').forEach(el => {
-      const title = el.innerText;
-      el.setAttribute('title', title);
+    new Treant({
+      chart: {
+        container: "#tree-container",
+        rootOrientation: "SOUTH", // bottom-up
+        nodeAlign: "BOTTOM",
+        connectors: {
+          type: "step"
+        },
+        node: {
+          HTMLclass: "nodeExample1"
+        },
+        animation: {
+          nodeAnimation: "easeOutBounce",
+          nodeSpeed: 700,
+          connectorsAnimation: "bounce",
+          connectorsSpeed: 700
+        }
+      },
+      nodeStructure: treeData
     });
-  }, 500);
-});
 
+    function formatLifespan(person) {
+      let parts = [];
+      if (person.birth) parts.push("b. " + person.birth);
+      if (person.death) parts.push("d. " + person.death);
+      return parts.join(" - ");
+    }
+
+    function convertToTreant(person) {
+      const nodeClass = person.death ? "blackNode" : "grayNode";
+      const fullTitle = `${person.name} (b. ${person.birth || "?"}${person.death ? " – d. " + person.death : ""})`;
+
+      const node = {
+        text: {
+          name: person.name,
+          title: formatLifespan(person)
+        },
+        HTMLclass: nodeClass,
+        HTMLid: "person-" + person.id, // for Tooltips
+        link: {
+          href: "/cgi-bin/page.fcgi?page=people&entry=" + person.id
+        },
+        children: [],
+        extra: {
+          tooltip: fullTitle // Tooltip field to be used
+        }
+      };
+
+      if (person.parents && person.parents.length > 0) {
+        node.children = person.parents.map(convertToTreant);
+      }
+
+      return node;
+    }
+
+    // Function to recursively traverse the tree and set the tooltip
+    function setTooltips(node) {
+      // Set the tooltip for the current node
+      const element = document.getElementById(node.HTMLid);
+      if (element && node.extra && node.extra.tooltip) {
+        element.setAttribute('title', node.extra.tooltip);
+      }
+
+      // Recursively set tooltips for children
+      if (node.children) {
+        node.children.forEach(setTooltips);
+      }
+    }
+
+    // Apply the tooltip after the tree is rendered
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        // Start with the root node and recursively set tooltips
+        setTooltips(treeData);
+      }, 500); // Wait for the nodes to be rendered
+    });
 
   </script>
 </body>

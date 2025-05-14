@@ -569,8 +569,9 @@ my $geocoder;
 my $textgeocoder;
 my $freegeocoder;
 my $browser;
-
 my $cachedir;
+my %all_bios;
+
 if(my $e = $ENV{'CACHE_DIR'}) {
 	$cachedir = File::Spec->catfile($e, 'lwp-cache');
 } else {
@@ -1213,15 +1214,18 @@ if(!$opts{'w'}) {
 	print "\n$index records processed\n";
 }
 
-if($me && (open(my $json, '>', 'dynamic-site/data/people.json'))) {
+undef %all_residences;
+
+my $people_json;
+
+if($me && (open($people_json, '>', 'dynamic-site/data/people.json'))) {
 	print "Creating JSON tree\n";
 	my $structure = individual_to_hash($me);
-	print $json JSON::MaybeXS::to_json($structure, { pretty => 1 });
-	close $json;
+	print $people_json JSON::MaybeXS::to_json($structure, { pretty => 1 });
 	link 'dynamic-site/data/people.json', 'static-site/data/people.json';
 }
 
-undef %all_residences;
+undef %all_bios;
 
 if(scalar(%censuses)) {
 	print "Creating census index\n";
@@ -10573,6 +10577,8 @@ sub print_person
 	}
 
 	print "Done\n" if($opts{'v'});
+
+	$all_bios{$person->xref()} = $fullbio;
 }
 
 sub all_records_have_date
@@ -16777,13 +16783,18 @@ sub service
 sub individual_to_hash
 {
 	my $person = shift;
+	my $xref = $person->xref();
 	my $hash = {
-		id    => $person->xref(),
+		id    => $xref,
+		xref   => $xref,
 		name  => $person->as_string({ nee => 1 }),
 		birth => ($person->get_value('birth', 'date') // ''),
 		death => ($person->get_value('death', 'date') // ''),
-		parents => [],
+		parents => []
 	};
+	if(exists($all_bios{$xref})) {
+		$hash->{'bio'} = $all_bios{$xref};
+	}
 
 	for my $parent ($person->father(), $person->mother()) {
 		if($parent) {
