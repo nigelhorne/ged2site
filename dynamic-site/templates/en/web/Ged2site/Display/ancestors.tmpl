@@ -46,6 +46,16 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.min.js"></script>
+
+<div style="margin-bottom: 20px;">
+  <strong>Legend:</strong>
+  <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+    <div style="background-color: #000; width: 20px; height: 20px; border: 1px solid #444;"></div>
+    <span>Deceased</span>
+    <div style="background-color: #666; width: 20px; height: 20px; border: 1px solid #444;"></div>
+    <span>Living</span>
+  </div>
+</div>
   
 <script>
     const ancestors = [% ancestors %];
@@ -82,6 +92,7 @@ function formatLifespan(person) {
 
 function convertToTreant(person) {
   const nodeClass = person.death ? "blackNode" : "grayNode";
+  const fullTitle = `${person.name} (b. ${person.birth || "?"}${person.death ? " – d. " + person.death : ""})`;
 
   const node = {
     text: {
@@ -89,13 +100,31 @@ function convertToTreant(person) {
       title: formatLifespan(person)
     },
     HTMLclass: nodeClass,
-    children: []
+	HTMLid: "person-" + person.id,	// for Tooltips
+    link: {
+	href: "/cgi-bin/page.fcgi?page=people&amp;entry" + person.id
+  },
+    children: [],
+    extra: {
+      tooltip: fullTitle
+    }
   };
+
   if (person.parents && person.parents.length > 0) {
     node.children = person.parents.map(convertToTreant);
   }
+
   return node;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    document.querySelectorAll('.node').forEach(el => {
+      const title = el.innerText;
+      el.setAttribute('title', title);
+    });
+  }, 500);
+});
 
 
   </script>
