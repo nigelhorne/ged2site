@@ -75,6 +75,7 @@
   <script>
     const ancestors = [% ancestors %];
 
+	const homePersonXref = ancestors.xref;
     const treeData = convertToTreant(ancestors);
 
     new Treant({
@@ -162,8 +163,16 @@ function setTooltips(node) {
       setTimeout(() => {
         // Start with the root node and recursively set tooltips
         setTooltips(treeData);
+	scrollToMainPerson(homePersonXref);	// Centre on the home person
       }, 500); // Wait for the nodes to be rendered
     });
+
+			function scrollToMainPerson(mainPersonId) {
+				const el = document.getElementById("person" + mainPersonId);
+				if (el) {
+					el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				}
+			}
 
 		</script>
 	</body>
