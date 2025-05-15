@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Ancestor Tree</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css">
-  <link rel="stylesheet" href="https://fperucic.github.io/treant-js/Treant-js.css">
-<!-- Tippy.js CSS -->
-<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
+	<head>
+		<meta charset="UTF-8">
+		<title>Ancestor Tree</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css">
+		<link rel="stylesheet" href="https://fperucic.github.io/treant-js/Treant-js.css">
+		<!-- Tippy.js CSS -->
+		<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
 
-<!-- Popper.js (dependency for Tippy.js) -->
-<script src="https://unpkg.com/@popperjs/core@2"></script>
+		<!-- Popper.js (dependency for Tippy.js) -->
+		<script src="https://unpkg.com/@popperjs/core@2"></script>
 
-<!-- Tippy.js -->
-<script src="https://unpkg.com/tippy.js@6"></script>
-  
-  <style>
+		<!-- Tippy.js -->
+		<script src="https://unpkg.com/tippy.js@6"></script>
+
+		<style>
     .blackNode, .grayNode {
       border: 2px solid #444;
       border-radius: 8px;
@@ -46,13 +46,13 @@
     .node-title {
       font-size: 12px;
     }
-.tippy-box[data-theme~='lightgray'] {
-  background-color: #d3d3d3;  /* light gray */
-  color: black;               /* text color for contrast */
-  border-radius: 4px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.2);
-}
-    
+	.tippy-box[data-theme~='lightgray'] {
+		background-color: #d3d3d3;  /* light gray */
+		color: black;               /* text color for contrast */
+		border-radius: 4px;
+		box-shadow: 0 0 5px rgba(0,0,0,0.2);
+	}
+
   </style>
 </head>
 <body>
@@ -156,7 +156,6 @@ function setTooltips(node) {
     node.children.forEach(setTooltips);
   }
 }
-    
 
     // Apply the tooltip after the tree is rendered
     document.addEventListener("DOMContentLoaded", () => {
@@ -166,6 +165,6 @@ function setTooltips(node) {
       }, 500); // Wait for the nodes to be rendered
     });
 
-  </script>
-</body>
+		</script>
+	</body>
 </html>

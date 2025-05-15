@@ -719,6 +719,7 @@ sub choose
 	# Print available pages unless it's a HEAD request
 	unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
 		print "/cgi-bin/page.fcgi?page=people\n",
+			"/cgi-bin/page.fcgi?page=ancestors\n",
 			"/cgi-bin/page.fcgi?page=home\n",
 			"/cgi-bin/page.fcgi?page=censuses\n",
 			"/cgi-bin/page.fcgi?page=changes\n",

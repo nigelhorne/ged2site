@@ -24,7 +24,7 @@ sub html {
 
 	my $ancestors = read_file(File::Spec->catfile($args{'database_dir'}, '/people.json'), scalar_ref => 1);
 
-	# FIXME, work out how to pass in a ref to the TT.  It gives an error in Template::Stash::XS when attempting to deref a pointer to a scalar
+	# FIXME: work out how to pass in a ref to the TT.  It gives an error in Template::Stash::XS when attempting to deref a pointer to a scalar
 	return $self->SUPER::html({ ancestors => $$ancestors });
 }
 

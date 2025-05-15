@@ -16794,7 +16794,7 @@ sub individual_to_hash
 		parents => []
 	};
 
-	if(exists($all_bios{$xref})) {
+	if(($opts{'l'} || !is_alive(person => $person)) && exists($all_bios{$xref})) {
 		my $bio = $all_bios{$xref};
 		# fullbio is full of static link refs, change to the dynamic site
 		$bio =~ s{href="([^"/]+)\.html"}{href="/cgi-bin/page.fcgi?page=people&entry=$1"}g;
