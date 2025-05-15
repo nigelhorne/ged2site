@@ -1218,6 +1218,7 @@ undef %all_residences;
 
 my $people_json;
 
+# TODO: add the static site
 if($me && (open($people_json, '>', 'dynamic-site/data/people.json'))) {
 	print "Creating JSON tree\n";
 	my $structure = individual_to_hash($me);
@@ -16792,8 +16793,12 @@ sub individual_to_hash
 		death => ($person->get_value('death', 'date') // ''),
 		parents => []
 	};
+
 	if(exists($all_bios{$xref})) {
-		$hash->{'bio'} = $all_bios{$xref};
+		my $bio = $all_bios{$xref};
+		# fullbio is full of static link refs, change to the dynamic site
+		$bio =~ s{href="([^"/]+)\.html"}{href="/cgi-bin/page.fcgi?page=people&entry=$1"}g;
+		$hash->{'bio'} = $bio;
 	}
 
 	for my $parent ($person->father(), $person->mother()) {
