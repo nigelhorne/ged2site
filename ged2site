@@ -571,6 +571,7 @@ my $freegeocoder;
 my $browser;
 my $cachedir;
 my %all_bios;
+my %all_thumbnails;
 
 if(my $e = $ENV{'CACHE_DIR'}) {
 	$cachedir = File::Spec->catfile($e, 'lwp-cache');
@@ -1227,6 +1228,7 @@ if($me && (open($people_json, '>', 'dynamic-site/data/people.json'))) {
 }
 
 undef %all_bios;
+undef %all_thumbnails;
 
 if(scalar(%censuses)) {
 	print "Creating census index\n";
@@ -10113,6 +10115,7 @@ sub print_person
 			print $visjs_html "<img src=\"/$profile_thumbnail\" alt=\"", $person->as_string(), "\"><p>";
 			print $csv $profile_thumbnail;
 			$both_xmls->print("\n\t\t<thumbnail>$profile_thumbnail</thumbnail>");
+			$all_thumbnails{$xref} = $profile_thumbnail;
 		}
 		$fullbio =~ s/'/\&#39;/g;
 		my $b = wide_to_html($fullbio);
@@ -16789,16 +16792,26 @@ sub individual_to_hash
 		id    => $xref,
 		xref   => $xref,
 		name  => $person->as_string({ nee => 1 }),
-		birth => ($person->get_value('birth', 'date') // ''),
-		death => ($person->get_value('death', 'date') // ''),
+		# birth => ($person->get_value('birth', 'date') // ''),
+		# death => ($person->get_value('death', 'date') // ''),
 		parents => []
 	};
+
+	if(my $birth = dateofbirth($person)) {
+		$hash->{'birth'} = $birth;
+	}
+	if(my $death = dateofdeath($person)) {
+		$hash->{'death'} = $death;
+	}
 
 	if(($opts{'l'} || !is_alive(person => $person)) && exists($all_bios{$xref})) {
 		my $bio = $all_bios{$xref};
 		# fullbio is full of static link refs, change to the dynamic site
 		$bio =~ s{href="([^"/]+)\.html"}{href="/cgi-bin/page.fcgi?page=people&entry=$1"}g;
 		$hash->{'bio'} = $bio;
+		if(my $thumbnail = $all_thumbnails{$xref}) {
+			$hash->{'img'} = $thumbnail;
+		}
 	}
 
 	for my $parent ($person->father(), $person->mother()) {
