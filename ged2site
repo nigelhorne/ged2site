@@ -16819,6 +16819,9 @@ sub individual_to_hash
 			push @{$hash->{parents}}, individual_to_hash($parent);
 		}
 	}
+	if(scalar @{$hash->{'parents'}} == 0) {
+		delete $hash->{'parents'};
+	}
 
 	return $hash;
 }
