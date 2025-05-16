@@ -113,10 +113,12 @@ Once you've completed these steps, your **dynamic family tree website** will be 
 
 ### **Automatic Installation**
 Ged2Site relies on multiple **CPAN modules**.
-If they are missing, the program will attempt to **install them automatically** when you run it for the first time **without any arguments**:
+If they are missing, the program will attempt to **install them automatically** when you run it for the first time **without any arguments**
+and set the evironment variable BOOTSTRAP.
+
 
 ```
-ged2site
+BOOTSTRAP=1 ged2site
 ```
 
 However, this **may fail** with a "permission denied" error if:
@@ -282,6 +284,7 @@ ExpiresByType text/javascript "access plus 1 day"
 
 `Ged2Site` honours the following environment variables for improved compatibility:
 
+* BOOTSTRAP - Attempt to install the modules you need
 * BMAP_KEY - Bing (virtualearth.net) API Key
 * GEONAMES_USER - geonames.org registered username
 * GMAP_KEY - Google Places (maps.googleapis.com) API Key
