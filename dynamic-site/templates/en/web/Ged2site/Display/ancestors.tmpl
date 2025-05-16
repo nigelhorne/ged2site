@@ -93,7 +93,7 @@
     new Treant({
       chart: {
         container: "#tree-container",
-        rootOrientation: "SOUTH", // bottom-up
+        rootOrientation: "NORTH", // top-down
         nodeAlign: "BOTTOM",
         connectors: {
           type: "step"
@@ -180,14 +180,14 @@ function setTooltips(node) {
   }
 }
 
-    // Apply the tooltip after the tree is rendered
-    document.addEventListener("DOMContentLoaded", () => {
-      setTimeout(() => {
-        // Start with the root node and recursively set tooltips
-        setTooltips(treeData);
-	scrollToMainPerson(homePersonXref);	// Centre on the home person
-      }, 500); // Wait for the nodes to be rendered
-    });
+			// Apply the tooltip after the tree is rendered
+			document.addEventListener("DOMContentLoaded", () => {
+				setTimeout(() => {
+					// Start with the root node and recursively set tooltips
+					setTooltips(treeData);
+					scrollToMainPerson(homePersonXref);	// Centre on the home person
+				}, 500); // Wait for the nodes to be rendered
+			});
 
 			function scrollToMainPerson(mainPersonId) {
 				const el = document.getElementById("person" + mainPersonId);

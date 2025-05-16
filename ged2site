@@ -414,7 +414,7 @@ if(scalar(@needfull)) {
 		$ENV{'PERL_MM_USE_DEFAULT'} = 1;
 		system('perl -MCPAN -e \'CPAN::Shell->install("' . join('", "', @needfull) . '")\'');
 	} else {
-		die "For those options, you need the following modules: $list";
+		die "For those options, you also need the following modules: $list";
 	}
 }
 
@@ -16798,21 +16798,20 @@ sub individual_to_hash
 	my $xref = $person->xref();
 	my $hash = {
 		id    => $xref,
-		xref   => $xref,
+		xref  => $xref,
 		name  => $person->as_string({ nee => 1 }),
 		# birth => ($person->get_value('birth', 'date') // ''),
 		# death => ($person->get_value('death', 'date') // ''),
 		parents => []
 	};
 
-	if(my $birth = dateofbirth($person)) {
-		$hash->{'birth'} = $birth;
-	}
-	if(my $death = dateofdeath($person)) {
-		$hash->{'death'} = $death;
-	}
-
 	if(($opts{'l'} || !is_alive(person => $person)) && exists($all_bios{$xref})) {
+		if(my $birth = dateofbirth($person)) {
+			$hash->{'birth'} = $birth;
+		}
+		if(my $death = dateofdeath($person)) {
+			$hash->{'death'} = $death;
+		}
 		my $bio = $all_bios{$xref};
 		# fullbio is full of static link refs, change to the dynamic site
 		$bio =~ s{href="([^"/]+)\.html"}{href="/cgi-bin/page.fcgi?page=people&entry=$1"}g;
