@@ -15555,11 +15555,21 @@ sub extract_family_info
 		my @siblings;
 
 		while ($text =~ /\bsister,\s*([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)*)(?:,\s*([A-Z][a-z]+))?/g) {
+			my $name = $1;
 			$family{'sisters'} ||= [];
-			push @{$family{sisters}}, {
-				name   => $1,
-				status => ($text =~ /\bpredeceased by.*?$1/i) ? 'deceased' : 'living',
-			};
+			if($name eq 'Mrs') {
+				if($text =~ / sister,\s*Mrs\.\s+([A-Z][a-zA-Z]+\s+[A-Z][a-zA-Z]+)/) {
+					$name = $1;
+				} else {
+					undef $name;
+				}
+			}
+			if($name) {
+				push @{$family{sisters}}, {
+					name   => $name,
+					status => ($text =~ /\bpredeceased by.*?$name/i) ? 'deceased' : 'living',
+				};
+			}
 		}
 	}
 
