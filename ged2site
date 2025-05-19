@@ -15743,7 +15743,7 @@ sub extract_family_info
 		}
 	}
 
-	return \%family;
+	return \%family if(scalar keys(%family));
 }
 
 # Get the weather for the day
