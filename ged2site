@@ -15438,7 +15438,7 @@ sub extract_family_info
 		my $section = shift;
 		return unless $section;
 
-		$section =~ s/\s+and\s+/, /g;	# Ensure "and" is treated as a separator
+		$section =~ s/\s+and\s+/, /g;  # Ensure "and" is treated as a separator
 		$section =~ s/([A-Za-z]+),\s+([A-Z]{2})/$1<<COMMA>>$2/g;
 		my @entries = split /\s*,\s*/, $section;
 
@@ -15468,11 +15468,12 @@ sub extract_family_info
 			next if !$name;  # Skip if name is empty
 			next if($name =~ /^father-in-law\sto\s/);	# Skip follow ons
 			last if($name =~ /^devoted\s/i);
+			last if($name =~ /^loved\s/i);
 
 			# Create a hash and filter out blank fields
 			my %person = (
 				name	 => $name,
-				spouse   => $spouse,
+				spouse => $spouse,
 				location => $location,
 			);
 
@@ -15484,36 +15485,80 @@ sub extract_family_info
 		return \@people;
 	}
 
-	# Correct extraction of children (skipping "his/her")
-	if ($text =~ /survived by (his|her) children\s*([^\.;]+)/i) {
-		my $children_text = $2;
-		$family{children} = extract_people_section($children_text);
-	} elsif ($text =~ /Loving mum to\s*([^\.;]+)/i) {  # Look for the phrase "Loving mum to"
-		my $children_text = $1;
-		$family{children} = extract_people_section($children_text);
-	} elsif ($text =~ /Loving father of\s*([^\.;]+)/i) {  # Look for the phrase "Loving father of"
-		my $children_text = $1;
-		$family{children} = extract_people_section($children_text);
-	} elsif($text =~ /mother of\s*([^\.;]+)?,/i) {  # Look for the phrase "mother of"
-		my $children_text = $1;
-		$children_text =~ s/, grandmother.+//;
-		$family{children} = extract_people_section($children_text);
-	} else {
-		my @children;
-		while($text =~ /\b(?:son|daughter)s?,\s*([A-Z][a-z]+(?:\s+\([A-Z][a-z]+\))?)\s*(?:and their children ([^.;]+))?/g) {
-			my $child = $1;
-			my $grandkids = $2;
-			if(my @grandchildren = $grandkids ? split /\s*,\s*|\s+and\s+/, $grandkids : ()) {
-				push @children, {
-					name => $child,
-					grandchildren => \@grandchildren,
-				};
-			} else {
-				push @children, { name => $child }
-			}
+	sub extract_names_from_phrase {
+		my $phrase = shift;
+		my @names;
+
+		$phrase =~ s/[.;]//g;
+
+		# Case: "Christopher, Thomas, and Marsha Cloud"
+		if ($phrase =~ /^((?:\w+\s*,\s*)+\w+),?\s*and\s+(\w+)\s+(\w+)$/) {
+			my ($pre, $last_first, $last) = ($1, $2, $3);
+			my @firsts = split(/\s*,\s*/, $pre);
+			push @firsts, $last_first;
+			push @names, map { "$_ $last" } @firsts;
+			return @names;
 		}
-		$family{children} = \@children if @children;
+
+		# Case: "Christopher and Thomas Cloud"
+		if ($phrase =~ /^([\w\s]+?)\s+and\s+(\w+)\s+(\w+)$/) {
+			my ($first_part, $second_first, $last) = ($1, $2, $3);
+			my @firsts = split(/\s*,\s*|\s+and\s+/, $first_part);
+			push @names, map { "$_ $last" } (@firsts, $second_first);
+			return @names;
+		}
+
+		# Fallback: Split by comma or 'and'
+		my @parts = split /\s*(?:,|and)\s*/, $phrase;
+		push @names, @parts;
+		return @names;
 	}
+
+	if($text =~ /\ssons?,\s*(.+?)[;\.]/) {
+		my $raw = $1;
+		$raw =~ s/\sand their .+//;
+		my @children = extract_names_from_phrase($raw);
+		push @{$family{children}}, map { { name => $_, sex => 'M' } } @children;
+	}
+	if($text =~ /\sdaughter?,\s*(.+?)[;\.]/) {
+		my $raw = $1;
+		$raw =~ s/\sand their .+//;
+		my @children = extract_names_from_phrase($raw);
+		push @{$family{children}}, map { { name => $_, sex => 'F' } } @children;
+	}
+	if(!$family{'children'}) {
+		# Correct extraction of children (skipping "his/her")
+		if ($text =~ /survived by (his|her) children\s*([^\.;]+)/i) {
+			my $children_text = $2;
+			$family{children} = extract_people_section($children_text);
+		} elsif ($text =~ /Loving mum to\s*([^\.;]+)/i) {  # Look for the phrase "Loving mum to"
+			my $children_text = $1;
+			$family{children} = extract_people_section($children_text);
+		} elsif ($text =~ /Loving father of\s*([^\.;]+)/i) {	# Look for the phrase "Loving father of"
+			my $children_text = $1;
+			$family{children} = extract_people_section($children_text);
+		} elsif($text =~ /mother of\s*([^\.;]+)?,/i) {  # Look for the phrase "mother of"
+			my $children_text = $1;
+			$children_text =~ s/, grandmother.+//;
+			$family{children} = extract_people_section($children_text);
+		} else {
+			my @children;
+			while($text =~ /\b(?:son|daughter)s?,\s*([A-Z][a-z]+(?:\s+\([A-Z][a-z]+\))?)\s*(?:and their children ([^.;]+))?/g) {
+				my $child = $1;
+				my $grandkids = $2;
+				if(my @grandchildren = $grandkids ? split /\s*,\s*|\s+and\s+/, $grandkids : ()) {
+					push @children, {
+						name => $child,
+						grandchildren => \@grandchildren,
+					};
+				} else {
+					push @children, { name => $child }
+				}
+			}
+			$family{children} = \@children if @children;
+		}
+	}
+
 
 	# Extract grandchildren
 	$family{grandchildren} = [ split /\s*(?:,|and)\s*/i, ($text =~ /grandchildren\s+([^\.;]+)/i)[0] || '' ];
@@ -15650,7 +15695,7 @@ sub extract_family_info
 	}
 
 	# Extract the funeral information
-	if ($text =~ /funeral service.*?at\s+([^\n]+)\s+on\s+([^\n]+)\s+at\s+([^\n]+)/i) {
+	if($text =~ /funeral service.*?at\s+([^\n]+)\s+on\s+([^\n]+)\s+at\s+([^\n]+)/i) {
 		$family{funeral} = {
 			location => $1,
 			date	 => $2,
@@ -15720,7 +15765,7 @@ sub extract_family_info
 	if($text =~ /\bpassed away\b.*?\b(?:on\s+)?([A-Z]+ \d{1,2}, \d{4})/i) {
 		$family{death}->{date} = $1;
 	}
-
+	
 	# Age at death
 	if($text =~ /,\s(\d{1,3}), of\s/) {
 		if($1 < 110) {
@@ -15753,7 +15798,7 @@ sub extract_family_info
 		}
 	}
 
-	return \%family if(scalar keys(%family));
+	return \%family;
 }
 
 # Get the weather for the day
