@@ -15400,7 +15400,7 @@ sub add_death_notes
 			# TODO: handle obituary data verification
 			$Data::Dumper::Maxdepth = 0;
 			# die $notes, Data::Dumper->new([$family])->Dump();
-			warn "TODO: $notes", Data::Dumper->new([$family])->Dump();
+			warn "TODO: $notes", Data::Dumper->new([$family])->Dump() if(scalar keys(%{$family}));
 		}
 		# FIXME: If the notes are so long they go over
 		#	a page split into more than one page
