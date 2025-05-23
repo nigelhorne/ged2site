@@ -141,6 +141,7 @@ sub new
 			if($args{'logger'}) {
 				$args{'logger'}->debug(__PACKAGE__, ': ', __LINE__, " overwriting $key, ", $config->{$key}, " with $value");
 			}
+			# If the value contains an equals make it into a hash value
 			if($value =~ /(.+)=(.+)/) {
 				delete $config->{$key} if(!ref($config->{$key}));
 				$config->{$key}{$1} = $2;
