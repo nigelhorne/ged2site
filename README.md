@@ -339,7 +339,7 @@ By sending your Gedcom, preserving your family’s legacy online has never been 
 Whether you're just starting your genealogy journey or managing a massive archive,
 just send your Gedcom and I'll do the rest.
 
-## **Ged2Site License Agreement**
+## **Ged2Site Licence Agreement**
 
 ### **Personal Use:**
 Ged2Site is **free to use** for a **single individual** on **one computer** for **personal, non-commercial purposes only**.
@@ -350,7 +350,7 @@ Any other use—including but not limited to **commercial, charitable, education
 ### **License Application:**
 Organizations or individuals falling outside the personal-use terms **must request written permission** and obtain a license before using Ged2Site.
 
-For licensing inquiries, please contact: **< njh @ nigelhorne.com >**.
+For licensing enquiries, please contact: **< njh @ nigelhorne.com >**.
 
 ## Bugs
 

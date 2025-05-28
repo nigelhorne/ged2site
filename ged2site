@@ -12323,10 +12323,23 @@ sub place
 			if($places_printed->{" in$2,$3"}) {
 				# We did place, county, country before, so just
 				# return place, county
-				if(($language eq 'French') && ("$2,$3" eq ' London, England')) {
-					$rc->fr("$1, Londres");
+				my($city, $state, $country) = ($1, $2, $3);
+				$city =~ s/^ in//;
+					
+				if("$state,$country" eq ' London, England') {
+					if($params->{'nopreposition'}) {
+						$rc->fr("$city, Londres");
+						$rc->en("$city, London");
+					} else {
+						$rc->fr(" \N{U+00E0}$city, Londres");
+						$rc->en(" in$city, London");
+					}
+				} elsif($params->{'nopreposition'}) {
+					$rc->fr("$city,$state");
+					$rc->en("$city,$state");
 				} else {
-					$rc->fr("$1,$2");
+					$rc->fr(" \N{U+00E0}$city,$state");
+					$rc->en(" in $city,$state");
 				}
 				if($params->{'encode'}) {
 					$rc->encode();
