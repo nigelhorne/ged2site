@@ -12339,7 +12339,7 @@ sub place
 					$rc->en("$city,$state");
 				} else {
 					$rc->fr(" \N{U+00E0}$city,$state");
-					$rc->en(" in $city,$state");
+					$rc->en(" in$city,$state");
 				}
 				if($params->{'encode'}) {
 					$rc->encode();
