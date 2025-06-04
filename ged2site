@@ -15533,7 +15533,7 @@ sub extract_family_info
 		my @children = extract_names_from_phrase($raw);
 		push @{$family{children}}, map { { name => $_, sex => 'M' } } @children;
 	}
-	if($text =~ /\sdaughter?,\s*(.+?)[;\.]/) {
+	if($text =~ /\sdaughters?,\s*(.+?)[;\.]/) {
 		my $raw = $1;
 		$raw =~ s/\sand their .+//;
 		my @children = extract_names_from_phrase($raw);
@@ -15806,8 +15806,11 @@ sub extract_family_info
 
 	# Remove empty arrays the family hash
 	foreach my $key (keys %family) {
-		if (ref($family{$key}) eq 'ARRAY' && @{$family{$key}} == 0) {
-			delete $family{$key};
+		if(ref($family{$key}) eq 'ARRAY') {
+			$family{$key} = [ grep { /\S/ } @{$family{$key}} ];
+			if(@{$family{$key}} == 0) {
+				delete $family{$key};
+			}
 		}
 	}
 
