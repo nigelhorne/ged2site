@@ -15522,18 +15522,19 @@ sub extract_family_info
 		}
 
 		# Fallback: Split by comma or 'and'
+		$phrase =~ s/, and grandchildren.+//;	# Handle "Anna and Lucy, and grandchildren Jake and Emma"
 		my @parts = split /\s*(?:,|and)\s*/, $phrase;
-		push @names, @parts;
+		push @names, grep { defined($_) && $_ ne '' } @parts;
 		return @names;
 	}
 
-	if($text =~ /\ssons?,\s*(.+?)[;\.]/) {
+	if($text =~ /\ssons?[,\s]\s*(.+?)[;\.]/) {
 		my $raw = $1;
 		$raw =~ s/\sand their .+//;
 		my @children = extract_names_from_phrase($raw);
 		push @{$family{children}}, map { { name => $_, sex => 'M' } } @children;
 	}
-	if($text =~ /\sdaughters?,\s*(.+?)[;\.]/) {
+	if($text =~ /\sdaughters?[,\s]\s*(.+?)[;\.]/) {
 		my $raw = $1;
 		$raw =~ s/\sand their .+//;
 		my @children = extract_names_from_phrase($raw);
@@ -15574,7 +15575,12 @@ sub extract_family_info
 
 
 	# Extract grandchildren
-	$family{grandchildren} = [ split /\s*(?:,|and)\s*/i, ($text =~ /grandchildren\s+([^\.;]+)/i)[0] || '' ];
+	if(!$family{'grandchildren'}) {
+		my @grandchildren = split /\s*(?:,|and)\s*/i, ($text =~ /grandchildren\s+([^\.;]+)/i)[0];
+		if(scalar(@grandchildren)) {
+			$family{'grandchildren'} = [ map { { 'name' => $_ } } grep { defined $_ && $_ ne '' } @grandchildren ];
+		}
+	}
 	if(scalar @{$family{grandchildren}}) {
 		while((exists $family{'grandchildren'}->[0]) && (length($family{'grandchildren'}->[0]) == 0)) {
 			shift @{$family{'grandchildren'}};
@@ -15612,7 +15618,7 @@ sub extract_family_info
 	} else {
 		my @siblings;
 
-		while ($text =~ /\bsister,\s*([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)*)(?:,\s*([A-Z][a-z]+))?/g) {
+		while ($text =~ /\bsister[,\s]\s*([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)*)(?:,\s*([A-Z][a-z]+))?/g) {
 			my $name = $1;
 			$family{'sisters'} ||= [];
 			if($name eq 'Mrs') {
@@ -15700,6 +15706,8 @@ sub extract_family_info
 		$family{'spouse'} ||= [];
 
 		push @{$family{'spouse'}}, { name => $1 }
+	} elsif($text =~ /\bsurvived by her husband ([^.,;]+)/i) {
+		push @{$family{'spouse'}}, { name => $1, 'status' => 'living', 'sex' => 'M' }
 	}
 
 	# Ensure spouse location is properly handled
