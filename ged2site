@@ -12325,7 +12325,7 @@ sub place
 				# return place, county
 				my($city, $state, $country) = ($1, $2, $3);
 				$city =~ s/^ in//;
-					
+
 				if("$state,$country" eq ' London, England') {
 					if($params->{'nopreposition'}) {
 						$rc->fr("$city, Londres");
@@ -15778,7 +15778,7 @@ sub extract_family_info
 	if($text =~ /\bpassed away\b.*?\b(?:on\s+)?([A-Z]+ \d{1,2}, \d{4})/i) {
 		$family{death}->{date} = $1;
 	}
-	
+
 	# Age at death
 	if($text =~ /,\s(\d{1,3}), of\s/) {
 		if($1 < 110) {
