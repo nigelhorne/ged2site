@@ -15708,6 +15708,8 @@ sub extract_family_info
 		push @{$family{'spouse'}}, { name => $1 }
 	} elsif($text =~ /\bsurvived by her husband ([^.,;]+)/i) {
 		push @{$family{'spouse'}}, { name => $1, 'status' => 'living', 'sex' => 'M' }
+	} elsif($text =~ /\bsurvived by his wife ([^.,;]+)/i) {
+		push @{$family{'spouse'}}, { name => $1, 'status' => 'living', 'sex' => 'F' }
 	}
 
 	# Ensure spouse location is properly handled
