@@ -7588,7 +7588,7 @@ sub print_person
 							@phrases = ();
 						}
 
-						my $service = ucfirst(service($event));
+						my $service = service($event);
 						if(defined(my $date = year(record => $event))) {
 							if($date =~ /^from /) {
 								$bio .= ' ' unless($bio =~ /\s$/);
