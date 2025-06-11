@@ -21,6 +21,12 @@
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
+		[% IF schema_org %]
+			<script type="application/ld+json">
+				[% USE JSON %]
+				[% JSON.json(schema_org) %]
+			</script>
+		[% END %]
 	</head>
 	<body>
 		[% IF person %]

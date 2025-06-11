@@ -18,9 +18,11 @@ use Config::Abstraction;
 use CGI::Info;
 use Data::Dumper;
 use File::Spec;
+use JSON::MaybeXS;
 use Template::Filters;
 use Template::Plugin::EnvHash;
 use Template::Plugin::Math;
+use Template::Plugin::JSON;
 use HTML::SocialMedia;
 use Ged2site::Utils;
 use Error;
@@ -486,6 +488,7 @@ sub html {
 			INTERPOLATE => 1,
 			POST_CHOMP => 1,
 			ABSOLUTE => 1,
+			PLUGINS => { JSON => 'Template::Plugin::JSON' },
 		});
 
 		$self->_debug({ message => __PACKAGE__ . ': ' . __LINE__ . ': Passing these to the template: ' . join(', ', keys %{$vals}) });

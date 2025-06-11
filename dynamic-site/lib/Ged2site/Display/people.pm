@@ -67,7 +67,7 @@ sub html {
 		home => 1,
 		lang => qr/^[A-Z]{2}$/i,
 		lint_content => qr/^\d$/,
-		fbclid => qr/^[\w-]+$/i,	# Facebook tracking info
+		fbclid => qr/^[\w\-]+$/i,	# Facebook tracking info
 		gclid => qr/^\w+$/i,	# Google tracking info
 		'lint_content' => qr/^\d$/,
 	};
@@ -104,10 +104,18 @@ sub html {
 		die 'Lookup failed: No matching record found for given parameters: ', join(', ', keys %{$params});
 	}
 
+	my $schema_org = {
+                '@context' => 'https://schema.org',
+                '@type' => 'Person',
+		'name' => $person_details->{'title'},
+		'gender' => $person_details->{'sex'} == 'M' ? 'Male' : 'Female',
+        };
+
 	# Render the response with person details
 	return $self->SUPER::html({
 		person => $person_details,
 		decode_base64url => sub { MIME::Base64::decode_base64url($_[0]); },
+		schema_org => $schema_org,
 		updated => $people->updated()
 	});
 }
