@@ -2384,6 +2384,17 @@ sub print_person
 		# TODO: This will be added even on pages without citations, it would be nice to avoid that
 		print $html '<link rel="stylesheet" href="https://genealogy.nigelhorne.com/css/web.css" type="text/css" media="screen">';
 	}
+
+	print $html '<script type="application/ld+json">',
+		JSON::MaybeXS::to_json({
+			'@context' => 'https://schema.org',
+			'@type' => 'Person',
+			'name' => $name,
+			'gender' => $person->sex(),
+			'birthDate' => $dateofbirth
+		}),
+		'</script>';
+
 	print $html '</head>';
 	if($opts{'m'}) {
 		if($maps_module eq 'HTML::GoogleMaps::V3') {
