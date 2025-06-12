@@ -109,6 +109,7 @@ sub html {
                 '@type' => 'Person',
 		'name' => $person_details->{'title'},
 		'gender' => $person_details->{'sex'} == 'M' ? 'Male' : 'Female',
+		'birthDate' => $person_details->{'dob'}
         };
 
 	# Render the response with person details
