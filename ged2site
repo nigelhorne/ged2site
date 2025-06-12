@@ -12205,11 +12205,11 @@ sub place
 				$places_printed->{" in$2,$3,$4"} = 1;
 			}
 		}
-		if($language eq 'French') {
-			return " \N{U+00E0} $place";
-		}
 		if($params->{'nopreposition'}) {
 			return " $place";
+		}
+		if($language eq 'French') {
+			return " \N{U+00E0} $place";
 		}
 		return " at $place";
 	}
@@ -17233,6 +17233,7 @@ sister::Schwester
 sister-in-law::Schwägerin
 sisters::Schwestern
 son::Sohn
+sons::Söhne
 the head of household::der Haushaltsvorstand
 the same day as::die gleichen Tag als
 times::fache
