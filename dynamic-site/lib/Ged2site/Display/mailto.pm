@@ -8,6 +8,7 @@ use warnings;
 use Ged2site::Display;
 
 our @ISA = ('Ged2site::Display');
+our $mailfrom;	# Throttle emails being sent
 
 sub html {
 	my $self = shift;
@@ -21,7 +22,9 @@ sub html {
 		'message' => undef,
 		'yemail' => undef,
 		'yname' => undef,
-		'lang' => qr/^[A-Z][A-Z]/i,
+		'lang' => qr/^[A-Z]{2}/i,
+		'fbclid' => qr/^[\w-]+$/i,	# Facebook info
+		'gclid' => qr/^\w+$/i,	# Google info
 		'lint_content' => qr/^\d$/,
 	};
 	my $params = $info->params({ allow => $allowed });
@@ -80,6 +83,16 @@ sub html {
 	print $fout "To: \"$name\" <$email>\n",
 		"From: \"$yname\" <$yemail>\n",
 		"Cc: \"$yname\" <$yemail>\n";
+
+	if(my $remote_addr = $ENV{'REMOTE_ADDR'}) {
+		$mailfrom->{$remote_addr}++;
+		if($mailfrom->{$remote_addr} >= 3) {
+			$info->status(429);
+			$copy->{'error'} = 'You have reached your limit for sending e-mails';
+			$self->{_logger}->info("E-mail blocked from $yemail");
+			return $self->SUPER::html($copy);
+		}
+	}
 
 	my $site_title = $self->{_config}->{'SiteTitle'};
 
