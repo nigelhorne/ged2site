@@ -33,6 +33,7 @@ sub html {
 	delete $params->{'lang'};
 	delete $params->{'fbclid'};
 	delete $params->{'gclid'};
+	delete $params->{'lint_content'};
 
 	# my $mailto = $args{'mailto'};
 	my $contact = $self->{_config}->{'contact'};
