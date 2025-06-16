@@ -14060,19 +14060,30 @@ sub arrival
 # Document a complete journey when both a departure and an arrival record exist
 sub journey
 {
-	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = Params::Get::get_params(undef, \@_);
 
-	my $person = $params{'person'};
-	my $arrival = $params{'arrival'};
-	my $departure = $params{'departure'};
-	my @spouses = @{$params{'spouses'}} if($params{'spouses'});
-	my @children = @{$params{'children'}} if($params{'children'});
-
+	my $person = $params->{'person'};
+	my $arrival = $params->{'arrival'};
+	my $departure = $params->{'departure'};
+	my $parse_tree = $params->{'parse_tree'};
+	my @spouses;
+	my @children;
 	my $yod;
 	my $yoa;
 	my $dod = $departure->date();
 	my $doa = $arrival->date();
 	my $only_have_departure_year;
+	my $journey;	# For parse_tree
+
+	@spouses = @{$params->{'spouses'}} if($params->{'spouses'});
+	@children = @{$params->{'children'}} if($params->{'children'});
+
+	if($doa) {
+		$journey->{'arrival'}->{'date'} = $doa;
+	}
+	if($dod) {
+		$journey->{'departure'}->{'date'} = $dod;
+	}
 
 	# my $i = 0;
 	# while((my @call_details = (caller($i++)))) {
@@ -14081,9 +14092,11 @@ sub journey
 
 	if($doa && ($doa =~ /\d{3,4}$/)) {
 		$yoa = get_year_from_date($doa);
+		$journey->{'arrival'}->{'year'} = $yoa;
 		$doa =~ s/\s+?\d{3,4}//;
 		if($dod && ($dod =~ /(\d{3,4})$/)) {
 			$yod = $1;
+			$journey->{'departure'}->{'year'} = $yod;
 			$dod =~ s/\s?\d{3,4}//;
 			if($dod =~ /^\d/) {
 				$dod = "on $dod";
@@ -14135,11 +14148,13 @@ sub journey
 	my $dnotes;
 
 	if(defined($departure->place())) {
+		$journey->{'departure'}->{'place'} = place({ record => $departure, nopreposition => 1 });
 		$rc .= i18n(' from') . place({ person => $person, record => $departure, nopreposition => 1 });
 		if($dnotes = notes(record => $departure)) {
 			$dnotes = lcfirst($dnotes) unless($dnotes =~ /^[A-Z]{2}/);
 			$dnotes =~ s/\.$//;
 			$rc .= " ($dnotes)";
+			$journey->{'departure'}->{'notes'} = $dnotes;
 		}
 	} else {
 		complain({ person => $person, warning => 'Departure record has no location' });
@@ -14152,12 +14167,14 @@ sub journey
 		} else {
 			$rc .= ' to';
 		}
+		$journey->{'arrival'}->{'place'} = place({ record => $arrival, nopreposition => 1 });
 		$rc .= place({ person => $person, record => $arrival, nopreposition => 1 });
 		if(my $notes = notes(record => $arrival)) {
 			if((!defined($dnotes)) || ($notes !~ qr/$dnotes/i)) {
 				$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
 				$notes =~ s/\.$//;
 				$rc .= " ($notes)";
+				$journey->{'arrival'}->{'notes'} = $notes;
 			}
 		}
 	} else {
@@ -14186,6 +14203,10 @@ sub journey
 					((get_value({ person => $person, value => 'sex' }) eq 'M') ? 'wife' : 'husband') .
 					', ' . given_names($spouses[0]);
 				$with_spouse++;
+				$journey->{'arrival'}->{'with'} = {
+					'name' => given_names($spouses[0]),
+					'relationship' => ((get_value({ person => $person, value => 'sex' }) eq 'M') ? 'wife' : 'husband')
+				};
 			}
 		}
 		my @childnames;
@@ -14200,6 +14221,7 @@ sub journey
 				$rc .= 'all of ' .
 					lcfirst($person->possessive()) .
 					i18n(' children');
+				$journey->{'with_all_children'} = 1;
 			} elsif(scalar(@childnames) == 1) {
 				$rc .= lcfirst($person->possessive()) .
 					i18n(' child ') .
@@ -14209,8 +14231,15 @@ sub journey
 					i18n(' children') .
 					': ' . conjunction(@childnames);
 			}
+			foreach my $name(@childnames) {
+				push @{$journey->{'arrival'}->{'with'}}, {
+					name => $name,
+					relationship => 'child'
+				}
+			}
 		}
 	}
+	push @{$parse_tree->{'journies'}}, $journey if(defined($parse_tree));
 	return $rc
 }
 
