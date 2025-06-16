@@ -15,7 +15,7 @@ sub html {
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $info = $self->{_info};
-	my $allowed = {
+	my $allow = {
 		'subject' => undef,
 		'page' => 'mailto',
 		'action' => 'send',
@@ -27,7 +27,12 @@ sub html {
 		'gclid' => qr/^\w+$/i,	# Google info
 		'lint_content' => qr/^\d$/,
 	};
-	my $params = $info->params({ allow => $allowed });
+	my $params = $info->params({ allow => $allow });
+
+	delete $params->{'page'};
+	delete $params->{'lang'};
+	delete $params->{'fbclid'};
+	delete $params->{'gclid'};
 
 	# my $mailto = $args{'mailto'};
 	my $contact = $self->{_config}->{'contact'};
@@ -106,6 +111,10 @@ sub html {
 	my $host_name = $info->host_name();
 	print $fout "Sender: \"$site_title\" <webmaster\@$host_name>\n",
 		'Return-Receipt-To: ', $yemail, "\n";
+
+	if($ENV{'REMOTE_ADDR'}) {
+		print $fout ('X-On-Behalf-Of: ', $ENV{'REMOTE_ADDR'}, "\n");
+	}
 
 	# if((!defined($params->{'entry'})) || ($params->{'entry'} !~ /Nigel.Horne/i)) {
 		# # For testing
