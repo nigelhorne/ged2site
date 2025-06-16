@@ -56,6 +56,35 @@
 				<center>
 					<a href="/" class="myButton">Continue</a>
 				</center>
+			[% ELSIF action == 'initial_form' %]
+				<div id="container">
+					<h2>Receive a verification link</h2>
+					[% IF to %]
+						[% USE Gravatar %]
+						[% avatar = Gravatar(email => to) %]
+						[% IF avatar %]
+							<!-- FIXME: https -->
+							<br><img src="[% avatar | html %]&amp;s=150" alt="[% entry.ucfirst %]" height="150" width="150">
+						[% END %]
+					[% END %]
+                                        <form class="grid-form" method="post" action="#">
+                                                <input type="hidden" name="action" value="send_verification">
+                                        
+                                                <div class="form-group">
+                                                        <label for="email">Your Email Address:</label>
+                                                <input type="email" id="email" name="email" required>
+                                                </div>
+                                                        
+                                                <div class="form-group">
+                                                        <label for="name">Your Name:</label>
+                                                        <input type="text" id="name" name="name" required>
+                                                </div>          
+                                                        
+                                                <div class="form-group">
+                                                        <input type="submit" value="Send Verification Link">
+                                                </div>
+                                        </form>
+				</div>
 			[% ELSE %]
 				<div id="container">
 					<form method="post" action="#">

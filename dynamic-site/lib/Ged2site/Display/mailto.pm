@@ -38,7 +38,9 @@ sub html {
 	# my $mailto = $args{'mailto'};
 	my $contact = $self->{_config}->{'contact'};
 
-	if(!defined($params->{'action'})) {
+	my $action = $params->{'action'};
+
+	if(!defined($action)) {
 		# First time through
 		if(my $name = $contact->{'name'}) {
 			return $self->SUPER::html({ name => $name });
@@ -46,7 +48,19 @@ sub html {
 		return $self->SUPER::html({ error => 'Recipient not given' });
 	}
 
-	if($params->{'action'} ne 'send') {
+	if($action eq 'initial_form') {
+                return $self->SUPER::html();
+        } elsif($action eq 'send_verification') {
+                # send_verification_email();
+        } elsif($action eq 'compose') {
+                # show_compose_form();
+        } elsif($action eq 'send_email') {
+                # send_final_email();
+        } else {
+                # show_error("Invalid action");
+        }
+
+        if(($action ne 'send') && ($action ne 'send_email')) {
 		return $self->SUPER::html();
 	}
 
