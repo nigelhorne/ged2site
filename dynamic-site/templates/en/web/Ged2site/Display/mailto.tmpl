@@ -9,6 +9,13 @@
 	<head>
 		[% IF action == 'sent' %]
 			<title>E-mail sent</title>
+		[% ELSIF action == 'verification_sent' %]
+			<title>Verification Sent</title>
+			<style>
+				body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; }
+				.success { color: #28a745; }
+				.info { background-color: #d1ecf1; padding: 15px; border-radius: 4px; margin: 20px 0; }
+			</style>
 		[% ELSE %]
 			<title>Send an e-mail to [% name.ucfirst %]</title>
 		[% END %]
@@ -29,6 +36,8 @@
 			<center>
 				[% IF action == 'sent' %]
 					<h1>E-mail sent</h1>
+				[% ELSIF action == 'verification_sent' %]
+					<h1 class="success">Verification Email Sent</h1>
 				[% ELSE %]
 					<h1>Send an e-mail to [% contact.name.ucfirst %]</h1>
 				[% END %]
@@ -56,6 +65,12 @@
 				<center>
 					<a href="/" class="myButton">Continue</a>
 				</center>
+			[% ELSIF action == 'verification_sent' %]
+				<div class="info">
+					<p>We've sent a verification link to <strong>[% email %]</strong></p>
+					<p>Please check your email and click the link to compose your message.</p>
+					<p>The link will expire in 1 hour.</p>
+				</div>
 			[% ELSIF action == 'initial_form' %]
 				<div id="container">
 					<h2>Receive a verification link</h2>
@@ -67,23 +82,23 @@
 							<br><img src="[% avatar | html %]&amp;s=150" alt="[% entry.ucfirst %]" height="150" width="150">
 						[% END %]
 					[% END %]
-                                        <form class="grid-form" method="post" action="#">
-                                                <input type="hidden" name="action" value="send_verification">
-                                        
-                                                <div class="form-group">
-                                                        <label for="email">Your Email Address:</label>
-                                                <input type="email" id="email" name="email" required>
-                                                </div>
-                                                        
-                                                <div class="form-group">
-                                                        <label for="name">Your Name:</label>
-                                                        <input type="text" id="name" name="name" required>
-                                                </div>          
-                                                        
-                                                <div class="form-group">
-                                                        <input type="submit" value="Send Verification Link">
-                                                </div>
-                                        </form>
+					<form class="grid-form" method="post" action="#">
+						<input type="hidden" name="action" value="send_verification">
+
+						<div class="form-group">
+							<label for="email">Your Email Address:</label>
+						<input type="email" id="email" name="email" required>
+						</div>
+
+						<div class="form-group">
+							<label for="name">Your Name:</label>
+							<input type="text" id="name" name="name" required>
+						</div>
+
+						<div class="form-group">
+							<input type="submit" value="Send Verification Link">
+						</div>
+					</form>
 				</div>
 			[% ELSE %]
 				<div id="container">

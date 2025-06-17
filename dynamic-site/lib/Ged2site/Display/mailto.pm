@@ -49,18 +49,19 @@ sub html {
 	}
 
 	if($action eq 'initial_form') {
-                return $self->SUPER::html();
-        } elsif($action eq 'send_verification') {
-                # send_verification_email();
-        } elsif($action eq 'compose') {
-                # show_compose_form();
-        } elsif($action eq 'send_email') {
-                # send_final_email();
-        } else {
-                # show_error("Invalid action");
-        }
+		return $self->SUPER::html();
+	} elsif($action eq 'send_verification') {
+		# send_verification_email();
+		return $self->SUPER::html({ action => 'verification_sent' });
+	} elsif($action eq 'compose') {
+		# show_compose_form();
+	} elsif($action eq 'send_email') {
+		# send_final_email();
+	} else {
+		# show_error("Invalid action");
+	}
 
-        if(($action ne 'send') && ($action ne 'send_email')) {
+	if(($action ne 'send') && ($action ne 'send_email')) {
 		return $self->SUPER::html();
 	}
 
