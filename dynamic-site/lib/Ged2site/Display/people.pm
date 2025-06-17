@@ -108,9 +108,13 @@ sub html {
                 '@context' => 'https://schema.org',
                 '@type' => 'Person',
 		'name' => $person_details->{'title'},
-		'gender' => $person_details->{'sex'} == 'M' ? 'Male' : 'Female',
+		'gender' => $person_details->{'sex'} eq 'M' ? 'Male' : 'Female',
 		'birthDate' => $person_details->{'dob'}
         };
+
+	if(my $logger = $self->{'logger'}) {
+		$logger->debug('Schema.org: ', Data::Dumper->new([$schema_org])->Dump());
+	}
 
 	# Render the response with person details
 	return $self->SUPER::html({

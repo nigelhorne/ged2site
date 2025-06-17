@@ -305,6 +305,7 @@ sub get_template_path
 	}
 
 	if($self->{_filename}) {
+		$self->{_logger}->trace({ message => 'returning ' . $self->{_filename} });
 		return $self->{_filename};
 	}
 
@@ -358,7 +359,7 @@ sub get_template_path
 		throw Error::Simple("Can't find suitable $modulepath html or tmpl/tt file in $prefix in $dir or a subdir");
 	}
 	close($fh);
-	$self->_debug({ message => "using $filename" });
+	$self->_debug({ message => "Using $filename" });
 	$self->{_filename} = $filename;
 
 	# Remember the template filename
