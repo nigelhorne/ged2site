@@ -16,6 +16,19 @@
 				.success { color: #28a745; }
 				.info { background-color: #d1ecf1; padding: 15px; border-radius: 4px; margin: 20px 0; }
 			</style>
+		[% ELSIF action == 'compose' %]
+			<title>Compose Email - Step 2</title>
+                        <style>
+                                body { font-family: Arial, sans-serif; max-width: 700px; margin: 50px auto; padding: 20px; }
+                                .form-group { margin-bottom: 15px; }
+                                label { display: block; margin-bottom: 5px; font-weight: bold; }
+                                input[type="email"], input[type="text"], textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+                                textarea { height: 200px; resize: vertical; }
+                                input[type="submit"] { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+                                input[type="submit"]:hover { background-color: #218838; }
+                                .header { text-align: center; margin-bottom: 30px; }
+                                .user-info { background-color: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+                        </style>
 		[% ELSE %]
 			<title>Send an e-mail to [% name.ucfirst %]</title>
 		[% END %]
@@ -38,6 +51,8 @@
 					<h1>E-mail sent</h1>
 				[% ELSIF action == 'verification_sent' %]
 					<h1 class="success">Verification Email Sent</h1>
+				[% ELSIF action == 'compose' %]
+					<h1>Compose Email</h1>
 				[% ELSE %]
 					<h1>Send an e-mail to [% contact.name.ucfirst %]</h1>
 				[% END %]
@@ -100,6 +115,40 @@
 						</div>
 					</form>
 				</div>
+			[% ELSIF action == 'compose' %]
+				<div class="header">
+					<p>Step 2: Enter your email subject and message</p>
+				</div>
+
+				<div class="user-info">
+					<strong>Sending as:</strong> [% session_data.name %] &lt;[% session_data.email %]&gt;
+				</div>
+
+				<form method="post" action="">
+					<input type="hidden" name="action" value="send_email">
+					<input type="hidden" name="token" value="[% token %]">
+
+					<!--
+					<div class="form-group">
+						<label for="to_email">To Email Address:</label>
+						<input type="email" id="to_email" name="to_email" required>
+					</div>
+					-->
+
+					<div class="form-group">
+						<label for="subject">Subject:</label>
+						<input type="text" id="subject" name="subject" required>
+					</div>
+
+					<div class="form-group">
+						<label for="message">Message:</label>
+						<textarea id="message" name="message" required placeholder="Enter your email message here..."></textarea>
+					</div>
+
+					<div class="form-group">
+						<input type="submit" value="Send Email">
+					</div>
+				</form>
 			[% ELSE %]
 				<div id="container">
 					<form method="post" action="#">
