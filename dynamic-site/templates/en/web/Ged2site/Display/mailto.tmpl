@@ -9,6 +9,17 @@
 	<head>
 		[% IF action == 'sent' %]
 			<title>E-mail sent</title>
+		[% ELSIF action == 'initial_form' %]
+			<title>Email Service - Step 1</title>
+			<style>
+				body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+				.form-group { margin-bottom: 15px; }
+				label { display: block; margin-bottom: 5px; font-weight: bold; }
+				input[type="email"], input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+				input[type="submit"] { background-color: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+				input[type="submit"]:hover { background-color: #005a87; }
+				.header { text-align: center; margin-bottom: 30px; }
+			</style>
 		[% ELSIF action == 'verification_sent' %]
 			<title>Verification Sent</title>
 			<style>
@@ -29,6 +40,15 @@
                                 .header { text-align: center; margin-bottom: 30px; }
                                 .user-info { background-color: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
                         </style>
+		[% ELSIF action == 'send_email' %]
+			<title>Email Sent Successfully</title>
+			<style>
+				body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; }
+				.success { color: #28a745; }
+				.info { background-color: #d4edda; padding: 15px; border-radius: 4px; margin: 20px 0; }
+				a { color: #007cba; text-decoration: none; }
+				a:hover { text-decoration: underline; }
+			</style>
 		[% ELSE %]
 			<title>Send an e-mail to [% name.ucfirst %]</title>
 		[% END %]
@@ -49,10 +69,14 @@
 			<center>
 				[% IF action == 'sent' %]
 					<h1>E-mail sent</h1>
+				[% ELSIF action == 'initial_form' %]
+					<h1>Email Service - Step 1</h1>
 				[% ELSIF action == 'verification_sent' %]
 					<h1 class="success">Verification Email Sent</h1>
 				[% ELSIF action == 'compose' %]
 					<h1>Compose Email</h1>
+				[% ELSIF action == 'send_email' %]
+					<h1 class="success">Email Sent Successfully</h1>
 				[% ELSE %]
 					<h1>Send an e-mail to [% contact.name.ucfirst %]</h1>
 				[% END %]
@@ -80,12 +104,6 @@
 				<center>
 					<a href="/" class="myButton">Continue</a>
 				</center>
-			[% ELSIF action == 'verification_sent' %]
-				<div class="info">
-					<p>We've sent a verification link to <strong>[% email %]</strong></p>
-					<p>Please check your email and click the link to compose your message.</p>
-					<p>The link will expire in 1 hour.</p>
-				</div>
 			[% ELSIF action == 'initial_form' %]
 				<div id="container">
 					<h2>Receive a verification link</h2>
@@ -114,6 +132,12 @@
 							<input type="submit" value="Send Verification Link">
 						</div>
 					</form>
+				</div>
+			[% ELSIF action == 'verification_sent' %]
+				<div class="info">
+					<p>We've sent a verification link to <strong>[% email %]</strong></p>
+					<p>Please check your email and click the link to compose your message.</p>
+					<p>The link will expire in 1 hour.</p>
 				</div>
 			[% ELSIF action == 'compose' %]
 				<div class="header">
@@ -149,6 +173,12 @@
 						<input type="submit" value="Send Email">
 					</div>
 				</form>
+			[% ELSIF action == 'send_email' %]
+				<div class="info">
+					<p>Your email has been sent to <strong>[% to_email %]</strong></p>
+					<p>Subject: <strong>[% subject %]</strong></p>
+				</div>
+				<p><a href="[% base_url %]">Send Another Email</a></p>
 			[% ELSE %]
 				<div id="container">
 					<form method="post" action="#">
