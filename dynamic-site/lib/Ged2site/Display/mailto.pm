@@ -3,7 +3,7 @@ package Ged2site::Display::mailto;
 use strict;
 use warnings;
 
-# Send an e-mail to the owner
+# Driver for the page to send an e-mail
 
 use Ged2site::Display;
 
@@ -18,7 +18,7 @@ sub html {
 	my $allow = {
 		'subject' => undef,
 		'page' => 'mailto',
-		'action' => 'send',
+		'action' => undef,
 		'message' => undef,
 		'yemail' => undef,
 		'yname' => undef,

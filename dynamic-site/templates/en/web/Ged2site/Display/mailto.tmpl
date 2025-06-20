@@ -10,16 +10,18 @@
 		[% IF action == 'sent' %]
 			<title>E-mail sent</title>
 		[% ELSIF action == 'initial_form' %]
-			<title>Email Service - Step 1</title>
-			<style>
-				body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-				.form-group { margin-bottom: 15px; }
-				label { display: block; margin-bottom: 5px; font-weight: bold; }
-				input[type="email"], input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-				input[type="submit"] { background-color: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-				input[type="submit"]:hover { background-color: #005a87; }
-				.header { text-align: center; margin-bottom: 30px; }
-			</style>
+			<title>Send an e-mail to [% name.ucfirst %] - Step 1</title>
+			<!--
+				<style>
+					body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+					.form-group { margin-bottom: 15px; }
+					label { display: block; margin-bottom: 5px; font-weight: bold; }
+					input[type="email"], input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+					input[type="submit"] { background-color: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+					input[type="submit"]:hover { background-color: #005a87; }
+					.header { text-align: center; margin-bottom: 30px; }
+				</style>
+			-->
 		[% ELSIF action == 'verification_sent' %]
 			<title>Verification Sent</title>
 			<style>
@@ -115,22 +117,26 @@
 							<br><img src="[% avatar | html %]&amp;s=150" alt="[% entry.ucfirst %]" height="150" width="150">
 						[% END %]
 					[% END %]
-					<form class="grid-form" method="post" action="#">
+					<form method="post" action="#">
 						<input type="hidden" name="action" value="send_verification">
+						<input name="page" value="mailto" type="hidden">
 
-						<div class="form-group">
-							<label for="email">Your Email Address:</label>
-						<input type="email" id="email" name="email" required>
-						</div>
-
-						<div class="form-group">
-							<label for="name">Your Name:</label>
-							<input type="text" id="name" name="name" required>
-						</div>
-
-						<div class="form-group">
-							<input type="submit" value="Send Verification Link">
-						</div>
+						<label for="yname">Your Name</label>
+						<input name="yname" id="yname" type="text" value="[%- yname %]">
+						<br>
+						<br>
+						<label for="yemail">Your E-Mail Address</label>
+						<input name="yemail" id="yemail" type="email" value="[%- yemail %]">
+						<br>
+						<br>
+						<!-- <ul class="actions">
+							<li><input value="Send Message" type="submit"></li>
+						</ul> -->
+						<center>
+							<button type="submit" class="myButton" value="submit">
+								Send Verification Link
+							</button>
+						</center>
 					</form>
 				</div>
 			[% ELSIF action == 'verification_sent' %]
