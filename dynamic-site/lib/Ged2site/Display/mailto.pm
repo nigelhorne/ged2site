@@ -144,6 +144,7 @@ Email Service
 				"Please report any abuse of this service to us.\n";
 
                         close $fout;
+		}
 
                 return $self->SUPER::html({ mail => $email });
 	} elsif($action eq 'compose') {
