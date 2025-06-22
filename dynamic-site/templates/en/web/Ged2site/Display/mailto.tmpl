@@ -101,125 +101,127 @@
 					[ <a href="/visjs.html">Timeline</a> ]
 				</center>
 			</div>
-			[% IF action == 'sent' %]
-				<p>Your e-mail has been sent to [% name.ucfirst %]</p>
-				<center>
-					<a href="/" class="myButton">Continue</a>
-				</center>
-			[% ELSIF action == 'initial_form' %]
-				<div id="container">
-					<h2>Receive a verification link</h2>
-					[% IF to %]
-						[% USE Gravatar %]
-						[% avatar = Gravatar(email => to) %]
-						[% IF avatar %]
-							<!-- FIXME: https -->
-							<br><img src="[% avatar | html %]&amp;s=150" alt="[% entry.ucfirst %]" height="150" width="150">
+			[% IF !error %]
+				[% IF action == 'sent' %]
+					<p>Your e-mail has been sent to [% name.ucfirst %]</p>
+					<center>
+						<a href="/" class="myButton">Continue</a>
+					</center>
+				[% ELSIF action == 'initial_form' %]
+					<div id="container">
+						<h2>Receive a verification link</h2>
+						[% IF to %]
+							[% USE Gravatar %]
+							[% avatar = Gravatar(email => to) %]
+							[% IF avatar %]
+								<!-- FIXME: https -->
+								<br><img src="[% avatar | html %]&amp;s=150" alt="[% entry.ucfirst %]" height="150" width="150">
+							[% END %]
 						[% END %]
-					[% END %]
-					<form method="post" action="#">
-						<input type="hidden" name="action" value="send_verification">
-						<input name="page" value="mailto" type="hidden">
+						<form method="post" action="#">
+							<input type="hidden" name="action" value="send_verification">
+							<input name="page" value="mailto" type="hidden">
 
-						<label for="yname">Your Name</label>
-						<input name="yname" id="yname" type="text" value="[%- yname %]">
-						<br>
-						<br>
-						<label for="yemail">Your E-Mail Address</label>
-						<input name="yemail" id="yemail" type="email" value="[%- yemail %]">
-						<br>
-						<br>
-						<!-- <ul class="actions">
-							<li><input value="Send Message" type="submit"></li>
-						</ul> -->
-						<center>
-							<button type="submit" class="myButton" value="submit">
-								Send Verification Link
-							</button>
-						</center>
+							<label for="yname">Your Name</label>
+							<input name="yname" id="yname" type="text" value="[%- yname %]">
+							<br>
+							<br>
+							<label for="yemail">Your E-Mail Address</label>
+							<input name="yemail" id="yemail" type="email" value="[%- yemail %]">
+							<br>
+							<br>
+							<!-- <ul class="actions">
+								<li><input value="Send Message" type="submit"></li>
+							</ul> -->
+							<center>
+								<button type="submit" class="myButton" value="submit">
+									Send Verification Link
+								</button>
+							</center>
+						</form>
+					</div>
+				[% ELSIF action == 'verification_sent' %]
+					<div class="info">
+						<p>We've sent a verification link to <strong>[% email %]</strong></p>
+						<p>Please check your email and click the link to compose your message.</p>
+						<p>The link will expire in 1 hour.</p>
+					</div>
+				[% ELSIF action == 'compose' %]
+					<div class="header">
+						<p>Step 2: Enter your email subject and message</p>
+					</div>
+
+					<div class="user-info">
+						<strong>Sending as:</strong> [% session_data.name %] &lt;[% session_data.email %]&gt;
+					</div>
+
+					<form method="post" action="">
+						<input type="hidden" name="action" value="send_email">
+						<input type="hidden" name="token" value="[% token %]">
+
+						<!--
+						<div class="form-group">
+							<label for="to_email">To Email Address:</label>
+							<input type="email" id="to_email" name="to_email" required>
+						</div>
+						-->
+
+						<div class="form-group">
+							<label for="subject">Subject:</label>
+							<input type="text" id="subject" name="subject" required>
+						</div>
+
+						<div class="form-group">
+							<label for="message">Message:</label>
+							<textarea id="message" name="message" required placeholder="Enter your email message here..."></textarea>
+						</div>
+
+						<div class="form-group">
+							<input type="submit" value="Send Email">
+						</div>
 					</form>
-				</div>
-			[% ELSIF action == 'verification_sent' %]
-				<div class="info">
-					<p>We've sent a verification link to <strong>[% email %]</strong></p>
-					<p>Please check your email and click the link to compose your message.</p>
-					<p>The link will expire in 1 hour.</p>
-				</div>
-			[% ELSIF action == 'compose' %]
-				<div class="header">
-					<p>Step 2: Enter your email subject and message</p>
-				</div>
-
-				<div class="user-info">
-					<strong>Sending as:</strong> [% session_data.name %] &lt;[% session_data.email %]&gt;
-				</div>
-
-				<form method="post" action="">
-					<input type="hidden" name="action" value="send_email">
-					<input type="hidden" name="token" value="[% token %]">
-
-					<!--
-					<div class="form-group">
-						<label for="to_email">To Email Address:</label>
-						<input type="email" id="to_email" name="to_email" required>
+				[% ELSIF action == 'send_email' %]
+					<div class="info">
+						<p>Your email has been sent to <strong>[% to_email %]</strong></p>
+						<p>Subject: <strong>[% subject %]</strong></p>
 					</div>
-					-->
-
-					<div class="form-group">
-						<label for="subject">Subject:</label>
-						<input type="text" id="subject" name="subject" required>
+					<p><a href="[% base_url %]">Send Another Email</a></p>
+				[% ELSE %]
+					<div id="container">
+						<form method="post" action="#">
+							<input name="action" value="send" type="hidden">
+							<input name="page" value="mailto" type="hidden">
+							<label for="yname">Your Name</label>
+							<input name="yname" id="yname" type="text" value="[%- yname %]">
+							<br>
+							<br>
+							<label for="yemail">Your E-Mail Address</label>
+							<input name="yemail" id="yemail" type="email" value="[%- yemail %]">
+							<br>
+							<br>
+							<label for="subject">Subject</label>
+							<input name="subject" id="subject" type="text" value="[%- subject %]">
+							<br>
+							<br>
+							<label for="message">Message</label>
+							[% IF message %]
+								<textarea name="message" id="message" rows="4" value="[%- message %]"></textarea>
+							[% ELSE %]
+								<textarea name="message" id="message" rows="4"></textarea>
+							[% END %]
+							<br>
+							<br>
+							<!-- <ul class="actions">
+								<li><input value="Send Message" type="submit"></li>
+							</ul> -->
+							<center>
+								<button type="submit" class="myButton" value="submit">
+									Send E-mail
+								</button>
+							</center>
+						</form>
 					</div>
-
-					<div class="form-group">
-						<label for="message">Message:</label>
-						<textarea id="message" name="message" required placeholder="Enter your email message here..."></textarea>
-					</div>
-
-					<div class="form-group">
-						<input type="submit" value="Send Email">
-					</div>
-				</form>
-			[% ELSIF action == 'send_email' %]
-				<div class="info">
-					<p>Your email has been sent to <strong>[% to_email %]</strong></p>
-					<p>Subject: <strong>[% subject %]</strong></p>
-				</div>
-				<p><a href="[% base_url %]">Send Another Email</a></p>
-			[% ELSE %]
-				<div id="container">
-					<form method="post" action="#">
-						<input name="action" value="send" type="hidden">
-						<input name="page" value="mailto" type="hidden">
-						<label for="yname">Your Name</label>
-						<input name="yname" id="yname" type="text" value="[%- yname %]">
-						<br>
-						<br>
-						<label for="yemail">Your E-Mail Address</label>
-						<input name="yemail" id="yemail" type="email" value="[%- yemail %]">
-						<br>
-						<br>
-						<label for="subject">Subject</label>
-						<input name="subject" id="subject" type="text" value="[%- subject %]">
-						<br>
-						<br>
-						<label for="message">Message</label>
-						[% IF message %]
-							<textarea name="message" id="message" rows="4" value="[%- message %]"></textarea>
-						[% ELSE %]
-							<textarea name="message" id="message" rows="4"></textarea>
-						[% END %]
-						<br>
-						<br>
-						<!-- <ul class="actions">
-							<li><input value="Send Message" type="submit"></li>
-						</ul> -->
-						<center>
-							<button type="submit" class="myButton" value="submit">
-								Send E-mail
-							</button>
-						</center>
-					</form>
-				</div>
+				[% END %]
 			[% END %]
 			<p align="right">
 				<i>

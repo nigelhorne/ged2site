@@ -8,16 +8,16 @@ use warnings;
 use Ged2site::Display;
 use Data::Dumper;
 use Digest::SHA qw(sha256_hex);
-use Email::Simple;
-use Email::Sender::Simple qw(sendmail);
+# use Email::Simple;
+# use Email::Sender::Simple qw(sendmail);
 # use Email::Sender::Transport::SMTP;	# Gives "Your vendor has not defined SSLeay macro SSL2_MT_REQUEST_CERTIFICATE"
 
 our @ISA = ('Ged2site::Display');
 our $mailfrom;	# Throttle emails being sent
 
 # Configuration
-my $SMTP_HOST = 'localhost';  # Change to your SMTP server
-my $SMTP_PORT = 25;	# Change to your SMTP port
+# my $SMTP_HOST = 'localhost';  # Change to your SMTP server
+# my $SMTP_PORT = 25;	# Change to your SMTP port
 my $FROM_EMAIL = 'noreply@nigelhorne.com';  # Change to your domain
 my $BASE_URL = 'https://genealogy.nigelhorne.com/cgi-bin/page.fcgi';  # Change to your URL
 my $DEBUG = 1;  # Set to 1 to enable debugging, 0 to disable
@@ -63,6 +63,8 @@ sub html {
 		return $self->SUPER::html({ error => 'Recipient not given' });
 	}
 
+	my $site_title = $self->{_config}->{'SiteTitle'};
+
 	if($action eq 'initial_form') {
 		return $self->SUPER::html();
 	} elsif($action eq 'send_verification') {
@@ -96,15 +98,15 @@ This link will expire in 1 hour.
 Best regards,
 Email Service
                 };
-		eval {
-                        my $email_obj = Email::Simple->create(
-                                header => [
-                                        To      => $email,
-                                        From    => $FROM_EMAIL,
-                                        Subject => 'Email Service - Verification Link',
-                                ],
-                                body => $email_body,
-                        );
+		# eval {
+                        # my $email_obj = Email::Simple->create(
+                                # header => [
+                                        # To      => $email,
+                                        # From    => $FROM_EMAIL,
+                                        # Subject => 'Email Service - Verification Link',
+                                # ],
+                                # body => $email_body,
+                        # );
 
                         # Configure SMTP transport (adjust for your SMTP server)
                         # my $transport = Email::Sender::Transport::SMTP->new({
@@ -113,11 +115,35 @@ Email Service
                         # });
 
                         # sendmail($email_obj, { transport => $transport });
-                };
+                # };
 
-                if ($@) {
+                # if ($@) {
                         return $self->SUPER::html({ error => "Failed to send verification email $@" });
-                }
+                # }
+
+		if(open(my $fout, '|-', '/usr/sbin/sendmail -t')) {
+                        print $fout "To: $email\n", 'From: "', $FROM_EMAIL, "\n";
+
+                        my $host_name = $info->host_name();
+                        print $fout "Sender: \"$site_title\" <webmaster\@$host_name>\n";
+
+                        if((!defined($params->{'entry'})) || ($params->{'entry'} !~ /Nigel.Horne/i)) {
+                                # For testing
+                                print $fout "Bcc: njh\@bandsman.co.uk\n";
+                        }
+
+                        if($ENV{'REMOTE_ADDR'}) {
+                                print $fout 'X-On-Behalf-Of: ', $ENV{'REMOTE_ADDR'}, "\n";
+                        }
+
+                        print $fout "Subject: Email Service - Verification Link\n\n$email_body\n\n";
+
+			print $fout "Sent from $site_title, ", $self->{_info}->domain_name(), ".\n",
+				"This service is provided to allow 3rd parties to contact\n",
+				"peopl without their email address appearing on the website.\n",
+				"Please report any abuse of this service to us.\n";
+
+                        close $fout;
 
                 return $self->SUPER::html({ mail => $email });
 	} elsif($action eq 'compose') {
@@ -181,8 +207,6 @@ Email Service
 			return $self->SUPER::html($copy);
 		}
 	}
-
-	my $site_title = $self->{_config}->{'SiteTitle'};
 
 	if(ref($site_title)) {
 		$site_title = $site_title->{'English'};
