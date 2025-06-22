@@ -20,7 +20,7 @@ our $mailfrom;	# Throttle emails being sent
 # my $SMTP_PORT = 25;	# Change to your SMTP port
 my $FROM_EMAIL = 'noreply@nigelhorne.com';  # Change to your domain
 my $BASE_URL = 'https://genealogy.nigelhorne.com/cgi-bin/page.fcgi';  # Change to your URL
-my $DEBUG = 1;  # Set to 1 to enable debugging, 0 to disable
+my $DEBUG = 0;	# Set to 1 to enable debugging, 0 to disable
 
 # Simple session storage (in production, use proper session management)
 my $session_file = '/tmp/email_sessions.dat';
@@ -149,6 +149,49 @@ Email Service
                 return $self->SUPER::html({ mail => $email });
 	} elsif($action eq 'compose') {
 		# show_compose_form();
+            my $token = $params->{'token'};
+
+            if ($DEBUG) {
+                print STDERR "DEBUG: Token received: '$token'\n" if($token);
+                print STDERR "DEBUG: Session file exists: " . (-f $session_file ? "YES" : "NO") . "\n";
+                print STDERR "DEBUG: Session file path: $session_file\n";
+            }
+
+            unless ($token) {
+                return $self->SUPER::html({ error => "Invalid verification link - no token provided" });
+            }
+
+            # Verify token and get session data
+            my $session_data = get_session($token);
+
+            if ($DEBUG) {
+                print STDERR "DEBUG: Session data retrieved: " . (defined $session_data ? "YES" : "NO") . "\n";
+                if ($session_data) {
+                    print STDERR "DEBUG: Session contains: email=" . ($session_data->{email} || "UNDEF") .
+                                ", name=" . ($session_data->{name} || "UNDEF") .
+                                ", timestamp=" . ($session_data->{timestamp} || "UNDEF") . "\n";
+                }
+            }
+
+            unless ($session_data) {
+                return $self->SUPER::html({ error => "Invalid or expired verification link - session not found" });
+            }
+
+            # Check if token is expired (1 hour)
+            my $age = time() - $session_data->{timestamp};
+            if ($DEBUG) {
+                print STDERR "DEBUG: Session age: $age seconds (expires at 3600)\n";
+            }
+
+            if ($age > 3600) {
+                return $self->SUPER::html({ error => "Verification link has expired (age: " . int($age/60) . " minutes)" });
+            }
+
+        # Optional: Delete token immediately after first use (makes link single-use)
+        # Uncomment the next line if you want single-use verification links
+		delete_session($token);
+
+                return $self->SUPER::html();
 	} elsif($action eq 'send_email') {
 		# send_final_email();
 	} else {
@@ -278,6 +321,65 @@ sub store_session {
         chmod 0600, $session_file;  # Secure the file
     };
 	die "Failed to store session: $@" if $@;
+}
+
+sub get_session {
+        my $token = shift;
+
+    return undef unless -f $session_file;
+    return undef unless $token;
+
+    my $sessions = {};
+    eval {
+        open my $fh, '<', $session_file or die "Can't read session file: $!";
+        local $/;
+        my $content = <$fh>;
+        close $fh;
+
+        if ($content && $content =~ /\S/) {
+            my $VAR1;  # For Data::Dumper output
+            $sessions = eval $content;
+            $sessions = {} unless ref $sessions eq 'HASH';
+        }
+    };
+
+    # Return undef if there was an error or token doesn't exist
+    return undef if $@ || !exists $sessions->{$token};
+    return $sessions->{$token};
+}
+
+sub delete_session {
+        my $token = shift;
+        
+    return unless -f $session_file;
+    return unless $token;
+
+    my $sessions = {};
+    eval {
+        open my $fh, '<', $session_file or die "Can't read session file: $!";
+        local $/;
+        my $content = <$fh>;
+        close $fh;
+
+        if ($content && $content =~ /\S/) {
+            my $VAR1;  # For Data::Dumper output
+            $sessions = eval $content;
+            $sessions = {} unless ref $sessions eq 'HASH';
+        }
+    };
+
+    return if $@;
+
+    delete $sessions->{$token};
+
+    eval {
+        open my $fh, '>', $session_file or die "Can't write session file: $!";
+        my $dumper = Data::Dumper->new([$sessions]);
+        $dumper->Purity(1);
+        $dumper->Terse(1);
+        print $fh $dumper->Dump();
+        close $fh;
+    };
 }
 
 1;
