@@ -10,7 +10,7 @@ use Data::Dumper;
 use Digest::SHA qw(sha256_hex);
 use Email::Simple;
 use Email::Sender::Simple qw(sendmail);
-use Email::Sender::Transport::SMTP;
+# use Email::Sender::Transport::SMTP;	# Gives "Your vendor has not defined SSLeay macro SSL2_MT_REQUEST_CERTIFICATE"
 
 our @ISA = ('Ged2site::Display');
 our $mailfrom;	# Throttle emails being sent
@@ -107,17 +107,16 @@ Email Service
                         );
 
                         # Configure SMTP transport (adjust for your SMTP server)
-                        my $transport = Email::Sender::Transport::SMTP->new({
-                                host => $SMTP_HOST,
-                                port => $SMTP_PORT,
-                        });
+                        # my $transport = Email::Sender::Transport::SMTP->new({
+                                # host => $SMTP_HOST,
+                                # port => $SMTP_PORT,
+                        # });
 
-                        sendmail($email_obj, { transport => $transport });
+                        # sendmail($email_obj, { transport => $transport });
                 };
 
                 if ($@) {
                         return $self->SUPER::html({ error => "Failed to send verification email $@" });
-                        return;
                 }
 
                 return $self->SUPER::html({ mail => $email });
