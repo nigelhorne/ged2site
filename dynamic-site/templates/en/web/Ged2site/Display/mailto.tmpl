@@ -22,7 +22,7 @@
 					.header { text-align: center; margin-bottom: 30px; }
 				</style>
 			-->
-		[% ELSIF action == 'verification_sent' %]
+		[% ELSIF action == 'send_verification' %]
 			<title>Verification Sent</title>
 			<style>
 				body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; }
@@ -73,7 +73,7 @@
 					<h1>E-mail sent</h1>
 				[% ELSIF action == 'initial_form' %]
 					<h1>Email Service - Step 1</h1>
-				[% ELSIF action == 'verification_sent' %]
+				[% ELSIF action == 'send_verification' %]
 					<h1 class="success">Verification Email Sent</h1>
 				[% ELSIF action == 'compose' %]
 					<h1>Compose Email</h1>

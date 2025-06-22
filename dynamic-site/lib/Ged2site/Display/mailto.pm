@@ -6,9 +6,24 @@ use warnings;
 # Driver for the page to send an e-mail
 
 use Ged2site::Display;
+use Data::Dumper;
+use Digest::SHA qw(sha256_hex);
+use Email::Simple;
+use Email::Sender::Simple qw(sendmail);
+use Email::Sender::Transport::SMTP;
 
 our @ISA = ('Ged2site::Display');
 our $mailfrom;	# Throttle emails being sent
+
+# Configuration
+my $SMTP_HOST = 'localhost';  # Change to your SMTP server
+my $SMTP_PORT = 25;	# Change to your SMTP port
+my $FROM_EMAIL = 'noreply@nigelhorne.com';  # Change to your domain
+my $BASE_URL = 'https://genealogy.nigelhorne.com/cgi-bin/page.fcgi';  # Change to your URL
+my $DEBUG = 1;  # Set to 1 to enable debugging, 0 to disable
+
+# Simple session storage (in production, use proper session management)
+my $session_file = '/tmp/email_sessions.dat';
 
 sub html {
 	my $self = shift;
@@ -52,7 +67,60 @@ sub html {
 		return $self->SUPER::html();
 	} elsif($action eq 'send_verification') {
 		# send_verification_email();
-		return $self->SUPER::html({ action => 'verification_sent' });
+		my $email = $params->{'email'};
+		my $name = $params->{'name'};
+
+		unless ($email && $name) {
+                        return $self->SUPER::html({ error => 'Please provide both email and name' });
+                }
+
+                # Generate verification token
+                my $token = sha256_hex($email . time() . rand());
+
+                # Store session data (in production, use proper database/session storage)
+                store_session($token, { email => $email, name => $name, timestamp => time() });
+
+                # Create verification link
+                my $verify_link = "$BASE_URL?page=mailto&action=compose&token=$token";
+
+                # Send verification email
+                my $email_body = qq{
+Hello $name,
+
+Please click the link below to compose and send your email:
+
+$verify_link
+
+This link will expire in 1 hour.
+
+Best regards,
+Email Service
+                };
+		eval {
+                        my $email_obj = Email::Simple->create(
+                                header => [
+                                        To      => $email,
+                                        From    => $FROM_EMAIL,
+                                        Subject => 'Email Service - Verification Link',
+                                ],
+                                body => $email_body,
+                        );
+
+                        # Configure SMTP transport (adjust for your SMTP server)
+                        my $transport = Email::Sender::Transport::SMTP->new({
+                                host => $SMTP_HOST,
+                                port => $SMTP_PORT,
+                        });
+
+                        sendmail($email_obj, { transport => $transport });
+                };
+
+                if ($@) {
+                        return $self->SUPER::html({ error => "Failed to send verification email $@" });
+                        return;
+                }
+
+                return $self->SUPER::html({ mail => $email });
 	} elsif($action eq 'compose') {
 		# show_compose_form();
 	} elsif($action eq 'send_email') {
@@ -151,6 +219,41 @@ sub html {
 	$self->{_logger}->info("E-mail sent from $yemail to $email");
 
 	return $self->SUPER::html({ action => 'sent' });
+}
+
+sub store_session {
+    my ($token, $data) = @_;
+
+    my $sessions = {};
+    if (-f $session_file) {
+        eval {
+            open my $fh, '<', $session_file or die "Can't read session file: $!";
+            local $/;
+            my $content = <$fh>;
+            close $fh;
+            if ($content && $content =~ /\S/) {
+                my $VAR1;  # For Data::Dumper output
+                $sessions = eval $content;
+                $sessions = {} unless ref $sessions eq 'HASH';
+            }
+        };
+        # If eval fails, start with empty sessions hash
+        $sessions = {} if $@;
+    }
+
+    $sessions->{$token} = $data;
+
+    # Use a more reliable serialization method
+    eval {
+        open my $fh, '>', $session_file or die "Can't write session file: $!";
+        my $dumper = Data::Dumper->new([$sessions]);
+        $dumper->Purity(1);
+        $dumper->Terse(1);
+        print $fh $dumper->Dump();
+        close $fh;
+        chmod 0600, $session_file;  # Secure the file
+    };
+	die "Failed to store session: $@" if $@;
 }
 
 1;
