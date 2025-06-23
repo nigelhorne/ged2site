@@ -65,6 +65,13 @@ sub html {
 
 	my $site_title = $self->{_config}->{'SiteTitle'};
 
+	if(ref($site_title)) {
+		$site_title = $site_title->{'English'};
+		if(ref($site_title) eq 'ARRAY') {
+			$site_title = join(' ', @{$site_title});
+		}
+	}
+
 	if($action eq 'initial_form') {
 		return $self->SUPER::html();
 	} elsif($action eq 'send_verification') {
@@ -73,7 +80,7 @@ sub html {
 			my $name = $params->{'yname'};
 
 		unless ($email && $name) {
-                        return $self->SUPER::html({ error => 'Please provide both email and name' });
+			return $self->SUPER::html({ error => 'Please provide both email and name' });
                 }
 
                 # Generate verification token
@@ -122,15 +129,16 @@ Email Service
                 # }
 
 		if(open(my $fout, '|-', '/usr/sbin/sendmail -t')) {
-                        print $fout "To: $email\n", 'From: "', $FROM_EMAIL, "\n";
+                        # print $fout "To: $email\n", 'From: "', $FROM_EMAIL, "\n";
+			print $fout "To: $email\n";
 
-                        my $host_name = $info->host_name();
-                        print $fout "Sender: \"$site_title\" <webmaster\@$host_name>\n";
+                        # my $host_name = $info->host_name();
+                        # print $fout "Sender: \"$site_title\" <webmaster\@$host_name>\n";
 
-                        if((!defined($params->{'entry'})) || ($params->{'entry'} !~ /Nigel.Horne/i)) {
+                        # if((!defined($params->{'entry'})) || ($params->{'entry'} !~ /Nigel.Horne/i)) {
                                 # For testing
-                                print $fout "Bcc: njh\@bandsman.co.uk\n";
-                        }
+                                # print $fout "Bcc: njh\@bandsman.co.uk\n";
+                        # }
 
                         if($ENV{'REMOTE_ADDR'}) {
                                 print $fout 'X-On-Behalf-Of: ', $ENV{'REMOTE_ADDR'}, "\n";
@@ -249,13 +257,6 @@ Email Service
 			$copy->{'error'} = 'You have reached your limit for sending e-mails';
 			$self->{_logger}->info("E-mail blocked from $yemail");
 			return $self->SUPER::html($copy);
-		}
-	}
-
-	if(ref($site_title)) {
-		$site_title = $site_title->{'English'};
-		if(ref($site_title) eq 'ARRAY') {
-			$site_title = join(' ', @{$site_title});
 		}
 	}
 
@@ -379,7 +380,7 @@ sub delete_session {
         $dumper->Terse(1);
         print $fh $dumper->Dump();
         close $fh;
-    };
+	};
 }
 
 1;
