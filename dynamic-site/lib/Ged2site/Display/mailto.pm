@@ -187,11 +187,11 @@ Email Service
                 return $self->SUPER::html({ error => "Verification link has expired (age: " . int($age/60) . " minutes)" });
             }
 
-        # Optional: Delete token immediately after first use (makes link single-use)
-        # Uncomment the next line if you want single-use verification links
+		# Optional: Delete token immediately after first use (makes link single-use)
+		# Uncomment the next line if you want single-use verification links
 		delete_session($token);
 
-                return $self->SUPER::html();
+		return $self->SUPER::html({ token => $token, session_data => $session_data });
 	} elsif($action eq 'send_email') {
 		# send_final_email();
 	} else {
@@ -289,7 +289,7 @@ Email Service
 }
 
 sub store_session {
-    my ($token, $data) = @_;
+	my ($token, $data) = @_;
 
     my $sessions = {};
     if (-f $session_file) {
