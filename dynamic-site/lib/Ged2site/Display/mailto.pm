@@ -69,8 +69,8 @@ sub html {
 		return $self->SUPER::html();
 	} elsif($action eq 'send_verification') {
 		# send_verification_email();
-		my $email = $params->{'email'};
-		my $name = $params->{'name'};
+		my $email = $params->{'yemail'};
+			my $name = $params->{'yname'};
 
 		unless ($email && $name) {
                         return $self->SUPER::html({ error => 'Please provide both email and name' });
