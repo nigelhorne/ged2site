@@ -14203,7 +14203,7 @@ sub journey
 					((get_value({ person => $person, value => 'sex' }) eq 'M') ? 'wife' : 'husband') .
 					', ' . given_names($spouses[0]);
 				$with_spouse++;
-				$journey->{'arrival'}->{'with'} = {
+				push @{$journey->{'arrival'}->{'with'}}, {
 					'name' => given_names($spouses[0]),
 					'relationship' => ((get_value({ person => $person, value => 'sex' }) eq 'M') ? 'wife' : 'husband')
 				};
