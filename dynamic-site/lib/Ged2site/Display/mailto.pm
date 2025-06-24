@@ -35,6 +35,7 @@ sub html {
 		'page' => 'mailto',
 		'action' => undef,
 		'message' => undef,
+		'token' => qr/^[a-f0-9]{64}$/,
 		'yemail' => undef,
 		'yname' => undef,
 		'lang' => qr/^[A-Z]{2}/i,
