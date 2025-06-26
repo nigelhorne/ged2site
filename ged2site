@@ -95,11 +95,9 @@ BEGIN {
 		'Locale::AU', 'Locale::CA', 'Locale::US',
 		'XML::Dumper', 'XML::Twig', 'CHI', 'Class::Simple',
 		# 'Geo::StreetAddress::US',
-		'Lingua::Conjunction',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
-		'Lingua::EN::Inflect',
-		'Locale::Object::Country',
-		'Params::Get',
+		'Lingua::Conjunction', 'Lingua::EN::Inflect', 'Locale::Object::Country',
+		'Params::Get', 'Readonly::Values::Months',
 		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
 
@@ -2385,13 +2383,21 @@ sub print_person
 		print $html '<link rel="stylesheet" href="https://genealogy.nigelhorne.com/css/web.css" type="text/css" media="screen">';
 	}
 
+	my $dob = $dateofbirth;
+	if(defined($dob) && ($dob =~ /^(\d{1,2})\s(\w{3})\s(\d{4})$/)) {
+		my $month = $months{lc($2)};
+		if($month < 9) {
+			$month = "0$month";
+		}
+		$dob = "$3-$month-$1";
+	}
 	print $html '<script type="application/ld+json">',
 		JSON::MaybeXS::to_json({
 			'@context' => 'https://schema.org',
 			'@type' => 'Person',
 			'name' => $name,
 			'gender' => $person->sex(),
-			'birthDate' => $dateofbirth
+			'birthDate' => $dob
 		}),
 		'</script>';
 
