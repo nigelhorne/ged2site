@@ -8880,7 +8880,12 @@ sub print_person
 		push @phrases, $phrase;
 	}
 	if(scalar(@phrases)) {
-		$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.');
+		# GitHub#127 - Don't put consecutive periods when a county ends with one, e.g. 'Los Angeles Co.'
+		my $str = conjunction(map { $_->as_string() } @phrases);
+		$bio_dt->append($str);
+		if($str !~ /\.$/) {
+			$bio_dt->append('.');
+		}
 		$phrase = undef;
 		@phrases = ();
 	}
