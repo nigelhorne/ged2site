@@ -9,7 +9,7 @@
 		<meta name="object" content="Index">
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne, all rights reserved">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne, all rights reserved">
 		[% IF person %]
 			<title>[% person.title %]</title>
 			<meta name="description" content="About [% person.title %] - A Ged2Site webpage">
@@ -56,7 +56,7 @@
 			<a href="?page=todo">To Do</a><br>
 			<a href="?page=calendar">Calendar</a>
 			[% IF person.children && !person.alive %]
-				[ <a href="?page=descendants&entry=[% entry %]">Descendants</a> ] |
+				[ <a href="?page=descendants&amp;entry=[% entry %]">Descendants</a> ] |
 			[% END %]
 			[ <a href="/visjs.html">Timeline</a> ]
 			<a href="?page=graphs">Analytics</a>
