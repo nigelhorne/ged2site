@@ -15995,7 +15995,7 @@ sub weather
 			return 'a day with snow';
 		} elsif($temperature < 5) {
 			return 'a cold day';
-		} elsif($wmo <= 1) {
+		} elsif($wmo == 1) {
 			if($temperature >= 21) {
 				return 'a warm and sunny day';
 			}
