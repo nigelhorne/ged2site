@@ -16142,6 +16142,7 @@ sub wide_to_html
 		return $string;
 	}
 
+	$string =~ s/\xc2\xa0/ /g;	# Non breaking space
 	$string =~ s/\xc2\xa3/&pound;/g;
 	$string =~ s/\xc2\xa9/&copy;/g;
 	$string =~ s/\xc2\xaa/&ordf;/g;	# ª
@@ -16458,6 +16459,7 @@ sub wide_to_xml
 	# print STDERR (sprintf '%v02X', $string);
 	# print STDERR "\n";
 
+	$string =~ s/\xc2\xa0/ /g;	# Non breaking space
 	$string =~ s/\xc2\xa3/&#x0A3;/g;	# £
 	$string =~ s/\xc2\xa9/&#x0A9;/g;
 	$string =~ s/\xc2\xaa/&#x0AA;/g;	# ª
