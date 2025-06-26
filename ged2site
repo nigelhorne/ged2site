@@ -16715,23 +16715,14 @@ sub dbpedia
 					   (my $description = $result->{'Description'})) {
 						if(my $t = $description->{'text'}) {
 							next if($t !~ /$firstname([a-z\s]+)$surname\s/i);
-							if($t =~ /\(born\s.*?(\d{4})\D*?\)/) {
-								my $b = $1;
-								if(defined($yod) && ($yod < $b)) {
-									# Died before the dbpedia person was born
-									next;
-								}
-								if(defined($yob) && ($yob != $b)) {
-									# Born different year from the dbpedia person was born
-									next;
-								}
-							} elsif($t =~ /\(died\s.*?(\d{4})\)/) {
+							if($t =~ /\(died\s.*?(\d{4})\)/) {
 								my $d = $1;
 								if(defined($yob) && ($yob > $d)) {
 									# Born after dbpedia person died
 									next;
 								}
-							} elsif($t =~ /\((\d{4})\x{2013}\d{4}\)/) {
+							} elsif(($t =~ /\(born\s.*?(\d{4})\D*?\)/) ||
+								($t =~ /\((\d{4})\x{2013}\d{4}\)/)) {
 								my $b = $1;
 								if(defined($yod) && ($yod < $b)) {
 									# Died before the dbpedia person was born
