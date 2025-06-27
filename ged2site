@@ -2391,6 +2391,10 @@ sub print_person
 		if($month < 9) {
 			$month = "0$month";
 		}
+		my $day = $1;
+		if($day < 9) {
+			$day = "0$day";
+		}
 		$dob = "$3-$month-$1";
 	}
 	print $html '<script type="application/ld+json">',
