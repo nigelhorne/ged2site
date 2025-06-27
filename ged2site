@@ -8889,7 +8889,7 @@ sub print_person
 		# GitHub#127 - Don't put consecutive periods when a county ends with one, e.g. 'Los Angeles Co.'
 		my $str = conjunction(map { $_->as_string() } @phrases);
 		$bio_dt->append($str)->trim();
-		if($str !~ /\.$/) {
+		if($str !~ /\.\s+$/) {
 			$bio_dt->append('.');
 		}
 		$phrase = undef;
