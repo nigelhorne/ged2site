@@ -25,9 +25,9 @@ for i in $(find ~/gedcoms/* -name \*ged -o -name \*GED); do
 	perl -MDevel::Hide=Geo::libpostal \
 		./ged2site -cFdwm "$i"
 	weblint static-site/*html
-	for i in static-site/*.html; do
-		echo $i:
-		~/src/njh/schema-validator/bin/validate-schema --file "$i" --dynamic
+	for j in static-site/*.html; do
+		echo $j:
+		~/src/njh/schema-validator/bin/validate-schema --file "$j" --dynamic
 	done
 	xmllint dynamic-site/data/people.xml > /dev/null
 	if [ -r dynamic-site/data/locations.xml ]; then
