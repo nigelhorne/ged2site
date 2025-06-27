@@ -2388,14 +2388,14 @@ sub print_person
 	my $dob = $dateofbirth;
 	if(defined($dob) && ($dob =~ /^(\d{1,2})\s(\w{3})\s(\d{4})$/)) {
 		my $month = $months{lc($2)};
-		if($month < 9) {
+		if($month <= 9) {
 			$month = "0$month";
 		}
 		my $day = $1;
-		if($day < 9) {
+		if($day <= 9) {
 			$day = "0$day";
 		}
-		$dob = "$3-$month-$1";
+		$dob = "$3-$month-$day";
 	}
 	print $html '<script type="application/ld+json">',
 		JSON::MaybeXS::to_json({
