@@ -8890,7 +8890,12 @@ sub print_person
 				$bio .= '.</p><p>';
 
 				push @phrases, $phrase;
-				$bio_dt->append(conjunction(map { $_->as_string() } @phrases))->append('.</p><p>');
+				my $str = conjunction(map { $_->as_string() } @phrases);
+				$bio_dt->append($str)->trim();
+				if($str !~ /\.\s+$/) {
+					$bio_dt->append('.');
+				}
+				$bio_dt->append('</p><p>');
 				$phrase = Data::Text->new();
 				@phrases = ();
 			}
