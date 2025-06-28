@@ -8889,10 +8889,7 @@ sub print_person
 			$bio .= " ($notes)";
 			$phrase->append(" ($notes)");
 			if(length($notes) > 160) {
-				if($bio !~ /\.\s+$/) {
-					$bio .= '.';
-				}
-				$bio .= '</p><p>';
+				$bio .= '.</p><p>';
 
 				push @phrases, $phrase;
 				my $str = conjunction(map { $_->as_string() } @phrases);
