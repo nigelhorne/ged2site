@@ -4377,10 +4377,12 @@ sub print_person
 						}
 						if($opts{'w'} && $yob && (my $cdob = dateofbirth($child))) {
 							my $age = get_year_from_date($cdob) - $yob;
-							if($age < 0) {
-								complain({ person => $person, warning => 'Child ' . $child->as_string() . " $cdob which is before date of birth of $yob" });
-							} elsif($age <= 14) {
-								complain({ person => $person, warning => "Only $age years old at time of birth of their child " . $child->as_string() });
+							if($age <= 14) {
+								if($age < 0) {
+									complain({ person => $person, warning => 'Child ' . $child->as_string() . " $cdob which is before date of birth of $yob" });
+								} else {
+									complain({ person => $person, warning => "Only $age years old at time of birth of their child " . $child->as_string() });
+								}
 							}
 						}
 					}
