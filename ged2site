@@ -14396,6 +14396,64 @@ sub datecmp($$)
 				complain("the years are the same '$left'");
 			}
 			$left = $start
+		} elsif(($left =~ /^(\d{3,4})\-(\d{3,4})$/) || ($left =~ /^Bet (\d{3,4})\sand\s(\d{3,4})$/i)) {
+			# Comparing with a date range, e.g. "BET 1830 AND 1832 <=> 1830-02-06"
+			my ($from, $to) = ($1, $2);
+			if($from == $to) {
+				complain("from == to, $from");
+				$left = $from;
+			} elsif($from > $to) {
+				print STDERR "datecmp(): $from > $to in daterange '$left'\n";
+				my $i = 0;
+				while((my @call_details = caller($i++))) {
+					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+				}
+				return 0;
+			} else {
+				if(ref($right)) {
+					$right = $right->year();
+				} else {
+					my @r = $dfg->parse_datetime({ date => $right, quiet => 1 });
+					if(!defined($r[0])) {
+						if($right =~ /[\s\/](\d{4})$/) {
+							# e.g. cmp "1891 <=> Oct/Nov/Dec 1892"
+							# or 5/27/1872
+							my $year = $1;
+							if(ref($left)) {
+								if($left->year() != $year) {
+									return $left->year() <=> $year;
+								}
+							} else {
+								if($left != $year) {
+									return $left <=> $year;
+								}
+							}
+						}
+						# TODO: throw an error that we can catch
+						my $i = 0;
+						while((my @call_details = caller($i++))) {
+							print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+						}
+						die "Date parse failure: right = '$right' ($left <=> $right)";
+					}
+					$right = $r[0]->year();
+				}
+				if($right < $from) {
+					return -1;
+				}
+				if($right > $to) {
+					return 1;
+				}
+				if($right == $from) {
+					return 0;
+				}
+				print STDERR "datecmp(): Can't compare $left with $right\n";
+				my $i = 0;
+				while((my @call_details = caller($i++))) {
+					print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
+				}
+				return 0;
+			}
 		} elsif($left !~ /^\d{3,4}$/) {
 			if($left =~ /^\d{4}\-\d{2}\-\d{2}$/) {
 				# e.g. 1941-08-02
@@ -14470,6 +14528,9 @@ sub datecmp($$)
 				}
 				if($left > $to) {
 					return 1;
+				}
+				if($left == $from) {
+					return 0;
 				}
 				print STDERR "datecmp(): Can't compare $left with $right\n";
 				my $i = 0;
