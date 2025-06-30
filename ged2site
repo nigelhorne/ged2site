@@ -2389,8 +2389,8 @@ sub print_person
 	my $schema = {
 		'@context' => 'https://schema.org',
 		'@type' => 'Person',
-		'name' => $name,
-		'gender' => $person->sex()
+		'gender' => $person->sex(),
+		'name' => $name
 	};
 
 	if(my $dob = $dateofbirth) {
@@ -3240,7 +3240,6 @@ sub print_person
 	print 'Found ', scalar(@occupations), " occupation(s)\n" if($opts{'v'});
 
 	my $same_occupation_as_father;
-	my $bio;	# This is used to generate the texts for the static page
 
 	if($occupations[0]) {
 		my @foccupations;
@@ -3518,15 +3517,16 @@ sub print_person
 		}
 	}
 
+	my $bio;	# This is used to generate the texts for the static page
 	if($firstname) {
 		if((!$is_alive) || $opts{'l'} || (!defined($me)) || ($person->xref() ne $me->xref())) {
 			if($opts{'l'} || $is_alive) {
 				if($relationship) {
-					$bio .= ', ' if(length($bio));
 					if($phrase->length()) {
+						print $html ', ';
 						$phrase->append(', ');
 					}
-					$bio .= "<b>$firstname</b>";
+					$bio = "<b>$firstname</b>";
 					$phrase->append("<b>$firstname</b>");
 					if(($dateofbirth || $marriage) && (!($is_alive || $opts{'l'}))) {
 						$bio .= ',';
@@ -3540,22 +3540,22 @@ sub print_person
 					}
 				}
 			} else {
-				$bio .= ', ' if(length($bio));
 				if($phrase->length()) {
+					print $html ', ';
 					$phrase->append(', ');
 				}
 				if($surname) {
-					$bio .= "<b>$firstname $surname</b>";
+					$bio = "<b>$firstname $surname</b>";
 					$phrase->append("<b>$firstname $surname</b>");
 				} elsif($name_components{'surname_1'}) {
-					$bio .= "<b>$firstname " .
+					$bio = "<b>$firstname " .
 						$name_components{'surname_1'} .
 						'</b>';
 					$phrase->append("<b>$firstname " .
 						$name_components{'surname_1'} .
 						'</b>');
 				} else {
-					$bio .= "<b>$firstname</b>";
+					$bio = "<b>$firstname</b>";
 					$phrase->append("<b>$firstname</b>");
 				}
 				if($relationship) {
