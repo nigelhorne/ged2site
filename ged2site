@@ -3540,6 +3540,7 @@ sub print_person
 					}
 				}
 			} else {
+				$bio .= ', ' if(length($bio));
 				if($phrase->length()) {
 					$phrase->append(', ');
 				}
