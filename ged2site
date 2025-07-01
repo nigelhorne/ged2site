@@ -2282,6 +2282,21 @@ sub print_person
 		}
 	}
 
+	my $sex = $person->sex();
+	my $pronoun = $person->pronoun();
+
+	my $parse_tree = {
+		'name' => $firstname,
+		'sex' => $sex,
+		'pronoun' => $pronoun,
+		'possessive' => $sex eq 'M' ? 'his' : 'her',
+		'object' => $sex eq 'M' ? 'him' : 'her',
+		'is_alive' => is_alive($person),
+		'person' => $person,
+		'dateofbirth' => $dateofbirth,
+		'dateofdeath' => $dateofdeath,
+	};
+
 	if($yob) {
 		my $bucket = floor($yob / 25);
 		# Ensure last name isn't used if the first name isn't known
@@ -2755,12 +2770,15 @@ sub print_person
 	if((!$placeofmarriage) && $marriage) {
 		$placeofmarriage = $marriage->place();
 	}
-	if($placeofmarriage && ($placeofmarriage =~ /.+,\s?(.+)$/)) {
-		my $c = $1;
-		if($c eq 'Scot') {
-			complain({ person => $person, warning => "$c: marriage country should be Scotland'" });
-			$placeofmarriage .= 'land';
+	if($placeofmarriage) {
+		if($placeofmarriage =~ /.+,\s?(.+)$/) {
+			my $c = $1;
+			if($c eq 'Scot') {
+				complain({ person => $person, warning => "$c: marriage country should be Scotland'" });
+				$placeofmarriage .= 'land';
+			}
 		}
+		$parse_tree->{'placeofmarriage'} = $placeofmarriage;
 	}
 
 	my $burial;
@@ -3096,9 +3114,6 @@ sub print_person
 			}
 		}
 	}
-
-	my $pronoun = $person->pronoun();
-	my $sex = $person->sex();
 
 	$facts->{'count'}++;
 	$facts->{'sex'}->{$sex}++;
@@ -8033,22 +8048,27 @@ sub print_person
 								$bio_dt->append(' ');
 							}
 
+							my $employment;
 							if(my $date = year(record => $event)) {
 								if(scalar(@phrases) == 0) {
 									$date = ucfirst($date);
 								}
 								$phrase->set("$date " . lcfirst($pronoun) . ' was working');
+								$employment->{'date'} = year(record => $event, nopreposition => 1);
 							} else {
 								$phrase->set("$pronoun worked");
 							}
 							$phrase->append(" at $notes");
+							$employment->{'notes'} = $notes;
 							if(my $place = place(person => $person, record => $event)) {
 								$phrase->append($place);
+								$employment->{'place'} = place({ person => $person, record => $event, nopreposition => 1, places_printed => \% places_printed });
 							}
 							push @phrases, $phrase;
 							$bio .= ' ' . $phrase->as_string();
 							$phrase = Data::Text->new();
 							$end_of_sentence = 0;
+							push @{$parse_tree->{'employments'}}, $employment;
 						}
 					}
 				} elsif($type eq 'Newspaper') {
