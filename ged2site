@@ -14342,13 +14342,23 @@ sub datecmp($$)
 		}
 		if($left =~ /^(bef|aft)/i) {
 			if($right =~ /^\d+$/) {
-				# For example, comparing bef 1 Jun 1965 <=> 1939
+				# For example, comparing bef 1 Jun 1965 <=> 1969
 				if($left =~ /\s(\d+)$/) {
 					# Easy comparison for different years
-					if($1 != $right) {
-						return $1 <=> $right;
+					if($1 < $right) {
+						return -1;
 					}
-					# FIXME: same year
+				}
+			}
+			if($right =~ /(\d{4})/) {
+				# BEF. 1932 <=> 2005-06-16
+				my $ryear = $1;
+				if($left =~ /^bef/i) {
+					if($left =~ /(\d{4})/) {
+						if($1 < $ryear) {
+							return -1;
+						}
+					}
 				}
 			}
 			print STDERR "$left <=> $right: not handled yet\n";
