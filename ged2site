@@ -12515,6 +12515,8 @@ sub getaddress
 }
 
 # paragraph => 0: ignore spacing and put it all into one paragraph
+# You may wish to apply this patch to Gedcom::Item
+#	https://github.com/pjcj/Gedcom.pm/compare/main...jhannah:Gedcom.pm:master
 sub notes
 {
 	my $params = Params::Get::get_params('record', @_);
