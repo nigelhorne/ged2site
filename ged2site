@@ -68,8 +68,8 @@ my @needfull;	# Tracks required modules to be installed
 BEGIN {
 	my @modules = (
 		'Array::Iterator', 'Config::Auto', 'Data::Text',
+		'Date::Cmp', 'Date::Manip', 'Parse::RecDescent', 'Roman',
 		'File::Basename', 'File::Copy', 'File::Print::Many', 'File::Temp',
-		'Date::Manip', 'Parse::RecDescent', 'Roman',
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
@@ -14318,6 +14318,8 @@ sub journey
 sub datecmp($$)
 {
 	my ($left, $right) = @_;
+
+	return Date::Cmp::datecmp($left, $right, \&complain);
 
 	if((!defined($left)) || !defined($right)) {
 		# Shouldn't happen with the prototype
