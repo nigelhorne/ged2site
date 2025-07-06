@@ -16023,6 +16023,9 @@ sub extract_family_info
 				$family{'birth'}->{date} = $dt->ymd('/');
 			}
 		};
+		if($@) {
+			print STDERR $@;
+		}
 		if($mother =~ /(.+)\s+\((.+)\)\s+(.+)/) {
 			$mother = "$1 $2";
 		}
