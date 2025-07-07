@@ -7233,6 +7233,7 @@ sub print_person
 				if(my $place = place({ person => $person, record => $event })) {
 					$bio .= $place;
 					$phrase->append($place);
+					$parse_tree->{'military'}->{'place'} = $place;
 				}
 				if($date && ($date =~ /^from /i)) {
 					$bio .= " $date";
@@ -7708,6 +7709,7 @@ sub print_person
 						if(my $place = place({ person => $person, record => $event, allow_empty => 1 })) {
 							$bio .= $place;
 							$phrase->append($place);
+							$parse_tree->{'military'}->{'place'} = $place;
 						}
 
 						$mentioned_military = 1;
@@ -17114,6 +17116,7 @@ sub service
 
 	if(my $notes = notes(record => $params->{'event'})) {
 		return 'navy' if($notes =~ /Navy/i);
+		return 'RAF' if($notes =~ /\sRAF/);
 		return i18n('army') if($notes =~ /\b(?:army\.?|regiment|soldier)\b/i);
 	}
 	return 'military';
