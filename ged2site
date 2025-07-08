@@ -2440,8 +2440,8 @@ sub print_person
 				}
 				$dob = "$year-$month-$day";
 				$schema->{'birthDate'} = $dob;
-			} elsif($dob !~ /^abt/i) {
-				complain({ person => $person, warning => "Invalid date format for date of birth: '$dob'" });
+			} elsif(($dob !~ /^abt/i) && ($dob !~ /^\d{4}$/)) {
+				complain({ person => $person, warning => "Invalid date format for date of birth: '$dob' for schema.org" });
 				# $schema->{'birthDate'} = $dob;
 			}
 			print $html '<script type="application/ld+json">',
