@@ -1871,6 +1871,12 @@ if($opts{'w'}) {
 					$summary = 'Possible Burial Information';
 				} elsif($warning =~ /^Assuming not alive based on/) {
 					$summary = 'Death Record Missing for People Assumed Dead';
+				} elsif($warning =~ /^Birthplace is set to .+ but birth place is empty/) {
+					$summary = 'Birthplace is known, but the record is missing';
+				} elsif($warning =~ /^Deathplace is set to .+ but death place is empty/) {
+					$summary = 'Deathplace is known, but the record is missing';
+				} elsif($warning =~ /^Only \d+ years old at time of birth of their child/) {
+					$warning = 'Age at birth of a child too young';
 				} else {
 					$summary = $warning;
 					$summary =~ s/\"//g;
@@ -10689,7 +10695,7 @@ sub all_records_have_date
 		# Check if the date is valid and matches required format
 		if((!defined $date) || ($date !~ /^\d/) || ($date =~ /[a-z]$/i) ||
 		    ($date =~ /[\/\-]/) || ($date =~ / to /) || !date_parser_cached(date => $date)) {
-			if((defined($date)) && ($date !~ / to /) && ($date !~ /[\/\-]/) && ($date !~ /^abt/i)) {
+			if((defined($date)) && ($date !~ / to /) && ($date !~ /[\/\-]/) && ($date !~ /^abt/i) && ($date !~ /^bet/)) {
 				# Log a warning if date is invalid
 				complain({
 					person => $person,
