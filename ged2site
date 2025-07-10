@@ -8298,10 +8298,12 @@ sub print_person
 							if(my $address = $burial->address()) {
 								$bio .= " at $address";
 								$phrase->append(" at $address");
+								$parse_tree->{'burial'}->{'address'} = $address;
 							}
 						} elsif(my $address = $cremation->address()) {
 							$bio .= " at $address";
 							$phrase->append(" at $address");
+							$parse_tree->{'cremation'}->{'address'} = $address;
 						}
 						$bio .= ' in ' .
 							lcfirst($person->possessive()) .
@@ -8309,9 +8311,11 @@ sub print_person
 						$phrase->append(' in ' .
 							lcfirst($person->possessive()) .
 							' home town of ');
+						$parse_tree->{$type}->{'hometown'} = 1;
 						if($city =~ /^(.+?),/) {
 							$bio .= $1;
 							$phrase->append($1);
+							$parse_tree->{$type}->{'place'} = $1;
 						} else {
 							my $opts = {
 								person => $person,
@@ -8332,6 +8336,7 @@ sub print_person
 							}
 							$bio .= place($opts);
 							$phrase->append(place($opts));
+							$parse_tree->{$type}->{'place'} = place(place => $city);
 						}
 					} else {
 						$bio .= place({
@@ -8355,10 +8360,12 @@ sub print_person
 					$bio .= ' ' . year({ person => $person, date => $dateofburial });
 					$phrase->append(' ' . year({ person => $person, date => $dateofburial }));
 					$record = $burial;
+					$parse_tree->{'burial'}->{'date'} = year({ date => $dateofburial });
 				} else {
 					$bio .= ' ' . year({ person => $person, date => $dateofcremation });
 					$phrase->append(' ' . year({ person => $person, date => $dateofcremation }));
 					$record = $cremation;
+					$parse_tree->{'cremation'}->{'date'} = year({ date => $dateofcremation });
 				}
 				if(my $n = notes({ record => $record, paragraph => 0, note_locations => \@note_locations })) {
 					$n =~ s/\.$//;
@@ -8557,6 +8564,7 @@ sub print_person
 						if(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
 							$phrase->append(" ($weather)");
 							$bio .= " ($weather)";
+							$parse_tree->{$type}->{'weather'} = $weather;
 						}
 						if($record->place() && ($funeral->place() eq $record->place())) {
 							# Burial and funeral in the same town
@@ -8573,6 +8581,7 @@ sub print_person
 					} elsif(my $weather = weather({ person => $person, record => $record, meteo => $meteo })) {
 						$phrase->append(" ($weather)");
 						$bio .= " ($weather)";
+						$parse_tree->{$type}->{'weather'} = $weather;
 					}
 				} elsif(my $weather = weather({ person => $person, record => $funeral, meteo => $meteo })) {
 					# Funeral record, but no burial or cremation
