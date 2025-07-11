@@ -6718,17 +6718,11 @@ sub print_person
 									last;
 								}
 							}
-							if(defined($all_in_county)) {
-								if($place =~ /.+,\s*(.+),\s*.+$/) {
-									if($1 ne $all_in_county) {
-										$all_in_one_county = 0;
-										last;
-									}
-								} elsif($place =~ /^(.+),\s*.+$/) {
-									if($1 ne $all_in_county) {
-										$all_in_one_county = 0;
-										last;
-									}
+							if(defined($all_in_county) &&
+							  (($place =~ /.+,\s*(.+),\s*.+$/) || ($place =~ /^(.+),\s*.+$/))) {
+								if($1 ne $all_in_county) {
+									$all_in_one_county = 0;
+									last;
 								}
 							}
 						}
