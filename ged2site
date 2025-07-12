@@ -15967,7 +15967,9 @@ sub wide_to_html
 	$string =~ s/&ccaron;/č/g;	# I don't think HTML::Entities does this
 	$string =~ s/&zcaron;/ž/g;	# I don't think HTML::Entities does this
 	$string =~ s/&Scaron;/Š/g;	# I don't think HTML::Entities does this
-	$string =~ s/&/&amp;/g;
+
+	# Escape only if it's not already part of an entity
+	$string =~ s/&(?![A-Za-z#0-9]+;)/&amp;/g;
 
 	unless($params->{'keep_hrefs'}) {
 		$string =~ s/</&lt;/g;
@@ -16238,7 +16240,9 @@ sub wide_to_xml
 	$string =~ s/&ccaron;/č/g;	# I don't think HTML::Entities does this
 	$string =~ s/&zcaron;/ž/g;	# I don't think HTML::Entities does this
 	$string =~ s/&Scaron;/Š/g;	# I don't think HTML::Entities does this
-	$string =~ s/&/&amp;/g;
+
+	# Escape only if it's not already part of an entity
+	$string =~ s/&(?![A-Za-z#0-9]+;)/&amp;/g;
 
 	unless($params->{'keep_hrefs'}) {
 		# $string =~ s/</&lt;/g;
@@ -16255,7 +16259,7 @@ sub wide_to_xml
 			'”' => '&quot;',	# U+201D
 		);
 
-		$string =~ s/([<>“”"])/$replacements{$1}/g;
+		$string =~ s/([<>“”"])/$replacements{$1} || $1/eg;
 	}
 
 	# $string =~ s/‘/&apos;/g;
