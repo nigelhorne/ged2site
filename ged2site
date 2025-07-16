@@ -13920,7 +13920,7 @@ sub get_all_occupations
 	while($occupations[0] && ($occupations[0] =~ /seeking work/i)) {
 		shift @occupations;
 	}
-	while($occupations[0] && ($occupations[0] =~ /Unpaid domestic duties/i)) {
+	while($occupations[0] && ($occupations[0] =~ /domestic duties/i)) {
 		shift @occupations;
 	}
 	while($occupations[0] && ($occupations[0] =~ /home duties/i)) {
