@@ -667,7 +667,6 @@ sub doit
 			$log->status(403);
 		} else {
 			my $status = $info->status();
-			# No permission to show this page
 			print "Status: $status ",
 				HTTP::Status::status_message($status),
 				"Content-type: text/plain\n",
@@ -828,8 +827,8 @@ sub vwflog($$$$$$)
 		if(ref($syslog) eq 'HASH') {
 			Sys::Syslog::setlogsock($syslog);
 		}
-		openlog($script_name, 'cons,pid', 'user');
-		syslog('info|local0', '%s %s %s %s %s %d %s %s %s %s',
+		Sys::Syslog::openlog($script_name, 'cons,pid', 'user');
+		Sys::Syslog::syslog('info|local0', '%s %s %s %s %s %d %s %s %s %s',
 			$info->domain_name() || '',
 			$ENV{REMOTE_ADDR} || '',
 			$lingua->country() || '',
@@ -841,6 +840,6 @@ sub vwflog($$$$$$)
 			$warnings,
 			$message
 		);
-		closelog();
+		Sys::Syslog::closelog();
 	}
 }
