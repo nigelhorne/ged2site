@@ -356,7 +356,7 @@ sub get_template_path
 
 	my ($fh, $filename) = File::pfopen::pfopen($prefix, $modulepath, 'tmpl:tt:html:htm:txt');
 	if((!defined($filename)) || (!defined($fh))) {
-		throw Error::Simple("Can't find suitable $modulepath html or tmpl/tt file in $prefix in $dir or a subdir");
+		throw Error::Simple("Can't find suitable $modulepath html or tmpl/tt file in $prefix in $dir or a subdir (check " . join(':', @{$self->{'config'}->{'config_path'}}) . ')');
 	}
 	close($fh);
 	$self->_debug({ message => "Using $filename" });

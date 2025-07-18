@@ -35,6 +35,7 @@
 # TODO: data analysis of notes to find extra information
 # TODO: prune old entries from changes.psv (should be configurable how long ago)
 # TODO:	notes_locations already contain lat/long information, so use that in add_marker()
+# FIXME: Split GMAP_KEY into two keys, the geocoding key and the map key
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
