@@ -15907,7 +15907,7 @@ sub wide_to_html
 {
 	my $params = Params::Get::get_params('string', @_);
 
-	return Encode::Wide::wide_to_html({ string => $params->{'string'}, complain => \&complain });
+	return Encode::Wide::wide_to_html({ complain => \&complain, %{$params} });
 
 	my $string = $params->{'string'};
 
@@ -16179,7 +16179,7 @@ sub wide_to_xml
 {
 	my $params = Params::Get::get_params('string', @_);
 
-	return Encode::Wide::wide_to_xml({ string => $params->{'string'}, complain => \&complain });
+	return Encode::Wide::wide_to_html({ complain => \&complain, %{$params} });
 
 	my $string = $params->{'string'};
 
