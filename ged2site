@@ -12579,12 +12579,15 @@ sub notes
 			$note =~ s/\s\s+/ /g;
 			$note =~ s/\s+$//g;
 			$note =~ s/\.$//;
-			$note =~ s/Dr\.\s\s/Dr. /g;
-			$note =~ s/Mr\.\s\s/Mr. /g;
-			$note =~ s/Mrs\.\s\s/Mrs. /g;
-			$note =~ s/Rev\.\s\s/Rev. /g;
-			$note =~ s/St\.\s\s/St. /g;
-			$note =~ s/([A-Z]\.\s)\s/$1/g;
+
+			if($note =~ /\.\s\s/) {
+				$note =~ s/Dr\.\s\s/Dr. /g;
+				$note =~ s/Mr\.\s\s/Mr. /g;
+				$note =~ s/Mrs\.\s\s/Mrs. /g;
+				$note =~ s/Rev\.\s\s/Rev. /g;
+				$note =~ s/St\.\s\s/St. /g;
+				$note =~ s/([A-Z]\.\s)\s/$1/g;
+			}
 
 			# FIXME: a lot of duplicated code here
 			if(defined($rc)) {
