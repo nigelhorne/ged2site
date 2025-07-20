@@ -88,7 +88,7 @@ BEGIN {
 		'DateTime', 'DateTime::Duration',
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
-		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached',
+		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached', 'Encode::Wide',
 		'Scalar::Util',
 		'Sort::Key::DateTime', 'String::Random', 'Text::Names', 'Text::Names::GB',
 		'Term::ANSIColor',
@@ -168,24 +168,24 @@ BEGIN {
 	# $Devel::FIXME::REPAIR_INC = 1;
 
 	# FIXME
-	$SIG{__WARN__} = sub {
-		my $warning = shift;
-		if(($warning !~ /Subroutine Geo::Coder::OpenCage::ua redefined at/) &&
-		   ($warning !~ /Subroutine ua redefined at/) &&
-		   ($warning !~ /Subroutine HTML::GoogleMaps::V3::_text_to_point redefined at/) &&
-		   ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
-			if(($warning =~ /^Use of uninitialized value/) ||
-			   ($warning =~ /Wide/) ||
-			   ($warning =~ /masks earlier declaration in same scope/) ||
-			   ($warning =~ /: attempt to add consecutive punctuation/) ||
-			   ($warning =~ /^Odd number of elements in hash assignment/) ||
-			   ($warning =~ /isn't numeric in numeric eq /i)) {
-				die $warning;
-			}
-			utf8::decode($warning);
-			warn $warning;
-		}
-	};
+	# $SIG{__WARN__} = sub {
+		# my $warning = shift;
+		# if(($warning !~ /Subroutine Geo::Coder::OpenCage::ua redefined at/) &&
+		   # ($warning !~ /Subroutine ua redefined at/) &&
+		   # ($warning !~ /Subroutine HTML::GoogleMaps::V3::_text_to_point redefined at/) &&
+		   # ($warning !~ /Subroutine Gedcom::Individual::relationship redefined at/)) {
+			# if(($warning =~ /^Use of uninitialized value/) ||
+			   # ($warning =~ /Wide/) ||
+			   # ($warning =~ /masks earlier declaration in same scope/) ||
+			   # ($warning =~ /: attempt to add consecutive punctuation/) ||
+			   # ($warning =~ /^Odd number of elements in hash assignment/) ||
+			   # ($warning =~ /isn't numeric in numeric eq /i)) {
+				# die $warning;
+			# }
+			# utf8::decode($warning);
+			# warn $warning;
+		# }
+	# };
 }
 
 # Retry loading missing modules after installation
@@ -12548,7 +12548,7 @@ sub notes
 	my $paragraph = $params->{'paragraph'};
 	my @notes = $record->get_record('note');
 	my $note_locations = $params->{note_locations};
-	my $encode = $params->{'encode'} // 1;
+	my $encode = $params->{'encode'} // 0;
 
 	# my @deathnotes = get_value({ person => $person, value => 'death note' });
 	my $rc = $record->get_value();
@@ -12579,14 +12579,12 @@ sub notes
 			$note =~ s/\s\s+/ /g;
 			$note =~ s/\s+$//g;
 			$note =~ s/\.$//;
-			$note =~ s/\xe2\x80\x9c/"/g;	# left quotation
-			$note =~ s/\xe2\x80\x9d/"/g;	# right quotation
-			$note =~ s/\xe2\x80\x99/\'/g;
-			$note =~ s/[\x93\x94]/"/g;
-			$note =~ s/[\x91\x92]/'/g;
-			$note =~ s/\xe2\x80\xa6/... /g;
-			$note =~ s/…/... /g;
-			$note =~ s/\N{U+2026}/... /g;
+			$note =~ s/Dr\.\s\s/Dr. /g;
+			$note =~ s/Mr\.\s\s/Mr. /g;
+			$note =~ s/Mrs\.\s\s/Mrs. /g;
+			$note =~ s/Rev\.\s\s/Rev. /g;
+			$note =~ s/St\.\s\s/St. /g;
+			$note =~ s/([A-Z]\.\s)\s/$1/g;
 
 			# FIXME: a lot of duplicated code here
 			if(defined($rc)) {
@@ -15278,45 +15276,6 @@ sub cache_array
 	return @_;
 }
 
-# Print notes about the death, if any
-sub add_death_notes
-{
-	my $params = Params::Get::get_params(undef, @_);
-
-	my $person = $params->{'person'};
-	my $death = $params->{'record'};	# death record
-	my $phrase = $params->{'phrase'};
-
-	return unless($death);
-
-	die 'BUG: add_death_notes, argument missing' unless(defined($person) && defined($phrase));
-
-	# Cause of death
-	if(my $cause = $person->cause()) {
-		$cause = lc($cause);
-		$phrase->append(" ($cause)");
-	}
-	if(my $notes = notes({ person => $person, record => $death, paragraph => 0 })) {
-		if($opts{'w'} && (my $family = extract_family_info($notes))) {
-			# TODO: handle obituary data verification
-			$Data::Dumper::Maxdepth = 0;
-			# die $notes, Data::Dumper->new([$family])->Dump();
-			warn "TODO: $notes", Data::Dumper->new([$family])->Dump() if(scalar keys(%{$family}));
-		}
-		# FIXME: If the notes are so long they go over
-		#	a page split into more than one page
-		#	properly rather than don't print, as now
-		if(length($notes) < 4000) {
-			$notes =~ tr/\r//;
-			$notes =~ tr/\n/ /;
-			$notes =~ s/\.$//;
-			$notes = lcfirst($notes) unless($notes =~ /^[A-Z]{2}/);
-			$phrase->append(" ($notes)");
-		}
-		return $notes;
-	}
-}
-
 # Parse obituary text and extract structured family relationship data, including details about children, parents, spouse, siblings, grandchildren, and other relatives.
 # The routine processes the obituary content to identify and organize relevant family information into a clear, structured hash.
 
@@ -15945,6 +15904,8 @@ sub wide_to_html
 {
 	my $params = Params::Get::get_params('string', @_);
 
+	return Encode::Wide::wide_to_html({ string => $params->{'string'}, complain => \&complain });
+
 	my $string = $params->{'string'};
 
 	if(!defined($string)) {
@@ -16214,6 +16175,8 @@ sub wide_to_html
 sub wide_to_xml
 {
 	my $params = Params::Get::get_params('string', @_);
+
+	return Encode::Wide::wide_to_xml({ string => $params->{'string'}, complain => \&complain });
 
 	my $string = $params->{'string'};
 
