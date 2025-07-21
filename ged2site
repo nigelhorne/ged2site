@@ -9234,7 +9234,7 @@ sub print_person
 				print $csv $h;
 				print $html "<li>$h</li>";
 				$both_xmls->print("\n\t\t\t<citation>")
-					->print(wide_to_xml(string => $c))
+					->print(wide_to_xml($c))
 					->print('</citation>');
 			}
 			print $html '</ol>';
@@ -16179,7 +16179,7 @@ sub wide_to_xml
 {
 	my $params = Params::Get::get_params('string', @_);
 
-	return Encode::Wide::wide_to_html({ complain => \&complain, %{$params} });
+	return Encode::Wide::wide_to_xml({ complain => \&complain, %{$params} });
 
 	my $string = $params->{'string'};
 
