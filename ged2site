@@ -295,7 +295,7 @@ if(defined($language) && ($language ne 'English')) {
 if($ENV{'GEO_CODER_OPENCAGE_API_KEY'}) {
 	push @modules, 'Geo::Coder::OpenCage';
 }
-if($ENV{'GMAP_KEY'}) {
+if($ENV{'GMAP_ENCODING_KEY'} && $ENV{'GMAP_WEBSITE_KEY'}) {
 	push @modules, 'Geo::Coder::GooglePlaces';
 	if($ENV{'GMAP_CLIENT'}) {
 		push @modules, 'Geo::Coder::Google';
@@ -560,8 +560,8 @@ my %gp_args = (apiver => 3);
 my $google_maps_geolocation_key;
 if($opts{'G'}) {
 	$google_maps_geolocation_key = $opts{'G'};
-} elsif($ENV{'GMAP_KEY'}) {	# Compatibility with various CPAN modules
-	$google_maps_geolocation_key = $ENV{'GMAP_KEY'};
+} elsif($ENV{'GMAP_ENCODING_KEY'} || $ENV{'GMAP_KEY'}) {	# Compatibility with various CPAN modules
+	$google_maps_geolocation_key = $ENV{'GMAP_ENCODING_KEY'} || $ENV{'GMAP_KEY'};
 } elsif($config && $config->{'google_maps_google_maps_geolocation_key'}) {
 	$google_maps_geolocation_key = $config->{'google_maps_google_maps_geolocation_key'};
 }
@@ -13666,7 +13666,7 @@ sub add_marker
 	$place_link =~ tr/ /+/;
 	# https://www.google.com/maps/place/81+Keightly+Rd,+Greencastle,+Putnam,+IN,+USA
 	# TODO: If BMAP_KEY is set, use Bing maps instead
-	#	If GMAP_KEY is not set, use OpenStreetMaps
+	#	If GMAP__ENCODING_KEY is not set, use OpenStreetMaps
 	if($maps_module eq 'HTML::GoogleMaps::V3') {
 		$place_link = "<a href=\"https://www.google.com/maps/place/$place_link\">$place</a>";
 	} else {
