@@ -214,7 +214,7 @@ Some options can be stored in a configuration file instead of passing them every
 | ---- | ----------------- |
 | `-h` | `home` (home person) |
 | `-g` | `google_verification` (Google site verification) |
-| `-G` | `google_maps_geolocation_key` (can also be set via `GMAP_ENCODING_KEY` environment variable) |
+| `-G` | `google_maps_geolocation_key` (can also be set via `GMAP_GEOCODING_KEY` environment variable) |
 | `-J` | `google_maps_javascript_key` |
 
 ### Getting API Keys
@@ -287,7 +287,7 @@ ExpiresByType text/javascript "access plus 1 day"
 * BOOTSTRAP - Attempt to install the modules you need
 * BMAP_KEY - Bing (virtualearth.net) API Key
 * GEONAMES_USER - geonames.org registered username
-* GMAP_ENCODING_KEY - Google Places (maps.googleapis.com) API Key for encoding, locked down to the IP address you run ged2site on
+* GMAP_GEOCODING_KEY - Google Places (maps.googleapis.com) API Key for encoding, locked down to the IP address you run ged2site on
 * GMAP_WEBSITE_KEY - Google Places (maps.googleapis.com) API Key for displaying, locked down to your URL
 * LANG - some handling of en_GB and en_US translating between then, fr_FR is a work in progress
 * OPENADDR_HOME - directory of data from http -//results.openaddresses.io/
