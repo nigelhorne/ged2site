@@ -3691,6 +3691,7 @@ sub print_person
 		$phrase->append(" (also known as $aka)");
 		print $html " (also known as $aka)";
 		$both_xmls->print('<aka>')->print(wide_to_xml($aka))->print("</aka>\n\t\t\t\t");
+		$parse_tree->{'aka'} = $aka;
 	}
 
 	my $start_of_paragraph = 0;
@@ -3964,13 +3965,14 @@ sub print_person
 			} elsif($birth_dt) {
 				my @person_twins = twins({ birth_dt => $birth_dt, siblings => \@siblings });
 
-				if(scalar(@person_twins) == 1) {	# TODO triplets and higher order
+				if(scalar(@person_twins) == 1) {	# TODO: triplets and higher order
 					my $t = $person_twins[0];
 					my $sibling = $t->{'sibling'};
 					my $dob = $t->{'dob'};
 					if($dob == $birth_dt) {
 						$bio .= ' along with ';
 						$phrase->append(' along with ');
+						$parse_tree->{'twin'}->{'sibling'}->{'dateofbirth'} = 'same';
 					} elsif($dob == ($birth_dt + $oneday)) {
 						$bio .= i18n(', a day before ');
 						if($phrase->length()) {
@@ -3978,6 +3980,7 @@ sub print_person
 							$phrase = Data::Text->new();
 						}
 						$phrase->append(i18n('a day before '));
+						$parse_tree->{'twin'}->{'sibling'}->{'dateofbirth'} = 'before';
 					} else {
 						$bio .= ', a day after ';
 						if($phrase->length()) {
@@ -3985,8 +3988,10 @@ sub print_person
 							$phrase = Data::Text->new();
 						}
 						$phrase->append(i18n('a day after '));
+						$parse_tree->{'twin'}->{'sibling'}->{'dateofbirth'} = 'after';
 					}
 					my $ssex = $sibling->sex();
+					$parse_tree->{'twin'}->{'sibling'}->{'sex'} = $ssex;
 					if($language eq 'French') {
 						$bio .= ($ssex eq 'M' ? "son jumeau fr\N{U+00E8}re" : "sa jumelle s\N{U+0153}er");
 						$phrase->append(($ssex eq 'M' ? "son jumeau fr\N{U+00E8}re " : "sa jumelle s\N{U+0153}er "));
