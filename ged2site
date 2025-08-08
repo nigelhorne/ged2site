@@ -15400,7 +15400,7 @@ sub extract_family_info
 	} elsif($text =~ /sons,?\s+([a-z]+)\s+and\s+([a-z]+)/i) {
 		my @children;
 		push @children, { name => $1, sex => 'M' }, { name => $2, sex => 'M' };
-		if($text =~ /daughter,?\s([a-z]+)/i) {
+		if($text =~ /\bdaughter,?\s([a-z]+)/i) {
 			push @children, { 'name' => $1, 'sex' => 'F' }
 		}
 		$family{children} = \@children if @children;
@@ -15495,7 +15495,7 @@ sub extract_family_info
 		}
 		if(scalar(@grandchildren)) {
 			$family{'grandchildren'} = \@grandchildren;
-		} else {
+		} elsif($text =~ /grandm\w+\s/) {
 			my $t = $text;
 			$t =~ s/.+(grandm\w+\s+.+?\sand\s[\w\.;,]+).+/$1/;
 			$family{grandchildren} = [ split /\s*(?:,|and)\s*/i, ($t =~ /grandm\w+\sto\s+([^\.;]+)/i)[0] || '' ];
