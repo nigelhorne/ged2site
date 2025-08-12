@@ -3,6 +3,7 @@
 set -ex
 
 unset GMAP_KEY
+unset GMAP_GEOCODING_KEY
 unset REDIS_SERVER
 unset HTTP_PROXY
 unset http_proxy
