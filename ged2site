@@ -2256,7 +2256,8 @@ sub print_person
 				next if($relationship eq 'daughter');
 				die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
 			} elsif($given ne '?') {
-				die 'TODO: Potential match: ', $person->as_string($string_args), '/', $possible->as_string($string_args);
+				complain({ person => $person, warning => 'Potential match: ' . $person->as_string($string_args) . '/' . $possible->as_string($string_args) });
+				return;
 			}
 		}
 	}
@@ -5383,11 +5384,11 @@ sub print_person
 				$bio .= i18n('children, ');
 				$phrase->append(i18n('children, '));
 			}
-			$bio .= conjunction(map { given_names($_) } @childrenunknownparent) .
+			$bio .= conjunction(map { given_names($_) || ($_->sex() eq 'F' ? 'a daughter' : 'a son') } @childrenunknownparent) .
 				', whose ' .
 				(($sex eq 'F') ? 'father' : 'mother') .
 				' is unknown';
-			$phrase->append(conjunction(map { given_names($_) } @childrenunknownparent) .
+			$phrase->append(conjunction(map { given_names($_) || ($_->sex() eq 'F' ? 'a daughter' : 'a son') } @childrenunknownparent) .
 				', whose ' .
 				(($sex eq 'F') ? 'father' : 'mother') .
 				' is unknown');
