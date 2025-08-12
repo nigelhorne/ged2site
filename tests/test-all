@@ -8,11 +8,14 @@ unset REDIS_SERVER
 unset HTTP_PROXY
 unset http_proxy
 
-for i in $(find ~/gedcoms/* -name \*ged -o -name \*GED); do
+# for i in $(find ~/gedcoms/* -name \*ged -o -name \*GED); do
 # for i in tests/gedcoms/*.ged; do
+
+# Allow spaces in the filenames
+find ~/Genealogy/gedcoms -type f -name \*ged -o -name \*GED -print0 | while IFS= read -r -d '' gedcom; do
 	rm -rf dynamic-site/data dynamic-site/img static-site/
 	perl -MDevel::Hide=Geo::libpostal \
-		./ged2site -cFd "$i"
+		./ged2site -cFd "$gedcom"
 	weblint static-site/*html
 	xmllint dynamic-site/data/people.xml > /dev/null
 	if [ -r dynamic-site/data/locations.xml ]; then
@@ -24,7 +27,7 @@ for i in $(find ~/gedcoms/* -name \*ged -o -name \*GED); do
 
 	rm -rf dynamic-site/data dynamic-site/img static-site/
 	perl -MDevel::Hide=Geo::libpostal \
-		./ged2site -cFdwm "$i"
+		./ged2site -cFdwm "$gedcom"
 	weblint static-site/*html
 	for j in static-site/*.html; do
 		echo $j:
@@ -37,7 +40,7 @@ for i in $(find ~/gedcoms/* -name \*ged -o -name \*GED); do
 
 	rm -rf dynamic-site/data dynamic-site/img static-site/
 	perl -MDevel::Hide=Geo::libpostal \
-		./ged2site "$i"
+		./ged2site "$gedcom"
 	weblint static-site/*html
 	xmllint dynamic-site/data/people.xml > /dev/null
 	if [ -r dynamic-site/data/locations.xml ]; then
