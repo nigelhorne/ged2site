@@ -14815,6 +14815,9 @@ sub parse_date
 			return;
 		}
 
+		# In a Gedcom, DJULIAN refers to a date in the Julian calendar format, using the @#DJULIAN@ escape to indicate it.
+		$date =~ s/^@#DJULIAN@\s//;
+
 		my $type = $params->{'type'};
 		my $person = $params->{'person'};
 		my $after;
@@ -14893,12 +14896,11 @@ sub parse_date
 				complain({ person => $person, warning => "$date changed to $rc" });
 				return $rc;
 			}
-			print __LINE__, ": $date\n";
 			my $i = 0;
 			while((my @call_details = caller($i++))) {
 				print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 			}
-			die 'BUG: parse_date(): handle "', $params->{'date'}, '" on ', $person->as_string();
+			die $ARGV[0], ': BUG: parse_date(): handle "', $params->{'date'}, '" on ', $person->as_string(), " parsed so far as '$date'";
 		}
 		if($about) {
 			$date = "abt $date";

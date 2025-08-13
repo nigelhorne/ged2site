@@ -126,7 +126,7 @@
 	// Construct the content HTML
 	let contentHTML = '';
 	if (person.img) {
-		contentHTML += "<img src=" + person.img + ` alt=\"` + person.name + `" class="node-img"><br>`;
+		contentHTML += "<img src=/" + person.img + ` alt=\"` + person.name + `" class="node-img"><br>`;
 	}
 
 	contentHTML += `<div class="node-name">` + person.name + `</div>`;
@@ -161,24 +161,24 @@ function decodeHtmlEntities(text) {
   txt.innerHTML = text;
   return txt.value;
 }
-    // Function to recursively traverse the tree and set the tooltip
-function setTooltips(node) {
-  const element = document.getElementById(node.HTMLid);
-  if (element && node.extra && node.extra.tooltip) {
-    tippy(element, {
-      content: node.extra.tooltip,  // HTML tooltip content
-      allowHTML: true,
-      interactive: true,
-      delay: [300, 0],
-      placement: 'top',
-        theme: 'lightgray'
-    });
-  }
+			// Function to recursively traverse the tree and set the tooltip
+			function setTooltips(node) {
+				const element = document.getElementById(node.HTMLid);
+				if (element && node.extra && node.extra.tooltip) {
+					tippy(element, {
+						content: node.extra.tooltip,  // HTML tooltip content
+						allowHTML: true,
+						interactive: true,
+						delay: [300, 0],
+						placement: 'top',
+						theme: 'lightgray'
+					});
+				}
 
-  if (node.children) {
-    node.children.forEach(setTooltips);
-  }
-}
+				if (node.children) {
+					node.children.forEach(setTooltips);
+				}
+			}
 
 			// Apply the tooltip after the tree is rendered
 			document.addEventListener("DOMContentLoaded", () => {
