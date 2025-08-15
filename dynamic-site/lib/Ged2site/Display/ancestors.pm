@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 # Display the ancestors page
+# Creates a visual family tree with thumbnail pictures
 
 use File::Slurp;
 use Ged2site::Display;

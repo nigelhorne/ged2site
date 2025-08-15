@@ -13440,8 +13440,8 @@ sub is_alive
 		return 0;
 	}
 
-	# Handle approximate birth dates like "abt 1900" or variations
-	if ($dob =~ /^abt\s*(\d{4})$/i) {
+	# Just get the year
+	if($dob =~ /\s*(\d{3,4})$/i) {
 		$dob = $1;
 	}
 
@@ -15091,10 +15091,10 @@ sub get_year_from_date($)
 		$year =~ s/^0+//;	# Strip leading zeros
 		return $year;
 	}
-	complain("Can't parse string '$string'");
 	if($string =~ /(\d{4})/) {
 		return $1;
 	}
+	complain("get_year_from_date(): can't parse string '$string'");
 }
 
 # https://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
