@@ -2577,6 +2577,8 @@ sub print_person
 				$stateofbirth = uc($1);
 				if($us->{code2state}{$stateofbirth}) {
 					$stateofbirth = $us->{code2state}{$stateofbirth};
+				} elsif($stateofbirth eq 'NORD DAKOTA') {
+					$stateofbirth = 'NORTH DAKOTA';
 				} elsif(!$us->{state2code}{$stateofbirth}) {
 					complain({ person => $params{'person'}, warning => "Unknown state '$stateofbirth' in birth place $placeofbirth" });
 				}
