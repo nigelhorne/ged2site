@@ -45,7 +45,8 @@ sub html {
 
 	# Look in the surnames.csv for the name given as the CGI argument and
 	# find their details
-	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } $surnames->selectall_hash(\%params);
+	# Use hashref rather than hash to remove the empty values and copy less
+	my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } %{$surnames->selectall_hashref(\%params)};
 
 	# If there's only one match, go straight to that person
 	# For this to work, it would have to be called in the http() routine, not the html() routine
