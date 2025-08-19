@@ -315,7 +315,7 @@ if($opts{'m'} || $opts{'w'}) {
 		push @modules, 'CHI::Driver::Redis';
 	}
 	if($opts{'w'}) {
-		push @modules, 'Genealogy::ObituaryDailyTimes', 'Genealogy::Wills';
+		push @modules, 'Genealogy::Obituary::Lookup', 'Genealogy::Wills';
 	}
 }
 if($opts{'v'}) {
@@ -998,7 +998,7 @@ if($opts{'w'}) {
 	if($logger) {
 		$opts->{'logger'} = $logger;
 	}
-	$obituaries = Genealogy::ObituaryDailyTimes->new($opts);
+	$obituaries = Genealogy::Obituary::Lookup->new($opts);
 	$wills = Genealogy::Wills->new($opts);
 } else {
 	$pr = String::ProgressBar->new(max => $total, length => 60);
