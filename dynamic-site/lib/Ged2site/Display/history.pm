@@ -254,7 +254,7 @@ sub html
 	my $eventshash;	# Hash to store events grouped by year
 
 	foreach my $event(@events) {
-		push @{$eventshash->{$event->{'year'}}}, $event;
+		push @{$eventshash->{$event->{'year'}}}, $event if($event);
 	}
 
 	# Add grouped events to the template arguments
