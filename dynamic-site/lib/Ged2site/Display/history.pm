@@ -237,8 +237,12 @@ sub html
 		@events = sort {
 			if($a->{'month'} && $b->{'month'}) {
 				$a->{'year'} == $b->{'year'} ? $a->{'month'} <=> $b->{'month'} : $a->{'day'} <=> $b->{'day'}
-			} else {
+			} elsif($a->{'year'} && $b->{'year'}) {
 				$a->{'year'} <=> $b->{'year'}
+			} elsif($a->{'year'}) {
+				-1;
+			} else {
+				1;
 			}
 		} @events;
 	} else {
