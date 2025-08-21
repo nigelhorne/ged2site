@@ -13,6 +13,7 @@
 		-->
 		<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne, all rights reserved">
 	</head>
 	<body>
 		<center>
@@ -38,7 +39,7 @@
 			<ul>
 				[% FOREACH census IN censuses %]
 					<li>
-						<a href="?page=censuses&census=[%- census | uri -%]">[% census %]</a>
+						<a href="?page=censuses&amp;census=[%- census | uri -%]">[% census %]</a>
 					</li>
 				[% END %]
 			</ul>
@@ -46,7 +47,7 @@
 			<ul>
 				[% FOREACH person IN people %]
 					<li>
-						<a href="?page=people&entry=[%- person.entry %]">[% person.title %]</a>
+						<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
 					</li>
 				[% END %]
 			</ul>

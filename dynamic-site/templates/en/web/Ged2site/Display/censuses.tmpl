@@ -12,6 +12,7 @@
 		<meta name="msvalidate.01" content="deadbeef" />
 		-->
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
+		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne, all rights reserved">
 	</head>
 	<body>
 		<div id="header_container">
@@ -42,7 +43,7 @@
 				<ul id="nav">
 					[% FOREACH census IN censuses %]
 						<li>
-							<a href="?page=censuses&census=[%- census | uri -%]">[% census %]</a>
+							<a href="?page=censuses&amp;census=[%- census | uri -%]">[% census %]</a>
 						</li>
 					[% END %]
 				</ul>
@@ -50,7 +51,7 @@
 				<ul id="nav">
 					[% FOREACH person IN people %]
 						<li>
-							<a href="?page=people&entry=[%- person.entry %]">[% person.title %]</a>
+							<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
 						</li>
 					[% END %]
 				</ul>
