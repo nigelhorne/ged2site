@@ -1881,6 +1881,9 @@ if($opts{'w'}) {
 					$summary = $warning;
 					$summary =~ s/\"//g;
 				}
+				if(!defined($summary)) {
+					$summary = wide_to_html($warning);
+				}
 				my $name = wide_to_html($person->as_string(include_years => 1));
 				print $csv "$index!",
 					$person->xref(),
