@@ -287,7 +287,7 @@ ExpiresByType text/javascript "access plus 1 day"
 * BOOTSTRAP - Attempt to install the modules you need
 * BMAP_KEY - Bing (virtualearth.net) API Key
 * GEONAMES_USER - geonames.org registered username
-* GMAP_GEOCODING_KEY - Google Places (maps.googleapis.com) API Key for encoding, locked down to the IP address you run ged2site on
+* GMAP_GEOCODING_KEY - Google Places (maps.googleapis.com) API Key for encoding, locked down to the IP address you run ged2site on if you can get that to work, I get "REQUEST_DENIED" whenever I lock it down to an IP or CIDR
 * GMAP_WEBSITE_KEY - Google Places (maps.googleapis.com) API Key for displaying, locked down to your URL
 * LANG - some handling of en_GB and en_US translating between then, fr_FR is a work in progress
 * OPENADDR_HOME - directory of data from http -//results.openaddresses.io/
