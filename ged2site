@@ -1258,7 +1258,7 @@ if(scalar(%censuses)) {
 		'<br><ul>';
 
 	open($csv, '>', 'dynamic-site/data/censuses.psv');
-	print $csv "entry|census|person\n";
+	print $csv "entry|census|xref\n";
 
 	$index = 1;
 	foreach my $census(sort keys(%censuses)) {
