@@ -1881,9 +1881,6 @@ if($opts{'w'}) {
 					$summary = $warning;
 					$summary =~ s/\"//g;
 				}
-				if(!defined($summary)) {
-					$summary = wide_to_html($warning);
-				}
 				my $name = wide_to_html($person->as_string(include_years => 1));
 				print $csv "$index!",
 					$person->xref(),
@@ -7553,33 +7550,37 @@ sub print_person
 			$s = ($firstname // $pronoun) . ' ';
 			$s .= 'appeared ';
 
-			my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $newspapers[0] });
-			my $title = $newspaper->title();
-			my $url = $newspaper->url();
-			if(defined($title) && ($title =~ /^https?:\/\//)) {
-				if($url) {
-					$s .= "<a href=\"$url\">$title</a>";
-				} else {
-					$s .= "<a href=\"$title\">$title</a>";
+			if(my $newspaper = newspaper({ gedcom => $ged, person => $person, event => $newspapers[0] })) {
+				my $title = $newspaper->title();
+				my $url = $newspaper->url();
+				if(defined($title) && ($title =~ /^https?:\/\//)) {
+					if($url) {
+						# FIXME: This really should be a citation
+						$s .= "<a href=\"$url\">$title</a>";
+					} else {
+						$s .= "<a href=\"$title\">$title</a>";
+					}
 				}
-			}
 
-			if($title) {
-				$s .= "in $title";
-			} else {
-				$s .= 'in a newspaper'
+				if($title) {
+					$s .= "in $title";
+				} else {
+					$s .= 'in a newspaper'
+				}
+				if(my $date = $newspaper->date()) {
+					$s .= " on $date";
+				}
+				if(my $page = $newspaper->page()) {
+					$s .= " on page $page";
+				}
+				if((!defined($title)) && defined($url)) {
+					# FIXME: This really should be a citation
+					$s .= " (<a href=\"$url\">$url</a>)";
+				}
+				$bio .= $s;
+				$phrase->append($s);
+				push @{$parse_tree->{'newspapers'}}, $newspaper;
 			}
-			if(my $date = $newspaper->date()) {
-				$s .= " on $date";
-			}
-			if(my $page = $newspaper->page()) {
-				$s .= " on page $page";
-			}
-			if((!defined($title)) && defined($url)) {
-				$s .= " (<a href=\"$url\">$url</a>)";
-			}
-			$bio .= $s;
-			$phrase->append($s);
 		} elsif(scalar(@newspapers) > 1) {
 			if($phrase->length()) {
 				push @phrases, $phrase;
