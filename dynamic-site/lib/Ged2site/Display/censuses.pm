@@ -46,7 +46,7 @@ sub html {
 		# find their details
 		if(my $census = $censuses->selectall_hashref({ census => $params->{'census'}})) {
 			foreach my $census_entry(@{$census}) {
-				if(!defined($census_entry->{'xref'})) {
+				if(!exists($census_entry->{'xref'})) {
 					if($self->{'logger'}) {
 						$self->{'logger'}->warn(__PACKAGE__, ": census entry $census_entry->{entry} has no xref");
 					}
