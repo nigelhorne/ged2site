@@ -9418,9 +9418,10 @@ sub print_person
 			print "Handling notes\n" if($opts{'v'});
 			# Don't use encode => 1 in the call to notes() because we do wide_to_html
 			my $encoded_notes = HTML::Entities::encode($notes);
-			$encoded_notes =~ s/&lt;p&gt;/<p>/g;	# avoid double encoding
-			$encoded_notes =~ s/&lt;\/p&gt;/<\/p>/g;
-			print $html '<h2>Notes</h2>', HTML::Entities::encode($notes);
+			$encoded_notes =~ s/&lt;/</g;	# We only want URLs in the notes to be encoded
+			$encoded_notes =~ s/&gt;/>/g;
+			$encoded_notes =~ s/&quot;/"/g;
+			print $html "<h2>Notes</h2>$encoded_notes";
 			# No Need to to note_locations, it was just done
 			print $csv wide_to_html({
 				string => notes({ person => $person, paragraph => 1, record => $person, encode => 0 }),
