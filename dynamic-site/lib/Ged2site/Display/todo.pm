@@ -9,8 +9,6 @@ use Ged2site::Display;
 
 our @ISA = ('Ged2site::Display');
 
-use Hash::Util qw(lock_ref_keys unlock_ref_keys hashref_locked);
-
 sub html {
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
@@ -29,9 +27,7 @@ sub html {
 
 	foreach my $t(@todos) {
 		# Ensure only list a person once per summary
-		unlock_ref_keys($t) if(hashref_locked($t));
-		push(@{$todohash->{$t->{'summary'}}}, $t) if(!grep { $_->{'title'} cmp $t->{'title'} } @{$todohash->{$t->{'summary'} || $t->{'warning'}}});
-		lock_ref_keys($t);
+		push(@{$todohash->{$t->{'summary'}}}, $t) if(!grep { $_->{'title'} cmp $t->{'title'} } @{$todohash->{$t->{'summary'} || $t->{'error'}}});
 	}
 
 	# use Data::Dumper;
