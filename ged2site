@@ -9416,7 +9416,8 @@ sub print_person
 		if(($person->get_value('note')) &&
 		   (my $notes = notes({ person => $person, paragraph => 1, record => $person, note_locations => \@note_locations }))) {
 			print "Handling notes\n" if($opts{'v'});
-			print $html "<h2>Notes</h2>$notes";
+			# Don't use encode => 1 in the call to notes() because we do wide_to_html
+			print $html '<h2>Notes</h2>', HTML::Entities::encode($notes);
 			# No Need to to note_locations, it was just done
 			print $csv wide_to_html({
 				string => notes({ person => $person, paragraph => 1, record => $person, encode => 0 }),
