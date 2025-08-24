@@ -27,7 +27,7 @@ sub html {
 
 	foreach my $t(@todos) {
 		# Ensure only list a person once per summary
-		push(@{$todohash->{$t->{'summary'}}}, $t) if(!grep { $_->{'title'} cmp $t->{'title'} } @{$todohash->{$t->{'summary'} || $t->{'error'}}});
+		push(@{$todohash->{$t->{'summary'} || $t->{'error'} }}, $t) if(!grep { $_->{'title'} eq $t->{'title'} } @{$todohash->{$t->{'summary'} || $t->{'error'}}});
 	}
 
 	# use Data::Dumper;
