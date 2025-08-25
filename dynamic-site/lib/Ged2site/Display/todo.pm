@@ -33,6 +33,10 @@ sub html {
 		push @{$todohash->{$key}}, $t;
 	}
 
+	# Free memory
+	undef %seen;
+	undef @todos;
+
 	# use Data::Dumper;
 	# print Data::Dumper->new([$todohash])->Dump();
 	# return $self->SUPER::html();
