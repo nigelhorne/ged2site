@@ -1035,7 +1035,7 @@ if($current_people) {
 		}
 	}
 	if(!$ok) {
-		die "Runtime options aren't the same as given in $current_people\n";
+		die "Runtime options aren't the same as given in $current_people";
 	}
 	$current_people = $xml;
 }

@@ -101,16 +101,19 @@ sub html {
 	# Fetch person details from the database
 	my $person_details = $people->fetchrow_hashref($params);
 	unless($person_details) {
+		if($self->{'lookup'}) {
+			$self->{'lookup'}->error(__PACKAGE__, ': No matching record found for given parameters: ', join(', ', keys %{$params}), ", entry = '$params->{entry}'");
+		}
 		die 'Lookup failed: No matching record found for given parameters: ', join(', ', keys %{$params});
 	}
 
 	my $schema_org = {
-                '@context' => 'https://schema.org',
-                '@type' => 'Person',
+		'@context' => 'https://schema.org',
+		'@type' => 'Person',
 		'name' => $person_details->{'title'},
 		'gender' => $person_details->{'sex'} eq 'M' ? 'Male' : 'Female',
 		'birthDate' => $person_details->{'dob'}
-        };
+	};
 
 	if(my $logger = $self->{'logger'}) {
 		$logger->debug('Schema.org: ', Data::Dumper->new([$schema_org])->Dump());

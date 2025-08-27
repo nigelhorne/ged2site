@@ -28,7 +28,7 @@ sub html {
 	# Ensure only list a person once per summary
 	my %seen;
 	foreach my $t(@todos) {
-		my $key = $t->{summary} || $t->{error};
+		my $key = exists($t->{'summary'}) ? $t->{'summary'} : $t->{'error'};
 		next if($seen{$key}{$t->{title}}++);
 		push @{$todohash->{$key}}, $t;
 	}
