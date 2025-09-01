@@ -439,17 +439,22 @@ sub doit
 
 	# Rate limit by IP
 	unless(grep { $_ eq $client_ip } @rate_limit_trusted_ips) {	# Bypass rate limiting
-		if($request_count >= $MAX_REQUESTS) {
+		my $max_requests = $config->{'security'}->{'rate_limiting'}->{'max_requests'} || $MAX_REQUESTS;
+		if($request_count >= $max_requests) {
 			# Block request: Too many requests
+			my $retry_after = $config->{'security'}->{'rate_limiting'}->{'time_window'} || $TIME_WINDOW;
+			$retry_after =~ s/\D//g;	# Change 60s to 60, assume TIME_WINDOW is seconds
+
 			print "Status: 429 Too Many Requests\n",
 				"Content-type: text/plain\n",
+				"Retry-After: $retry_after\n",
 				"Pragma: no-cache\n\n";
 
 			$logger->warn("Too many requests from $client_ip");
-			# TODO: Work out how to add the "Retry-After" header, setting to $TIME_WINDOW
 			$info->status(429);
 
 			vwflog($vwflog, $info, $lingua, $syslog, 'Too many requests', $log);
+			sleep(1);
 			return;
 		}
 	}
