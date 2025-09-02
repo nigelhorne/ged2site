@@ -6,7 +6,7 @@ use warnings;
 use strict;
 use Ged2site::Display;
 
-our @ISA = ('Ged2site::Display');
+use parent 'Ged2site::Display';
 
 sub html {
 	my $self = shift;
@@ -14,11 +14,10 @@ sub html {
 
 	my $allowed = {
 		'page' => 'intermarriages',
-		'lang' => qr/^[A-Z][A-Z]/i,
+		'lang' => qr/^[A-Za-z]{2}$/,
 		'lint_content' => qr/^\d$/,
 	};
 	my %params = %{$self->{'_info'}->params({ allow => $allowed })};
-	return "" if(delete($params{'page'}) ne 'intermarriages');
 
 	my $people = $args{'people'};
 	my @all_intermarriages = $args{'intermarriages'}->selectall_hash();
