@@ -194,7 +194,7 @@ sub create_memory_cache {
 			$chi_args{'max_size'} = $max_size;
 		}
 	} elsif($driver eq 'Memory') {
-		$chi_args{'global'} = $config->{'memory_cache'}->{'global'} || 0;
+		$chi_args{'global'} = exists($config->{'memory_cache'}->{'global'}) ? $config->{'memory_cache'}->{'global'} : 0;
 	} elsif($driver ne 'Null') {
 		$chi_args{'root_dir'} = $ENV{'root_dir'} || $args->{'root_dir'} || $config->{memory_cache}->{root_dir} || $config->{'root_dir'};
 		throw Error::Simple('root_dir is not optional') unless($chi_args{'root_dir'});
@@ -217,7 +217,7 @@ Calculate the distance between two geographical points using latitude and longit
 Supports distance in kilometres (K), nautical miles (N), or miles.
 
 From L<http://www.geodatasource.com/developers/perl>
-FIXME:  use Math::Trig
+FIXME: use Math::Trig
 
 =cut
 
