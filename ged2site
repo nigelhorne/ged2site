@@ -90,6 +90,7 @@ BEGIN {
 		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached', 'Encode::Wide',
 		'Scalar::Util',
 		'Sort::Key::DateTime', 'String::Random', 'Text::Names', 'Text::Names::GB',
+		'Text::Capitalize',
 		'Term::ANSIColor',
 		'URI', 'URI::Find::Schemeless',
 		'Locale::AU', 'Locale::CA', 'Locale::US',
@@ -15025,29 +15026,35 @@ sub dump_geocoder_log
 }
 
 # Capitalise the first character of each word
+# sub sortoutcase {
+	# my $field = lc(shift);
+# 
+	# my $ret = '';
+# 
+	# foreach my $word (split(/\s/, $field)) {
+		# if($ret ne '') {
+			# $ret .= ' ';
+		# }
+		# my @list = split(/-/, $word);
+		# if(scalar(@list) > 1) {
+			# foreach (@list) {
+				# if($ret ne '') {
+					# $ret .= '-';
+				# }
+				# $ret .= ucfirst($_);
+			# }
+		# } else {
+			# $ret .= ucfirst($word);
+		# }
+	# }
+# 
+	# return $ret;
+# }
+
+# Capitalise the first character of each word (including hyphenated words)
 sub sortoutcase {
-	my $field = lc(shift);
-
-	my $ret = '';
-
-	foreach my $word (split(/\s/, $field)) {
-		if($ret ne '') {
-			$ret .= ' ';
-		}
-		my @list = split(/-/, $word);
-		if(scalar(@list) > 1) {
-			foreach (@list) {
-				if($ret ne '') {
-					$ret .= '-';
-				}
-				$ret .= ucfirst($_);
-			}
-		} else {
-			$ret .= ucfirst($word);
-		}
-	}
-
-	return $ret;
+	my $field = lc(shift);          # downcase everything first
+	return Text::Capitalize::capitalize_title($field);
 }
 
 sub isbrother
