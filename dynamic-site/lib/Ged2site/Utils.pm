@@ -195,6 +195,9 @@ sub create_memory_cache {
 		}
 	} elsif($driver eq 'Memory') {
 		$chi_args{'global'} = exists($config->{'memory_cache'}->{'global'}) ? $config->{'memory_cache'}->{'global'} : 0;
+		if($chi_args{'global'} == 0) {
+                        $chi_args{'datastore'} = {};
+                }
 	} elsif($driver ne 'Null') {
 		$chi_args{'root_dir'} = $ENV{'root_dir'} || $args->{'root_dir'} || $config->{memory_cache}->{root_dir} || $config->{'root_dir'};
 		throw Error::Simple('root_dir is not optional') unless($chi_args{'root_dir'});
