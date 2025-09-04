@@ -39,7 +39,7 @@ use Params::Get 0.13;
 use Try::Tiny;
 use Carp qw(croak carp);
 use Scalar::Util qw(looks_like_number);
-use Math::Trig qw(deg2rad rad2deg acos great_circle_distance);
+use Math::Trig qw(deg2rad rad2deg asin great_circle_distance);
 
 # Constants for distance calculations
 use constant {
