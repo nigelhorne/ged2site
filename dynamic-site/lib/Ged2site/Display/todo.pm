@@ -5,7 +5,7 @@ use strict;
 
 # Display the todo page
 
-use Ged2site::Display;
+use Data::Dumper qw(Dumper);
 
 use parent 'Ged2site::Display';
 
@@ -28,8 +28,17 @@ sub html {
 	# Ensure only list a person once per summary
 	my %seen;
 	foreach my $t(@todos) {
-		my $key = exists($t->{'summary'}) ? $t->{'summary'} : $t->{'error'};
-		next if($seen{$key}{$t->{title}}++);
+		my $key;
+
+		if(defined($t->{'summary'})) {
+			$key = $t->{'summary'};
+		} elsif(defined($t->{'error'})) {
+			$key = $t->{'error'};
+		} else {
+			$self->{'logger'}->notice('Todo entry missing both summary and error: ' . Dumper($t));
+			next;
+		}
+		next if($seen{$key}{$t->{'title'}}++);
 		push @{$todohash->{$key}}, $t;
 	}
 
@@ -37,7 +46,6 @@ sub html {
 	undef %seen;
 	undef @todos;
 
-	# use Data::Dumper;
 	# print Data::Dumper->new([$todohash])->Dump();
 	# return $self->SUPER::html();
 
