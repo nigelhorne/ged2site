@@ -30,9 +30,9 @@ sub html {
 	foreach my $t(@todos) {
 		my $key;
 
-		if(defined($t->{'summary'})) {
+		if(exists($t->{'summary'})) {
 			$key = $t->{'summary'};
-		} elsif(defined($t->{'error'})) {
+		} elsif(exists($t->{'error'})) {
 			$key = $t->{'error'};
 		} else {
 			$self->{'logger'}->notice('Todo entry missing both summary and error: ' . Dumper($t));
