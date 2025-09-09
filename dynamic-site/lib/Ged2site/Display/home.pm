@@ -44,7 +44,7 @@ sub html {
 	# This loop is why the history table can't be fixated
 	foreach my $event(@{$events}) {
 		# Fetch person details based on the entry parameter
-		$event->{'person'} = $people->fetchrow_hashref({ entry => $event->{'xref'} });
+		$event->{'person'} = $people->fetchrow_hashref({ entry => $event->{'xref'} }) || die __PACKAGE__, ": Can't find xref $event->{xref} in the people database";
 	}
 
 	# Sort in chronological order (we only care about the year)
