@@ -33,7 +33,7 @@ sub html {
 	my @wardead;
 
 	foreach my $person(@everyone) {
-		next unless($person->{'dod'});
+		next if(!exists($person->{'dod'}));
 		my $dod = $person->{'dod'};
 		my $yod;
 		if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
