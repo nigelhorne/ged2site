@@ -41,7 +41,7 @@ sub _is_emigrant
 	my $person = shift;
 
 	# Check if birth and death countries exist
-	return 0 unless($person->{'birth_country'} && $person->{'death_country'});
+	return 0 unless(exists($person->{'birth_country'}) && exists($person->{'death_country'}));
 
 	# Skip if birth and death countries are the same
 	return 0 if($person->{'birth_country'} eq $person->{'death_country'});
