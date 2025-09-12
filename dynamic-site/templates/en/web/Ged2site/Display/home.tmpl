@@ -16,7 +16,7 @@
 		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 		<meta name="description" content="Explore [% SiteTitle.join(' ') %], with ancestors, census records, and historical events.">
 		<title>[% SiteTitle.join(' ') %]</title>
-		<meta property="og:title" content="[% SiteTitle.join(' ' %]">
+		<meta property="og:title" content="[% SiteTitle.join(' ') %]">
 		<meta property="og:description" content="Discover the history, ancestors, and stories of [% contact.name %]">
 		<!--
 		<meta property="og:url" content="https://genealogy.nigelhorne.com">
@@ -30,6 +30,33 @@
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
+		<style>
+			.tooltip {
+				position: relative;
+				cursor: help;
+			}
+			.tooltip .tooltip-content {
+				visibility: hidden;
+				opacity: 0;
+				transition: opacity 0.2s;
+				position: absolute;
+				bottom: 125%;
+				left: 50%;
+				transform: translateX(-50%);
+				background: #333;
+				color: #fff;
+				padding: 8px;
+				border-radius: 6px;
+				z-index: 1000;
+				white-space: normal;
+				max-width: 250px;
+			}
+			.tooltip:hover .tooltip-content {
+				visibility: visible;
+				opacity: 1;
+			}
+		</style>
+
 	</head>
 	<body>
 		<div id="header_container">
@@ -119,8 +146,11 @@
 									[% END %]
 									<h3>
 										[% IF event.person.bio %]
-											<a href="?page=people&amp;entry=[%- event.xref %]" title="[% event.person.bio %]">
+											<a href="?page=people&entry=[%- event.xref %]" class="tooltip">
 												[% event.title %]
+											<span class="tooltip-content">
+												[% event.person.bio %]
+											</span>
 											</a>
 										[% ELSE %]
 											<a href="?page=people&amp;entry=[%- event.xref %]">
