@@ -14,7 +14,13 @@
 		-->
 		<link rel="stylesheet" href="/css/sprite.css" type="text/css">
 		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
+		<meta name="description" content="Explore [% SiteTitle.join(' ') %], with ancestors, census records, and historical events.">
 		<title>[% SiteTitle.join(' ') %]</title>
+		<meta property="og:title" content="[% SiteTitle.join(' ' %]">
+		<meta property="og:description" content="Discover the history, ancestors, and stories of [% contact.name %]">
+		<!--
+		<meta property="og:url" content="https://genealogy.nigelhorne.com">
+		-->
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
 			[% IF SiteTitle %]
@@ -106,15 +112,21 @@
 								<div class="content">
 									[% IF event.person.profile_thumbnail %]
 										<a href="?page=people&amp;entry=[%- event.xref %]">
-											<img src="/[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width="70"></a>
+											<img src="/[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width="70" loading="lazy"></a>
 									[% ELSE %]
 										<a href="?page=people&amp;entry=[%- event.xref %]">
 											<img src="https://upload.wikimedia.org/wikipedia/commons/9/99/White_Background_%28To_id_screen_dust_during_cleanup%29.jpg" height="100" width="70" alt="[% event.person.title %]"></a>
 									[% END %]
 									<h3>
-										<a href="?page=people&amp;entry=[%- event.xref %]">
-											[% event.title %]
-										</a>
+										[% IF event.person.bio %]
+											<a href="?page=people&amp;entry=[%- event.xref %]" title="[% event.person.bio %]">
+												[% event.title %]
+											</a>
+										[% ELSE %]
+											<a href="?page=people&amp;entry=[%- event.xref %]">
+												[% event.title %]
+											</a>
+										[% END %]
 									</h3>
 									<p>[% event.event %] [% event.year %]</p>
 								</div>
