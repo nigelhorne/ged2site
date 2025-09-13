@@ -33,4 +33,5 @@
 .tooltip:hover .tooltip-content {
 	visibility: visible;
 	opacity: 1;
+	transition: opacity 1s;
 }
