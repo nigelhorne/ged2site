@@ -8,7 +8,7 @@
 .tooltip .tooltip-content {
 	visibility: hidden;
 	opacity: 0;
-	transition: opacity 0.2s;
+	transition: opacity 0.3s, visibility 0.3s;
 	position: absolute;
 	bottom: 125%; /* show above */
 	left: 0;
