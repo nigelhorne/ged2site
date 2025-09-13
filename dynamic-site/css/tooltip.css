@@ -1,0 +1,36 @@
+/* Display a link with a tooltip */
+/* See home.tmpl for an example */
+.tooltip {
+	position: relative;
+	display: inline-block;
+	cursor: help;
+}
+.tooltip .tooltip-content {
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.2s;
+	position: absolute;
+	bottom: 125%; /* show above */
+	left: 0;
+	right: auto;
+	transform: none;
+	background: #f0f0f0;	/* light grey background */
+	color: #000;		/* black text */
+	border: 1px solid #ccc;	/* subtle border for definition */
+	box-shadow: 0 2px 6px rgba(0,0,0,0.2);	/* softened shadow */
+	padding: 8px;
+	z-index: 1000;
+	font-size: 0.9em;
+	white-space: normal;
+	line-height: 1.4;
+	border-radius: 6px;
+	min-width: 150px;
+	display: block;
+	max-width: 300px;
+	width: max-content;
+	word-wrap: break-word;
+}
+.tooltip:hover .tooltip-content {
+	visibility: visible;
+	opacity: 1;
+}

@@ -2461,7 +2461,8 @@ sub print_person
 			print $html '<body>';
 		}
 	} elsif($google_maps_geolocation_key) {
-		die "$0: -G makes no sense without -m";
+		warn "$0: -G makes no sense without -m";
+		undef $google_maps_geolocation_key;
 	} else {
 		print $html '<body>';
 	}
@@ -2488,7 +2489,7 @@ sub print_person
 		print "Living person\n" if($opts{'v'});
 		$both_xmls->print("\n\t\t<alive>1</alive>");
 		print $csv '1!';
-		my $str = '<i>This is the record of a living person, so not much data will be shown.</i></p><p>';
+		my $str = '<p><i>This is the record of a living person, so not much data will be shown.</i></p>';
 		print $html $str;
 		print $csv $str;
 	} else {
@@ -3553,8 +3554,8 @@ sub print_person
 						print $html ', ';
 						$phrase->append(', ');
 					}
-					$bio = "<b>$firstname</b>";
-					$phrase->append("<b>$firstname</b>");
+					$bio = "<p><b>$firstname</b>";
+					$phrase->append("<p><b>$firstname</b>");
 					if(($dateofbirth || $marriage) && (!($is_alive || $opts{'l'}))) {
 						$bio .= ',';
 						$phrase->append(',');
@@ -3572,18 +3573,18 @@ sub print_person
 					$phrase->append(', ');
 				}
 				if($surname) {
-					$bio = "<b>$firstname $surname</b>";
-					$phrase->append("<b>$firstname $surname</b>");
+					$bio = "<p><b>$firstname $surname</b>";
+					$phrase->append("<p><b>$firstname $surname</b>");
 				} elsif($name_components{'surname_1'}) {
-					$bio = "<b>$firstname " .
+					$bio = "<p><b>$firstname " .
 						$name_components{'surname_1'} .
 						'</b>';
-					$phrase->append("<b>$firstname " .
+					$phrase->append("<p><b>$firstname " .
 						$name_components{'surname_1'} .
 						'</b>');
 				} else {
-					$bio = "<b>$firstname</b>";
-					$phrase->append("<b>$firstname</b>");
+					$bio = "<p><b>$firstname</b>";
+					$phrase->append("<p><b>$firstname</b>");
 				}
 				if($relationship) {
 					if($dateofbirth || $dateofbaptism || $placeofbirth || $placeofbaptism) {

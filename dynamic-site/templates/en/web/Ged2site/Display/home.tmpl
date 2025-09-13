@@ -8,6 +8,7 @@
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
 		<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
 		<link rel="stylesheet" href="/css/showcase.css" type="text/css">
+		<link rel="stylesheet" href="/css/tooltip.css" type="text/css">
 		<!--
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
@@ -30,32 +31,6 @@
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
-		<style>
-			.tooltip {
-				position: relative;
-				cursor: help;
-			}
-			.tooltip .tooltip-content {
-				visibility: hidden;
-				opacity: 0;
-				transition: opacity 0.2s;
-				position: absolute;
-				bottom: 125%;
-				left: 50%;
-				transform: translateX(-50%);
-				background: #333;
-				color: #fff;
-				padding: 8px;
-				border-radius: 6px;
-				z-index: 1000;
-				white-space: normal;
-				max-width: 250px;
-			}
-			.tooltip:hover .tooltip-content {
-				visibility: visible;
-				opacity: 1;
-			}
-		</style>
 
 	</head>
 	<body>
@@ -139,25 +114,24 @@
 								<div class="content">
 									[% IF event.person.profile_thumbnail %]
 										<a href="?page=people&amp;entry=[%- event.xref %]">
-											<img src="/[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width="70" loading="lazy"></a>
+											<img src="/[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width="70" loading="lazy">
+										</a>
 									[% ELSE %]
 										<a href="?page=people&amp;entry=[%- event.xref %]">
 											<img src="https://upload.wikimedia.org/wikipedia/commons/9/99/White_Background_%28To_id_screen_dust_during_cleanup%29.jpg" height="100" width="70" alt="[% event.person.title %]"></a>
 									[% END %]
-									<h3>
-										[% IF event.person.bio %]
-											<a href="?page=people&entry=[%- event.xref %]" class="tooltip">
-												[% event.title %]
-											<span class="tooltip-content">
-												[% event.person.bio %]
-											</span>
-											</a>
-										[% ELSE %]
+									<span class="tooltip">
+										<h3>
 											<a href="?page=people&amp;entry=[%- event.xref %]">
 												[% event.title %]
 											</a>
+										</h3>
+										[% IF event.person.bio %]
+											<span class="tooltip-content">
+												[% event.person.bio %]
+											</span>
 										[% END %]
-									</h3>
+									</span>
 									<p>[% event.event %] [% event.year %]</p>
 								</div>
 							</div>
