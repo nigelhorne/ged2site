@@ -46,4 +46,5 @@ find ~/Genealogy/gedcoms -type f -name \*ged -o -name \*GED -print0 | while IFS=
 	if [ -r dynamic-site/data/locations.xml ]; then
 		xmllint dynamic-site/data/locations.xml > /dev/null
 	fi
+	cd dynanic-site && cgi-bin/page.fcgi page=home lint_content=0 && cd ..
 done
