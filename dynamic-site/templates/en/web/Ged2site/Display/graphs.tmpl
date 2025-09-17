@@ -219,8 +219,122 @@
 						}
 					}
 				});
+				[% IF datapoints.birth_country %]
+					var chartBirthCountry = new CanvasJS.Chart("chartContainerBirthCountry", {
+						theme: "theme1",	//theme2
+						title: {
+							text: "[% title %] (By Country of Birth)"
+						},
+						zoomEnabled: false,
+						axisY: {
+							[% IF graph == 'ageatdeath' %]
+								includeZero: false,
+								title: 'Age at Death',
+							[% END %]
+							gridThickness: 0
+						},
+						[% IF graph == 'ageatdeath' %]
+							axisX: {
+								title: 'Country of Birth'
+							},
+						[% END %]
+						toolTip: {
+							shared:true
+						},
+						legend: {
+							verticalAlign: "center",
+							horizontalAlign: "right"
+						},
+						animationEnabled: true,	// change to false
+						data: [
+							{
+								// Change type to "line", "area", "spline", "pie", "column" etc.
+								type: "column",
+								showInLegend: true,
+								[% IF graph == 'ageatdeath' %]
+									name: "Number of deceased",
+								[% END %]
+								color: "#F08080",
+								dataPoints: [
+									[% datapoints.birth_country %]
+								]
+							},
+						],
+						legend: {
+							cursor: "pointer",
+							itemclick:function(e){
+								if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+									e.dataSeries.visible = false;
+								} else{
+									e.dataSeries.visible = true;
+								}
+								chartBirthCountry.render();
+							}
+						}
+					});
+				[% END %]
+				[% IF datapoints.death_country %]
+					var chartDeathCountry = new CanvasJS.Chart("chartContainerDeathCountry", {
+						theme: "theme1",	//theme2
+						title: {
+							text: "[% title %] (By Country of Death)"
+						},
+						zoomEnabled: false,
+						axisY: {
+							[% IF graph == 'ageatdeath' %]
+								includeZero: false,
+								title: 'Age at Death',
+							[% END %]
+							gridThickness: 0
+						},
+						[% IF graph == 'ageatdeath' %]
+							axisX: {
+								title: 'Country of Death'
+							},
+						[% END %]
+						toolTip: {
+							shared:true
+						},
+						legend: {
+							verticalAlign: "center",
+							horizontalAlign: "right"
+						},
+						animationEnabled: true,	// change to false
+						data: [
+							{
+								// Change type to "line", "area", "spline", "pie", "column" etc.
+								type: "column",
+								showInLegend: true,
+								[% IF graph == 'ageatdeath' %]
+									name: "Number of deceased",
+								[% END %]
+								color: "#F08080",
+								dataPoints: [
+									[% datapoints.death_country %]
+								]
+							},
+						],
+						legend: {
+							cursor: "pointer",
+							itemclick:function(e){
+								if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+									e.dataSeries.visible = false;
+								} else{
+									e.dataSeries.visible = true;
+								}
+								chartDeathCountry.render();
+							}
+						}
+					});
+				[% END %]
 				chartM.render();
 				chartF.render();
+				[% IF datapoints.birth_country %]
+					chartBirthCountry.render();
+				[% END %]
+				[% IF datapoints.death_country %]
+					chartDeathCountry.render();
+				[% END %]
 			}
 			</script>
 		[% ELSIF datapoints %]
@@ -420,9 +534,18 @@
 			<p>
 				These graphs of average (mean) age at death against year of death starting at 1840
 				only includes those who lived past the age of 20.
+				[% IF datapoints.birth_country || datapoints.death_country %]
+					The graph of age at death by country includes those with at least 5 deaths recorded in that country.
+				[% END %]
 			</p>
-			<div id="chartContainerM" style="height: 300px; width: 100%;"></div>
-			<div id="chartContainerF" style="height: 300px; width: 100%;"></div>
+			<p><div id="chartContainerM" style="height: 300px; width: 100%;"></div></p>
+			<p><div id="chartContainerF" style="height: 300px; width: 100%;"></div></p>
+			[% IF datapoints.birth_country %]
+				<p><div id="chartContainerBirthCountry" style="height: 300px; width: 100%;"></div></p>
+			[% END %]
+			[% IF datapoints.death_country %]
+				<p><div id="chartContainerDeathCountry" style="height: 300px; width: 100%;"></div></p>
+			[% END %]
 			<h2>Sample Sizes</h2>
 			<div class="row">
 				<div class="column">

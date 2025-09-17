@@ -6,11 +6,11 @@
 # Based on VWF - https://github.com/nigelhorne/vwf
 
 # Can be tested at the command line, e.g.:
-#	LANG=en_GB root_dir=$(pwd)/.. ./page.fcgi page=home
+#	LANG=en_GB root_dir=$(pwd)/.. ./page.fcgi page=index
 # To mimic a French mobile site:
-#	root_dir=$(pwd)/.. ./page.fcgi mobile=1 page=home lang=fr
-# To turn off the linting of HTML on a search-engine landing page
-#	LANG=en_GB root_dir=$(pwd)/.. ./page.fcgi --search-engine page=home lint_content=0
+#	root_dir=$(pwd)/.. ./page.fcgi --mobile page=index lang=fr
+# To turn off the linting of HTML on a search engine landing page
+#	LANG=en_GB root_dir=$(pwd)/.. ./page.fcgi --search-engine page=index lint_content=0
 
 use strict;
 use warnings;
@@ -24,7 +24,6 @@ BEGIN {
 
 no lib '.';
 
-use Log::Log4perl qw(:levels);	# Put first to cleanup last
 use Log::WarnDie 0.09;
 use CGI::ACL;
 use CGI::Carp qw(fatalsToBrowser);
@@ -32,12 +31,14 @@ use CGI::Info 0.94;	# Gets all messages
 use CGI::Lingua 0.61;
 use CHI;
 use Class::Simple;
+use Config::Abstraction;
+use Database::Abstraction;
 use File::Basename;
 # use CGI::Alert $ENV{'SERVER_ADMIN'} || 'you@example.com';
 use FCGI;
 use FCGI::Buffer;
 use File::HomeDir;
-use Log::Any::Adapter;
+use Log::Abstraction;
 use Error qw(:try);
 use File::Spec;
 use POSIX qw(strftime);
@@ -50,9 +51,9 @@ use autodie qw(:all);
 
 # Where to find the Ged2site modules
 # use lib '/usr/lib';	# This needs to point to the VWF directory lives,
-			# i.e. the contents of the lib directory in the
+			# i.e., the contents of the lib directory in the
 			# distribution
-# use lib '../lib';
+use lib '../lib';
 use lib CGI::Info::script_dir() . '/../lib';
 use lib File::HomeDir->my_home() . '/lib/perl5';
 
@@ -64,8 +65,8 @@ use Error::DB::Open;
 # taint_env();
 
 # Set rate limit parameters
-Readonly my $MAX_REQUESTS => 100;	# Max requests allowed
-Readonly my $TIME_WINDOW => 10 * 60;	# Time window in seconds (10 minutes)
+Readonly my $MAX_REQUESTS => 100;	# Default max requests allowed
+Readonly my $TIME_WINDOW => '60s';	# Time window for the maximum requests
 
 sub vwflog($$$$$$);	# Ensure all arguments are given
 
@@ -90,8 +91,9 @@ my $lingua_cache;
 my $buffercache;
 
 my $script_dir = $info->script_dir();
-Log::Log4perl::init("$script_dir/../conf/$script_name.l4pconf");
-my $logger = Log::Log4perl->get_logger($script_name);
+my $env_prefix = uc($info->host_name()) . '_';
+$env_prefix =~ tr/\./_/;
+my $logger = Log::Abstraction->new(Config::Abstraction->new(env_prefix => $env_prefix, flatten => 0, config_file => 'example.com', config_dirs => ["$script_dir/../conf/", "$script_dir/../../conf"])->all());
 Log::WarnDie->dispatcher($logger);
 
 # my $pagename = "VWF::Display::$script_name";
@@ -235,16 +237,14 @@ while($handling_request = ($request->Accept() >= 0)) {
 			$lang =~ tr/_/-/;
 			$ENV{'HTTP_ACCEPT_LANGUAGE'} = lc($lang);
 		}
-		Log::Any::Adapter->set('Stdout', log_level => 'trace');
-		$logger = Log::Any->get_logger(category => $script_name);
-		Log::WarnDie->dispatcher($logger);
+
 		Database::Abstraction::init({ logger => $logger });
-		$people->set_logger($logger);
-		$name_date->set_logger($logger);
-		$surname_date->set_logger($logger);
+
+		$logger = Log::Abstraction->new(logger => sub { print join(', ', @{$_[0]->{'message'}}), "\n" }, level => 'debug');
+		Log::WarnDie->dispatcher($logger);
 		$info->set_logger($logger);
-		$locations->set_logger($logger);
-		$places->set_logger($logger);
+		# TODO - set logger on all databases
+		$people->set_logger($logger);
 		$vwf_log->set_logger($logger);
 		# $Config::Auto::Debug = 1;
 
@@ -292,8 +292,6 @@ while($handling_request = ($request->Accept() >= 0)) {
 	}
 
 	$requestcount++;
-	Log::Any::Adapter->set( { category => $script_name }, 'Log4perl');
-	$logger = Log::Any->get_logger(category => $script_name);
 	$logger->info("Request $requestcount: ", $ENV{'REMOTE_ADDR'});
 	$info->set_logger($logger);
 	$people->set_logger($logger);
@@ -389,11 +387,19 @@ sub doit
 {
 	CGI::Info->reset();
 
-	$logger->debug('In doit - domain is ', $info->domain_name());
+	# Call domain_name in a class context to ensure it's reread now that FCGI has started up
+	$logger->debug('In doit - domain is ', CGI::Info->domain_name());
 
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	$config ||= Ged2site::Config->new({ logger => $logger, info => $info, debug => $params{'debug'} });
+	# Don't pass $info in since it was created before the connection, so it doesn't know the domain name
+	#	config file to read
+	$config ||= Ged2site::Config->new({
+		logger => $logger,
+		debug => $params{'debug'},
+		lingua => CGI::Lingua->new({ supported => [ 'en-gb' ], info => $info, logger => $logger })	# Use a temporary CGI::Lingua
+	});
+
 	# Stores things for a day or longer
 	$info_cache ||= create_disc_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
 
@@ -460,7 +466,8 @@ sub doit
 	}
 
 	# Increment request count
-	$rate_limit_cache->set("$script_name:rate_limit:$client_ip", $request_count + 1, $TIME_WINDOW);
+	my $time_window = $config->{'security'}->{'rate_limiting'}->{'time_window'} || $TIME_WINDOW;
+	$rate_limit_cache->set("$script_name:rate_limit:$client_ip", $request_count + 1, $time_window);
 
 	if(!defined($info->param('page'))) {
 		$logger->info('No page given in ', $info->as_string());
@@ -580,8 +587,9 @@ sub doit
 				if(!defined($display)) {
 					if($@) {
 						$logger->warn("$display_module->new(): $@");
+					} else {
+						$logger->notice("Can't instantiate page $page");
 					}
-					$logger->info("Unknown page $page");
 					$invalidpage = 1;
 					if($info->status() == 200) {
 						$info->status(404);
