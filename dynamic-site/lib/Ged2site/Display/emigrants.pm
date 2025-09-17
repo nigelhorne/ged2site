@@ -17,7 +17,7 @@ sub html
 
 	# Ensure 'people' is provided
 	my $people = $args{'people'};
-	die "Error: 'people' parameter is missing or invalid." unless($people);
+	die "Error: 'people' parameter is missing or invalid" unless($people);
 
 	# Retrieve all people
 	my @everyone = $people->selectall_hash();
@@ -42,6 +42,7 @@ sub _is_emigrant
 
 	# Check if birth and death countries exist
 	return 0 unless(exists($person->{'birth_country'}) && exists($person->{'death_country'}));
+	return 0 unless(defined($person->{'birth_country'}) && defined($person->{'death_country'}));
 
 	# Skip if birth and death countries are the same
 	return 0 if($person->{'birth_country'} eq $person->{'death_country'});

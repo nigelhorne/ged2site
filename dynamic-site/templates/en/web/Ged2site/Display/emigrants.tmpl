@@ -36,6 +36,7 @@
 					[% FOREACH person IN emigrants %]
 						<li>
 							<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
+							([% person.birth_country %] &rarr; [% person.death_country %])
 						</li>
 					[% END %]
 				</ul>
