@@ -108,147 +108,147 @@ sub _ageatdeath
 	}
 
 	return { datapoints => $datapoints, bestfit => $bestfit, samples => $samples };
-}
 
-sub _ageatdeathbysex
-{
-	my $self = shift;
-	my $args = shift;
+	sub _ageatdeathbysex
+	{
+		my $self = shift;
+		my $args = shift;
 
-	my $people = $args->{'people'};
-	my $sex = $args->{'sex'};
+		my $people = $args->{'people'};
+		my $sex = $args->{'sex'};
 
-	my %counts;
-	my %totals;
+		my %counts;
+		my %totals;
 
-	foreach my $person($people->selectall_hash('sex' => $sex)) {
-		if($person->{'dob'} && $person->{'dod'}) {
-			my $dob = $person->{'dob'};
-			my $yob;
-			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
-				$dob =~ tr/\//-/;
-				$yob = $1;
-			} else {
-				next;
-			}
-			# next if($yob >= 1930);
-			my $dod = $person->{'dod'};
-			my $yod;
-			if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
-				$yod = $1;
-			} else {
-				next;
-			}
-			next if($yod < 1840);
-			my $age = $yod - $yob;
-			next if($age < 20);
-			$yod -= $yod % BUCKETYEARS;
-			if($counts{$yod}) {
-				$counts{$yod}++;
-				$totals{$yod} += $yod - $yob;
-			} else {
-				$counts{$yod} = 1;
-				$totals{$yod} = $yod - $yob;
-			}
-		}
-	}
-
-	my $datapoints;
-	my(@x, @y, @samples);
-
-	foreach my $bucket(sort keys %counts) {
-		# next if((!defined($datapoints)) && ($counts{$bucket} == 0));
-		my $average = $totals{$bucket} / $counts{$bucket};
-		$average = floor($average);
-
-		$datapoints .= "{ label: \"$bucket\", y: $average },\n";
-		push @x, $bucket;
-		push @y, $average;
-		push @samples, { bucket => ("$bucket-" . ($bucket + BUCKETYEARS - 1)), size => $counts{$bucket} };
-	}
-
-	if(scalar(@x) && scalar(@y)) {
-		my $lf = Statistics::LineFit->new();
-
-		if($lf->setData(\@x, \@y)) {
-			@y = $lf->predictedYs();
-			my $x = shift @x;
-			my $y = shift @y;
-			my $bestfit = "{ label: \"$x\", y: $y },\n";
-			while($x = shift @x) {
-				$y = shift @y;
-				if($x[0]) {
-					$bestfit .= "{ label: \"$x\", y: $y, markerSize: 1 },\n";
+		foreach my $person($people->selectall_hash('sex' => $sex)) {
+			if($person->{'dob'} && $person->{'dod'}) {
+				my $dob = $person->{'dob'};
+				my $yob;
+				if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+					$dob =~ tr/\//-/;
+					$yob = $1;
 				} else {
-					$bestfit .= "{ label: \"$x\", y: $y },\n";
+					next;
+				}
+				# next if($yob >= 1930);
+				my $dod = $person->{'dod'};
+				my $yod;
+				if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+					$yod = $1;
+				} else {
+					next;
+				}
+				next if($yod < 1840);
+				my $age = $yod - $yob;
+				next if($age < 20);
+				$yod -= $yod % BUCKETYEARS;
+				if($counts{$yod}) {
+					$counts{$yod}++;
+					$totals{$yod} += $yod - $yob;
+				} else {
+					$counts{$yod} = 1;
+					$totals{$yod} = $yod - $yob;
 				}
 			}
-			return { datapoints => $datapoints, bestfit => $bestfit, samples => \@samples };
 		}
-	}
 
-	return { datapoints => $datapoints, samples => \@samples };
-}
+		my $datapoints;
+		my(@x, @y, @samples);
 
-sub _ageatdeathbycountry
-{
-	my $self = shift;
-	my $record = shift;
-	my $args = shift;
+		foreach my $bucket(sort keys %counts) {
+			# next if((!defined($datapoints)) && ($counts{$bucket} == 0));
+			my $average = $totals{$bucket} / $counts{$bucket};
+			$average = floor($average);
 
-	my $people = $args->{'people'};
+			$datapoints .= "{ label: \"$bucket\", y: $average },\n";
+			push @x, $bucket;
+			push @y, $average;
+			push @samples, { bucket => ("$bucket-" . ($bucket + BUCKETYEARS - 1)), size => $counts{$bucket} };
+		}
 
-	my %counts;
-	my %totals;
+		if(scalar(@x) && scalar(@y)) {
+			my $lf = Statistics::LineFit->new();
 
-	foreach my $person($people->selectall_hash()) {
-		if($person->{'dob'} && $person->{'dod'} && exists($person->{$record}) && defined($person->{$record})) {
-			my $dob = $person->{'dob'};
-			my $yob;
-			if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
-				$dob =~ tr/\//-/;
-				$yob = $1;
-			} else {
-				next;
-			}
-			# next if($yob >= 1930);
-			my $dod = $person->{'dod'};
-			my $yod;
-			if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
-				$yod = $1;
-			} else {
-				next;
-			}
-			next if($yod < 1840);
-			my $age = $yod - $yob;
-			next if($age < 20);
-
-			my $country = $person->{$record};
-
-			if($counts{$country}) {
-				$counts{$country}++;
-				$totals{$country} += $yod - $yob;
-			} else {
-				$counts{$country} = 1;
-				$totals{$country} = $yod - $yob;
+			if($lf->setData(\@x, \@y)) {
+				@y = $lf->predictedYs();
+				my $x = shift @x;
+				my $y = shift @y;
+				my $bestfit = "{ label: \"$x\", y: $y },\n";
+				while($x = shift @x) {
+					$y = shift @y;
+					if($x[0]) {
+						$bestfit .= "{ label: \"$x\", y: $y, markerSize: 1 },\n";
+					} else {
+						$bestfit .= "{ label: \"$x\", y: $y },\n";
+					}
+				}
+				return { datapoints => $datapoints, bestfit => $bestfit, samples => \@samples };
 			}
 		}
+
+		return { datapoints => $datapoints, samples => \@samples };
 	}
 
-	my $datapoints;
-	my(@x, @y);
+	sub _ageatdeathbycountry
+	{
+		my $self = shift;
+		my $record = shift;
+		my $args = shift;
 
-	foreach my $country(sort keys %counts) {
-		next if($counts{$country} <= 5);
-		my $average = $totals{$country} / $counts{$country};
-		$average = floor($average);
+		my $people = $args->{'people'};
 
-		$datapoints .= "{ label: \"$country\", y: $average },\n";
-		push @x, $country;
-		push @y, $average;
+		my %counts;
+		my %totals;
+
+		foreach my $person($people->selectall_hash()) {
+			if($person->{'dob'} && $person->{'dod'} && exists($person->{$record}) && defined($person->{$record})) {
+				my $dob = $person->{'dob'};
+				my $yob;
+				if($dob =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+					$dob =~ tr/\//-/;
+					$yob = $1;
+				} else {
+					next;
+				}
+				# next if($yob >= 1930);
+				my $dod = $person->{'dod'};
+				my $yod;
+				if($dod =~ /^(\d{3,4})\/\d{2}\/\d{2}$/) {
+					$yod = $1;
+				} else {
+					next;
+				}
+				next if($yod < 1840);
+				my $age = $yod - $yob;
+				next if($age < 20);
+
+				my $country = $person->{$record};
+
+				if($counts{$country}) {
+					$counts{$country}++;
+					$totals{$country} += $yod - $yob;
+				} else {
+					$counts{$country} = 1;
+					$totals{$country} = $yod - $yob;
+				}
+			}
+		}
+
+		my $datapoints;
+		my(@x, @y);
+
+		foreach my $country(sort keys %counts) {
+			next if($counts{$country} <= 5);
+			my $average = $totals{$country} / $counts{$country};
+			$average = floor($average);
+
+			$datapoints .= "{ label: \"$country\", y: $average },\n";
+			push @x, $country;
+			push @y, $average;
+		}
+
+		return { datapoints => $datapoints };
 	}
-
-	return { datapoints => $datapoints };
 }
 
 sub _birthmonth

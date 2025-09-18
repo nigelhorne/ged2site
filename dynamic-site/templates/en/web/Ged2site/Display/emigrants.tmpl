@@ -32,8 +32,23 @@
 				[ <a href="?page=graphs">Analytics</a> ] |
 				[ <a href="/visjs.html">Timeline</a> ]
 			</center>
+			<br>
+			[% IF emigrants_by_country %]
+				<h2>By Country of Death</h2>
+				[% FOREACH country IN emigrants_by_country.keys.sort %]
+					<h3>[% country %]</h3>
+					<ul id="nav">
+						[% FOREACH person IN emigrants_by_country.$country %]
+							<li>
+								<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
+								([% person.birth_country %] &rarr; [% person.death_country %])
+							</li>
+						[% END %]
+					</ul>
+				[% END %]
+			[% END %]
 			[% IF emigrants %]
-				<br>
+				<h2>By Surname</h2>
 				<ul id="nav">
 					[% FOREACH person IN emigrants %]
 						<li>
