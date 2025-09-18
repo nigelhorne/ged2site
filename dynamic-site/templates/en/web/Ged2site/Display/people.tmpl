@@ -116,8 +116,10 @@
 						[% END %]
 						[ <a href="?page=censuses">Census Index</a> ] |
 						[ <a href="?page=surnames">Surname Index</a> ] |
-						[ <a href="?page=history&amp;entry=[% entry %]">Life Events</a> ] |
+						[% IF !person.alive %]
+							[ <a href="?page=history&amp;entry=[% entry %]">Life Events</a> ] |
 						[ <a href="?page=calendar">Calendar</a> ] |
+						[% END %]
 						[ <a href="?page=reports">Reports</a> ] |
 						[ <a href="/visjs.html">Timeline</a> ]
 					</center>
