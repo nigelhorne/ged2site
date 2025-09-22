@@ -13323,6 +13323,8 @@ sub print_graphviz
 			$dod = '';
 		}
 		# Create a thumbnail
+		# FIXME: Installing Image::Magick can be a pain.  So use the command line
+		#	convert $profile_image -thumbnail 128x128 thumbs/$thumbname[0]
 		my $image = Image::Magick->new();
 		$image->read($profile_image);
 		my ($thumb, $x, $y) = Image::Magick::Thumbnail::create($image, 100);
