@@ -205,6 +205,7 @@ Here’s what each option does:
 
 - If [Gedcom](https://github.com/nigelhorne/gedcom) is installed, Ged2Site can generate a **calendar of births and deaths**, with a dedicated page for each month of the current year.
 - Ged2Site produces an **XML file (`people.xml`)** containing parsed output, which can be used in other genealogy software for queries. This means it also functions as a **Gedcom-to-XML converter**.
+- You will also benefit from having Graphviz installed for family trees and ImageMagick for thumbnail pictures in the family trees
 
 ### Configuration File (`ged2site.conf`)
 

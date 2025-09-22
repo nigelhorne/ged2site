@@ -277,18 +277,6 @@ if($opts{'m'} || $opts{'w'}) {
 if($gedcal || !$opts{'w'}) {
 	push @modules, 'String::ProgressBar';
 }
-if($opts{'F'}) {
-	# Debian lacks ImageMagick-7
-	# yum install gd-devel ImageMagick-devel
-	my $magick;
-	if($^O eq 'linux') {
-		# Debian lacks ImageMagick-7
-		$magick = 'Image::Magick 6.9.13-6';
-	} else {
-		$magick = 'Image::Magick';
-	}
-	push @modules, $magick, 'Image::Magick::Thumbnail';
-}
 if(defined($language) && ($language ne 'English')) {
 	push @modules, 'Locale::Country::Multilingual', 'Locale::Places';
 }
@@ -891,7 +879,9 @@ if($home) {
 my $dot;
 my $jpegtran;
 my $jpegoptim;
+my $convert;
 if($opts{'F'}) {
+	# Find Graphviz
 	if(-x '/usr/bin/dot') {
 		$dot = '/usr/bin/dot';
 	} elsif(-x '/usr/local/bin/dot') {
@@ -906,6 +896,22 @@ if($opts{'F'}) {
 		complain(warning => 'Graphviz not found, no family trees');
 	} else {
 		print "Using $dot\n" if($opts{'v'});
+	}
+
+	if(-x '/usr/bin/convert') {
+		$convert = '/usr/bin/convert';
+	} elsif(-x '/usr/local/bin/convert') {
+		$convert = '/usr/local/bin/convert';
+	} elsif(-x '/sw/bin/convert') {
+		$convert = '/sw/bin/convert';
+	} elsif(-x '/opt/homebrew/bin/convert') {
+		$convert = '/opt/homebrew/bin/convert';
+	}
+
+	if(!defined($convert)) {
+		complain(warning => 'ImageMagick not found, no thumbnail profile pictures');
+	} else {
+		print "Using $convert\n" if($opts{'v'});
 	}
 }
 
@@ -13323,17 +13329,25 @@ sub print_graphviz
 			$dod = '';
 		}
 		# Create a thumbnail
-		# FIXME: Installing Image::Magick can be a pain.  So use the command line
-		#	convert $profile_image -thumbnail 128x128 thumbs/$thumbname[0]
-		my $image = Image::Magick->new();
-		$image->read($profile_image);
-		my ($thumb, $x, $y) = Image::Magick::Thumbnail::create($image, 100);
+		# my $image = Image::Magick->new();
+		# $image->read($profile_image);
+		# my ($thumb, $x, $y) = Image::Magick::Thumbnail::create($image, 100);
+		# my @thumbname = File::Basename::fileparse($profile_image);
+		# # use PNG to try to avoid
+		# #	'Warning: No loadimage plugin for "jpeg:cairo"'
+		# $thumbname[0] =~ s/\.jpg$/.png/i;
+		# $thumbnail = "thumbs/$thumbname[0]";
+		# $thumb->Write($thumbnail);
+
+		# Installing Image::Magick can be a pain.  So use the command line
+
 		my @thumbname = File::Basename::fileparse($profile_image);
+		system("$convert $profile_image -thumbnail 100x100 thumbs/thumbname[0]");
+
 		# use PNG to try to avoid
 		#	'Warning: No loadimage plugin for "jpeg:cairo"'
 		$thumbname[0] =~ s/\.jpg$/.png/i;
 		$thumbnail = "thumbs/$thumbname[0]";
-		$thumb->Write($thumbnail);
 
 		# FIXME: TABLE isn't supported by Graphviz
 		# Can't include width and height, get this error:
