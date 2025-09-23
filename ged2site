@@ -13339,14 +13339,17 @@ sub print_graphviz
 		#	'Warning: No loadimage plugin for "jpeg:cairo"'
 		$thumbname[0] =~ s/\.jpg$/.png/i;
 		$thumbnail = "thumbs/$thumbname[0]";
-		if($magick) {
-			system("$magick concert $profile_image -thumbnail 100x100 $thumbnail");
-		} else {
-			# This, of course, would be prefereable, but best of luck getting it installed in Perlbrew
-			my $image = Image::Magick->new();
-			$image->read($profile_image);
-			my ($thumb, $x, $y) = Image::Magick::Thumbnail::create($image, 100);
-			$thumb->Write($thumbnail);
+
+		if(!-r $thumbnail) {
+			if($magick) {
+				system("$magick convert $profile_image -thumbnail 100x100 $thumbnail");
+			} else {
+				# This, of course, would be prefereable, but best of luck getting it installed in Perlbrew
+				my $image = Image::Magick->new();
+				$image->read($profile_image);
+				my ($thumb, $x, $y) = Image::Magick::Thumbnail::create($image, 100);
+				$thumb->Write($thumbnail);
+			}
 		}
 
 		# FIXME: TABLE isn't supported by Graphviz
