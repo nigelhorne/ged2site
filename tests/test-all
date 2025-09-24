@@ -38,6 +38,8 @@ find ~/Genealogy/gedcoms -type f -name \*ged -o -name \*GED -print0 | while IFS=
 		xmllint dynamic-site/data/locations.xml > /dev/null
 	fi
 
+	cd dynamic-site/data && ../bin/tosqlite
+	cd -
 	rm -rf dynamic-site/data dynamic-site/img static-site/
 	perl -MDevel::Hide=Geo::libpostal \
 		./ged2site "$gedcom"
