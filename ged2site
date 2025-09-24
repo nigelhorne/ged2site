@@ -12777,7 +12777,7 @@ sub notes
 	}
 	$rc =~ s/\n/<br>/g;
 	$rc =~ s/ $//;
-	$rc =~ s/!/\&#0x21;/g;	# ! is the sep_char, don't use &excl; as that's not known by XML
+	$rc =~ s/!/\&#x021;/g;	# ! is the sep_char, don't use &excl; as that's not known by XML
 
 	my $ufinder = URI::Find::Schemeless->new(sub {
 		my($uri, $orig_uri) = @_;
