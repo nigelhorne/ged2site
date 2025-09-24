@@ -12133,7 +12133,7 @@ sub place
 						if($date =~ /^bet\s*(.+)/i) {
 							complain({ person => $params->{'person'}, warning => "Location for the event between $1 is empty" });
 						} else {
-							complain({ person => $params->{'person'}, warning => 'Location for "' . lcfirst($params->{'record'}->type()) . "\" on $date is empty" });
+							complain({ person => $params->{'person'}, warning => "Location for '" . lcfirst($params->{'record'}->type()) . "' on $date is empty" });
 						}
 					} else {
 						complain({ person => $params->{'person'}, warning => 'Location is Empty' });
