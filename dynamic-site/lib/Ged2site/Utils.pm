@@ -179,6 +179,7 @@ sub _validate_cache_config($config, $cache_type) {
 	return unless exists $config->{$cache_type};
 
 	my $cache_config = $config->{$cache_type};
+
 	croak('Cache configuration must be a hash reference')
 		unless ref($cache_config) eq 'HASH';
 
@@ -203,6 +204,12 @@ sub _validate_cache_config($config, $cache_type) {
 		my $port = $cache_config->{port};
 		croak('Port must be between 1 and 65535')
 			unless $port >= 1 && $port <= 65535;
+	}
+
+	# Validate memory parameters
+	if(exists($cache_config->{'datastore'}) && exists($cache_config->{'global'}) && (my $driver = $cache_config->{'driver'})) {
+		# CHI catches this as well, but putting it here helps to track the error
+		croak('Memory cache cannot have both global and datastore');
 	}
 }
 

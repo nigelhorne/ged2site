@@ -27,7 +27,7 @@ use Template::Plugin::EnvHash;
 use Template::Plugin::Math;
 use Template::Plugin::JSON;
 use HTML::SocialMedia;
-use Ged2site::Utils qw(create_memory_cache create_disc_cache);
+use Ged2site::Utils qw(create_memory_cache);
 use Error;
 use Fatal qw(:void open);
 use File::pfopen;
