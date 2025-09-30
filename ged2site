@@ -136,7 +136,7 @@ BEGIN {
 	if(defined($ENV{'LANG'}) && ($ENV{'LANG'} =~ /^fr/)) {
 		eval 'use Lingua::FR::Numbers::Ordinate';
 		if($@) {
-			# Apparently it's "unauthorized", but there's no other module with the same name
+			# Apparently, it's "unauthorized", but there's no other module with the same name
 			push @needfull, 'N/NH/NHORNE/Lingua-FR-Numbers-Ordinate-0.03.tar.gz';
 		}
 	} else {
@@ -15823,11 +15823,21 @@ sub service
 {
 	my $params = Params::Get::get_params('event', @_);
 
+	return 'military' unless $params->{'event'};
+
 	if(my $notes = notes(record => $params->{'event'})) {
-		return 'navy' if($notes =~ /Navy/i);
-		return 'RAF' if($notes =~ /\sRAF/);
-		return i18n('army') if($notes =~ /\b(?:army\.?|regiment|soldier)\b/i);
+		# Configurable branch detection
+		my @branch_detectors = (
+			{ pattern => qr/\bnavy\b/i, value => 'navy' },
+			{ pattern => qr/\b(?:RAF|Royal Air Force)\b/i, value => 'RAF' },
+			{ pattern => qr/\b(?:army\.?|regiment|soldier)\b/i, value => 'army' },
+		);
+
+		for my $detector (@branch_detectors) {
+			return i18n($detector->{value}) if $notes =~ $detector->{pattern};
+		}
 	}
+
 	return 'military';
 }
 
