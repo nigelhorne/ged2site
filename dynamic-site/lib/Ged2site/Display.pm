@@ -22,6 +22,8 @@ use CGI::Info;
 use Data::Dumper;
 use Digest::SHA qw(sha256_hex);
 use File::Spec;
+use Object::Configure;
+use Params::Get;
 use Template::Filters;
 use Template::Plugin::EnvHash;
 use Template::Plugin::Math;
@@ -63,7 +65,7 @@ sub new
 	my $class = shift;
 
 	# Handle hash or hashref arguments
-	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
+	my $params = Params::Get::get_params(undef, @_);
 
 	if(!defined($class)) {
 		# Using Ged2site::Display->new(), not Ged2site::Display::new()
@@ -74,7 +76,7 @@ sub new
 		$class = __PACKAGE__;
 	} elsif(Scalar::Util::blessed($class)) {
 		# If $class is an object, clone it with new arguments
-		return bless { %{$class}, %args }, ref($class);
+		return bless { %{$class}, %{$params} }, ref($class);
 	}
 
 	if(defined($ENV{'HTTP_REFERER'})) {
@@ -87,17 +89,19 @@ sub new
 		}
 	}
 
-	my $info = $args{info} || CGI::Info->new();
+	$params = Object::Configure::configure($class, $params);
+
+	my $info = $params->{info} || CGI::Info->new();
 
 	# Configuration loading
-	my $config_dir = _find_config_dir(\%args, $info);
-	if($args{'logger'}) {
-		$args{'logger'}->debug(__PACKAGE__, ' (', __LINE__, "): path = $config_dir");
+	my $config_dir = _find_config_dir($params, $info);
+	if($params->{'logger'}) {
+		$params->{'logger'}->debug(__PACKAGE__, ' (', __LINE__, "): path = $config_dir");
 	}
 	my $config;
 	eval {
 		# Try default first, then domain-specific config first
-		if($config = Config::Abstraction->new(config_dirs => [$config_dir], config_files => ['default', $info->domain_name()], logger => $args{'logger'})) {
+		if($config = Config::Abstraction->new(config_dirs => [$config_dir], config_files => ['default', $info->domain_name()], logger => $params->{'logger'})) {
 			$config = $config->all();
 		}
 	};
@@ -106,9 +110,9 @@ sub new
 	}
 
 	# The values in config are defaults which can be overridden by
-	# the values in args{config}
-	if(defined($args{'config'})) {
-		$config = { %{$config}, %{$args{'config'}} };
+	# the values in params->{config}
+	if(defined($params->{'config'})) {
+		$config = { %{$config}, %{$params->{'config'}} };
 	}
 
 	unless($info->is_search_engine() || !defined($ENV{'REMOTE_ADDR'})) {
@@ -147,8 +151,8 @@ sub new
 			unless($throttler->try_push(key => $ENV{'REMOTE_ADDR'})) {
 				$info->status(429);	# Too many requests
 				sleep(1);	# Slow down attackers
-				if($args{'logger'}) {
-					$args{'logger'}->warn("$ENV{REMOTE_ADDR} connexion throttled");
+				if($params->{'logger'}) {
+					$params->{'logger'}->warn("$ENV{REMOTE_ADDR} connexion throttled");
 				}
 				return;
 			}
@@ -158,7 +162,7 @@ sub new
 		}
 
 		# Country based blocking
-		if(my $lingua = $args{lingua}) {
+		if(my $lingua = $params->{lingua}) {
 			if($blacklist{uc($lingua->country())}) {
 				die "$ENV{REMOTE_ADDR} is from a blacklisted country ", $lingua->country();
 			}
@@ -170,16 +174,16 @@ sub new
 
 	# _ names included for legacy reasons, they will go away
 	my $self = {
-		_cachedir => $args{cachedir},
+		_cachedir => $params->{cachedir},
 		config => $config,
 		_config => $config,
 		info => $info,
 		_info => $info,
-		_logger => $args{logger},
-		%args,
+		_logger => $params->{logger},
+		%{$params},
 	};
 
-	if(my $lingua = $args{'lingua'}) {
+	if(my $lingua = $params->{'lingua'}) {
 		$self->{'lingua'} = $lingua;
 		$self->{'_lingua'} = $lingua;
 	}
@@ -194,12 +198,12 @@ sub new
 
 	# Social media integration
 	if(my $twitter = $config->{'twitter'}) {
-		$smcache ||= create_memory_cache(config => $config, logger => $args{'logger'}, namespace => 'HTML::SocialMedia');
-		$sm ||= HTML::SocialMedia->new({ twitter => $twitter, cache => $smcache, lingua => $args{lingua}, logger => $args{logger} });
+		$smcache ||= create_memory_cache(config => $config, logger => $params->{'logger'}, namespace => 'HTML::SocialMedia');
+		$sm ||= HTML::SocialMedia->new({ twitter => $twitter, cache => $smcache, lingua => $params->{lingua}, logger => $params->{logger} });
 		$self->{'_social_media'}->{'twitter_tweet_button'} = $sm->as_string(twitter_tweet_button => 1);
 	} elsif(!defined($sm)) {
-		$smcache = create_memory_cache(config => $config, logger => $args{'logger'}, namespace => 'HTML::SocialMedia');
-		$sm = HTML::SocialMedia->new({ cache => $smcache, lingua => $args{lingua}, logger => $args{logger} });
+		$smcache = create_memory_cache(config => $config, logger => $params->{'logger'}, namespace => 'HTML::SocialMedia');
+		$sm = HTML::SocialMedia->new({ cache => $smcache, lingua => $params->{lingua}, logger => $params->{logger} });
 	}
 	$self->{'_social_media'}->{'facebook_share_button'} = $sm->as_string(facebook_share_button => 1);
 	# $self->{'_social_media'}->{'google_plusone'} = $sm->as_string(google_plusone => 1);
