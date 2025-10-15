@@ -21,8 +21,8 @@ our $date_parser;
 our $dfn;
 
 # TODO: age of people dying vs. year (is that a good idea?)
-#	Plot average (mean) distance between place of spouse's birth against year of marriage
-#	Distance betweeen parents' birth and death places and each child birth and death places (the coloured lines)
+#	Plot the average (mean) distance between place of spouse's birth against year of marriage
+#	Distance between parents' birth and death places and each child's birth and death places (the coloured lines)
 #	Pie chart of categories of occupations
 #	Generation gaps: Measure the average age difference between parents and children
 
@@ -1278,7 +1278,7 @@ sub _name_date_m
 	my $self = shift;
 	my $args = shift;
 
-	return { name_date => create_cloud($args->{'name_date'}, 'M') };
+	return { name_date => $self->_create_cloud($args->{'name_date'}, 'M') };
 }
 
 # Show female popularity of firstnames by quarter of a century
@@ -1287,7 +1287,7 @@ sub _name_date_f
 	my $self = shift;
 	my $args = shift;
 
-	return { name_date => create_cloud($args->{'name_date'}, 'F') };
+	return { name_date => $self->_create_cloud($args->{'name_date'}, 'F') };
 }
 
 # Show popularity of surnames by quarter of a century
@@ -1296,11 +1296,12 @@ sub _surname_date
 	my $self = shift;
 	my $args = shift;
 
-	return { surname_date => create_cloud($args->{'surname_date'}) };
+	return { surname_date => $self->_create_cloud($args->{'surname_date'}) };
 }
 
-sub create_cloud
+sub _create_cloud
 {
+	my $self = shift;
 	my $db = shift;	# Which database to bring in
 	my $sex = shift;	# For firstname popularity
 
@@ -1322,16 +1323,29 @@ sub create_cloud
 
 		my $cloud = HTML::TagCloud->new();
 		foreach my $name(@all) {
+			my $n;
+			if(exists($name->{'name'})) {
+				$n = $name->{'name'};
+			}
+			if(!exists($name->{'count'})) {
+				if(my $logger = $self->{'logger'}) {
+					if($n) {
+						$logger->info("_create_cloud: Ignoring empty entry, name = $n");
+					}
+					$logger->info('_create_cloud: Ignoring empty entry');
+				}
+				next;
+			}
 			my $count = $name->{'count'};
 			if($count == 1) {
 				# Go straight to the person
-				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=people&amp;entry=$name->{people}", 1);
+				$cloud->add($n, "/cgi-bin/page.fcgi?page=people&amp;entry=$name->{people}", 1);
 			} elsif($sex) {
 				# First names - no links
-				$cloud->add_static($name->{'name'}, $count);
+				$cloud->add_static($n, $count);
 			} else {
 				# Surnames - add links
-				$cloud->add($name->{'name'}, "/cgi-bin/page.fcgi?page=surnames&amp;surname=$name->{name}", $count);
+				$cloud->add($n, "/cgi-bin/page.fcgi?page=surnames&amp;surname=$n", $count);
 			}
 		}
 
