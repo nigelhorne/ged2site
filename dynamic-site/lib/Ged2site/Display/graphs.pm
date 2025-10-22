@@ -56,7 +56,7 @@ sub html
 	my $self = shift;
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	my $info = $self->{_info};
+	my $info = $self->{'_info'};
 	my $allowed = {
 		'page' => 'graphs',
 		'graph' => qr/^[a-z_]+$/,

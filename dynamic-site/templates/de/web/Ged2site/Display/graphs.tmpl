@@ -82,7 +82,7 @@
 				var chartM = new CanvasJS.Chart("chartContainerM", {
 					theme: "theme1",	//theme2
 					title: {
-						text: "[% title %] (Men)"
+						text: "[% title %] (Männlichen)"
 					},
 					zoomEnabled: false,
 					axisY: {
@@ -153,7 +153,7 @@
 				var chartF = new CanvasJS.Chart("chartContainerF", {
 					theme: "theme1",	//theme2
 					title: {
-						text: "[% title %] (Women)"
+						text: "[% title %] (Weiblichen)"
 					},
 					zoomEnabled: false,
 					axisY: {
@@ -418,7 +418,7 @@
 			<h2>Sample Sizes</h2>
 			<div class="row">
 				<div class="column">
-					<i>Men</i>
+					<i>Männlichen</i>
 					<ul>
 						[% FOREACH sample IN samples.M %]
 							<li>[% sample.bucket %]: [% sample.size %]</li>
@@ -426,7 +426,7 @@
 					</ul>
 				</div>
 				<div class="column">
-					<i>Women</i>
+					<i>Weiblichen</i>
 					<ul>
 						[% FOREACH sample IN samples.F %]
 							<li>[% sample.bucket %]: [% sample.size %]</li>
