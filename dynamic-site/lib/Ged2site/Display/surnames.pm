@@ -3,7 +3,6 @@ package Ged2site::Display::surnames;
 # Display the surnames page
 
 use Ged2site::Display;
-use HTML::Entities;
 
 our @ISA = ('Ged2site::Display');
 
@@ -31,8 +30,8 @@ sub html {
 	delete $params{'lang'};
 
 	# Handles into the databases
-	my $surnames = $args{'surnames'};
-	my $people = $args{'people'};
+	my $surnames = $args{'surnames'} or die "Missing required 'surnames' database handle";
+	my $people = $args{'people'} or die "Missing required 'people' database handle";
 
 	unless(scalar(keys %params)) {
 		# Display the list of surnames
@@ -47,7 +46,7 @@ sub html {
 	# find their details
 	# Use hashref rather than hash to remove the empty values and copy less
 	if(my $pref = $surnames->selectall_hashref(\%params)) {
-                my @people = map { $people->fetchrow_hashref({ entry => $_->{'person'} }) } @{$pref};
+		my @people = map { $people->fetchrow_hashref({ entry => exists($_->{'person'}) ? $_->{'person'} : 'UNKNOWN' }) } @{$pref};
 
 		# If there's only one match, go straight to that person
 		# For this to work, it would have to be called in the http() routine, not the html() routine
@@ -65,7 +64,7 @@ sub html {
 		# TODO: handle situation where look up fails
 		return $self->SUPER::html({ people => \@people, updated => $surnames->updated() });
 	}
-	if($self->{'logger'}) {
+	if($logger) {
                 $logger->notice(__PACKAGE__, ": couldn't find any matches for surname $params{surname}");
         }
         return $self->SUPER::html({ updated => $surnames->updated() });
