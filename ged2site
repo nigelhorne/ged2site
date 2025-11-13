@@ -2372,13 +2372,26 @@ sub print_person
 
 			print $index_html "<head><title>The Family Tree $name</title>",
 				'<meta http-equiv="Refresh" content="1;URL=', make_filename_from_person(person => $person), '">';
-			if(my $lang = $ENV{'LANG'}) {
+			my $lang = $ENV{'LANG'};
+			if($lang) {
 				$lang =~ s/\.UTF-8//;
 				$lang =~ tr/_/-/;
 				$lang = lc($lang);
 				print $index_html "<meta http-equiv=\"Content-Language\" content=\"$lang\">";
 			}
-			print $index_html '</head>',
+			print $index_html 
+				'<script type="application/ld+json">', "\n",
+				"{\n",
+				'"@context": "https://schema.org",', "\n",
+				'"@type": "WebSite",', "\n",
+				'"description": "An online ged2site genealogy and family-history tree, including surname indices, census records and ancestral lines"', "\n";
+			if($home) {
+				print $index_html '"name": "The Family tree of "', "$home\n";
+			}
+			if($lang) {
+				print $index_html '"inLanguage": "en-GB"', "\n";
+			}
+			print $index_html "}\n</script></head>",
 				"<body><h1>The Family Tree $name</h1><a href=\"", make_filename_from_person(person => $person), "\">$name</a></body>";
 			$both_xmls->print("\n\t\t<home>1</home>");
 			print $index_html '</html>';
