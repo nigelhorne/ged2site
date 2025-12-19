@@ -88,7 +88,7 @@ BEGIN {
 		'DateTime::Format::Genealogy', 'DateTime::Format::Natural',
 		# 'Geo-Coder-PlaceFinder-0.1.tar.gz'
 		'Class::Simple::Readonly::Cached', 'Class::Simple::Cached', 'Encode::Wide',
-		'Scalar::Util',
+		'I18N::LangTags::Detect', 'Scalar::Util',
 		'Sort::Key::DateTime', 'String::Random', 'Text::Names', 'Text::Names::GB',
 		'Text::Capitalize',
 		'Term::ANSIColor',
@@ -15182,23 +15182,13 @@ sub get_language
 	return 'English';
 }
 
-sub get_language_code
-{
-	if($ENV{'LANGUAGE'} && ($ENV{'LANGUAGE'} =~ /^([a-z]{2})/i)) {
-		return lc($1);
-	}
-
-	foreach my $variable('LC_ALL', 'LC_MESSAGES', 'LANG') {
-		my $val = $ENV{$variable};
-		next unless(defined($val));
-
-		if($val =~ /^([a-z]{2})/i) {
-			return lc($1);
+sub get_language_code {
+	for my $tag (I18N::LangTags::Detect::detect()) {
+		if ($tag =~ /^([a-z]{2})/i) {
+			return lc $1;
 		}
 	}
-	if(defined($ENV{'LANG'}) && (($ENV{'LANG'} =~ /^C\./) || ($ENV{'LANG'} eq 'C'))) {
-		return 'en';
-	}
+	return 'en' if ($ENV{LANG} && $ENV{LANG} =~ /^C(?:\.|$)/);
 	return;	# undef
 }
 
@@ -15221,8 +15211,8 @@ sub i18n
 
 	my $format = $params{'format'};
 	if(!defined($format)) {
-		my $i = 0;
 		print "\n";
+		my $i = 0;
 		while((my @call_details = caller($i++))) {
 			print STDERR "\t", colored($call_details[2] . ' of ' . $call_details[1], 'red'), "\n";
 		}
