@@ -2,7 +2,9 @@ package Ged2site::Display::surnames;
 
 # Display the surnames page
 
+use Carp qw(croak);
 use Ged2site::Display;
+use Scalar::Util qw(blessed);
 
 our @ISA = ('Ged2site::Display');
 
@@ -32,6 +34,11 @@ sub html {
 	# Handles into the databases
 	my $surnames = $args{'surnames'} or die "Missing required 'surnames' database handle";
 	my $people = $args{'people'} or die "Missing required 'people' database handle";
+
+	# Validate database handles are objects
+	unless (blessed($surnames) && blessed($people)) {
+		croak('Database handles must be blessed objects');
+	}
 
 	unless(scalar(keys %params)) {
 		# Display the list of surnames
