@@ -760,14 +760,14 @@ sub choose
 sub blacklisted
 {
 	if(my $remote = $ENV{'REMOTE_ADDR'}) {
+		my $info = shift;
 		if($blacklisted_ip{$remote}) {
-			$info->status(301);
+			$info->status(403);
 			return 1;
 		}
 
-		my $info = shift;
 		if(my $string = $info->as_string()) {
-			if(($string =~ /SELECT.+AND.+/) || ($string =~ /ORDER BY /) || ($string =~ / OR NOT /) || ($string =~ / AND \d+=\d+/) || ($string =~ /THEN.+ELSE.+END/) || ($string =~ /.+AND.+SELECT.+/) || ($string =~ /\sAND\s.+\sAND\s/) || ($string =~ /AND\sCASE\sWHEN/)) {
+			if(($string =~ /SELECT.+AND.+/i) || ($string =~ /ORDER BY /i) || ($string =~ / OR NOT /i) || ($string =~ / AND \d+=\d+/i) || ($string =~ /THEN.+ELSE.+END/i) || ($string =~ /.+AND.+SELECT.+/i) || ($string =~ /\sAND\s.+\sAND\s/i) || ($string =~ /AND\sCASE\sWHEN/i)) {
 				$blacklisted_ip{$remote} = 1;
 				$info->status(301);
 				return 1;
