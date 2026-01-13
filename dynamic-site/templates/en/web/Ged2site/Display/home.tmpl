@@ -14,7 +14,7 @@
 		<link rel="stylesheet" href="/css/magnific-popup.css" type="text/css" media="screen">
 		-->
 		<link rel="stylesheet" href="/css/sprite.css" type="text/css">
-		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
+		<meta name="Copyright" content="Copyright (C) 2026 Nigel Horne">
 		<meta name="description" content="Explore [% SiteTitle.join(' ') %], with ancestors, census records, and historical events.">
 		<title>[% SiteTitle.join(' ') %]</title>
 		<meta property="og:title" content="[% SiteTitle.join(' ') %]">
@@ -112,7 +112,7 @@
 						[% FOREACH event IN events %]
 							<div class="column">
 								<div class="content">
-									[% IF event.person.profile_thumbnail %]
+									[% IF event.person.profile_thumbnail.exists %]
 										<a href="?page=people&amp;entry=[%- event.xref %]">
 											<img src="/[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width="70" loading="lazy">
 										</a>
