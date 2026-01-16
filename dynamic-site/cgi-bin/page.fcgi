@@ -25,6 +25,7 @@ BEGIN {
 no lib '.';
 
 use Log::WarnDie 0.09;
+use Carp::Always;
 use CGI::ACL;
 use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info 0.94;	# Gets all messages
@@ -38,6 +39,7 @@ use File::Basename;
 use FCGI;
 use FCGI::Buffer;
 use File::HomeDir;
+use HTTP::Status;
 use Log::Abstraction;
 use Error qw(:try);
 use File::Spec;
@@ -67,8 +69,6 @@ use Error::DB::Open;
 # Set rate limit parameters
 Readonly my $MAX_REQUESTS => 100;	# Default max requests allowed
 Readonly my $TIME_WINDOW => '60s';	# Time window for the maximum requests
-
-sub vwflog($$$$$$);	# Ensure all arguments are given
 
 my $info = CGI::Info->new();
 my $config;
@@ -125,7 +125,7 @@ Log::WarnDie->dispatcher($logger);
 
 use Ged2site::DB::people;
 if($@) {
-	$logger->error($@);
+	$logger->error($@) if($logger);
 	Log::WarnDie->dispatcher(undef);
 	die $@;
 }
@@ -154,7 +154,7 @@ Database::Abstraction::init({
 
 my $people = Ged2site::DB::people->new();
 if($@) {
-	$logger->error($@);
+	$logger->error($@) if($logger);
 	Log::WarnDie->dispatcher(undef);
 	die $@;
 }
@@ -702,9 +702,6 @@ sub choose
 	my $status = $info->status();
 
 	if($status != 200) {
-		require HTTP::Status;
-		HTTP::Status->import();
-
 		print "Status: $status ",
 			HTTP::Status::status_message($status),
 			"\n\n";
@@ -784,13 +781,12 @@ sub filter
 	# return 0 if($_[0] =~ /Can't locate auto\/NetAddr\/IP\/InetBase\/AF_INET6.al in /);
 	# return 0 if($_[0] =~ /S_IFFIFO is not a valid Fcntl macro at /);
 
-	return 0 if $_[0] =~ /Can't locate (Net\/OAuth\/V1_0A\/ProtectedResourceRequest\.pm|auto\/NetAddr\/IP\/InetBase\/AF_INET6\.al) in |
-		   S_IFFIFO is not a valid Fcntl macro at /x;
+	return 0 if $_[0] =~ /Can't locate (Net\/OAuth\/V1_0A\/ProtectedResourceRequest\.pm|auto\/NetAddr\/IP\/InetBase\/AF_INET6\.al) in |S_IFFIFO is not a valid Fcntl macro at /;
 	return 1;
 }
 
 # Put something to vwf.log
-sub vwflog($$$$$$)
+sub vwflog
 {
 	my ($vwflog, $info, $lingua, $syslog, $message, $log) = @_;
 
@@ -803,7 +799,7 @@ sub vwflog($$$$$$)
 	}
 	$message ||= '';
 
-	if(!-r $vwflog) {
+	if(!-e $vwflog) {
 		# First run - put in the heading row
 		open(my $fout, '>', $vwflog);
 		print $fout '"domain_name","time","IP","country","type","language","http_code","template","args","messages","error"',
