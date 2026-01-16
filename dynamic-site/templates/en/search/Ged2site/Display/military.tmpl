@@ -10,20 +10,20 @@
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
 		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne, all rights reserved">
-		<title>Military Personnel for [% SiteTitle.join(' ') %]</title>
-		<meta name="description" content="People in [% SiteTitle.join(' ') %] who fell in the First World War - a Ged2Site webpage">
+		<title>Military Personnel for [% SiteTitle.Default.join(' ') %]</title>
+		<meta name="description" content="People in [% SiteTitle.Default.join(' ') %] who fell in the First World War - a Ged2Site webpage">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 	</head>
 	<body>
-		<h1>Military Personnel for [% SiteTitle.join(' ') %]</h1>
+		<h1>Military Personnel for [% SiteTitle.Default.join(' ') %]</h1>
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
 
-		This page shows those people in [% SiteTitle.join(' ') %] with known military records.
+		This page shows those people in [% SiteTitle.Default.join(' ') %] with known military records.
 
 		<a href="?page=people&amp;home=1">Home</a><br>
 		<a href="?page=censuses">Census Index</a><br>

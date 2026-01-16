@@ -5,7 +5,7 @@
 		[% IF surname %]
 			<title>[% surname.0.surname %]</title>
 		[% ELSE %]
-			<title>[% SiteTitle.join(' ') %]</title>
+			<title>[% SiteTitle.Default.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--

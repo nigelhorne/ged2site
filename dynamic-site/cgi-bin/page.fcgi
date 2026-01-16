@@ -214,13 +214,16 @@ $SIG{PIPE} = 'IGNORE';
 # my ($stdin, $stdout, $stderr) = (IO::Handle->new(), IO::Handle->new(), IO::Handle->new());
 # https://stackoverflow.com/questions/14563686/how-do-i-get-errors-in-from-a-perl-script-running-fcgi-pm-to-appear-in-the-apach
 $SIG{__DIE__} = $SIG{__WARN__} = sub {
-	if(open(my $fout, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"))) {
-		print $fout $info->domain_name(), ": @_";
-	# } else {
-		# print $stderr @_;
-	}
+	my $msg = join '', @_;
 	Log::WarnDie->dispatcher(undef);
-	CORE::die @_
+	if(open(my $fout, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"))) {
+		print $fout $info->domain_name(), ": $msg";
+		close $fout;
+	# } else {
+		# print $stderr $msg;
+	}
+	$logger->fatal($msg) if($logger);
+	CORE::die $msg;
 };
 
 # my $request = FCGI::Request($stdin, $stdout, $stderr);
@@ -385,6 +388,8 @@ exit(0);
 # Create and send response to the client for each request
 sub doit
 {
+	my $request_start = Time::HiRes::time();
+
 	CGI::Info->reset();
 
 	# Call domain_name in a class context to ensure it's reread now that FCGI has started up
@@ -417,6 +422,62 @@ sub doit
 	}
 	$info = CGI::Info->new($options);
 
+	# Configure cache for rate limiting
+	$rate_limit_cache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'rate_limit');
+
+	# Get client IP
+	my $client_ip = $ENV{'REMOTE_ADDR'} || 'unknown';
+
+	# Check for CAPTCHA bypass token
+	my $captcha_bypass_key = "$script_name:captcha_bypass:$client_ip";
+	my $has_captcha_bypass = $rate_limit_cache->get($captcha_bypass_key);
+
+	# Check and increment request count
+	my $request_count = $rate_limit_cache->get("$script_name:rate_limit:$client_ip") || 0;
+
+	# Get rate limit thresholds
+	my $max_requests = $config->{'security'}->{'rate_limiting'}->{'max_requests'} || $MAX_REQUESTS;
+	my $max_requests_hard = $config->{'security'}->{'rate_limiting'}->{'max_requests_hard'} || ($max_requests * 1.5);
+
+	# Check if this is a CAPTCHA verification attempt
+	if ($info->param('g-recaptcha-response')) {
+		require 'VWF::CAPTCHA';
+		VWF::CAPTCHA->new();
+
+		my $recaptcha_config = $config->recaptcha();
+		if ($recaptcha_config && $recaptcha_config->{enabled}) {
+			my $captcha = VWF::CAPTCHA->new(
+				site_key => $recaptcha_config->{site_key},
+				secret_key => $recaptcha_config->{secret_key},
+				logger => $logger
+			);
+
+			if ($captcha->verify($info->param('g-recaptcha-response'), $client_ip)) {
+				# CAPTCHA verified - grant bypass
+				my $bypass_duration = $config->{'security'}->{'rate_limiting'}->{'captcha_bypass_duration'} || '300s';
+				$rate_limit_cache->set($captcha_bypass_key, 1, $bypass_duration);
+				$rate_limit_cache->set("$script_name:rate_limit:$client_ip", 0, '60s'); # Reset counter
+
+				$logger->info("CAPTCHA verified for $client_ip - rate limit bypass granted");
+				$has_captcha_bypass = 1;
+
+				# Redirect to original page or home
+				my $redirect_page = $info->param('page') || 'index';
+				$info->status(302);
+				print "Status: 302 Found\n",
+					"Location: $ENV{SCRIPT_NAME}?page=$redirect_page\n\n";
+				return;
+			} else {
+				$logger->warn("CAPTCHA verification failed for $client_ip");
+				# Fall through to show CAPTCHA again
+			}
+		}
+	}
+
+	# TODO: update the vwf_log variable to point here
+	$vwflog ||= $config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log');
+	my $log = Class::Simple->new();
+
 	# Stores things for a month or longer
 	$lingua_cache ||= create_disc_cache(config => $config, logger => $logger, namespace => 'CGI::Lingua');
 
@@ -430,38 +491,63 @@ sub doit
 		syslog => $syslog,
 	});
 
-	# Configure cache for rate limiting (change to create_disc_cache for persistence)
-	$rate_limit_cache ||= create_memory_cache(config => $config, logger => $logger, namespace => 'rate_limit');
+	my $cachedir = $params{'cachedir'} || $config->{disc_cache}->{root_dir} || File::Spec->catfile($tmpdir, 'cache');
 
-	# Get client IP
-	my $client_ip = $ENV{'REMOTE_ADDR'} || 'unknown';
+	# Rate limit by IP (unless bypassed)
+	unless($has_captcha_bypass || grep { $_ eq $client_ip } @rate_limit_trusted_ips) {
+		if ($request_count >= $max_requests_hard) {
+			# Hard limit exceeded - show CAPTCHA with warning
+			my $recaptcha_config = $config->recaptcha();
 
-	# Check and increment request count
-	my $request_count = $rate_limit_cache->get("$script_name:rate_limit:$client_ip") || 0;
+			if ($recaptcha_config && $recaptcha_config->{enabled}) {
+				$logger->warn("Hard rate limit exceeded for $client_ip ($request_count requests)");
+				$info->status(429);
 
-	# TODO: update the vwf_log variable to point here
-	$vwflog ||= $config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log');
-	my $log = Class::Simple->new();
+				eval 'require VWF::Display::captcha';
+				my $display = VWF::Display::captcha->new({
+					cachedir => $cachedir,
+					info => $info,
+					logger => $logger,
+					lingua => $lingua,
+					config => $config,
+				});
 
-	# Rate limit by IP
-	unless(grep { $_ eq $client_ip } @rate_limit_trusted_ips) {	# Bypass rate limiting
-		my $max_requests = $config->{'security'}->{'rate_limiting'}->{'max_requests'} || $MAX_REQUESTS;
-		if($request_count >= $max_requests) {
-			# Block request: Too many requests
-			my $retry_after = $config->{'security'}->{'rate_limiting'}->{'time_window'} || $TIME_WINDOW;
-			$retry_after =~ s/\D//g;	# Change 60s to 60, assume TIME_WINDOW is seconds
+				# print "Pragma: no-cache\n\n";
+				print $display->as_string({
+					Retry_After => 60,
+					hard_block => 1,
+					request_count => $request_count,
+				});
 
-			print "Status: 429 Too Many Requests\n",
-				"Content-type: text/plain\n",
-				"Retry-After: $retry_after\n",
-				"Pragma: no-cache\n\n";
+				vwflog($vwflog, $info, $lingua, $syslog, 'Hard rate limit - CAPTCHA shown', $log, $request_start);
+				return;
+			}
+		} elsif ($request_count >= $max_requests) {
+			# Soft limit exceeded - show CAPTCHA
+			my $recaptcha_config = $config->recaptcha();
 
-			$logger->warn("Too many requests from $client_ip");
-			$info->status(429);
+			if ($recaptcha_config && $recaptcha_config->{enabled}) {
+				$logger->info("Soft rate limit exceeded for $client_ip ($request_count requests) - CAPTCHA challenge issued");
+				$info->status(429);
 
-			vwflog($vwflog, $info, $lingua, $syslog, 'Too many requests', $log);
-			sleep(1);
-			return;
+				my $display = VWF::Display::captcha->new({
+					cachedir => $cachedir,
+					info => $info,
+					logger => $logger,
+					lingua => $lingua,
+					config => $config,
+				});
+
+				# print "Pragma: no-cache\n\n";
+				print $display->as_string({
+					Retry_After => 60,
+					hard_block => 0,
+					request_count => $request_count,
+				});
+
+				vwflog($vwflog, $info, $lingua, $syslog, 'Soft rate limit - CAPTCHA shown', $log, $request_start);
+				return;
+			}
 		}
 	}
 
@@ -494,7 +580,7 @@ sub doit
 			}
 			$logger->info("$remote_addr: access denied: $reason");
 			$info->status(403);
-			vwflog($vwflog, $info, $lingua, $syslog, $reason, $log);
+			vwflog($vwflog, $info, $lingua, $syslog, $reason, $log, $request_start);
 			return;
 		}
 	}
@@ -522,8 +608,6 @@ sub doit
 	}
 
 	my $fb = FCGI::Buffer->new()->init($args);
-
-	my $cachedir = $params{'cachedir'} || $config->{disc_cache}->{root_dir} || File::Spec->catfile($tmpdir, 'cache');
 
 	if($fb->can_cache()) {
 		$buffercache ||= create_disc_cache(config => $config, logger => $logger, namespace => $script_name, root_dir => $cachedir);
@@ -635,10 +719,10 @@ sub doit
 			military => $military,
 			vwf_log => $vwf_log,
 		});
-		vwflog($vwflog, $info, $lingua, $syslog, '', $log);
+		vwflog($vwflog, $info, $lingua, $syslog, '', $log, $request_start);
 	} elsif($invalidpage) {
 		choose();
-		vwflog($vwflog, $info, $lingua, $syslog, 'Unknown page', $log);
+		vwflog($vwflog, $info, $lingua, $syslog, 'Unknown page', $log, $request_start);
 		return;
 	} else {
 		$logger->debug('disabling cache');
@@ -690,7 +774,7 @@ sub doit
 			}
 			$log->status($status);
 		}
-		vwflog($vwflog, $info, $lingua, $syslog, $error ? $error : 'Access denied', $log);
+		vwflog($vwflog, $info, $lingua, $syslog, $error ? $error : 'Access denied', $log, $request_start);
 		throw Error::Simple($error ? $error : $info->as_string());
 	}
 }
@@ -766,7 +850,7 @@ sub blacklisted
 		if(my $string = $info->as_string()) {
 			if(($string =~ /SELECT.+AND.+/i) || ($string =~ /ORDER BY /i) || ($string =~ / OR NOT /i) || ($string =~ / AND \d+=\d+/i) || ($string =~ /THEN.+ELSE.+END/i) || ($string =~ /.+AND.+SELECT.+/i) || ($string =~ /\sAND\s.+\sAND\s/i) || ($string =~ /AND\sCASE\sWHEN/i)) {
 				$blacklisted_ip{$remote} = 1;
-				$info->status(301);
+				$info->status(403);
 				return 1;
 			}
 		}
@@ -788,7 +872,12 @@ sub filter
 # Put something to vwf.log
 sub vwflog
 {
-	my ($vwflog, $info, $lingua, $syslog, $message, $log) = @_;
+	my ($vwflog, $info, $lingua, $syslog, $message, $log, $request_start) = @_;
+
+	my $duration_ms = '';
+	if($request_start) {
+		$duration_ms = int( (Time::HiRes::time() - $request_start) * 1000 );
+	}
 
 	my $template;
 	if($log) {
@@ -802,7 +891,7 @@ sub vwflog
 	if(!-e $vwflog) {
 		# First run - put in the heading row
 		open(my $fout, '>', $vwflog);
-		print $fout '"domain_name","time","IP","country","type","language","http_code","template","args","messages","error"',
+		print $fout '"domain_name","time","IP","country","type","language","http_code","template","args","messages","error","duration_ms"',
 			"\n";
 		close $fout;
 	}
@@ -824,7 +913,8 @@ sub vwflog
 			'"', $template, '",',
 			'"', $info->as_string(raw => 1), '",',
 			'"', $warnings, '",',
-			'"', $message, '"',
+			'"', $message, '",',
+			$duration_ms,
 			"\n";
 		close($fout);
 	}
@@ -837,7 +927,7 @@ sub vwflog
 			Sys::Syslog::setlogsock($syslog);
 		}
 		Sys::Syslog::openlog($script_name, 'cons,pid', 'user');
-		Sys::Syslog::syslog('info|local0', '%s %s %s %s %s %d %s %s %s %s',
+		Sys::Syslog::syslog('info|local0', '%s %s %s %s %s %d %s %s %d %s %s',
 			$info->domain_name() || '',
 			$ENV{REMOTE_ADDR} || '',
 			$lingua->country() || '',
@@ -846,6 +936,7 @@ sub vwflog
 			$info->status() || '',
 			$template || '',
 			$info->as_string(raw => 1) || '',
+			$duration_ms,
 			$warnings,
 			$message
 		);

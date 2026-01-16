@@ -15,17 +15,17 @@
 		-->
 		<link rel="stylesheet" href="/css/sprite.css" type="text/css">
 		<meta name="Copyright" content="Copyright (C) 2026 Nigel Horne">
-		<meta name="description" content="Explore [% SiteTitle.join(' ') %], with ancestors, census records, and historical events.">
-		<title>[% SiteTitle.join(' ') %]</title>
-		<meta property="og:title" content="[% SiteTitle.join(' ') %]">
+		<meta name="description" content="Explore [% SiteTitle.Default.join(' ') %], with ancestors, census records, and historical events.">
+		<title>[% SiteTitle.Default.join(' ') %]</title>
+		<meta property="og:title" content="[% SiteTitle.Default.join(' ') %]">
 		<meta property="og:description" content="Discover the history, ancestors, and stories of [% contact.name %]">
 		<!--
 		<meta property="og:url" content="https://genealogy.nigelhorne.com">
 		-->
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
-			[% IF SiteTitle %]
-				<meta name="twitter:title" content="[% SiteTitle.join(' ') %]">
+			[% IF SiteTitle.Default %]
+				<meta name="twitter:title" content="[% SiteTitle.Default.join(' ') %]">
 			[% END %]
 		[% END %]
 		<!--
@@ -36,7 +36,7 @@
 	<body>
 		<div id="header_container">
 			<center>
-				<h1>[% SiteTitle.join(' ') %]</h1>
+				<h1>[% SiteTitle.Default.join(' ') %]</h1>
 				<div class="social_media">
 					<div class="non-printable">
 						<!-- pop-up code from http://www.quackit.com/html/codes/html_popup_window_code.cfm -->
@@ -64,9 +64,9 @@
 						<!-- Twitter -->
 						[% IF twitter %]
 							<!-- use the twitter value from the configuration file -->
-							<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% SiteTitle | replace('\s+', '%20') %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+							<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% SiteTitle.Default | replace('\s+', '%20') %]%20via%20@[% twitter %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 						[% ELSE %]
-							<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% SiteTitle | replace('\s+', '%20') %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
+							<a href="//twitter.com/share?url=[% env.SCRIPT_URI %]%26[% info.as_string %]&amp;hashtags=genealogy&amp;text=[% SiteTitle.Default | replace('\s+', '%20') %]" onclick="centeredPopup(this.href,'myWindow','700','300','yes');return false">
 						[% END %]
 						<!--
 							<img src="/images/socicon.com/twitter.png" alt="Twitter" height="50" width="50">

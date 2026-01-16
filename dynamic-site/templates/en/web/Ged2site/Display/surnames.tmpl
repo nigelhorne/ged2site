@@ -5,16 +5,16 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
 		[% IF surname %]
-			<title>Entries for the Surname [% surname %] in [% SiteTitle.join(' ') %]</title>
-			<meta name="description" content="A list of people with the surname [% surname %] on [% SiteTitle.join(' ') %] - A Ged2Site webpage">
+			<title>Entries for the Surname [% surname %] in [% SiteTitle.Default.join(' ') %]</title>
+			<meta name="description" content="A list of people with the surname [% surname %] on [% SiteTitle.Default.join(' ') %] - A Ged2Site webpage">
 		[% ELSE %]
-			<title>Surnames for [% SiteTitle.join(' ') %]</title>
-			<meta name="description" content="Surnames in [% SiteTitle.join(' ') %] - A Ged2Site webpage">
+			<title>Surnames for [% SiteTitle.Default.join(' ') %]</title>
+			<meta name="description" content="Surnames in [% SiteTitle.Default.join(' ') %] - A Ged2Site webpage">
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
-			<meta name="twitter:title" content="[% SiteTitle %]">
+			<meta name="twitter:title" content="[% SiteTitle.Default %]">
 		[% END %]
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<!--
@@ -38,9 +38,9 @@
 		<div id="header_container">
 			<center>
 				[% IF surname %]
-					<h1>Entries for the Surname [% surname %] in [% SiteTitle.join(' ') %]</h1>
+					<h1>Entries for the Surname [% surname %] in [% SiteTitle.Default.join(' ') %]</h1>
 				[% ELSE %]
-					<h1>Surnames for [% SiteTitle.join(' ') %]</h1>
+					<h1>Surnames for [% SiteTitle.Default.join(' ') %]</h1>
 				[% END %]
 				[% IF error %]
 					<p><font color="red" size="+2">[% error %]</font></p>

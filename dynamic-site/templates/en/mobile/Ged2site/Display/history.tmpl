@@ -5,7 +5,7 @@
 		[% IF name %]
 			<title>Timeline of [% name %]</title>
 		[% ELSE %]
-			<title>History of [% SiteTitle.join(' ') %]</title>
+			<title>History of [% SiteTitle.English.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
@@ -24,7 +24,7 @@
 			[% IF name %]
 				<h1>Timeline of [% name %]</h1>
 			[% ELSE %]
-				<h1>History of [% SiteTitle.join(' ') %]</h1>
+				<h1>History of [% SiteTitle.English.join(' ') %]</h1>
 			[% END %]
 			[ <a href="?page=people&amp;home=1">Home</a> ] |
 			[ <a href="?page=people&amp;entry=[%- person.xref %]">Biography</a> ] |

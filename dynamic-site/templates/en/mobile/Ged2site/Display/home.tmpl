@@ -8,13 +8,13 @@
 		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="/css/mobile.css" type="text/css" media="screen">
-		<title>[% SiteTitle.join(' ') %]</title>
-		<meta name="description" content="[% SiteTitle.join(' ') %] - A Ged2Site webpage">
+		<title>[% SiteTitle.Default.join(' ') %]</title>
+		<meta name="description" content="[% SiteTitle.Default.join(' ') %] - A Ged2Site webpage">
 		<meta http-equiv="Content-Language" content="English">
 		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 	</head>
 	<body>
-		<h1>[% SiteTitle.join(' ') %]</h1>
+		<h1>[% SiteTitle.Default.join(' ') %]</h1>
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]

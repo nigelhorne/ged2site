@@ -4,13 +4,13 @@
 <html lang="en">
 	<head>
 		[% IF month %]
-			<title>&Eacute;v&eacute;nements dans [% month %] [% year %] in [% SiteTitle.join(' ') %]</title>
+			<title>&Eacute;v&eacute;nements dans [% month %] [% year %] in [% SiteTitle.Default.join(' ') %]</title>
 		[% ELSE %]
-			<title>Calendar of [% SiteTitle.join(' ') %]</title>
+			<title>Calendar of [% SiteTitle.Default.join(' ') %]</title>
 		[% END %]
 		<meta name="Copyright" content="Copyright (C) 2022 Nigel Horne">
 		<meta http-equiv="Content-Language" content="English">
-		<meta name="description" content="Display the genealogy calendar of [% SiteTitle.join(' ') %] dans [% month %] [% year %] - A Ged2Site webpage">
+		<meta name="description" content="Display the genealogy calendar of [% SiteTitle.Default.join(' ') %] dans [% month %] [% year %] - A Ged2Site webpage">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
@@ -30,7 +30,7 @@
 				\$('#calendar').fullCalendar({
 					header: {
 						left: 'prev,next',
-						// center: 'Calendar of [% SiteTitle.join(" ") %]'
+						// center: 'Calendar of [% SiteTitle.Default.join(" ") %]'
 						center: 'title',
 						right: '',
 						lang: 'fr',
@@ -64,7 +64,7 @@
 	</head>
 	<body>
 		<center>
-			<h1>Calendar of [% SiteTitle.join(' ') %]</h1>
+			<h1>Calendar of [% SiteTitle.Default.join(' ') %]</h1>
 			<p>
 				[ <a href="?page=home">Accueil</a> ] |
 				[ <a href="?page=censuses">Index des Recensements</a> |
@@ -86,9 +86,9 @@
 		<!--
 		<center>
 			[% IF month %]
-				<h1>&Eacute;v&eacute;nements en [% month %] [% year %] dans [% SiteTitle.join(' ') %]</h1>
+				<h1>&Eacute;v&eacute;nements en [% month %] [% year %] dans [% SiteTitle.Default.join(' ') %]</h1>
 			[% ELSE %]
-				<h1>Calendar of [% SiteTitle.join(' ') %]</h1>
+				<h1>Calendar of [% SiteTitle.Default.join(' ') %]</h1>
 			[% END %]
 			[ <a href="?page=people&amp;home=1">Home</a> ] | [ <a href="?page=censuses">Census Index</a> ] | [ <a href="?page=surnames">Surname Index</a> ] | <a href=?page=history">Family History</a> ]
 			[% IF error %]

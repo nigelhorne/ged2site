@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 	<head>
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
-		<title>Reports for [% SiteTitle.join(' ') %]</title>
+		<title>Reports for [% SiteTitle.Default.join(' ') %]</title>
 		<!--
 			<meta http-equiv="Content-Language" content="English">
 		-->
@@ -10,13 +10,13 @@
 		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
-			<meta name="twitter:title" content="[% SiteTitle %]">
+			<meta name="twitter:title" content="[% SiteTitle.Default %]">
 		[% END %]
 	</head>
 	<body>
 		<div id="header_container">
 			<center>
-				<h1>Reports for [% SiteTitle.join(' ') %]</h1>
+				<h1>Reports for [% SiteTitle.Default.join(' ') %]</h1>
 			</center>
 		</div>
 		<div id="container">

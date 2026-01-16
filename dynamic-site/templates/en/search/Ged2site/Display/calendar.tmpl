@@ -3,22 +3,22 @@
 <html lang="en">
 	<head>
 		[% IF month %]
-			<title>Events in [% month %] [% year %] in [% SiteTitle.join(' ') %]</title>
+			<title>Events in [% month %] [% year %] in [% SiteTitle.Default.join(' ') %]</title>
 		[% ELSE %]
-			<title>Calendar of [% SiteTitle.join(' ') %]</title>
+			<title>Calendar of [% SiteTitle.Default.join(' ') %]</title>
 		[% END %]
 		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne">
 		<meta http-equiv="Content-Language" content="English">
-		<meta name="description" content="Display the genealogy calendar of [% SiteTitle.join(' ') %] in [% month %] [% year %] - A Ged2Site webpage">
+		<meta name="description" content="Display the genealogy calendar of [% SiteTitle.Default.join(' ') %] in [% month %] [% year %] - A Ged2Site webpage">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 	</head>
 	<body>
 		<center>
-			<h1>Calendar of [% SiteTitle.join(' ') %]</h1>
+			<h1>Calendar of [% SiteTitle.Default.join(' ') %]</h1>
 			<p>
-				This page shows a calendar of births, marriages and deaths in [% SiteTitle.join(' ') %]
+				This page shows a calendar of births, marriages and deaths in [% SiteTitle.Default.join(' ') %]
 			</p>
 			[% IF error %]
 				<p><font color="red" size="+2">[% error %]</font></p>

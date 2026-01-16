@@ -3,9 +3,9 @@
 <html lang="en">
 	<head>
 		[% IF census %]
-			<title>[% census.0.census %] entries in [% SiteTitle.join(' ') %]</title>
+			<title>[% census.0.census %] entries in [% SiteTitle.Default.join(' ') %]</title>
 		[% ELSE %]
-			<title>Censuses for [% SiteTitle.join(' ') %]</title>
+			<title>Censuses for [% SiteTitle.Default.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
@@ -18,9 +18,9 @@
 	<body>
 		<center>
 			[% IF census %]
-				<h1>[% census.0.census %] entries in [% SiteTitle.join(' ') %]</h1>
+				<h1>[% census.0.census %] entries in [% SiteTitle.Default.join(' ') %]</h1>
 			[% ELSE %]
-				<h1>Censuses for [% SiteTitle.join(' ') %]</h1>
+				<h1>Censuses for [% SiteTitle.Default.join(' ') %]</h1>
 			[% END %]
 			[% IF error %]
 				<p><font color="red" size="+2">[% error %]</font></p>

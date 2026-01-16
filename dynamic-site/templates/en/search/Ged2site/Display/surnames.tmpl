@@ -11,12 +11,12 @@
 		<meta name="robots" content="index, follow" />
 		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne, all rights reserved">
 		[% IF surname %]
-			<title>Genealogy records for [% surname %] in [% SiteTitle.join(' ') %]</title>
-			<meta name="description" content="Browse a list of people with the surname [% surname %] in [% SiteTitle.join(' ') %]. Explore family history records and trace ancestral lines." />
+			<title>Genealogy records for [% surname %] in [% SiteTitle.Default.join(' ') %]</title>
+			<meta name="description" content="Browse a list of people with the surname [% surname %] in [% SiteTitle.Default.join(' ') %]. Explore family history records and trace ancestral lines." />
 			<meta name="keywords" content="genealogy, surnames, [% surname %] history, family history, family tree, ancestral names" />
 		[% ELSE %]
-			<title>Genealogy Surname Index for [% SiteTitle.join(' ') %]</title>
-			<meta name="description" content="Browse an alphabetical index of surnames from [% SiteTitle.join(' ') %]. Explore family history records and trace ancestral lines." />
+			<title>Genealogy Surname Index for [% SiteTitle.Default.join(' ') %]</title>
+			<meta name="description" content="Browse an alphabetical index of surnames from [% SiteTitle.Default.join(' ') %]. Explore family history records and trace ancestral lines." />
 			<meta name="keywords" content="genealogy, surnames, family history, family tree, ancestral names" />
 		[% END %]
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,15 +26,15 @@
 	</head>
 	<body>
 		[% IF surname %]
-			<title>Genealogy records for [% surname %] | [% SiteTitle.join(' ') %]</title>
+			<title>Genealogy records for [% surname %] | [% SiteTitle.Default.join(' ') %]</title>
 		[% ELSE %]
-			<title>Genealogy Surname Index | [% SiteTitle.join(' ') %]</title>
+			<title>Genealogy Surname Index | [% SiteTitle.Default.join(' ') %]</title>
 		[% END %]
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
 
-		Explore an extensive collection of family surnames featured in [% SiteTitle.join(' ') %].
+		Explore an extensive collection of family surnames featured in [% SiteTitle.Default.join(' ') %].
 		This alphabetical index provides quick access to ancestral records,
 		helping you trace lineage,
 		uncover historical connections,

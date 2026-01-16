@@ -10,20 +10,20 @@
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
 		<meta name="Copyright" content="Copyright (C) 2024 Nigel Horne, all rights reserved">
-		<title>WW2 Fatalities for [% SiteTitle.join(' ') %]</title>
-		<meta name="description" content="People in [% SiteTitle.join(' ') %] who fell in the Second World War - a Ged2Site webpage">
+		<title>WW2 Fatalities for [% SiteTitle.Default.join(' ') %]</title>
+		<meta name="description" content="People in [% SiteTitle.Default.join(' ') %] who fell in the Second World War - a Ged2Site webpage">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 	</head>
 	<body>
-		<h1>WW1 Fatalities for [% SiteTitle.join(' ') %]</h1>
+		<h1>WW1 Fatalities for [% SiteTitle.Default.join(' ') %]</h1>
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
 
-		This page shows those people in [% SiteTitle.join(' ') %] who died in Europe during the Second World War.
+		This page shows those people in [% SiteTitle.Default.join(' ') %] who died in Europe during the Second World War.
 		Currently it does not include those in the Navy who died at sea or in the war in Asia.
 
 		<a href="?page=people&amp;home=1">Home</a><br>

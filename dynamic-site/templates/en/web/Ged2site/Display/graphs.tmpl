@@ -52,12 +52,12 @@
 		<title>[% title %]</title>
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
-			<meta name="twitter:title" content="[% SiteTitle %]">
+			<meta name="twitter:title" content="[% SiteTitle.Default %]">
 		[% END %]
 		<!--
 			<meta http-equiv="Content-Language" content="English">
 		-->
-		<meta name="description" content="[% SiteTitle.join(' ') %] [% title %] - A Ged2Site webpage">
+		<meta name="description" content="[% SiteTitle.Default.join(' ') %] [% title %] - A Ged2Site webpage">
 		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
 		<style type="text/css">
 			/* Two columns */
@@ -680,7 +680,7 @@
 		[% ELSE %]
 			<div id="header_container">
 				<center>
-					<h1>Analytics for [% SiteTitle.join(' ') %]</h1>
+					<h1>Analytics for [% SiteTitle.Default.join(' ') %]</h1>
 				</center>
 			</div>
 			<div id="container">

@@ -3,9 +3,9 @@
 <html lang="en">
 	<head>
 		[% IF entry %]
-			<title>Map for [% entry %] in [% SiteTitle.join(' ') %]</title>
+			<title>Map for [% entry %] in [% SiteTitle.Default.join(' ') %]</title>
 		[% ELSE %]
-			<title>Maps for [% SiteTitle.join(' ') %]</title>
+			<title>Maps for [% SiteTitle.Default.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
@@ -24,9 +24,9 @@
 		<div id="header_container">
 			<center>
 				[% IF entry %]
-					<h1>Map for [% entry %] in [% SiteTitle.join(' ') %]</h1>
+					<h1>Map for [% entry %] in [% SiteTitle.Default.join(' ') %]</h1>
 				[% ELSE %]
-					<h1>Maps for [% SiteTitle.join(' ') %]</h1>
+					<h1>Maps for [% SiteTitle.Default.join(' ') %]</h1>
 				[% END %]
 				[% IF error %]
 					<p><font color="red" size="+2">[% error %]</font></p>

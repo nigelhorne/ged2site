@@ -11,9 +11,9 @@
 			<title>[% person.title %]</title>
 			<meta name="description" content="About [% person.title %] - A Ged2Site webpage">
 		[% ELSIF home %]
-			<title>[% SiteTitle.join(' ') %]</title>
+			<title>[% SiteTitle.Default.join(' ') %]</title>
 		[% ELSE %]
-			<title>[% SiteTitle.join(' ') %]</title>
+			<title>[% SiteTitle.Default.join(' ') %]</title>
 			<script language="JavaScript">
 				<!--HIDE
 				function time() {
@@ -23,15 +23,15 @@
 				//STOP HIDING-->
 			</script>
 			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=home">
-			<meta name="description" content="[% SiteTitle.join(' ') %] - A Ged2Site webpage">
+			<meta name="description" content="[% SiteTitle.Default.join(' ') %] - A Ged2Site webpage">
 		[% END %]
 		[% IF person.map_head %]
 			[% decode_base64url(person.map_head) %]
 		[% END %]
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
-			[% IF SiteTitle %]
-				<meta name="twitter:title" content="[% SiteTitle.join(' ') %]">
+			[% IF SiteTitle.Default %]
+				<meta name="twitter:title" content="[% SiteTitle.Default.join(' ') %]">
 			[% END %]
 		[% END %]
 		<!--
@@ -227,10 +227,10 @@
 				[% END %]
 			</div>
 		[% ELSIF home %]
-			<h1>[% SiteTitle.join(' ') %]</h1>
+			<h1>[% SiteTitle.Default.join(' ') %]</h1>
 			<p><font color="red" size="+2">Home record not found - probably '-h' flag wasn't set given to Ged2Site</font></p>
 		[% ELSE %]
-			<h1>[% SiteTitle.join(' ') %]</h1>
+			<h1>[% SiteTitle.Default.join(' ') %]</h1>
 			<center><img src="/images/page-loader.gif" height="300" width="300" alt="loading icon"></center>
 		[% END %]
 

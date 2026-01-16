@@ -277,9 +277,12 @@ sub AUTOLOAD
 	my $self = shift;
 
 	return undef unless($self);
+	return unless defined($AUTOLOAD);
 
 	# Extract the key name from the AUTOLOAD variable
 	(my $key = $AUTOLOAD) =~ s/.*:://;
+
+	return unless defined($key);
 
 	# Don't handle special methods
 	return if $key eq 'DESTROY';

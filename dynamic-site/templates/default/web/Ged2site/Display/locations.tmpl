@@ -3,9 +3,9 @@
 <html lang="en">
 	<head>
 		[% IF year %]
-			<title>Map for [% year %] in [% SiteTitle.join(' ') %]</title>
+			<title>Map for [% year %] in [% SiteTitle.Default.join(' ') %]</title>
 		[% ELSE %]
-			<title>Maps for [% SiteTitle.join(' ') %]</title>
+			<title>Maps for [% SiteTitle.Default.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--

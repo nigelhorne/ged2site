@@ -6,7 +6,7 @@
 			[% IF person %]
 				[% person.title | html_entity %]
 			[% ELSE %]
-				[% SiteTitle.join(' ') %]
+				[% SiteTitle.Default.join(' ') %]
 			[% END %]
 		</title>
 		[% IF keywords %]

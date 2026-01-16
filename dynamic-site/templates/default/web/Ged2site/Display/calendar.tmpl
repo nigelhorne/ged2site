@@ -3,9 +3,9 @@
 <html lang="en">
 	<head>
 		[% IF month %]
-			<title>Events in [% month %] [% year %] in [% SiteTitle.join(' ') %]</title>
+			<title>Events in [% month %] [% year %] in [% SiteTitle.Default.join(' ') %]</title>
 		[% ELSE %]
-			<title>Calendar of [% SiteTitle.join(' ') %]</title>
+			<title>Calendar of [% SiteTitle.Default.join(' ') %]</title>
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--

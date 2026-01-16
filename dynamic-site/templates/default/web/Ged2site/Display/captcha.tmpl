@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Please Verify You're Human</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .captcha-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box strong {
+            color: #333;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .g-recaptcha {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hard-block {
+            background: #fee;
+            border-left-color: #dc3545;
+        }
+
+        .hard-block-icon {
+            color: #dc3545;
+        }
+
+        @media (max-width: 480px) {
+            .captcha-container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="captcha-container">
+        [% IF is_hard_block %]
+            <div class="icon hard-block-icon">🚫</div>
+            <h1>Access Temporarily Blocked</h1>
+            <p class="subtitle">Too many requests detected</p>
+
+            <div class="info-box hard-block">
+                <strong>You've exceeded the maximum request limit</strong>
+                <p>You made [% request_count %] requests. Please wait a few minutes before trying again, or solve the CAPTCHA below to continue immediately.</p>
+            </div>
+        [% ELSE %]
+            <div class="icon">⚠️</div>
+            <h1>Rate Limit Reached</h1>
+            <p class="subtitle">Please verify you're human to continue</p>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">[% request_count %]</div>
+                    <div class="stat-label">Requests Made</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">[% soft_limit %]</div>
+                    <div class="stat-label">Limit per [% time_window %]s</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Why am I seeing this?</strong>
+                <p>You've made more than [% soft_limit %] requests in [% time_window %] seconds. This helps us prevent automated abuse while allowing legitimate users to continue.</p>
+            </div>
+        [% END %]
+
+        <form method="POST" action="[% script_name %]" id="captcha-form">
+            <div class="g-recaptcha" data-sitekey="[% site_key %]" data-callback="enableButton"></div>
+            <button type="submit" id="submit-btn" disabled>
+                [% IF is_hard_block %]
+                    Verify and Continue
+                [% ELSE %]
+                    Continue
+                [% END %]
+            </button>
+        </form>
+    </div>
+
+    <script>
+        function enableButton() {
+            document.getElementById('submit-btn').disabled = false;
+        }
+    </script>
+</body>
+</html>

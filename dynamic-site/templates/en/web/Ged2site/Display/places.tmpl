@@ -11,7 +11,7 @@
 	<meta name="Author" content="Nigel Horne">
 	[% IF twitter %]
 		<meta name="twitter:site" content="@[% twitter %]">
-		[% IF SiteTitle %]
+		[% IF SiteTitle.English %]
 			<meta name="twitter:title" content="[% SiteTitle.English.join(' ') %]">
 		[% END %]
 	[% END %]
@@ -23,9 +23,9 @@
 		[% ELSIF states %]
 			States in [% country %]
 		[% ELSIF countries %]
-			Countries in [% SiteTitle.join(' ') %]
+			Countries in [% SiteTitle.English.join(' ') %]
 		[% ELSE %]
-			People in [% town %], [% state %], [% country %] in [% SiteTitle.join(' ') %]
+			People in [% town %], [% state %], [% country %] in [% SiteTitle.English.join(' ') %]
 			People by Location
 		[% END %]
 	</title>
@@ -52,15 +52,15 @@
 		<div id="header_container">
 			<center>
 				[% IF person %]
-					<h1>[% person.name %] in [% SiteTitle.join(' ') %]</h1>
+					<h1>[% person.name %] in [% SiteTitle.English.join(' ') %]</h1>
 				[% ELSIF towns %]
 					<h1>Towns in [% state %]</h1>
 				[% ELSIF states %]
 					<h1>States in [% country %]</h1>
 				[% ELSIF countries %]
-					<h1>Countries in [% SiteTitle.join(' ') %]</h1>
+					<h1>Countries in [% SiteTitle.English.join(' ') %]</h1>
 				[% ELSE %]
-					<h1>People in [% town %], [% state %], [% country %] in [% SiteTitle.join(' ') %]</h1>
+					<h1>People in [% town %], [% state %], [% country %] in [% SiteTitle.English.join(' ') %]</h1>
 				[% END %]
 				[% IF error %]
 					<p><font color="red" size="+2">[% error %]</font></p>

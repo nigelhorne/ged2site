@@ -1,149 +1,187 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-		<meta http-equiv="Content-Language" content="en">
-		<meta name="robots" content="INDEX,FOLLOW">
-		<meta name="language" content="ENGLISH">
-		<meta name="object" content="Index">
-		<meta name="owner" content="Nigel Horne">
-		<meta name="Author" content="Nigel Horne">
-		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne, all rights reserved">
-		<title>[% SiteTitle %]: Meta Data</title>
-		[% IF keywords %]
-			<meta name="keywords" content="[% keywords %]" />
-		[% END %]
-		<link rel="stylesheet" type="text/css" href="https://www.bandsman.co.uk/css/style.css" />
-		<!-- https://www.geeksforgeeks.org/how-to-create-three-boxes-in-the-same-div-using-html-and-css/ -->
-		<style>
-			* {
-				margin: 0;
-				padding: 0;
-				box-sizing: border-box;
-			}
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+	<meta http-equiv="Content-Language" content="en">
+	<meta name="robots" content="INDEX,FOLLOW">
+	<meta name="language" content="ENGLISH">
+	<meta name="object" content="Index">
+	<meta name="owner" content="Nigel Horne">
+	<meta name="Author" content="Nigel Horne">
+	<meta name="Copyright" content="Copyright (C) 2026 Nigel Horne, all rights reserved">
+	<title>[% SiteTitle.Default %]: Meta Data</title>
+	<link rel="stylesheet" type="text/css" href="/css/style.css" />
+	<style>
+		* { margin:0; padding:0; box-sizing:border-box; }
+		body { margin:2%; font-family: sans-serif; }
+		.box-wrapper { display:flex; flex-direction:row; height:95vh; width:100%; gap:16px; }
+		.left-column, .right-column { flex:1; display:flex; flex-direction:column; gap:16px; }
+		.panel { padding:10px; border:1px solid #ccc; border-radius:6px; background:#f9f9f9; }
+		.panel h2 { margin-bottom:8px; }
+		#chartContainer, #statusChartContainer { height:300px; width:100%; }
+	</style>
 
-			body {
-				margin: 2%;
-				// justify-content: center;
-				overflow: hidden;
-			}
-
-			.box-wrapper {
-				height: 95vh;
-				width: 100%;
-				display: flex;
-				flex-direction: column;
-				// text-align: center;
-			}
-
-			#box1 {
-				padding: 10px;
-				justify-content: center;
-				// border: solid 1px green
-			}
-
-			#box2 {
-				padding: 8px;
-				// border: solid 1px blue
-			}
-
-			#box3 {
-				padding: 10px;
-				flex-grow: 1;
-				display: flex;
-				flex-direction: row;
-				// border: solid 1px green
-			}
-
-			#box4 {
-				// flex-grow: 2;
-				flex-grow: 1;
-				// border: solid 1px orange
-			}
-
-			.middle-column {
-				// flex-grow: 1;
-				flex-grow: 2;
-				display: flex;
-				flex-direction: column;
-			}
-
-			.middle-column div {
-				flex-grow: 1;
-				margin: 0 8px;
-				// border: solid 1px red;
-			}
-
-			.middle-column div+div {
-				margin-top: 8px
-			}
-
-			#box8 {
-				flex-grow: 1;
-				// border: solid 1px black
-			}
-		</style>
-		[% IF datapoints %]
-			<script>
-			window.onload = function() {
-
-			var chart = new CanvasJS.Chart("chartContainer", {
+	<!-- Browser type pie chart -->
+	[% IF datapoints %]
+		<script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+		<script>
+		window.onload = function() {
+			var browserChart = new CanvasJS.Chart("chartContainer", {
 				animationEnabled: true,
-				title: {
-					text: "Browser breakdown by type"
-				},
-				data: [{
-					type: "pie",
-					startAngle: 240,
-					// yValueFormatString: "##0.00\"%\"",
-					 yValueFormatString: "##0",
-					indexLabel: "{label} {y}",
-					dataPoints: [
-						[% datapoints %]
-					]
-				}]
+				title: { text: "Browser Breakdown" },
+				data: [{ type:"pie", startAngle:240, yValueFormatString:"##0", indexLabel:"{label} {y}", dataPoints:[[% datapoints %]] }]
 			});
-			chart.render();
+			browserChart.render();
 
-			}
-			</script>
-		[% END %]
-	</head>
+		    [% IF status_datapoints %]
+		    var statusChart = new CanvasJS.Chart("statusChartContainer", {
+			animationEnabled: true,
+			title: { text: "HTTP Status Breakdown" },
+			data: [{ type:"pie", startAngle:240, yValueFormatString:"##0", indexLabel:"{label} {y}", dataPoints:[[% status_datapoints %]] }]
+		    });
+		    statusChart.render();
+		    [% END %]
+			[% IF rate_total_dp %]
+				var rateChart = new CanvasJS.Chart("rate24hContainer", {
+					animationEnabled: true,
+					title: { text: "Requests vs Errors (Last 24 Hours)" },
+					axisY: {
+						title: "Requests"
+					}, axisY2: {
+						title: "Error %",
+						suffix: "%",
+						includeZero: true,
+						maximum: 100
+					}, toolTip: {
+						shared: true
+					}, data: [
+						{
+							type: "line",
+							name: "Total Requests",
+							showInLegend: true,
+							dataPoints: [ [% rate_total_dp %] ]
+						}, {
+							type: "line",
+							name: "Errors",
+							showInLegend: true,
+							dataPoints: [ [% rate_error_dp %] ]
+						}, {
+							type: "line",
+							name: "Error %",
+							axisYType: "secondary",
+							showInLegend: true,
+							yValueFormatString: "#0.##\"%\"",
+							dataPoints: [ [% rate_error_pct_dp %] ]
+						}
+					]
+				});
+				rateChart.render();
+			[% END %]
+			var latencyChart = new CanvasJS.Chart("latency24hContainer", {
+				animationEnabled: true,
+				title: { text: "Latency (Last 24 Hours)" },
+				axisY: {
+					title: "Milliseconds"
+				},
+				toolTip: {
+					shared: true
+				},
+				data: [
+					{
+						type: "line",
+						name: "Avg Latency",
+						showInLegend: true,
+						dataPoints: [ [% latency_avg_dp %] ]
+					}, {
+						type: "line",
+						name: "P95 Latency",
+						showInLegend: true,
+						dataPoints: [ [% latency_p95_dp %] ]
+					}
+				]
+			});
+			latencyChart.render();
+		};
+		</script>
+	[% END %]
+</head>
+<body>
+	<p><center><h1>[% SiteTitle.Default %]: Meta Data</h1></center></p>
+	<div class="box-wrapper">
+		<!-- LEFT COLUMN -->
+		<div class="left-column">
 
-	<body>
-		<div class="box-wrapper">
-			<div id="box1">
-				<h1>[% SiteTitle %]: Meta Data</h1>
+			<!-- Info Panel -->
+			<div class="panel">
+				[% IF info %]
+					<h2>Info</h2>
+					domain_name: [% info.domain_name() %]<br>
+					browser_type: [% info.browser_type() %]
+				[% END %]
 			</div>
-			<!--
-				<div id="box2">
-				</div>
-			-->
-			<div id="box3">
-				<div id="box4">
-					[% IF info %]
-						<h2>Info</h2>
-						domain_name: [% info.domain_name() %]<br>
-						browser_type: [% info.browser_type() %]
-					[% END %]
-					[% IF lingua %]
-						<h2>Lingua</h2>
-						country: [% lingua.country() %]<br>
-						requested_language: [% lingua.requested_language() %]<br>
-						language_code_alpha2: [% lingua.language_code_alpha2() %]
-					[% END %]
-				</div>
-				<div class="middle-column">
-					<div id="box5">
-						[% IF datapoints %]
-							<div id="chartContainer" style="height: 370px; width: 100%;"></div>
-							<script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
-						[% END %]
-					</div>
-				</div>
+
+			<!-- Lingua Panel -->
+			<div class="panel">
+				[% IF lingua %]
+					<h2>Lingua</h2>
+					country: [% lingua.country() %]<br>
+					requested_language: [% lingua.requested_language() %]<br>
+					language_code_alpha2: [% lingua.language_code_alpha2() %]
+				[% END %]
+			</div>
+
+			<!-- Server Metrics -->
+			<div class="panel">
+				<h2>Server Metrics</h2>
+				CPU count: [% server.cpu_count %]
+				CPU type: [% server.cpu_type %]<br>
+				Disk used: [% server.disk_used_pct %] %<br>
+				Memory used: [% server.memory_used_pct %] %
+			</div>
+
+			<!-- Traffic Metrics -->
+			<div class="panel">
+				<h2>Traffic Metrics (last hour)</h2>
+				Requests: [% traffic.requests_per_hour %]<br>
+				Active users: [% traffic.active_users %]<br>
+				Errors: [% traffic.errors_last_hour %]
 			</div>
 		</div>
-	</body>
+
+		<!-- RIGHT COLUMN -->
+		<div class="right-column">
+
+			<!-- Browser type pie chart -->
+			[% IF datapoints %]
+				<div class="panel">
+					<h2>Browser Breakdown</h2>
+					<div id="chartContainer"></div>
+				</div>
+			[% END %]
+
+			<!-- HTTP status pie chart -->
+			[% IF status_datapoints %]
+				<div class="panel">
+					<h2>HTTP Status Codes</h2>
+					<div id="statusChartContainer"></div>
+				</div>
+			[% END %]
+
+			<!-- Request rate over last 24 hours -->
+			[% IF rate_total_dp %]
+				<div class="panel">
+					<h2>Request Rate (Last 24 Hours)</h2>
+					<div id="rate24hContainer" style="height:300px; width:100%;"></div>
+				</div>
+			[% END %]
+
+			<div class="panel">
+                                <h2>Latency (Last 24 Hours)</h2>
+                                <div id="latency24hContainer" style="height:300px; width:100%;"></div>
+                        </div>
+		</div>
+	</div>
+</body>
 </html>

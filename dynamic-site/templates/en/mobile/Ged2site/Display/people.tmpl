@@ -9,7 +9,7 @@
 			<title>[% person.title %]</title>
 			<meta name="description" content="About [% person.title %] - A Ged2Site webpage">
 		[% ELSE %]
-			<title>[% SiteTitle.join(' ') %]</title>
+			<title>[% SiteTitle.Default.join(' ') %]</title>
 			<script language="JavaScript">
 				<!--HIDE
 				function time() {
@@ -18,7 +18,7 @@
 				//STOP HIDING-->
 			</script>
 			<meta http-equiv="Refresh" content="1;URL=page.fcgi?page=people&amp;home=1">
-			<meta name="description" content="[% SiteTitle.join(' ') %] - A Ged2Site webpage">
+			<meta name="description" content="[% SiteTitle.Default.join(' ') %] - A Ged2Site webpage">
 		[% END %]
 		<meta http-equiv="Content-Language" content="English">
 		<!--
@@ -62,7 +62,7 @@
 				[ <a href="/visjs.html">Timeline</a> ]
 			</font></center>
 		[% ELSE %]
-			<h1>[% SiteTitle.join(' ') %]</h1>
+			<h1>[% SiteTitle.Default.join(' ') %]</h1>
 			Loading, please wait
 		[% END %]
 		<p align="right">

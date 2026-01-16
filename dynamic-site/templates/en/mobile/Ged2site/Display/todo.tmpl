@@ -2,7 +2,7 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 	<head>
-		<title>Errors in the [% SiteTitle.join(' ') %]</title>
+		<title>Errors in the [% SiteTitle.Default.join(' ') %]</title>
 		<meta http-equiv="Content-Language" content="English">
 		<!--
 		<meta name="msvalidate.01" content="deadbeef" />
@@ -12,7 +12,7 @@
 	</head>
 	<body>
 		<center>
-			<h1>Errors in the [% SiteTitle.join(' ') %]</h1>
+			<h1>Errors in the [% SiteTitle.Default.join(' ') %]</h1>
 			[% IF error %]
 				<p><font color="red" size="+2">[% error %]</font></p>
 			[% END %]

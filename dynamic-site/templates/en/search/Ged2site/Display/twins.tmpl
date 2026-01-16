@@ -10,14 +10,14 @@
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
 		<meta name="Copyright" content="Copyright (C) 2018 Nigel Horne, all rights reserved">
-		<title>Twins in [% SiteTitle.join(' ') %]</title>
-		<meta name="description" content="Twins in [% SiteTitle.join(' ') %] - A Ged2Site webpage">
+		<title>Twins in [% SiteTitle.Default.join(' ') %]</title>
+		<meta name="description" content="Twins in [% SiteTitle.Default.join(' ') %] - A Ged2Site webpage">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 	</head>
 	<body>
-		<h1>Twins in [% SiteTitle.join(' ') %]</h1>
+		<h1>Twins in [% SiteTitle.Default.join(' ') %]</h1>
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
@@ -34,7 +34,7 @@
 		<a href="?page=reports">Reports</a><br>
 		<a href="/visjs.html">Timeline</a><br>
 
-		This page lists twins in [% SiteTitle.join(' ') %],
+		This page lists twins in [% SiteTitle.Default.join(' ') %],
 		where both twins have died.
 		Triplets, and higher order, are not yet supported.
 

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en" dir="ltr">
 	<head>
-		<title>Military Personnel in [% SiteTitle.join(' ') %]</title>
+		<title>Military Personnel in [% SiteTitle.Default.join(' ') %]</title>
 		<!--
 		<meta name="msvalidate.01" content="deadbeef" />
 		-->
@@ -11,7 +11,7 @@
 		<meta charset="utf8">
 	</head>
 	<body>
-		<h1>Military Personnel in [% SiteTitle.join(' ') %]</h1>
+		<h1>Military Personnel in [% SiteTitle.Default.join(' ') %]</h1>
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]
