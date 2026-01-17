@@ -7,10 +7,10 @@ use warnings;
 
 use parent 'Ged2site::Display';
 
+use Filesys::Df;
 use Time::Piece;
 use Time::Seconds;
 use System::Info;
-use Filesys::Df;
 use Sys::Uptime;
 use Sys::MemInfo;
 use Time::Piece;
@@ -34,10 +34,10 @@ sub html {
 	}
 
 	# --- Server metrics using CPAN modules ---
-	my $server_metrics = get_server_metrics();
+	my $server_metrics = $self->get_server_metrics();
 
 	# --- Traffic metrics from vwf_log ---
-	my $traffic_metrics = get_traffic_metrics($self, $vwf_log, $domain_name);
+	my $traffic_metrics = $self->get_traffic_metrics($vwf_log, $domain_name);
 
 	# --- HTTP status breakdown for pie chart ---
 	my $status_datapoints;
@@ -51,8 +51,8 @@ sub html {
 		$status_datapoints .= '{y: ' . $status_count{$code} . ", label: \"$code\"},\n";
 	}
 
-	my $rate_24h = get_request_rate_24h($self, $vwf_log, $domain_name);
-	my $latency_24h = get_latency_24h($self, $vwf_log, $domain_name);
+	my $rate_24h = $self->get_request_rate_24h($vwf_log, $domain_name);
+	my $latency_24h = $self->get_latency_24h($vwf_log, $domain_name);
 
 	return $self->SUPER::html({
 		datapoints => $datapoints,
@@ -234,7 +234,7 @@ sub get_latency_24h {
 		next unless @vals;
 
 		my $count = @vals;
-		my $avg = int( (eval(join('+', @vals)) || 0) / $count );
+		my $avg = int((eval(join('+', @vals)) || 0) / $count);
 
 		my $p95_index = int(0.95 * ($count - 1));
 		my $p95 = $vals[$p95_index];
