@@ -1,6 +1,6 @@
 package Ged2site::Display::meta_data;
 
-# Display the meta-data page - the internal status of the server and VWF system
+# Display the meta-data page - the internal status of the server and Ged2site system
 
 use strict;
 use warnings;
@@ -42,9 +42,8 @@ sub html {
 	# --- HTTP status breakdown for pie chart ---
 	my $status_datapoints;
 	my %status_count;
-	foreach my $entry ($vwf_log->selectall_array({ domain_name => $domain_name })) {
-		next unless ref $entry eq 'HASH' && $entry->{http_code};
-		$status_count{ $entry->{http_code} }++;
+	foreach my $http_code ($vwf_log->http_code({ domain_name => $domain_name })) {
+		$status_count{$http_code}++;
 	}
 
 	foreach my $code (sort keys %status_count) {
