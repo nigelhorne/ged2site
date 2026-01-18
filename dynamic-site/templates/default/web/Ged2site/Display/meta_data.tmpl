@@ -35,14 +35,15 @@
 			});
 			browserChart.render();
 
-		    [% IF status_datapoints %]
-		    var statusChart = new CanvasJS.Chart("statusChartContainer", {
-			animationEnabled: true,
-			title: { text: "HTTP Status Breakdown" },
-			data: [{ type:"pie", startAngle:240, yValueFormatString:"##0", indexLabel:"{label} {y}", dataPoints:[[% status_datapoints %]] }]
-		    });
-		    statusChart.render();
-		    [% END %]
+			[% IF status_datapoints %]
+				var statusChart = new CanvasJS.Chart("statusChartContainer", {
+				animationEnabled: true,
+				title: { text: "HTTP Status Breakdown" },
+				data: [{ type:"pie", startAngle:240, yValueFormatString:"##0", indexLabel:"{label} {y}", dataPoints:[[% status_datapoints %]] }]
+				});
+				statusChart.render();
+			[% END %]
+
 			[% IF rate_total_dp %]
 				var rateChart = new CanvasJS.Chart("rate24hContainer", {
 					animationEnabled: true,
@@ -103,6 +104,21 @@
 				]
 			});
 			latencyChart.render();
+			[% IF slow_dp %]
+				var slowChart = new CanvasJS.Chart("slowEndpointChart", {
+					animationEnabled: true,
+					title: { text: "Slowest Endpoints (avg ms, 24h)" },
+					axisX: {
+						title: "Average Response Time (ms)"
+					}, axisY: {
+						labelFontSize: 12
+					}, data: [{
+						type: "bar",
+						dataPoints: [ [% slow_dp %] ]
+					}]
+				});
+				slowChart.render();
+			[% END %]
 		};
 		</script>
 	[% END %]
@@ -178,9 +194,16 @@
 			[% END %]
 
 			<div class="panel">
-                                <h2>Latency (Last 24 Hours)</h2>
-                                <div id="latency24hContainer" style="height:300px; width:100%;"></div>
-                        </div>
+				<h2>Latency (Last 24 Hours)</h2>
+				<div id="latency24hContainer" style="height:300px; width:100%;"></div>
+			</div>
+
+			[% IF slow_dp %]
+				<div class="panel">
+					<h2>Slow Endpoints</h2>
+					<div id="slowEndpointChart" style="height: 300px;"></div>
+				</div>
+			[% END %]
 		</div>
 	</div>
 </body>

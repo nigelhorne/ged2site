@@ -8,13 +8,13 @@ use warnings;
 use parent 'Ged2site::Display';
 
 use Filesys::Df;
-use Time::Piece;
-use Time::Seconds;
+use List::Util qw(max);
+use POSIX qw(strftime);
 use System::Info;
 use Sys::Uptime;
 use Sys::MemInfo;
 use Time::Piece;
-use List::Util qw(max);
+use Time::Seconds;
 
 sub html {
 	my $self = shift;
@@ -63,6 +63,7 @@ sub html {
 		rate_error_pct_dp => $rate_24h->{error_pct_dp},
 		latency_avg_dp => $latency_24h->{avg_dp},
 		latency_p95_dp => $latency_24h->{p95_dp},
+		slow_dp => $self->get_slow_endpoints_24h($vwf_log, $domain_name),
 	});
 }
 
@@ -204,8 +205,7 @@ sub get_request_rate_24h {
 sub get_latency_24h {
 	my ($self, $vwf_log, $domain_name) = @_;
 
-	my $now = time();
-	my $start = $now - ONE_DAY + _utc_offset();
+	my $start = time() - ONE_DAY + _utc_offset();
 
 	my %buckets;
 
@@ -249,6 +249,63 @@ sub get_latency_24h {
 		avg_dp => join(",\n", @avg_dp),
 		p95_dp => join(",\n", @p95_dp),
 	};
+}
+
+sub get_slow_endpoints_24h {
+	my ($self, $vwf_log, $domain_name) = @_;
+
+	my $start = time() - ONE_DAY + _utc_offset();
+
+	# Step 1: fetch rows filtered only by equality
+	my @rows = $vwf_log->selectall_array({ domain_name => $domain_name });
+
+	# Step 2: bucket in Perl
+	my %stats;
+
+	foreach my $row (@rows) {
+		next unless defined $row->{time};
+		next unless defined $row->{duration_ms};
+
+		my $tp;
+		eval { $tp = Time::Piece->strptime($row->{time}, '%Y-%m-%d %H:%M:%S') };
+		next unless $tp;
+
+		next if $tp->epoch < $start;
+
+		my $tpl = $row->{template} // '';
+		$stats{$tpl}{hits}++;
+		$stats{$tpl}{total_ms} += $row->{duration_ms};
+	}
+
+	# Step 3: compute averages + threshold
+	my @ranked;
+	foreach my $tpl (keys %stats) {
+		next if $stats{$tpl}{hits} < 5;
+
+		push @ranked, {
+			template => $tpl,
+			avg_ms => $stats{$tpl}{total_ms} / $stats{$tpl}{hits},
+		};
+	}
+
+	# Step 4: sort + top 10
+	@ranked = sort { $b->{avg_ms} <=> $a->{avg_ms} } @ranked;
+	splice(@ranked, 10) if @ranked > 10;
+
+	# Step 5: CanvasJS datapoints
+	my @dp;
+	foreach my $row (@ranked) {
+		my $label = $row->{template};
+		$label =~ s/"/\\"/g;
+
+		push @dp, sprintf(
+			'{ label: "%s", y: %.0f }',
+			$label,
+			$row->{avg_ms}
+		);
+	}
+
+	return join(', ', @dp);
 }
 
 sub _utc_offset
