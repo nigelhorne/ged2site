@@ -259,37 +259,42 @@ sub get_slow_endpoints_24h {
 	# Step 1: fetch rows filtered only by equality
 	my @rows = $vwf_log->selectall_array({ domain_name => $domain_name });
 
-	# Step 2: bucket in Perl
-	my %stats;
+	# Step 2: collect durations per template
+	my %durations;
 
 	foreach my $row (@rows) {
 		next unless defined $row->{time};
 		next unless defined $row->{duration_ms};
+		next if $row->{duration_ms} <= 0;
 
 		my $tp;
 		eval { $tp = Time::Piece->strptime($row->{time}, '%Y-%m-%d %H:%M:%S') };
 		next unless $tp;
-
 		next if $tp->epoch < $start;
 
 		my $tpl = $row->{template} // '';
-		$stats{$tpl}{hits}++;
-		$stats{$tpl}{total_ms} += $row->{duration_ms};
+		push @{ $durations{$tpl} }, $row->{duration_ms};
 	}
 
-	# Step 3: compute averages + threshold
+	# Step 3: compute p95
 	my @ranked;
-	foreach my $tpl (keys %stats) {
-		next if $stats{$tpl}{hits} < 5;
+
+	foreach my $tpl (keys %durations) {
+		my @vals = sort { $a <=> $b } @{ $durations{$tpl} };
+		my $count = @vals;
+		next if $count < 5;
+
+		my $p95_index = int(0.95 * ($count - 1));
+		my $p95 = $vals[$p95_index];
 
 		push @ranked, {
 			template => $tpl,
-			avg_ms => $stats{$tpl}{total_ms} / $stats{$tpl}{hits},
+			p95_ms => $p95,
 		};
 	}
 
 	# Step 4: sort + top 10
-	@ranked = sort { $b->{avg_ms} <=> $a->{avg_ms} } @ranked;
+	@ranked = sort { $b->{p95_ms} <=> $a->{p95_ms} } @ranked;
 	splice(@ranked, 10) if @ranked > 10;
 
 	# Step 5: CanvasJS datapoints
@@ -297,11 +302,12 @@ sub get_slow_endpoints_24h {
 	foreach my $row (@ranked) {
 		my $label = $row->{template};
 		$label =~ s/"/\\"/g;
+		$label =~ s/^.+\/templates\///;
 
 		push @dp, sprintf(
-			'{ label: "%s", y: %.0f }',
+			'{ label: "%s", y: %d }',
 			$label,
-			$row->{avg_ms}
+			$row->{p95_ms}
 		);
 	}
 
