@@ -20,6 +20,7 @@ no warnings qw(experimental::signatures);
 use Config::Abstraction;
 use CGI::Info;
 use Data::Dumper;
+use Digest::MD5 qw(md5_hex);
 use Digest::SHA qw(sha256_hex);
 use File::Spec;
 use Object::Configure;
@@ -56,7 +57,6 @@ my %blacklist = (
 );
 
 our $sm;
-our $smcache;
 
 # Main display handler for generating web pages using Template Toolkit
 # Handles security, throttling, localization, and template selection
@@ -201,11 +201,11 @@ sub new
 
 	# Social media integration
 	if(my $twitter = $config->{'twitter'}) {
-		$smcache ||= create_memory_cache(config => $config, logger => $params->{'logger'}, namespace => 'HTML::SocialMedia');
+		my $smcache = create_memory_cache(config => $config, logger => $params->{'logger'}, namespace => 'HTML::SocialMedia');
 		$sm ||= HTML::SocialMedia->new({ twitter => $twitter, cache => $smcache, lingua => $params->{lingua}, logger => $params->{logger} });
 		$self->{'_social_media'}->{'twitter_tweet_button'} = $sm->as_string(twitter_tweet_button => 1);
 	} elsif(!defined($sm)) {
-		$smcache = create_memory_cache(config => $config, logger => $params->{'logger'}, namespace => 'HTML::SocialMedia');
+		my $smcache = create_memory_cache(config => $config, logger => $params->{'logger'}, namespace => 'HTML::SocialMedia');
 		$sm = HTML::SocialMedia->new({ cache => $smcache, lingua => $params->{lingua}, logger => $params->{logger} });
 	}
 	$self->{'_social_media'}->{'facebook_share_button'} = $sm->as_string(facebook_share_button => 1);
@@ -311,6 +311,16 @@ sub as_string {
 		}
 	}
 
+	my($cache, $key);
+
+	if(!$args->{itemsincart}) {
+		$cache = create_memory_cache(config => $self->{config}, logger => $self->{'logger'}, namespace => ref($self));
+		$key = cache_key_from_hashref($args);
+		if(my $rc = $cache->get($key)) {
+			return $rc;
+		}
+	}
+
 	# my $html = $self->html($args);
 	# unless($html) {
 		# return;
@@ -319,7 +329,15 @@ sub as_string {
 
 	# Build the HTTP response
 	my $rc = $self->http($args);
-	return $rc =~ /^Location:\s/ms ? $rc : $rc . $self->html($args);
+	if($rc =~ /^Location:\s/ms) {
+		return $rc;
+	}
+	$rc .= $self->html($args);
+	if($cache) {
+		$self->{cache_duration} ||= '5 minutes';
+		$cache->set($key, $rc, $self->{cache_duration});
+	}
+	return $rc;
 }
 
 # Determine the path to the correct template file based on various criteria such as language settings, browser type, and module path
@@ -630,6 +648,20 @@ sub _generate_csrf_token($self) {
 	my $signature = sha256_hex("$token_data:$secret");
 
 	return "$token_data:$signature";
+}
+
+sub cache_key_from_hashref {
+	my $hashref = $_[0];
+
+	# Use Data::Dumper with sorted keys for consistent output
+	local $Data::Dumper::Sortkeys = 1;
+	local $Data::Dumper::Terse = 1;
+	local $Data::Dumper::Indent = 0;
+
+	my $dumped = Dumper($hashref);
+
+	# Create an MD5 hash for a compact key
+	return md5_hex($dumped);
 }
 
 1;
