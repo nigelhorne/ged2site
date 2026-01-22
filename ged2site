@@ -161,7 +161,7 @@ BEGIN {
 			# system("cpan -i $list");
 			system('perl -MCPAN -e \'CPAN::Shell->install("' . join('", "', @needfull) . '")\'');
 		} else {
-			die "You need the following modules: $list";
+			die "You need the following modules: $list.  Set BOOTSTRAP=1 to try to load";
 		}
 	}
 
