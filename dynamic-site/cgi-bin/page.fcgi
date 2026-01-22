@@ -876,7 +876,7 @@ sub vwflog
 
 	my $duration_ms = '';
 	if($request_start) {
-		$duration_ms = int( (Time::HiRes::time() - $request_start) * 1000 );
+		$duration_ms = int((Time::HiRes::time() - $request_start) * 1000);
 	}
 
 	my $template;
@@ -920,9 +920,8 @@ sub vwflog
 	}
 
 	if($syslog) {
-		require Sys::Syslog;
+		require 'Sys::Syslog' && Sys::Syslog->import() unless Sys::Syslog->can('openlog');
 
-		Sys::Syslog->import();
 		if(ref($syslog) eq 'HASH') {
 			Sys::Syslog::setlogsock($syslog);
 		}
