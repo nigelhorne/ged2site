@@ -896,9 +896,12 @@ sub vwflog
 		close $fout;
 	}
 
-	my $warnings = join('; ',
-		grep defined, map { (($_->{'level'} eq 'warn') || ($_->{'level'} eq 'notice')) ? $_->{'message'} : undef } @{$info->messages()}
-	);
+	my $warnings;
+        if(my $messages = $info->messages()) {
+                $warnings = join('; ',
+                        grep defined, map { (($_->{'level'} eq 'warn') || ($_->{'level'} eq 'notice')) ? $_->{'message'} : undef } @{$messages}
+                        )
+        }
 	$warnings ||= '';
 
 	if(open(my $fout, '>>', $vwflog)) {
@@ -920,7 +923,10 @@ sub vwflog
 	}
 
 	if($syslog) {
-		require 'Sys::Syslog' && Sys::Syslog->import() unless Sys::Syslog->can('openlog');
+		unless(Sys::Syslog->can('openlog')) {
+			require Sys::Syslog;
+			Sys::Syslog->import();
+		}
 
 		if(ref($syslog) eq 'HASH') {
 			Sys::Syslog::setlogsock($syslog);
