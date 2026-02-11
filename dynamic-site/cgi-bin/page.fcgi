@@ -401,6 +401,7 @@ sub doit
 	#	config file to read
 	$config ||= Ged2site::Config->new({
 		logger => $logger,
+		info => $info,
 		debug => $params{'debug'},
 		lingua => CGI::Lingua->new({ supported => [ 'en-gb' ], info => $info, logger => $logger })	# Use a temporary CGI::Lingua
 	});
@@ -652,7 +653,10 @@ sub doit
 
 			# TODO: consider creating a whitelist of valid modules
 			$logger->debug("doit(): Loading module $display_module from @INC");
-			eval "require $display_module";
+			unless($display_module->can('new')) {
+				eval "require $display_module; 1";
+				$display_module->import();
+			}
 			if($@) {
 				$logger->debug("Failed to load module $display_module: $@");
 				$logger->info("Unknown page $page");
@@ -661,7 +665,6 @@ sub doit
 					$info->status(404);
 				}
 			} else {
-				$display_module->import();
 				# use Class::Inspector;
 				# my $methods = Class::Inspector->methods($display_module);
 				# print "$display_module exports ", join(', ', @{$methods}), "\n";
