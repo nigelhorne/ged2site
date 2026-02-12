@@ -6,12 +6,15 @@ use warnings;
 use strict;
 
 use Ged2site::Display;
+
+use File::Spec;
+use File::Slurp;
+use HTML::Entities;
 use Locale::Country::Multilingual { use_io_layer => 1 };
+use Locale::Language;
+use XML::Simple;
 
-our @ISA = ('Ged2site::Display');
-
-our $lcm;
-our $countries;
+use parent 'Ged2site::Display';
 
 sub html {
 	my $self = shift;
@@ -20,10 +23,11 @@ sub html {
 
 	my $info = $self->{_info};
 	my $allow = {
-		'country' => qr/^[A-Z\s]+$/i,
+		# 'country' => qr/^[A-Z\s]+$/i,
+		'country' => qr/^[\p{L}\s\-\.'’]+$/u,
 		'state' => qr/^[A-Z\s]+$/i,
 		'town' => qr/^[A-Z\s]+$/i,
-		'entry' => undef,
+		'entry' => qr/^[A-Za-z0-9_\-]+$/,
 		'page' => 'places',
 		'year' => qr/^\d{3,4}$/,
 		'lang' => qr/^[A-Z][A-Z]/i,
@@ -38,47 +42,30 @@ sub html {
 
 		if($params{'country'} && $params{'state'} && $params{'town'} && $params{'entry'}) {
 			# Get a specific person
-			my $person = _get_person(\%args, \%params);
+			my $person = $self->_get_person(\%args, \%params);
 			return $self->SUPER::html({ country => $params{'country'}, state => $params{'state'}, town => $params{'town'}, person => $person, %params });
 		}
 		if($params{'country'} && $params{'state'} && $params{'town'}) {
 			# List the people in this town
 			my $orig_country = $params{'country'};
-			if(!$places->state({ country => $orig_country })) {
-				$lcm ||= Locale::Country::Multilingual->new();
-				$params{'country'} = $lcm->code2country($lcm->country2code($orig_country , 'LOCALE_CODE_ALPHA2', $self->{_lingua}->language_code_alpha2()), 'en');
-				unless(defined($params{'country'})) {
-					$params{'country'} = $self->{_lingua}->country();
-				}
-				if($logger) {
-					$logger->debug('Translated country to English, now ', $params{'country'});
-				}
-			}
+			$params{'country'} = _normalize_country_to_english($orig_country);
 			my @people = $places->xref({ distinct => 1, %params });
+			# FIXME: This could be a lot of database calls - need to combine them
 			my %people = map { $_ => $places->name({ xref => $_, distinct => 1 }) } sort grep { defined } @people;
 			undef @people;
 			$params{'country'} = $orig_country;
-			# Add params because country may have been changed
+			# Add params because the country may have been changed
 			return $self->SUPER::html({ country => $orig_country, state => $params{'state'}, town => $params{'town'}, people => \%people, %params });
 		}
 		if($params{'country'} && $params{'state'}) {
 			# List the towns in this counties/states/provinces
 			# FIXME: include those where no town is known
 			my $orig_country = $params{'country'};
-			if(!$places->state({ country => $orig_country })) {
-				$lcm ||= Locale::Country::Multilingual->new();
-				$params{'country'} = $lcm->code2country($lcm->country2code($orig_country , 'LOCALE_CODE_ALPHA2', $self->{_lingua}->language_code_alpha2()), 'en');
-				unless(defined($params{'country'})) {
-					$params{'country'} = $self->{_lingua}->country();
-				}
-				if($logger) {
-					$logger->debug('Translated country to English, now ', $params{'country'});
-				}
-			}
+			$params{'country'} = _normalize_country_to_english($orig_country);
 			my @towns = $places->town({ distinct => 1, %params });
 			@towns = sort grep { defined } @towns;
 			$params{'country'} = $orig_country;
-			# Add params because country may have been changed
+			# Add params because the country may have been changed
 			return $self->SUPER::html({ country => $params{'country'}, state => $params{'state'}, towns => \@towns, %params });
 		}
 		if($params{'country'}) {
@@ -95,8 +82,8 @@ sub html {
 							$logger->debug(__PACKAGE__, ": no states found in default country $country");
 						}
 						delete $params{'country'};
-						# Add params because country has been deleted
-						return $self->SUPER::html({ countries => $countries, %params });
+						# Add params because the country has been deleted
+						return $self->SUPER::html({ countries => $self->{countries}, %params });
 					}
 					if($logger) {
 						$logger->debug("Setting default country to $country");
@@ -107,20 +94,11 @@ sub html {
 						$logger->warn(__PACKAGE__, ": can't find country name for ", $params{'country'});
 					}
 					delete $params{'country'};
-					return $self->SUPER::html({ countries => $countries, %params });
+					return $self->SUPER::html({ countries => $self->{countries}, %params });
 				}
 			} else {
 				my $orig_country = $params{'country'};
-				if(!$places->state({ country => $orig_country })) {
-					$lcm ||= Locale::Country::Multilingual->new();
-					$params{'country'} = $lcm->code2country($lcm->country2code($orig_country , 'LOCALE_CODE_ALPHA2', $self->{_lingua}->language_code_alpha2()), 'en');
-					unless(defined($params{'country'})) {
-						$params{'country'} = $self->{_lingua}->country();
-					}
-					if($logger) {
-						$logger->debug('Translated country to English, now ', $params{'country'});
-					}
-				}
+				$params{'country'} = _normalize_country_to_english($orig_country);
 				@states = $places->state({ distinct => 1, %params });
 				@states = grep { defined } @states;
 				$params{'country'} = $orig_country;
@@ -139,17 +117,17 @@ sub html {
 		}
 
 		# List the countries
-		if(!defined($countries)) {
+		if(!defined($self->{countries})) {
 			my @c = sort $places->country(distinct => 1);
-			$countries = \@c;
+			$self->{countries} = \@c;
 		}
 
 		if((!defined($self->{_lingua})) || ($self->{_lingua}->requested_language() =~ /^English/)) {
-			return $self->SUPER::html({ countries => $countries });
+			return $self->SUPER::html({ countries => $self->{countries} });
 		}
-		$lcm ||= Locale::Country::Multilingual->new();
+		$self->{lcm} ||= Locale::Country::Multilingual->new();
 		my $code = Locale::Language::language2code($self->{_lingua}->requested_language());
-		my @locale_countries = map { encode_entities($lcm->code2country($lcm->country2code($_), $code)) } @{$countries};
+		my @locale_countries = map { encode_entities($self->{lcm}->code2country($self->{lcm}->country2code($_), $code)) } @{$self->{countries}};
 		return $self->SUPER::html({ countries => \@locale_countries });
 	}
 
@@ -160,15 +138,39 @@ sub html {
 # Helper: Get a hashref of the data for this person
 sub _get_person
 {
-	my($args, $params) = @_;
+	my($self, $args, $params) = @_;
 
 	# Read in the .../data/people/$xref.xml file
-	my $xml_string = File::Slurp::read_file(File::Spec->catfile($args->{'database_dir'}, 'people', $params->{'entry'}) . '.xml');
+	my $xml_string;
+
+	eval {
+		$xml_string = File::Slurp::read_file(File::Spec->catfile($args->{'database_dir'}, 'people', $params->{'entry'}) . '.xml');
+	};
+	if($@) {
+		if(my $logger = $self->{_logger}) {
+			$logger->notice(__PACKAGE__, "$params->{entry}: $@");
+		}
+		return;
+	}
 
 	# Parse the XML string
 	if(my $person = XML::Simple->new(ForceArray => 0, KeyAttr => [])->XMLin($xml_string)) {
 		return $person->{'person'};
 	}
+}
+
+sub _normalize_country_to_english {
+	my ($self, $country) = @_;
+
+	return $country if $self->{_places}->state({ country => $country });
+
+	$self->{lcm} ||= Locale::Country::Multilingual->new();
+
+	my $lang = $self->{_lingua}->language_code_alpha2();
+	my $code = $self->{lcm}->country2code($country, 'LOCALE_CODE_ALPHA2', $lang)
+		or return $self->{_lingua}->country();
+
+	return $self->{lcm}->code2country($code, 'en') || $self->{_lingua}->country();
 }
 
 1;
