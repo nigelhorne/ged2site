@@ -112,7 +112,7 @@
 						[% FOREACH event IN events %]
 							<div class="column">
 								<div class="content">
-									[% IF event.person.exists && event.person.profile_thumbnail.exists %]
+									[% IF event.person && event.person.profile_thumbnail.exists %]
 										<a href="?page=people&amp;entry=[%- event.xref %]">
 											<img src="/[% event.person.profile_thumbnail %]" alt="[% event.person.title %]" height="100" width="70" loading="lazy">
 										</a>

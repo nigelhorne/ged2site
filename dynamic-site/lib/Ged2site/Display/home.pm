@@ -51,7 +51,7 @@ sub html {
 	my @e = sort { $a->{'year'} <=> $b->{'year'} } values @{$events};
 
 	# Now the values can be fixated
-	Data::Reuse::fixate(@e);
+	# Data::Reuse::fixate(@e);
 
 	return $self->SUPER::html(
 		events => \@e,
