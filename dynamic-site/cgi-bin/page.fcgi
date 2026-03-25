@@ -907,12 +907,14 @@ sub vwflog
         }
 	$warnings ||= '';
 
+	my $country = $lingua->country() || 'unknown';
+
 	if(open(my $fout, '>>', $vwflog)) {
 		print $fout
 			'"', $info->domain_name(), '",',
 			'"', strftime('%F %T', localtime), '",',
 			'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
-			'"', $lingua->country(), '",',
+			'"', $country, '",',
 			'"', $info->browser_type(), '",',
 			'"', $lingua->language(), '",',
 			$info->status(), ',',
@@ -938,7 +940,7 @@ sub vwflog
 		Sys::Syslog::syslog('info|local0', '%s %s %s %s %s %d %s %s %d %s %s',
 			$info->domain_name() || '',
 			$ENV{REMOTE_ADDR} || '',
-			$lingua->country() || '',
+			$country,
 			$info->browser_type() || '',
 			$lingua->language() || '',
 			$info->status() || '',
