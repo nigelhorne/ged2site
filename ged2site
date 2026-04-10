@@ -2808,7 +2808,7 @@ sub print_person
 		if($placeofmarriage =~ /.+,\s?(.+)$/) {
 			my $c = $1;
 			if($c eq 'Scot') {
-				complain({ person => $person, warning => "$c: marriage country should be Scotland'" });
+				complain({ person => $person, warning => "$c: marriage country should be Scotland" });
 				$placeofmarriage .= 'land';
 			}
 		}
@@ -5268,7 +5268,7 @@ sub print_person
 		} elsif($c =~ 'England,?\sUK') {
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Scot') {
-			complain({ person => $person, warning => "$c: birth country should be Scotland'" });
+			complain({ person => $person, warning => "$c: birth country should be Scotland" });
 			$birth_country = 'United Kingdom';
 		} elsif($c eq 'Slovenija') {
 			$birth_country = 'Slovenia';
