@@ -26,7 +26,7 @@ no lib '.';
 
 use Log::WarnDie 0.09;
 use Carp::Always;
-use CGI::ACL;
+use CGI::ACL 0.06;	# For deny_cloud
 use CGI::Carp qw(fatalsToBrowser);
 use CGI::Info 0.94;	# Gets all messages
 use CGI::Lingua 0.61;
@@ -191,7 +191,7 @@ Readonly my @blacklist_country_list => (
 	'CO', 'MX', 'IN', 'RS', 'PK', 'UA', 'XH'
 );
 
-my $acl = CGI::ACL->new()->deny_country(country => \@blacklist_country_list)->allow_ip('108.44.193.70')->allow_ip('127.0.0.1');
+my $acl = CGI::ACL->new()->deny_cloud()->deny_country(country => \@blacklist_country_list)->allow_ip('108.44.193.70')->allow_ip('127.0.0.1');
 
 sub sig_handler {
 	$exit_requested = 1;
