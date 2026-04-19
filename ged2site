@@ -3,13 +3,11 @@
 # Author Nigel Horne: njh@bandsman.co.uk
 # Copyright (C) 2015-2025, Nigel Horne
 
-# Usage is subject to licence terms.
-# The licence terms of this software are as follows:
-# Personal single user, single computer use: GPL2
-# All other users (including Commercial, Charity, Educational, Government)
-#	must apply in writing for a licence for use from Nigel Horne at the
-#	above e-mail.
+# This software is provided as-is without any warranty.
+# Usage is subject to licence terms of GPL2.
 
+# TODO: create a heritage page, ordered by country of birth (ignore anyone where the country of birth is the
+#	same as the home person), including name, relationship to the home person, date of birth, and href
 # TODO: Geo::Coder::GeocodeFarm, once github issue 1 has been fixed
 # TODO: Investigate BGS and Lingua::EN::Sentence
 # TODO: Finish XML, perhaps use XML::Hash for display?
