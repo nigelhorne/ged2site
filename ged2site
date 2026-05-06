@@ -5201,31 +5201,47 @@ sub print_person
 
 	my $birth_country;
 
-	if($placeofbirth) {
-		# Resolve the country from the birth place string via Geo::Address::Parser::Country.
-		# The module handles US states, Canadian provinces, Australian states, and
-		# falls back to Locale::Object::Country, with an optional GeoNames lookup.
-		my $result = $country_resolver->resolve(place => $placeofbirth);
+	if($placeofbirth && ($placeofbirth =~ /(.+[a-z]) USA$/i)) {
+		# Missing comma before USA - fix the place string before resolving
+		complain({ person => $person, warning => "Comma missing before USA in birth location '$placeofbirth'" });
+		$placeofbirth = "$1, USA";
+		$birth_country = 'United States';
+	} elsif($placeofbirth && ($placeofbirth !~ /^\s+,\s+$/) && ($placeofbirth =~ /.+,\s?(.+)$/)) {
+		my $c = $1;
+		my $result = $country_resolver->resolve(
+			component => $c,
+			place     => $placeofbirth,
+		);
 		$birth_country = $result->{'country'};
-		$placeofbirth  = $result->{'place'} if defined $result->{'place'};
-
-		# Thread any advisory warnings (e.g. "assuming country of birth is USA") through
-		# the existing complain() mechanism so they appear in the -w todo output.
+		$placeofbirth  = $result->{'place'};
 		for my $w (@{$result->{'warnings'} // []}) {
 			complain({ person => $person, warning => $w });
+		}
+		if($result->{'unknown'}) {
+			complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
 		}
 	}
 
 	my $death_country;
 
-	if($placeofdeath) {
-		# Same resolution path as for birth, but for the death place string.
-		my $result = $country_resolver->resolve(place => $placeofdeath);
+	if($placeofdeath && ($placeofdeath =~ /(.+[a-z]) USA$/)) {
+		# Missing comma before USA - fix the place string before resolving
+		complain({ person => $person, warning => "Comma missing before USA in death location '$placeofdeath'" });
+		$placeofdeath = "$1, USA";
+		$death_country = 'United States';
+	} elsif($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
+		my $c = $1;
+		my $result = $country_resolver->resolve(
+			component => $c,
+			place     => $placeofdeath,
+		);
 		$death_country = $result->{'country'};
-		$placeofdeath  = $result->{'place'} if defined $result->{'place'};
-
+		$placeofdeath  = $result->{'place'};
 		for my $w (@{$result->{'warnings'} // []}) {
 			complain({ person => $person, warning => $w });
+		}
+		if($result->{'unknown'}) {
+			complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
 		}
 	}
 
