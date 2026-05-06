@@ -71,7 +71,7 @@ BEGIN {
 		'FindBin', 'Gedcom', 'Genealogy::Gedcom::Date', 'Genealogy::Obituary::Parser',
 		'Date::Parse', 'Geo::Coder::List', 'Geo::Coder::Free',
 		'IPC::System::Simple', 'Geo::Coder::Ovi', 'String::Compare',
-		'Genealogy::Gedcom::Date',
+		'Genealogy::Gedcom::Date', 'Geo::Address::Parser::Country 0.03',
 		# 'Geo::Coder::DataScienceToolkit',
 		# 'Geo::Coder::Free::OpenAddresses',
 		'Geo::Coder::Abbreviations', 'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
@@ -193,7 +193,7 @@ foreach my $module (@needfull) {
 
 	# Extract module name, replacing hyphens with `::` and removing extensions
 	$name =~ s{.+/}{};	# Remove path if present
-	$name =~ s{-}{::}g;r	# Convert hyphens to `::`
+	$name =~ s{-}{::}g;	# Convert hyphens to `::`
 	$name =~ s{\.tar\.gz$}{}; # Remove file extension
 	$name =~ s{::(\d+)$}{ $1}; # Adjust version formatting if embedded in module name
 
@@ -251,7 +251,7 @@ my $grave_modules;
 $opts{'w'} = 1 if($opts{'f'});
 
 if($opts{'d'} || $opts{'m'} || $opts{'w'}) {
-	push @modules, 'File::Spec', 'XML::Hash';
+	push @modules, 'File::Spec', 'XML::Hash', 'Geo::Address::Parser::Country 0.03';
 
 	if(!$ENV{'CACHE_DIR'}) {
 		push @modules, 'File::HomeDir';
@@ -495,7 +495,6 @@ my %changes;	# If the -x option is given, tracks changes between the previous ru
 my $facts;
 my %intermarriages;	# People who've married a relative
 my %all_residences;
-my $geonames;
 # my $pi = atan2(1,1) * 4;
 
 if($opts{'W'} && !$opts{'w'}) {
@@ -601,6 +600,12 @@ if(defined($l) && ($l =~ /^([a-z]{2})/i)) {
 	$gp_args{'language'} = lc($1);
 }
 
+my $au = Locale::AU->new();
+my $ca_en = Locale::CA->new(lang => 'en');
+my $ca_fr = Locale::CA->new(lang => 'fr');
+my $us = Locale::US->new();
+
+my $geonames;
 my $geocoder;
 my $textgeocoder;
 my $freegeocoder;
@@ -745,9 +750,12 @@ if($opts{'m'} || $opts{'w'}) {
 		$geocoder->push(Geo::Coder::GeoApify->new({ apiKey => $key }));
 	}
 
-	if(my $username = $ENV{'GEONAMES_USER'}) {	# Rather slow
-		$geocoder->push(Geo::GeoNames->new(username => $username));
+	if(my $username = $ENV{'GEONAMES_USER'}) {
+		$geonames = Geo::GeoNames->new(username => $username);
+		$geonames->ua($cached_browser);
+		$geocoder->push($geonames);
 	}
+
 	if(my $key = $ENV{'GEO_CODER_OPENCAGE_API_KEY'}) {
 		$geocoder->push({ limit => 200, geocoder => Geo::Coder::OpenCage->new(api_key => $key) });
 	}
@@ -791,6 +799,14 @@ if($opts{'m'} || $opts{'w'}) {
 	# $textgeocoder = Geo::Parser::Text->new('https://geocoder.ca');
 	$textgeocoder = Geo::Parser::Text->new('https://geocode.xyz');
 }
+
+my $country_resolver = Geo::Address::Parser::Country->new({
+	us       => $us,
+	ca_en    => $ca_en,
+	ca_fr    => $ca_fr,
+	au       => $au,
+	geonames => $geonames,	# undef if GEONAMES_USER not set, which is fine
+});
 
 # FIXME: Do this properly
 # TODO: Fr: Le recensement
@@ -991,10 +1007,6 @@ if($total == 0) {
 my $index = 0;
 
 my $pr;
-my $au = Locale::AU->new();
-my $ca_en = Locale::CA->new(lang => 'en');
-my $ca_fr = Locale::CA->new(lang => 'fr');
-my $us = Locale::US->new();
 my $dtl = DateTime::Locale->load($ENV{'LC_TIME'} // $ENV{'LC_ALL'} // $ENV{'LANG'});
 my $abbr = Geo::Coder::Abbreviations->new();
 my $obituaries;
@@ -5189,176 +5201,31 @@ sub print_person
 
 	my $birth_country;
 
-	if($placeofbirth && ($placeofbirth =~ /(.+[a-z]) USA$/i)) {
-		complain({ person => $person, warning => "Comma missing before USA in birth location '$placeofbirth'" });
-		$placeofbirth = "$1, USA";
-		$birth_country = 'United States';
-	} elsif($placeofbirth && ($placeofbirth !~ /^\s+,\s+$/) && ($placeofbirth =~ /.+,\s?(.+)$/)) {
-		my $c = $1;
+	if($placeofbirth) {
+		# Resolve the country from the birth place string via Geo::Address::Parser::Country.
+		# The module handles US states, Canadian provinces, Australian states, and
+		# falls back to Locale::Object::Country, with an optional GeoNames lookup.
+		my $result = $country_resolver->resolve(place => $placeofbirth);
+		$birth_country = $result->{'country'};
+		$placeofbirth  = $result->{'place'} if defined $result->{'place'};
 
-		if($c =~ /\s+$/) {
-			complain({ person => $person, warning => "Removing trailing spaces from place of birth '$c'" });
-			$c =~ s/\s+$//;
-		}
-		if($c =~ /\)$/) {
-			complain({ person => $person, warning => 'Trailing bracket in birth location' });
-			$c =~ s/\)$//;
-		}
-
-		if(length($c) > 3) {
-			$c = sortoutcase($c);
-		}
-
-		if($c eq 'England') {
-			$birth_country = 'United Kingdom';
-		} elsif(uc($c) eq 'USA') {
-			$birth_country = 'United States';
-		} elsif($c eq 'United States Of America') {
-			$birth_country = 'United States';
-		} elsif($c eq 'U.S.A.') {
-			$birth_country = 'United States';
-		} elsif($c eq 'Scotland') {
-			$birth_country = 'United Kingdom';
-		} elsif($c eq 'Wales') {
-			$birth_country = 'United Kingdom';
-		} elsif($c eq 'Isle of Man') {
-			$birth_country = 'United Kingdom';
-		} elsif($c eq 'Northern Ireland') {
-			$birth_country = 'United Kingdom';
-		} elsif(($c eq 'Preußen') || ($c eq 'Deutschland')) {	# Prussia
-			$birth_country = 'Germany';
-		} elsif(($c eq 'Holland') || ($c eq 'The Netherlands')) {
-			$birth_country = 'Netherlands';
-		} elsif($c eq 'NL') {
-			$birth_country = 'Netherlands';
-			complain({ person => $person, warning => 'Assuming country of birth is Netherlands' });
-		} elsif(($c =~ /[A-Z]{2}/i) && ($us->{code2state}{uc($c)})) {
-			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
-			$birth_country = 'United States';
-			$placeofbirth .= ', USA';
-		} elsif($us->{state2code}{uc($c)}) {
-			complain({ person => $person, warning => "$c: assuming country of birth is USA" });
-			$birth_country = 'United States';
-			$placeofbirth .= ', USA';
-		} elsif(($c =~ /[A-Z]{2}/) && ($ca_en->{code2province}{$c}) || $ca_fr->{code2province}{$c}) {
-			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
-			$birth_country = 'Canada';
-			$placeofbirth .= ', Canada';
-		} elsif($ca_en->{province2code}{uc($c)} || $ca_fr->{province2code}{uc($c)}) {
-			complain({ person => $person, warning => "$c: assuming country of birth is Canada" });
-			$birth_country = 'Canada';
-			$placeofbirth .= ', Canada';
-		} elsif(($c =~ /[A-Z]{2,3}/) && ($au->{code2state}{$c})) {
-			complain({ person => $person, warning => "$c: assuming country of birth is Australia" });
-			$birth_country = 'Australia';
-			$placeofbirth .= ', Australia';
-		} elsif($au->{state2code}{uc($c)}) {
-			complain({ person => $person, warning => "$c: assuming country of birth is Australia" });
-			$birth_country = 'Australia';
-			$placeofbirth .= ', Australia';
-		} elsif(uc($c) eq 'NFLD') {
-			complain({ person => $person, warning => 'Assuming country of birth is Canada' });
-			$birth_country = 'Canada';
-			$placeofbirth .= ', Canada';
-		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland') || ($c eq 'London') || ($c eq 'Lancashire')) {
-			$birth_country = 'United Kingdom';
-			complain({ person => $person, warning => 'Assuming country of birth is UK' });
-		} elsif($c =~ 'England,?\sUK') {
-			$birth_country = 'United Kingdom';
-		} elsif($c eq 'Scot') {
-			complain({ person => $person, warning => "$c: birth country should be Scotland" });
-			$birth_country = 'United Kingdom';
-		} elsif($c eq 'Slovenija') {
-			$birth_country = 'Slovenia';
-		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
-			$birth_country = $b->name();
-		} elsif(my $user = $ENV{'GEONAMES_USER'}) {
-			$geonames //= Geo::GeoNames->new(username => $user);
-			$geonames->ua($cached_browser);
-			my $result = $geonames->search(q => $placeofbirth, style => 'FULL');
-			$result = @{$result}[0];
-			if($birth_country = $result->{'countryName'}) {
-				complain({ person => $person, warning => "$c: Assuming country of birth is $birth_country" });
-			} else {
-				complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
-			}
-		} else {
-			complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
+		# Thread any advisory warnings (e.g. "assuming country of birth is USA") through
+		# the existing complain() mechanism so they appear in the -w todo output.
+		for my $w (@{$result->{'warnings'} // []}) {
+			complain({ person => $person, warning => $w });
 		}
 	}
 
 	my $death_country;
 
-	if($placeofdeath && ($placeofdeath =~ /(.+[a-z]) USA$/)) {
-		complain({ person => $person, warning => "Comma missing before USA in death location '$placeofdeath'" });
-		$placeofdeath = "$1, USA";
-		$death_country = 'United States';
-	} elsif($placeofdeath && ($placeofdeath =~ /.+,\s?(.+)$/)) {
-		my $c = $1;
-		if($c eq 'England') {
-			$death_country = 'United Kingdom';
-		} elsif($c eq 'USA') {
-			$death_country = 'United States';
-		# } elsif($c eq 'Texas') {
-			$death_country = 'United States';
-		} elsif(($c =~ /[A-Z]{2}/i) && ($us->{code2state}{uc($c)})) {
-			complain({ person => $person, warning => "$c: assuming country of death is USA" });
-			$death_country = 'United States';
-		} elsif($us->{state2code}{uc($c)}) {
-			complain({ person => $person, warning => "$c: assuming country of death is USA" });
-			$death_country = 'United States';
-		} elsif($c eq 'United States of America') {
-			$death_country = 'United States';
-		} elsif($c eq 'U.S.A.') {
-			$death_country = 'United States';
-		} elsif($c eq 'Scotland') {
-			$death_country = 'United Kingdom';
-		} elsif($c eq 'Scot') {
-			complain({ person => $person, warning => "$c: death country should be Scotland'" });
-			$death_country = 'United Kingdom';
-		} elsif($c eq 'Wales') {
-			$death_country = 'United Kingdom';
-		} elsif(($c eq 'Norfolk') || ($c eq 'Kent') || ($c eq 'Sussex') || ($c eq 'Northumberland')) {
-			$death_country = 'United Kingdom';
-			complain({ person => $person, warning => 'Assuming country of death is UK' });
-		} elsif(($c eq 'Nova Scotia') || (uc($c) eq 'NFLD') || ($c eq 'Newfoundland') || ($c eq 'NS')) {
-			complain({ person => $person, warning => "Country 'Canada' missing from death record" });
-			$death_country = 'Canada';
-		} elsif(($c =~ /[A-Z]{2,3}/) && ($au->{code2state}{$c})) {
-			complain({ person => $person, warning => "$c: assuming country of death is Australia" });
-			# $death_country = 'Australia';
-		} elsif($au->{state2code}{uc($c)}) {
-			complain({ person => $person, warning => "$c: assuming country of death is Australia" });
-			# $death_country = 'Australia';
-		} elsif(($c eq 'Holland') || ($c eq 'The Netherlands')) {
-			$death_country = 'Netherlands';
-		} elsif($c eq 'Isle of Man') {
-			$death_country = 'United Kingdom';
-		} elsif($c eq 'Northern Ireland') {
-			$death_country = 'United Kingdom';
-		} elsif(($c eq 'Preußen') || ($c eq 'Deutschland')) {	# Prussia
-			$death_country = 'Germany';
-		} elsif($c =~ /Can\./) {
-			complain({ person => $person, warning => 'Assuming country of death is Canada' });
-			$death_country = 'Canada';
-		} elsif(($c =~ /[A-Z]{2} USA/) && ($us->{code2state}{substr($c, 0, 2)})) {
-			complain({ person => $person, warning => "$c: assuming country of death is USA" });
-			$death_country = 'United States';
-		} elsif(my $b = Locale::Object::Country->new(name => $c)) {
-			# Country is found
-			$death_country = $b->name();
-		} elsif(my $user = $ENV{'GEONAMES_USER'}) {
-			$geonames //= Geo::GeoNames->new(username => $user);
-			$geonames->ua($cached_browser);
-			my $result = $geonames->search(q => $placeofdeath, style => 'FULL');
-			$result = @{$result}[0];
-			if($death_country = $result->{'countryName'}) {
-				complain({ person => $person, warning => "$c: Assuming country of death is $death_country" });
-			} else {
-				complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
-			}
-		} else {
-			complain({ person => $person, warning => "Unknown death country: '$c' in '$placeofdeath'" });
+	if($placeofdeath) {
+		# Same resolution path as for birth, but for the death place string.
+		my $result = $country_resolver->resolve(place => $placeofdeath);
+		$death_country = $result->{'country'};
+		$placeofdeath  = $result->{'place'} if defined $result->{'place'};
+
+		for my $w (@{$result->{'warnings'} // []}) {
+			complain({ person => $person, warning => $w });
 		}
 	}
 
