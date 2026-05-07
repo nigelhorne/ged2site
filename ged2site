@@ -14022,7 +14022,7 @@ sub get_all_occupations
 				} elsif($occupation eq 'Teacher') {
 					$occupation = 'Professeur';
 				}
-				$occupation =~ s/retired/\N{U+00E0} la retrainte/i;
+				$occupation =~ s/retired/\N{U+00E0} la retraite/i;
 			} elsif($language eq 'German') {
 				if($occupation eq 'Teacher') {
 					$occupation = (($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin');
