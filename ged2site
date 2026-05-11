@@ -77,7 +77,7 @@ BEGIN {
 		'Geo::Coder::Abbreviations', 'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Lingua::EN::ABC', 'Lingua::String',
-		'Geo::Parser::Text', 'GIS::Distance',
+		'Genealogy::Occupation', 'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info', 'JSON::MaybeXS',
 		'List::Util',
 		'LWP::Simple::WithCache', 'MIME::Base64',
@@ -807,6 +807,7 @@ my $country_resolver = Geo::Address::Parser::Country->new({
 	au       => $au,
 	geonames => $geonames,	# undef if GEONAMES_USER not set, which is fine
 });
+my $occupation_normaliser;	# Constructed lazily on first use in get_all_occupations()
 
 # FIXME: Do this properly
 # TODO: Fr: Le recensement
@@ -13827,7 +13828,6 @@ sub get_all_residences
 	return @rc;
 }
 
-# TODO: railway/railroad = le chemin de fer
 sub get_all_occupations
 {
 	my $params = Params::Get::get_params('person', @_);
@@ -13837,222 +13837,20 @@ sub get_all_occupations
 
 	my @occupations = get_value({ person => $person, value => 'occupation' });
 
-	if((scalar(@occupations) == 1) && !defined($occupations[0])) {
-		return;
-	}
+	# Return early if no occupations are recorded for this person
+	return () if((scalar(@occupations) == 1) && !defined($occupations[0]));
 
-	while($occupations[0] && ($occupations[0] =~ /^scho(ol|lar)/i)) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] =~ /wife$/i)) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] =~ /unemployed/i)) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] =~ /seeking work/i)) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] =~ /domestic duties/i)) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] =~ /home duties/i)) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] =~ /house\s?hold duties/i)) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] eq 'Retired')) {
-		shift @occupations;
-	}
-	while($occupations[0] && ($occupations[0] eq 'At School')) {
-		shift @occupations;
-	}
+	# Construct the normaliser lazily on first use to reduce startup cost
+	$occupation_normaliser //= Genealogy::Occupation->new();
 
-	while(scalar(@occupations) > 1) {
-		if(($occupations[0] =~ /^labou?rer/i) && ($occupations[1] =~ /^labou?rer/i)) {
-			shift @occupations;
-		} elsif(lc($occupations[0]) eq lc($occupations[1])) {
-			shift @occupations;
-		} else {
-			last;
-		}
-	}
+	# Delegate all filtering, deduplication, normalisation, and
+	# locale/language translation to Genealogy::Occupation
+	my $result = $occupation_normaliser->normalise(
+		occupation => \@occupations,
+		sex        => $person->sex(),
+	);
 
-	# TODO: sort out case
-	my @rc;
-
-	while(my $occupation = shift @occupations) {
-		$occupation =~ tr/\r//;
-		$occupation =~ tr/\n/ /;
-		$occupation =~ s/\.+$//;
-		$occupation =~ s/[\(\)]//g;
-		$occupation =~ s/\s\s/ /g;
-		$occupation =~ s/\./;/g;
-
-		$occupation =~ s/\s+Own Account//i;
-		$occupation =~ s/^Formerly //i;
-		$occupation =~ s/\sretired$//i;
-		$occupation =~ s/Labor/Labour/i;
-
-		if(($occupation =~ /(.+)\sdomestic$/i) ||
-		   ($occupation =~ /(.+)\sdom$/i)) {
-			$occupation = "Domestic $1";
-		}
-
-		if($occupation =~ /works? on (.+)/i) {
-			$occupation = "$1 worker";
-		} elsif(($occupation eq 'Ag Lab') ||
-			($occupation eq 'Ag Labourer') ||
-			($occupation eq 'Ag Labourer Pauper') ||
-			($occupation eq 'Agric Labourer') ||
-			($occupation eq 'Ag Lab Pauper') ||
-			($occupation eq 'Farm Labourer') ||
-			($occupation eq 'Agricultural Farm Labourer') ||
-			($occupation eq 'Ordinary Agricultural Labourer') ||
-			($occupation eq 'work on farm') ||
-			($occupation eq 'Agricultural Lab') ||
-			($occupation eq 'Agril Labourer') ||
-			($occupation eq 'Labourer Ag') ||
-			($occupation eq 'Labourer (Ag)')) {
-			$occupation = 'Agricultural Labourer';
-		} elsif($occupation eq 'Poultry Farming') {
-			if($language eq 'French') {
-				$occupation = (($person->sex() eq 'M') ? 'Agriculteur de poulet' : 'Agricultrice de poulet');
-			} else {
-				$occupation = 'Poultry Farmer';
-			}
-		} elsif($occupation eq 'Platelayer Railway') {
-			$occupation = 'Railway Platelayer';
-		} elsif(($occupation eq 'General Servant Domestic') ||
-			($occupation =~ /^General serv.+dom/i) ||
-			($occupation =~ /^Domestic servant$/i)) {
-			if($language eq 'French') {
-				$occupation = 'Domestique';
-			} else {
-				$occupation = 'Domestic servant';
-			}
-		} elsif($occupation =~ /(.+)\sserv$/i) {
-			$occupation = "$1 servant";
-		} elsif($occupation eq 'Lorry Driver Heavy Worker') {
-			$occupation = 'Lorry Driver';
-		} elsif($occupation =~ /^Shop Assistant (.*)/) {
-			$occupation = "$1's Shop Assistant";
-		} elsif($occupation =~ /(.*) Assistant$/i) {
-			if($1 eq 'Bakers') {
-				$occupation = "Baker's Assistant";
-			} elsif($1 eq 'Butchers') {
-				$occupation = "Butcher's Assistant";
-			} elsif($1 ne 'Shop') {
-				$occupation = "$1's Assistant" unless($1 =~ /'s$/);
-			}
-		} elsif($occupation =~ /^Clerk (.*)/) {
-			$occupation = "$1 Clerk";
-		} elsif($occupation =~ /^Salesman (.*)/i) {
-			$occupation = "$1 Salesman";
-		} elsif($occupation =~ /Foreman (.*)/i) {
-			$occupation = "$1 Foreman";
-			$occupation =~ s/^of the //i;
-		} elsif($occupation =~ /Labourer Gas Stoker/) {
-			$occupation = 'Gas Stoker';
-		} elsif(($occupation eq 'Under Gardener Domestic') ||
-			($occupation eq 'Domestic Under Gardner')) {	# sic
-			$occupation = 'Domestic Gardener';
-		} elsif($occupation eq 'Market gardener') {
-			$occupation = 'Market Gardener';
-		} elsif($occupation eq "Brewer's Labourer") {
-			$occupation = 'Brewery Labourer';
-		} elsif($occupation eq "Labourer Builders") {
-			$occupation = "Builder's labourer";
-		} elsif(($occupation eq 'Gardener domestic') ||
-			($occupation eq 'Gardner and domestic servant')) {
-			$occupation = 'Gardener and Domestic';
-		} elsif($occupation =~ /(.+)\sserv$/i) {
-			$occupation = "$1 servant";
-		} elsif($occupation =~ /^(.+) on farm/i) {
-			$occupation = ($language eq 'French') ? "$1 en un ferme" : "$1 on a farm";
-		} elsif($occupation eq 'Plate Glass Cutter') {
-		} elsif($occupation =~ /police$/i) {
-			$occupation .= ' officer';
-		} elsif(($occupation eq 'Nurse') && ($language eq 'French')) {
-			$occupation = ($person->sex() eq 'M') ? 'infirmier' : "infirmi\N{U+00E8}re";
-		} elsif($occupation =~ /teaching/i) {
-			if($language eq 'French') {
-				$occupation = 'professeur';
-			} elsif($language eq 'German') {
-				$occupation = ($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin';
-			} else {
-				$occupation = 'teacher';
-			}
-		} elsif(($occupation !~ /gas works/i) && ($occupation =~ /(.+)([a-z])s\s+([a-z]+)$/i)) {
-			# Don't change Bus Driver to Bu's Driver
-			$occupation = "$1$2's $3" unless(("$1$2" eq 'Bu') || ("$1$2" eq 'Harnes'));
-		} elsif($occupation eq 'Laundry Man') {
-			$occupation = 'Laundryman';
-		} elsif(($occupation =~ /Manager (.*)/i) &&
-			($occupation !~ /^Manager of /i) &&
-			($occupation !~ /Manager & /i)) {
-			$occupation = "$1 Manager";
-		}
-
-		if($language eq 'German') {
-			if($occupation eq 'Bus driver') {
-				$occupation = ($person->sex() eq 'M') ? 'Busfahrer' : 'Busfahrerin';
-			}
-		}
-
-		if($occupation) {
-			if($language eq 'English') {
-				if($ENV{'LANG'} =~ /^en_US/) {
-					$occupation = Lingua::EN::ABC::b2a(lc($occupation));
-					$occupation =~ s/labour/labor/;
-					$occupation =~ s/Labour/Labor/;
-				} elsif($ENV{'LANG'} =~ /^en_CA/) {
-					$occupation = Lingua::EN::ABC::b2c(lc($occupation));
-				} else {
-					$occupation = Lingua::EN::ABC::a2b(lc($occupation));
-				}
-			} elsif($language eq 'French') {
-				if($occupation eq 'Postman') {
-					$occupation = (($person->sex() eq 'M') ? 'Facteur' : 'Factrisse');
-				} elsif($occupation =~ /(.+)\sFarmer/) {
-					$occupation = (($person->sex() eq 'M') ? "Agriculteur $1" : "Agricultrice $1");
-				} elsif($occupation eq 'Farmer') {
-					$occupation = (($person->sex() eq 'M') ? 'Agriculteur' : 'Agricultrice');
-				} elsif($occupation eq 'Teacher') {
-					$occupation = 'Professeur';
-				}
-				$occupation =~ s/retired/\N{U+00E0} la retraite/i;
-			} elsif($language eq 'German') {
-				if($occupation eq 'Teacher') {
-					$occupation = (($person->sex() eq 'M') ? 'Lehrer' : 'Lehrerin');
-				} elsif($occupation =~ /(.+)\sFarmer/) {
-					$occupation = (($person->sex() eq 'M') ? 'Landwirt' : 'Landwirtin');
-				} elsif($occupation eq 'Farmer') {
-					$occupation = (($person->sex() eq 'M') ? 'Bauer' : 'Bauerin');
-				}
-				$occupation =~ s/retired/im ruhestand/i;
-				$occupation =~ s/self-employed/slbststa\N{U+00E4}ndig/;
-			}
-			if($occupation =~ /works? (on|for) (.+)/i) {
-				$occupation = "$2 worker";
-			} elsif($occupation =~ /^Cleaner\s+(.+)/i) {
-				$occupation = "$1 cleaner";
-			}
-			$occupation = ucfirst($occupation);
-			$occupation =~ s/\s+heavy worker$//i;
-			$occupation =~ s/\s+own business$//i;
-
-			push @rc, $occupation;
-		} else {
-			complain({
-				person => $person,
-				warning => 'Occupation is empty'
-			});
-		}
-	}
-
-	return @rc;
+	return @{$result};
 }
 
 # Return the arrival record of the given person, or undef if none or more than one
