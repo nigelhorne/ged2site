@@ -96,7 +96,7 @@ BEGIN {
 		# 'Geo::StreetAddress::US',
 		'Getopt::Std', 'Lingua::EN::NameCase', 'Lingua::EN::NameParse',
 		'Lingua::Conjunction', 'Lingua::EN::Inflect', 'Locale::Object::Country',
-		'Params::Get', 'Readonly::Values::Months',
+		'Params::Get', 'Readonly::Values::Months', 'Text::Soundex',
 		'Unicode::Diacritic::Strip', 'URI::Find::Schemeless',
 	);
 
@@ -1166,6 +1166,30 @@ BODY
 # foreach my $person($ged->get_individual('Dolly Cowell')) {
 # foreach my $person($ged->get_individual('Ruth Marie Bixler')) {
 
+# Build name lookup hashes once per generate() call to avoid
+# the O(n**2) duplicate detection scan in print_person().
+# Keyed on normalised surname|givennames for exact matches,
+# and soundex(surname)|givennames for fuzzy matches.
+my %people_by_name;
+my %people_by_soundex;
+foreach my $person(@everyone) {
+	# Skip people with unknown surnames
+	my $surname = lc($person->surname() // '');
+	next if(!length($surname) || ($surname eq '?'));
+
+	# Skip people with unknown given names
+	my $given = lc(given_names($person) // '');
+	next unless length($given);
+
+	# Exact name lookup - catches direct duplicates
+	push @{$people_by_name{"$surname|$given"}}, $person;
+
+	# Soundex lookup - catches spelling variants
+	if(my $sdx = soundex_nara($person->surname())) {
+		push @{$people_by_soundex{"$sdx|$given"}}, $person;
+	}
+}
+
 foreach my $person(@everyone) {
 	$index++;
 	if(!$opts{'w'}) {
@@ -1180,7 +1204,12 @@ foreach my $person(@everyone) {
 	}
 	if(!$printed{$person->xref()}) {
 		print $xml "\n\t<person person_id=\"$index\">";
-		print_person({ person => $person });
+		print_person({
+			person => $person,
+			people_by_name => \%people_by_name,
+			people_by_soundex => \%people_by_soundex,
+		});
+
 		print $xml "\n\t</person>";
 		print $csv "\n";
 
@@ -2283,7 +2312,6 @@ sub print_person
 			}
 		}
 	}
-
 
 	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
 		# $firstname = $1;
