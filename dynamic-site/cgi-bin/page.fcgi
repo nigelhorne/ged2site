@@ -9,7 +9,7 @@
 #	LANG=en_GB root_dir=$(pwd)/.. ./page.fcgi page=index
 # To mimic a French mobile site:
 #	root_dir=$(pwd)/.. ./page.fcgi --mobile page=index lang=fr
-# To turn off the linting of HTML on a search engine landing page
+# To turn off the linting of HTML on a search-engine landing page
 #	LANG=en_GB root_dir=$(pwd)/.. ./page.fcgi --search-engine page=index lint_content=0
 
 use strict;
@@ -93,7 +93,7 @@ my $buffercache;
 my $script_dir = $info->script_dir();
 my $env_prefix = uc($info->host_name()) . '_';
 $env_prefix =~ tr/\./_/;
-my $logger = Log::Abstraction->new(Config::Abstraction->new(env_prefix => $env_prefix, flatten => 0, config_file => 'example.com', config_dirs => ["$script_dir/../conf/", "$script_dir/../../conf"])->all());
+my $logger = Log::Abstraction->new(Config::Abstraction->new(env_prefix => $env_prefix, flatten => 0, config_file => $info->domain_name(), config_dirs => ["$script_dir/../conf/", "$script_dir/../../conf"])->all());
 Log::WarnDie->dispatcher($logger);
 
 # my $pagename = "VWF::Display::$script_name";
@@ -916,7 +916,7 @@ sub vwflog
 			'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
 			'"', $country, '",',
 			'"', $info->browser_type(), '",',
-			'"', $lingua->language(), '",',
+			'"', ($lingua->language() || ''), '",',
 			$info->status(), ',',
 			'"', $template, '",',
 			'"', $info->as_string(raw => 1), '",',
