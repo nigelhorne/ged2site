@@ -77,7 +77,7 @@ BEGIN {
 		'Geo::Coder::Abbreviations', 'Geo::Coder::RandMcnally', 'Geo::Coder::US::Census',
 		'Geo::Coder::OSM', 'Geo::Coder::XYZ', 'Geo::Coder::CA',
 		'Lingua::EN::ABC', 'Lingua::String',
-		'Genealogy::Occupation', 'Geo::Parser::Text', 'GIS::Distance',
+		'Genealogy::Military::Branch', 'Genealogy::Occupation', 'Geo::Parser::Text', 'GIS::Distance',
 		'HTML::Entities', 'Image::Info', 'JSON::MaybeXS',
 		'List::Util',
 		'LWP::Simple::WithCache', 'MIME::Base64',
@@ -807,6 +807,7 @@ my $country_resolver = Geo::Address::Parser::Country->new({
 	au       => $au,
 	geonames => $geonames,	# undef if GEONAMES_USER not set, which is fine
 });
+my $branch_detector;		# Constructed lazily on first use in service()
 my $occupation_normaliser;	# Constructed lazily on first use in get_all_occupations()
 my $relationship_namer;	# Constructed lazily on first use in relationship_up()
 
@@ -15069,20 +15070,13 @@ sub service
 
 	return 'military' unless $params->{'event'};
 
-	if(my $notes = notes(record => $params->{'event'})) {
-		# Configurable branch detection
-		my @branch_detectors = (
-			{ pattern => qr/\bnavy\b/i, value => 'navy' },
-			{ pattern => qr/\b(?:RAF|Royal Air Force)\b/i, value => 'RAF' },
-			{ pattern => qr/\b(?:army\.?|regiment|soldier)\b/i, value => 'army' },
-		);
+	# Construct the branch detector lazily on first use
+	$branch_detector //= Genealogy::Military::Branch->new();
 
-		for my $detector (@branch_detectors) {
-			return i18n($detector->{value}) if $notes =~ $detector->{pattern};
-		}
-	}
+	my $notes = notes(record => $params->{'event'});
+	return 'military' unless $notes;
 
-	return 'military';
+	return $branch_detector->detect(text => $notes);
 }
 
 # Recursive ancestor traversal
