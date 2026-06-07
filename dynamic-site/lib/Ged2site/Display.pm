@@ -1,5 +1,6 @@
 package Ged2site::Display;
 
+# Based on VWF::Utils (https://github.com/nigelhorne/vwf)
 # Display a page. Certain variables are available to all templates, such as
 # the stuff in the configuration file
 
@@ -81,8 +82,10 @@ sub new
 
 	if(defined($ENV{'HTTP_REFERER'})) {
 		# Protect against Shellshocker
-		require Data::Validate::URI;
-		Data::Validate::URI->import();
+		unless(Data::Validate::URI->can('new')) {
+			require Data::Validate::URI;
+			Data::Validate::URI->import();
+		}
 
 		unless(Data::Validate::URI->new()->is_uri($ENV{'HTTP_REFERER'})) {
 			return;	# Block invalid referrers
@@ -131,43 +134,48 @@ sub new
 			}
 		}
 
-		# Connection throttling system
-		require Data::Throttler;
+		if($ENV{'REMOTE_ADDR'}) {
+			# Connection throttling system
+			require Data::Throttler;
 
-		my $db_file = $config->{'throttle'}->{'file'} // File::Spec->catdir($info->tmpdir(), 'throttle');
-		eval {	# Handle YAML Errors
-			my %options = (
-				max_items => $config->{'throttle'}->{'max_items'} // 30,	# Allow 30 requests
-				interval => $config->{'throttle'}->{'interval'} // 90,	# Per 90 second window
-				backend => 'YAML',
-				backend_options => {
-					db_file => $db_file
-				}
-			);
-
-			if(my $throttler = Data::Throttler->new(%options)) {
-				# Block if over the limit
-				if(!$throttler->try_push(key => $ENV{'REMOTE_ADDR'})) {
-					$info->status(429);	# Too many requests
-					sleep(1);	# Slow down attackers
-					if($params->{'logger'}) {
-						$params->{'logger'}->warn("$ENV{REMOTE_ADDR} connexion throttled");
+			my $db_file = $config->{'throttle'}->{'file'} // File::Spec->catdir($info->tmpdir(), 'throttle');
+			eval {	# Handle YAML Errors
+				my %options = (
+					max_items => $config->{'throttle'}->{'max_items'} // 30,	# Allow 30 requests
+					interval => $config->{'throttle'}->{'interval'} // 90,	# Per 90 second window
+					backend => 'YAML',
+					backend_options => {
+						db_file => $db_file
 					}
-					return;
-				}
-			}
-		};
-		if($@) {
-			if($params->{'logger'}) {
-				$params->{'logger'}->warn("Removing unparsable YAML file $db_file");
-			}
-			unlink($db_file);
-		}
+				);
 
-		# Country based blocking
-		if(my $lingua = $params->{lingua}) {
-			if($blacklist{uc($lingua->country())}) {
-				die "$ENV{REMOTE_ADDR} is from a blacklisted country ", $lingua->country();
+				if(my $throttler = Data::Throttler->new(%options)) {
+					# Block if over the limit
+					if(!$throttler->try_push(key => $ENV{'REMOTE_ADDR'})) {
+						$info->status(429);	# Too many requests
+						sleep(1);	# Slow down attackers
+						if($params->{'logger'}) {
+							$params->{'logger'}->info("$ENV{REMOTE_ADDR} connexion throttled");
+						}
+						return;
+					}
+				}
+			};
+			if($@) {
+				if($params->{'logger'}) {
+					$params->{'logger'}->notice("Removing unparsable YAML file $db_file: $@");
+				}
+				unlink($db_file);
+			}
+
+			# Country based blocking
+			if(my $lingua = $params->{lingua}) {
+				if($blacklist{uc($lingua->country())}) {
+					if($params->{'logger'}) {
+						$params->{'logger'}->warn("$ENV{REMOTE_ADDR} is from a blacklisted country " . $lingua->country());
+					}
+					die "$ENV{REMOTE_ADDR} is from a blacklisted country ", $lingua->country();
+				}
 			}
 		}
 	}
@@ -178,12 +186,13 @@ sub new
 	# _ names included for legacy reasons, they will go away
 	my $self = {
 		_cachedir => $params->{cachedir},
-		config => $config,
-		_config => $config,
 		info => $info,
 		_info => $info,
 		_logger => $params->{logger},
+		config_dir => $config_dir,
 		%{$params},
+		config => $config,
+		_config => $config,
 	};
 
 	if(my $lingua = $params->{'lingua'}) {
@@ -357,6 +366,11 @@ sub get_template_path
 		return $self->{_filename};
 	}
 
+	# FIXME: reread the config file since something is cloberring it 
+	if(my $config = Config::Abstraction->new(config_dirs => [$self->{config_dir}], config_files => ['default', $self->{info}->domain_name()], logger => $self->{logger})) {
+		$config = $config->all();
+		$self->{config} = $self->{_config} = $config;
+	}
 	my $dir = $ENV{'root_dir'} || $self->{_config}->{root_dir} || $self->{_info}->root_dir();
 	if($self->{_logger}) {
 		$self->{_logger}->debug(__PACKAGE__, ': ', __LINE__, ": root_dir $dir");

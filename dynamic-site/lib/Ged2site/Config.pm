@@ -254,6 +254,7 @@ sub new
 
 	# Config::Any turns fields with spaces into arrays, put them back
 	foreach my $field('Contents', 'SiteTitle') {
+		next if(!exists $config->{$field});
 		my $value = $config->{$field};
 
 		if(ref($value) eq 'ARRAY') {

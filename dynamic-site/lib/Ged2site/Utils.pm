@@ -1,6 +1,7 @@
 package Ged2site::Utils;
 
-# Ged2site is licensed under GPL2.0 for personal use only
+# Based on VWF::Utils (https://github.com/nigelhorne/vwf)
+# VWF is licensed under GPL2.0 for personal use only
 # njh@nigelhorne.com
 
 =encoding utf-8
@@ -179,7 +180,6 @@ sub _validate_cache_config($config, $cache_type) {
 	return unless exists $config->{$cache_type};
 
 	my $cache_config = $config->{$cache_type};
-
 	croak('Cache configuration must be a hash reference')
 		unless ref($cache_config) eq 'HASH';
 
@@ -230,18 +230,25 @@ sub _is_driver_available($driver) {
 	return 1 if $driver =~ /^(Memory|Null)$/;
 
 	my %driver_modules = (
-		'Redis' => 'CHI::Driver::Redis',
 		'DBI' => 'CHI::Driver::DBI',
 		'BerkeleyDB' => 'CHI::Driver::BerkeleyDB',
+		'File' => 'CHI::Driver::File',
 		'Memcached' => 'CHI::Driver::Memcached',
 		'SharedMem' => 'CHI::Driver::SharedMem',
-		'File' => 'CHI::Driver::File'
+		'Redis' => 'CHI::Driver::Redis'
 	);
 
 	return 1 unless exists $driver_modules{$driver};
 
+	if($driver_modules{$driver}->can('new')) {
+		return 1;
+	}
 	eval "require $driver_modules{$driver}";
-	return !$@;
+	if($@) {
+		return 0;
+	}
+	$driver_modules{$driver}->import();
+	return 1;
 }
 
 sub _build_chi_args($driver, $cache_config, $args, $logger, $cache_type) {
@@ -344,8 +351,7 @@ sub _configure_memcached($chi_args, $config, $args, $logger) {
 }
 
 sub _configure_file_based($chi_args, $config, $args) {
-	my $root_dir = $ENV{'root_dir'} || $args->{'root_dir'} ||
-				 $config->{root_dir} || $args->{'config'}->{root_dir};
+	my $root_dir = $ENV{'root_dir'} || $args->{'root_dir'} || $config->{root_dir} || $args->{'config'}->{root_dir};
 
 	croak "File-based cache drivers require 'root_dir' parameter" unless $root_dir;
 	croak "Root directory '$root_dir' does not exist or is not writable"

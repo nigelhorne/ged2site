@@ -1,34 +1,44 @@
-use Ged2site::Utils;
-
-# See https://github.com/nigelhorne/CGI-Allow
-
 package Ged2site::Allow;
 
-# Ged2site is licensed under GPL2.0 for personal use only
-# njh@bandsman.co.uk
+use Ged2site::Utils;
 
+# Based on VWF::Utils (https://github.com/nigelhorne/vwf)
 # Decide if we're going to allow this client to view the website
 # Usage:
 #	unless(Ged2site::Allow::allow({info => $info, lingua => $lingua})) {
 
 use strict;
 use warnings;
-use File::Spec;
 use Carp;
 use Error;
+use File::Spec;
 
-use constant DSHIELD => 'https://secure.dshield.org/api/sources/attacks/100/2012-03-08';
+use constant DSHIELD_BASE => 'https://secure.dshield.org/api/sources/attacks/100/';
 
-# TODO: Remove code duplicated with CGI::Allow
-# Blacklist of country codes (hardcoded for now)
-my %blacklist = map { $_ => 1 } qw(
-	BG BR CN CO CY IN IR KR LT MA MD MX PK RS RU SA TR TW UY VE VN ZA
+our %blacklist_countries = (
+	'BY' => 1,
+	'MD' => 1,
+	'RU' => 1,
+	'CN' => 1,
+	'BR' => 1,
+	'UY' => 1,
+	'TR' => 1,
+	'MA' => 1,
+	'VE' => 1,
+	'SA' => 1,
+	'CY' => 1,
+	'CO' => 1,
+	'MX' => 1,
+	'IN' => 1,
+	'RS' => 1,
+	'PK' => 1,
+	'UA' => 1,
+	'XH' => 1,
 );
 
 our %blacklist_agents = (
 	'Barkrowler' => 'Barkrowler',
 	'masscan' => 'Masscan',
-	'python-requests/2.27.1' => 'python-requests/2.27.1',
 	'WBSearchBot' => 'Warebay',
 	'MJ12' => 'Majestic',
 	'Mozilla/4.0 (compatible; Vagabondo/4.0; webcrawler at wise-guys dot nl; http://webagent.wise-guys.nl/; http://www.wise-guys.nl/)' => 'wise-guys',
@@ -41,6 +51,13 @@ our %blacklist_agents = (
 
 our %status;
 
+my $STATUS_TTL = 300;	# 5 minutes; keeps memory bounded and lets throttle windows expire
+
+sub _set_status {
+	my ($addr, $val) = @_;
+	$status{$addr} = [$val, time() + $STATUS_TTL];
+}
+
 sub allow {
 	my $addr = $ENV{'REMOTE_ADDR'};
 
@@ -48,18 +65,21 @@ sub allow {
 		# Not running as a CGI
 		return 1;
 	}
-
 	my %args = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	my $logger = $args{'logger'};
 
 	if(defined($status{$addr})) {
-		# Cache the value
-		if($logger) {
-			$logger->debug("$addr: cached value ", $status{$addr});
+		my ($val, $expires) = @{$status{$addr}};
+		if(time() < $expires) {
+			if($logger) {
+				$logger->debug("$addr: cached value $val");
+			}
+			return $val;
 		}
-		return $status{$addr};
+		delete $status{$addr};
 	}
+
 	if($logger) {
 		$logger->trace('In ', __PACKAGE__);
 	}
@@ -69,7 +89,7 @@ sub allow {
 			if($logger) {
 				$logger->info("$blocked blacklisted");
 			}
-			$status{$addr} = 0;
+			_set_status($addr, 0);
 			throw Error::Simple("$addr: $blocked is blacklisted", 1);
 		}
 	}
@@ -81,7 +101,7 @@ sub allow {
 		} else {
 			carp('Info not given');
 		}
-		$status{$addr} = 1;
+		_set_status($addr, 1);
 		return 1;
 	}
 
@@ -89,12 +109,21 @@ sub allow {
 		require Data::Throttler;
 		Data::Throttler->import();
 
-		# Handle YAML Errors
+		my $interval = 90;
+		my $max_items = 30;
 		my $db_file = File::Spec->catfile($info->tmpdir(), 'throttle');
+		if(my $config = $args{config}) {
+			if(my $throttle = $config->{throttle}) {
+				$db_file = $throttle->{'file'} // File::Spec->catdir($info->tmpdir(), 'throttle');
+				$max_items = $throttle->{'max_items'} // 30;        # Allow 30 requests
+				$interval = $throttle->{'interval'} // 90;  # Per 90 second window
+			}
+		}
+		# Handle YAML Errors
 		eval {
 			my $throttler = Data::Throttler->new(
-				max_items => 15,
-				interval => 90,
+				max_items => $max_items,
+				interval => $interval,
 				backend => 'YAML',
 				backend_options => {
 					db_file => $db_file
@@ -102,17 +131,21 @@ sub allow {
 			);
 
 			unless($throttler->try_push(key => $addr)) {
-				# Recommend you send HTTP 429 at this point
+				$info->status(429);
 				if($logger) {
 					$logger->warn("$addr has been throttled");
 				}
-				$status{$addr} = 0;
+				_set_status($addr, 0);
 				throw Error::Simple("$addr has been throttled");
 			}
 		};
 		if($@) {
+			# Genuine YAML/IO error from Data::Throttler — delete the corrupt DB and continue
 			if($logger) {
-				$logger->debug("removing $db_file");
+				$logger->info("removing $db_file: $@");
+			} elsif(ref($@) && $@->isa('Error')) {
+				# Deliberate block (throttle) — re-throw so caller sees the denial
+				$@->throw();
 			}
 			unlink($db_file);
 		}
@@ -123,7 +156,7 @@ sub allow {
 				if($logger) {
 					$logger->warn("$addr blocked connexion from ", $lingua->country());
 				}
-				$status{$addr} = 0;
+				_set_status($addr, 0);
 				$info->status(403);
 				throw Error::Simple("$addr: blocked connexion from " . $lingua->country(), 0);
 			}
@@ -137,7 +170,7 @@ sub allow {
 
 				my $ids = CGI::IDS->new();
 				$ids->set_scan_keys(scan_keys => 1);
-				delete($params->{'fbclid'});    # Facebook key is OK
+				delete($params->{'fbclid'});	# Facebook key is OK
 				my $impact = $ids->detect_attacks(request => $params);
 				if($impact > 0) {
 					if($logger) {
@@ -145,18 +178,17 @@ sub allow {
 						$logger->warn(Data::Dumper->new([$ids->get_attacks()])->Dump());
 					}
 					if($impact > 30) {
-						$status{$addr} = 0;
+						_set_status($addr, 0);
 						$info->status(403);
 						throw Error::Simple("$addr: IDS blocked connexion for " . $info->as_string());
 					}
 				}
-
 				foreach my $v (values %{$params}) {
 					if($v eq '/etc/passwd') {
 						if($logger) {
 							$logger->warn("$addr: blocked connexion attempt for /etc/passwd from ", $info->as_string());
 						}
-						$status{$addr} = 0;
+						_set_status($addr, 0);
 						$info->status(403);
 						return 0;
 					}
@@ -167,17 +199,15 @@ sub allow {
 		if(my $referer = $ENV{'HTTP_REFERER'}) {
 			$referer =~ tr/ /+/;	# FIXME - this shouldn't be happening
 
-			if(($referer =~ /^http:\/\/keywords-monitoring-your-success.com\/try.php/) ||
-			   ($referer =~ /^http:\/\/www.tcsindustry\.com\//) ||
-			   ($referer =~ /^http:\/\/free-video-tool.com\//)) {
+			if(($referer =~ /^http:\/\/keywords-monitoring-your-success\.com\/try\.php/) ||
+			   ($referer =~ /^http:\/\/www\.tcsindustry\.com\//) ||
+			   ($referer =~ /^http:\/\/free-video-tool\.com\//)) {
 				if($logger) {
 					$logger->warn("$addr: Blocked trawler");
 				}
-				$info->status(403);
-				$status{$addr} = 0;
+				_set_status($addr, 0);
 				throw Error::Simple("$addr: Blocked trawler");
 			}
-
 			# Protect against Shellshocker
 			require Data::Validate::URI;
 			Data::Validate::URI->import();
@@ -186,8 +216,7 @@ sub allow {
 				if($logger) {
 					$logger->warn("$addr: Blocked shellshocker for $referer");
 				}
-				$status{$addr} = 0;
-				$info->status(403);
+				_set_status($addr, 0);
 				throw Error::Simple("$addr: Blocked shellshocker for $referer");
 			}
 		}
@@ -198,7 +227,7 @@ sub allow {
 				if($logger) {
 					$logger->warn("$addr: Blocked attacker from $addr");
 				}
-				$status{$addr} = 0;
+				_set_status($addr, 0);
 				throw Error::Simple("$addr: Blocked attacker for $addr");
 			}
 		}
@@ -223,7 +252,7 @@ sub allow {
 				$logger->debug("read from cache $cachecontent");
 			}
 			@ips = split(/,/, $cachecontent);
-			if($ips[0]) {
+			if(scalar(@ips)) {
 				$readfromcache = 1;
 			} else {
 				if($logger) {
@@ -238,7 +267,7 @@ sub allow {
 		$logger->warn('Couldn\'t create the DShield cache');
 	}
 
-	unless($ips[0]) {
+	unless(scalar(@ips)) {
 		require LWP::Simple::WithCache;
 		LWP::Simple::WithCache->import();
 		require XML::LibXML;
@@ -250,16 +279,15 @@ sub allow {
 
 		my $xml;
 		eval {
-			if(my $string = LWP::Simple::WithCache::get(DSHIELD)) {
-				$xml = XML::LibXML->load_xml(string => $string);
-                        } elsif($logger) {
-                                $logger->warn("Couldn't download ", DSHIELD);
-                                delete $status{$addr};
-                                return 1;
+			my $dshield_url = DSHIELD_BASE . $today;
+			if(my $string = LWP::Simple::WithCache::get($dshield_url)) {
+                                $xml = XML::LibXML->load_xml(string => $string);
+			} elsif($logger) {
+				$logger->warn("Couldn't download $dshield_url");
+				return 1;
                         } else {
-                                warn DSHIELD;
-                                delete $status{$addr};
-                                return 1;
+                                warn $dshield_url;
+				return 1;
                         }
 		};
 		unless($@ || !defined($xml)) {
@@ -270,7 +298,7 @@ sub allow {
 				$ip =~ s/0*(\d+)/$1/g;	# Perl interprets numbers leading with 0 as octal
 				push @ips, $ip;
 			}
-			if(defined($cache) && $ips[0] && !$readfromcache) {
+			if(defined($cache) && scalar(@ips) && !$readfromcache) {
 				my $cachecontent = join(',', @ips);
 				if($logger) {
 					$logger->info("Setting DShield cache for $today to $cachecontent");
@@ -285,7 +313,7 @@ sub allow {
 		if($logger) {
 			$logger->warn("Dshield blocked connexion from $addr");
 		}
-		$status{$addr} = 0;
+		_set_status($addr, 0);
 		throw Error::Simple("Dshield blocked connexion from $addr");
 	}
 
@@ -293,7 +321,7 @@ sub allow {
 		if($logger) {
 			$logger->warn('Blocking possible jqic');
 		}
-		$status{$addr} = 0;
+		_set_status($addr, 0);
 		throw Error::Simple('Blocking possible jqic');
 	}
 
@@ -301,7 +329,7 @@ sub allow {
 		$logger->trace("Allowing connexion from $addr");
 	}
 
-	$status{$addr} = 1;
+	_set_status($addr, 1);
 	return 1;
 }
 
