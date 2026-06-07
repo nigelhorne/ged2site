@@ -93,7 +93,7 @@ my $buffercache;
 my $script_dir = $info->script_dir();
 my $env_prefix = uc($info->host_name()) . '_';
 $env_prefix =~ tr/\./_/;
-my $logger = Log::Abstraction->new(Config::Abstraction->new(env_prefix => $env_prefix, flatten => 0, config_file => $info->domain_name(), config_dirs => ["$script_dir/../conf/", "$script_dir/../../conf"])->all());
+my $logger = Log::Abstraction->new(Config::Abstraction->new(env_prefix => $env_prefix, flatten => 0, config_file => $info->domain_name() || 'default', config_dirs => ["$script_dir/../conf/", "$script_dir/../../conf"])->all());
 Log::WarnDie->dispatcher($logger);
 
 # my $pagename = "VWF::Display::$script_name";

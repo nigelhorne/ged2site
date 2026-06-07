@@ -11167,6 +11167,7 @@ sub Gedcom::Individual::relationship_up
 					steps_to_ancestor   => $steps1,
 					steps_from_ancestor => $steps2,
 					sex                 => $sex,
+					language            => get_language_code() // 'en',
 					person              => $self,
 				);
 				if(defined($rc) && ($rc =~ /cousin/)) {
@@ -11191,8 +11192,8 @@ sub Gedcom::Individual::relationship_up
 					}
 				}
 				if(!defined($rc)) {
-					die $other->as_string({ nee => 1, middle_names => 1, include_years => 1 }), ": $steps1, $steps2";
 					complain({ person => $other, warning => "TODO: $steps1, $steps2" });
+					return;
 				}
 				return $rc;
 			}
@@ -15068,15 +15069,13 @@ sub service
 {
 	my $params = Params::Get::get_params('event', @_);
 
-	return 'military' unless $params->{'event'};
-
 	# Construct the branch detector lazily on first use
-	$branch_detector //= Genealogy::Military::Branch->new();
+	$branch_detector //= Genealogy::Military::Branch->new(language => get_language_code() // 'en');
+
+	return $branch_detector->detect(text => '') unless $params->{'event'};
 
 	my $notes = notes(record => $params->{'event'});
-	return 'military' unless $notes;
-
-	return $branch_detector->detect(text => $notes);
+	return $branch_detector->detect(text => $notes // '');
 }
 
 # Recursive ancestor traversal
