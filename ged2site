@@ -1,13 +1,12 @@
 #!/usr/bin/env perl
 
-# Author Nigel Horne: njh@bandsman.co.uk
-# Copyright (C) 2015-2025, Nigel Horne
+# Author Nigel Horne: njh@nigelhorne.com
+# Copyright (C) 2015-2026, Nigel Horne
 
 # This software is provided as-is without any warranty.
 # Usage is subject to licence terms of GPL2.
 
-# TODO: create a heritage page, ordered by country of birth (ignore anyone where the country of birth is the
-#	same as the home person), including name, relationship to the home person, date of birth, and href
+# Next is security-review
 # TODO: Geo::Coder::GeocodeFarm, once github issue 1 has been fixed
 # TODO: Investigate BGS and Lingua::EN::Sentence
 # TODO: Finish XML, perhaps use XML::Hash for display?
@@ -810,6 +809,8 @@ my $country_resolver = Geo::Address::Parser::Country->new({
 my $branch_detector;		# Constructed lazily on first use in service()
 my $occupation_normaliser;	# Constructed lazily on first use in get_all_occupations()
 my $relationship_namer;	# Constructed lazily on first use in relationship_up()
+my $me_birth_country;		# Birth country of the home person; set during print_person()
+my @heritage_candidates;	# Blood relatives with a different birth_country, accumulated during print_person()
 
 # FIXME: Do this properly
 # TODO: Fr: Le recensement
@@ -1618,8 +1619,11 @@ if($opts{'w'}) {
 
 print $html '[ <a href="calendar/index.html">Calendar</a> ]',
 	' | [ <a href="calendar/changes.html">Blog</a> ]',
-	' | [ <a href="history.html">Family History</a> ]</center>',
-	'<br><ul>';
+	' | [ <a href="history.html">Family History</a> ]';
+if(-r 'static-site/heritage.html') {
+	print $html ' | [ <a href="heritage.html">Heritage</a> ]';
+}
+print $html '</center><br><ul>';
 
 open($csv, '>', 'dynamic-site/data/surnames.csv');
 print $csv "entry!surname!filename!person\n";
@@ -1663,6 +1667,9 @@ foreach my $surname(sort keys %{$surnames}) {
 	}
 	print $shtml '[ <a href="surnames.html">Surnames Index</a> ]',
 		' | [ <a href="history.html">Family History</a> ]';
+	if(-r 'static-site/heritage.html') {
+		print $shtml ' | [ <a href="heritage.html">Heritage</a> ]';
+	}
 	if($opts{'w'}) {
 		print $shtml ' | [ <a href="todo.html">Errors</a> ]';
 	}
@@ -1739,6 +1746,49 @@ if(open($csv, '>', 'dynamic-site/data/surname_date.csv')) {
 	close $csv;
 }
 
+# Heritage page: people with blood relationships born in a different country than $me
+if($me && $me_birth_country && @heritage_candidates) {
+	my %heritage_by_country;
+	for my $c (@heritage_candidates) {
+		next if($c->{'birth_country'} eq $me_birth_country);
+		push @{$heritage_by_country{$c->{'birth_country'}}}, $c;
+	}
+
+	if(%heritage_by_country) {
+		print "Creating heritage page\n";
+		open(my $hhtml, '>', 'static-site/heritage.html');
+		print $hhtml "<html><head><title>Heritage for the Family Tree $html_name</title>",
+			'<link rel="stylesheet" href="https://genealogy.nigelhorne.com/css/web.css" type="text/css" media="screen">',
+			"</head><body><center><h1>Heritage for the Family Tree $html_name</h1>",
+			'[ <a href="', make_filename_from_person(person => $me), '">Home</a> ] | ',
+			'[ <a href="surnames.html">Surnames Index</a> ] | ',
+			'[ <a href="history.html">Family History</a> ]</center><br>';
+
+		open(my $hcsv, '>', 'dynamic-site/data/heritage.csv');
+		print $hcsv "entry!title!birth_country!dob!relationship\n";
+
+		for my $country (sort keys %heritage_by_country) {
+			print $hhtml '<h2>', HTML::Entities::encode($country), '</h2><ul>';
+			for my $p (sort { $a->{'title'} cmp $b->{'title'} } @{$heritage_by_country{$country}}) {
+				print $hhtml '<li><a href="', $p->{'href'}, '">',
+					wide_to_html($p->{'title'}), '</a>',
+					' (', wide_to_html($p->{'relationship'}), ')';
+				print $hhtml ', born ', wide_to_html($p->{'dob'}) if $p->{'dob'};
+				print $hhtml '</li>';
+				print $hcsv $p->{'entry'}, '!',
+					wide_to_html($p->{'title'}), '!',
+					wide_to_html($p->{'birth_country'}), '!',
+					($p->{'dob'} ? wide_to_html($p->{'dob'}) : ''), '!',
+					wide_to_html($p->{'relationship'}), "\n";
+			}
+			print $hhtml '</ul>';
+		}
+		print $hhtml '</body></html>';
+		close $hhtml;
+		close $hcsv;
+	}
+}
+
 # Output the warnings last, so that all are included
 if($opts{'w'}) {
 	open(my $html, '>', 'static-site/todo.html');
@@ -1752,7 +1802,11 @@ if($opts{'w'}) {
 		print $html ' | [ <a href="censuses.html">Census Index</a> ]';
 	}
 	print $html ' | [ <a href="calendar/index.html">Calendar</a> ]',
-		' | [ <a href="history.html">Family History</a> ]</center><br>';
+		' | [ <a href="history.html">Family History</a> ]';
+	if(-r 'static-site/heritage.html') {
+		print $html ' | [ <a href="heritage.html">Heritage</a> ]';
+	}
+	print $html '</center><br>';
 
 	open(my $csv, '>', 'dynamic-site/data/todo.csv');
 	print $csv "entry!xref!title!summary!error\n";
@@ -2008,7 +2062,11 @@ if(open(my $fout, '>', 'static-site/history.html')) {
 	if($opts{'w'}) {
 		print $fout ' | [ <a href="todo.html">Errors</a> ]';
 	}
-	print $fout ' | [ <a href="calendar/index.html">Calendar</a> ]</center><br>';
+	print $fout ' | [ <a href="calendar/index.html">Calendar</a> ]';
+	if(-r 'static-site/heritage.html') {
+		print $fout ' | [ <a href="heritage.html">Heritage</a> ]';
+	}
+	print $fout '</center><br>';
 	# my @sorted_events = Sort::Key::DateTime::dtkeysort { $all_events{$_}->{'date'} } keys %all_events;
 	my @sorted_events = sort {
 		datecmp($all_events{$a}->{'date'}, $all_events{$b}->{'date'})
@@ -2544,7 +2602,11 @@ sub print_person
 	if($opts{'w'}) {
 		print $html '[ <a href="todo.html">Errors</a> ] | ';
 	}
-	print $html '[ <a href="history.html">Family History</a> ]</center><p>';
+	print $html '[ <a href="history.html">Family History</a> ]';
+	if($me) {
+		print $html ' | [ <a href="heritage.html">Heritage</a> ]';
+	}
+	print $html '</center><p>';
 
 	my $phrase = Data::Text->new();
 	my @phrases;
@@ -5250,6 +5312,22 @@ sub print_person
 		}
 		if($result->{'unknown'}) {
 			complain({ person => $person, warning => "Unknown birth country: '$c' in '$placeofbirth'" });
+		}
+	}
+
+	# Accumulate heritage data: home person's country, and blood relatives born elsewhere
+	if($me && $birth_country) {
+		if($person->xref() eq $me->xref()) {
+			$me_birth_country = $birth_country;
+		} elsif($relationship && (!$is_alive || $opts{'l'})) {
+			push @heritage_candidates, {
+				entry         => $person->xref(),
+				title         => $person->as_string({ nee => 1, middle_names => 1, include_years => 1 }),
+				birth_country => $birth_country,
+				dob           => $dateofbirth // '',
+				relationship  => $relationship,
+				href          => make_filename_from_person(person => $person),
+			};
 		}
 	}
 

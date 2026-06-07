@@ -826,6 +826,7 @@ sub choose
 			"/cgi-bin/page.fcgi?page=descendants\n",
 			"/cgi-bin/page.fcgi?page=graphs\n",
 			"/cgi-bin/page.fcgi?page=emigrants\n",
+			"/cgi-bin/page.fcgi?page=heritage\n",
 			"/cgi-bin/page.fcgi?page=intermarriages\n",
 			"/cgi-bin/page.fcgi?page=ww1\n",
 			"/cgi-bin/page.fcgi?page=ww2\n",
