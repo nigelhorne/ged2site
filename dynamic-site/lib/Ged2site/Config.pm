@@ -120,7 +120,7 @@ sub new
 	my $params = Params::Get::get_params(undef, @_);
 
 	if (exists $params->{logger} && defined $params->{logger}) {
-		Throw Error::Simple('logger must be an object with debug method')
+		throw Error::Simple('logger must be an object with debug method')
 		    unless ref($params->{logger}) && $params->{logger}->can('debug');
 	}
 
@@ -129,7 +129,7 @@ sub new
 	}
 
 	if(exists $params->{config} && defined $params->{config}) {
-		Throw Error::Simple('config must be a hash reference') unless ref($params->{config}) eq 'HASH';
+		throw Error::Simple('config must be a hash reference') unless ref($params->{config}) eq 'HASH';
 	}
 
 	my $class = ref($proto) || $proto;
@@ -142,12 +142,7 @@ sub new
 			unless -d $ENV{'CONFIG_DIR'} && -r $ENV{'CONFIG_DIR'};
 		@config_dirs = ($ENV{'CONFIG_DIR'});
 	} else {
-		if($params->{config_directory}) {
-			throw Error::Simple("config_directory must be a string") if(ref($params->{config_directory}));
-			throw Error::Simple("config_directory '$params->{config_directory}' does not exist")
-				unless -d $params->{config_directory};
-			push(@config_dirs, $params->{config_directory});
-		}
+		# Build the standard search path; caller's config_directory is prepended below
 		@config_dirs = (
 			File::Spec->catdir(
 				$info->script_dir(),
@@ -175,6 +170,14 @@ sub new
 				'lib',
 				'conf'
 			));
+		}
+
+		# Prepend the caller-supplied directory so it takes highest precedence
+		if($params->{config_directory}) {
+			throw Error::Simple("config_directory must be a string") if ref($params->{config_directory});
+			throw Error::Simple("config_directory '$params->{config_directory}' does not exist")
+				unless -d $params->{config_directory};
+			unshift @config_dirs, $params->{config_directory};
 		}
 	}
 

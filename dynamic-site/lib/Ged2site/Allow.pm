@@ -15,7 +15,7 @@ use File::Spec;
 
 use constant DSHIELD_BASE => 'https://secure.dshield.org/api/sources/attacks/100/';
 
-our %blacklist_countries = (
+my %blacklist_countries = (
 	'BY' => 1,
 	'MD' => 1,
 	'RU' => 1,
@@ -36,7 +36,7 @@ our %blacklist_countries = (
 	'XH' => 1,
 );
 
-our %blacklist_agents = (
+my %blacklist_agents = (
 	'Barkrowler' => 'Barkrowler',
 	'masscan' => 'Masscan',
 	'WBSearchBot' => 'Warebay',
@@ -49,7 +49,7 @@ our %blacklist_agents = (
 	'ZoominfoBot (zoominfobot at zoominfo dot com)' => 'zoominfobot',
 );
 
-our %status;
+my %status;
 
 my $STATUS_TTL = 300;	# 5 minutes; keeps memory bounded and lets throttle windows expire
 
@@ -140,12 +140,15 @@ sub allow {
 			}
 		};
 		if($@) {
-			# Genuine YAML/IO error from Data::Throttler — delete the corrupt DB and continue
-			if($logger) {
-				$logger->info("removing $db_file: $@");
-			} elsif(ref($@) && $@->isa('Error')) {
-				# Deliberate block (throttle) — re-throw so caller sees the denial
+			if(ref($@) && $@->isa('Error')) {
+				# Deliberate throttle block: re-throw so the caller sees the denial.
+				# Do NOT unlink the DB here -- that would erase the throttle window.
 				$@->throw();
+			}
+			# Genuine YAML/IO error from Data::Throttler -- remove the corrupt file
+			# and fall through so this request is served (fail open).
+			if($logger) {
+				$logger->info("removing corrupt throttle DB $db_file: $@");
 			}
 			unlink($db_file);
 		}
@@ -243,7 +246,7 @@ sub allow {
 	my $cache = $args{'cache'};
 	if(!defined($cache)) {
 		throw Error::Simple('Either cache or config must be given') unless($args{config});
-		$cache = ::create_memory_cache(config => $args{'config'}, namespace => __PACKAGE__, logger => $logger);
+		$cache = Ged2site::Utils::create_memory_cache(config => $args{'config'}, namespace => __PACKAGE__, logger => $logger);
 	}
 	if(defined($cache)) {
 		my $cachecontent = $cache->get($today);
