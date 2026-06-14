@@ -214,7 +214,19 @@ $SIG{PIPE} = 'IGNORE';
 
 # my ($stdin, $stdout, $stderr) = (IO::Handle->new(), IO::Handle->new(), IO::Handle->new());
 # https://stackoverflow.com/questions/14563686/how-do-i-get-errors-in-from-a-perl-script-running-fcgi-pm-to-appear-in-the-apach
-$SIG{__DIE__} = $SIG{__WARN__} = sub {
+$SIG{__WARN__} = sub {
+	my $msg = join '', @_;
+	if(open(my $fout, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"))) {
+		print $fout $info->domain_name(), ": $msg";
+		close $fout;
+	# } else {
+		# print $stderr $msg;
+	}
+	$logger->warn($msg) if($logger);
+};
+
+$SIG{__DIE__} = sub {
+	return if $^S;	# Let Error.pm try/catch handle dies inside eval blocks
 	my $msg = join '', @_;
 	Log::WarnDie->dispatcher(undef);
 	if(open(my $fout, '>>', File::Spec->catfile($tmpdir, "$script_name.stderr"))) {
@@ -224,7 +236,7 @@ $SIG{__DIE__} = $SIG{__WARN__} = sub {
 		# print $stderr $msg;
 	}
 	$logger->fatal($msg) if($logger);
-	CORE::die $msg;
+	CORE::die @_;
 };
 
 # my $request = FCGI::Request($stdin, $stdout, $stderr);
