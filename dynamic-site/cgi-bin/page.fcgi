@@ -45,6 +45,7 @@ use Error qw(:try);
 use File::Spec;
 use POSIX qw(strftime);
 use Readonly;
+use Timer::Simple;
 use Time::HiRes;
 
 # FIXME: Sometimes gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
@@ -233,6 +234,8 @@ my $request = FCGI::Request();
 while($handling_request = ($request->Accept() >= 0)) {
 	unless($ENV{'REMOTE_ADDR'}) {
 		# debugging from the command line
+		my $timer = Timer::Simple->new();
+
 		$ENV{'NO_CACHE'} = 1;
 		if((!defined($ENV{'HTTP_ACCEPT_LANGUAGE'})) && defined($ENV{'LANG'})) {
 			my $lang = $ENV{'LANG'};
@@ -247,50 +250,27 @@ while($handling_request = ($request->Accept() >= 0)) {
 		Log::WarnDie->dispatcher($logger);
 		$info->set_logger($logger);
 		# TODO - set logger on all databases
+		$info->set_logger($logger);
 		$people->set_logger($logger);
+		$locations->set_logger($logger);
+		$places->set_logger($logger);
 		$vwf_log->set_logger($logger);
 		# $Config::Auto::Debug = 1;
 
-		# TODO:  Make this neater
-		# Tries again without the database if it can't be opened
 		$Error::Debug = 1;
 		# CHI->stats->enable();
 		try {
 			doit(debug => 1);
-		} catch Error::DB::Open with {
-			my $msg = shift;
-			my $tryagain = 0;
-			my $file = $msg->{'-file'};
-			if($file =~ /locations/) {
-				# The locations database doesn't exist
-				$locations = undef;
-				$tryagain = 1;
-			} elsif($file =~ /censuses/) {
-				# The census database doesn't exist
-				$censuses = undef;
-				$tryagain = 1;
-			} elsif($file =~ /military/) {
-				# The military database doesn't exist
-				$military = undef;
-				$tryagain = 1;
-			}
-			if($tryagain) {
-				try {
-					doit(debug => 1);
-				} catch Error with {
-					$msg = shift;
-					warn "$msg\n", $msg->stacktrace();
-					$logger->error($msg);
-				};
-			} else {
-				warn "$msg\n", $msg->stacktrace();
-				$logger->error($msg);
-			}
 		} catch Error with {
 			my $msg = shift;
 			warn "$msg\n", $msg->stacktrace();
 			$logger->error($msg);
 		};
+
+		my @elapsed_time = $timer->hms();
+		my $timetaken = int($elapsed_time[2] * 1000);
+		$logger->info("$script_name completed in ${timetaken}ms");
+
 		last;
 	}
 
@@ -302,48 +282,9 @@ while($handling_request = ($request->Accept() >= 0)) {
 	$places->set_logger($logger);
 	$vwf_log->set_logger($logger);
 
-	my $start = [Time::HiRes::gettimeofday()];
-
-	# TODO:  Make this neater
-	# Tries again without the database if it can't be opened
+	# TODO:	Make this neater
 	try {
 		doit(debug => 0);
-		my $timetaken = Time::HiRes::tv_interval($start);
-
-		$logger->info("$script_name completed in $timetaken seconds");
-	} catch Error::DB::Open with {
-		my $msg = shift;
-		my $tryagain = 0;
-		my $file = $msg->{'-file'};
-		if($file =~ /locations/) {
-			# The locations database doesn't exist
-			$locations = undef;
-			$tryagain = 1;
-		} elsif($file =~ /censuses/) {
-			# The census database doesn't exist
-			$censuses = undef;
-			$tryagain = 1;
-		} elsif($file =~ /military/) {
-			# The military database doesn't exist
-			$military = undef;
-			$tryagain = 1;
-		}
-		if($tryagain) {
-			try {
-				doit(debug => 0);
-			} catch Error with {
-				$msg = shift;
-				warn "$msg\n", $msg->stacktrace();
-				$logger->error($msg);
-			};
-		} else {
-			warn "$msg\n", $msg->stacktrace();
-			$logger->error($msg);
-			if($buffercache) {
-				$buffercache->clear();
-				$buffercache = undef;
-			}
-		}
 	} catch Error with {
 		my $msg = shift;
 		$logger->error("$msg: ", $msg->stacktrace());
@@ -354,6 +295,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 	};
 
 	$request->Finish();
+
 	$handling_request = 0;
 	if($exit_requested) {
 		last;
@@ -388,7 +330,7 @@ exit(0);
 # Create and send response to the client for each request
 sub doit
 {
-	my $request_start = Time::HiRes::time();
+	my $request_start = Timer::Simple->new();
 
 	CGI::Info->reset();
 
