@@ -60,6 +60,7 @@ use lib '../lib';
 use lib CGI::Info::script_dir() . '/../lib';
 use lib File::HomeDir->my_home() . '/lib/perl5';
 
+use Ged2site::Allow;
 use Ged2site::Config;
 use Ged2site::Utils;
 use Error::DB::Open;
@@ -523,6 +524,20 @@ sub doit
 			$reason = 'Denied by CGI::ACL';
 		} elsif(blacklisted($info)) {
 			$reason = 'Blacklisted for attempting to break in';
+		} else {
+			try {
+				unless(Ged2site::Allow::allow({
+					info   => $info,
+					lingua => $lingua,
+					logger => $logger,
+					cache  => $rate_limit_cache,
+					config => $config,
+				})) {
+					$reason = 'Blocked by Ged2site::Allow';
+				}
+			} catch Error with {
+				$reason = shift;
+			};
 		}
 		if($reason) {
 			# Client has been blocked
