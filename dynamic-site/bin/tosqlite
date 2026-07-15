@@ -1,4 +1,4 @@
-set -e
+set -ex
 
 cd ../data && rm -f *.sql
 csv2sqlite -o sep_char='!' surnames.csv surnames.sql

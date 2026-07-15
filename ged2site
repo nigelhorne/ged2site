@@ -4280,7 +4280,7 @@ sub print_person
 					$myod = $1;
 				}
 				if((!defined($fyod)) || (!defined($myod))) {
-					die "BUG: !fyod || !myod";
+					die "BUG: !fyod || !myod, ", $person->as_string(), ', ', dateofdeath($mother), ', ', dateofdeath($father);
 				}
 				if((($fyod - $yob) < 16) && (($myod - $yob) < 16)) {
 					if($end_of_sentence) {
@@ -13475,24 +13475,29 @@ sub get_all_occupations
 	my $params = Params::Get::get_params('person', @_);
 	my $person = $params->{'person'};
 
+	# Validate that a person object was provided
 	die 'Usage: get_all_occupations($person)' unless($person);
 
+	# Fetch raw occupation values from the Gedcom record
 	my @occupations = get_value({ person => $person, value => 'occupation' });
 
-	# Return early if no occupations are recorded for this person
-	return () if((scalar(@occupations) == 1) && !defined($occupations[0]));
+	# Return early if no occupations found or first value is undef
+	return unless(scalar(@occupations) && defined($occupations[0]));
+
+	# Determine sex for gendered language translations
+	my $sex = get_value({ person => $person, value => 'sex' }) // 'M';
 
 	# Construct the normaliser lazily on first use to reduce startup cost
 	$occupation_normaliser //= Genealogy::Occupation->new();
 
+	print 'Find occupations for', $person->as_string(middle_names => 1), "\n" if($opts{v});
+
 	# Delegate all filtering, deduplication, normalisation, and
 	# locale/language translation to Genealogy::Occupation
-	my $result = $occupation_normaliser->normalise(
+	return @{$occupation_normaliser->normalise(
 		occupation => \@occupations,
-		sex        => $person->sex(),
-	);
-
-	return @{$result};
+		sex        => $sex,
+	)};
 }
 
 # Return the arrival record of the given person, or undef if none or more than one
@@ -13705,7 +13710,15 @@ sub datecmp($$)
 {
 	my ($left, $right) = @_;
 
-	return Date::Cmp::datecmp($left, $right, \&complain);
+	my $rc;
+	eval {
+		$rc = Date::Cmp::datecmp($left, $right, \&complain);
+	};
+	if($@) {
+		complain($@);
+		return 0;
+	}
+	return $rc;
 }
 
 sub chronicling_america
@@ -14276,7 +14289,8 @@ sub parse_date
 		} elsif($before) {
 			return "bef $date";
 		}
-		return $date;
+		return $date if($date =~ /^\d/);
+		complain({ person => $person, warning => "Can't parse date $date" });
 	}
 }
 
