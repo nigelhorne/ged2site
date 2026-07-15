@@ -7,6 +7,12 @@
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<meta name="description" content="Heritage in [% SiteTitle.Default.join(' ') %] - A Ged2Site webpage">
 		<meta name="Copyright" content="Copyright (C) 2026 Nigel Horne">
+		<meta http-equiv="Content-Language" content="English">
+                [% IF twitter %]
+			<meta name="twitter:site" content="@[% twitter %]">
+			<meta name="twitter:title" content="[% SiteTitle.Default %]">
+                [% END %]
+                <link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 	</head>
 	<body>
 		<div id="header_container">
@@ -31,22 +37,23 @@
 			<br>
 			[% IF heritage_by_country %]
 				[% FOREACH country IN heritage_by_country.keys.sort %]
-					<h2>[% country %]</h2>
-					<table>
-						<tr>
-							<th>Name</th>
-							<th>Relationship</th>
-							<th>Born</th>
-						</tr>
-						[% FOREACH person IN heritage_by_country.$country %]
-							<tr>
-								<td><a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a></td>
-								<td>[% person.relationship %]</td>
-								<td>[% person.dob %]</td>
-							</tr>
-						[% END %]
-					</table>
+					<br>
+					<button class="collapsible">[% country %]</button>
+					<div class="content">
+						<ul id="nav">
+							[% FOREACH person IN heritage_by_country.$country %]
+								<li>
+									<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a><br>
+									[% person.relationship %]<br>
+									[% person.dob %]
+								</li>
+							[% END %]
+						</ul>
+					</div>
 				[% END %]
+				<p>
+					This page displays people with blood relationships born in a different country from the home person.
+				</p>
 			[% ELSE %]
 				<p>No heritage found outside the home country.</p>
 			[% END %]
