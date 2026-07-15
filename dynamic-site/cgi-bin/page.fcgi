@@ -142,6 +142,7 @@ use Ged2site::DB::name_date;
 use Ged2site::DB::surname_date;
 use Ged2site::DB::twins;
 use Ged2site::DB::military;
+use Ged2site::DB::heritage;
 use Ged2site::DB::locations;
 use Ged2site::DB::places;
 use Ged2site::Data::vwf_log;
@@ -167,6 +168,7 @@ my $history = Ged2site::Data::history->new(no_fixate => 1);
 my $orphans = Ged2site::Data::orphans->new();
 my $todo = Ged2site::DB::todo->new();
 my $intermarriages = Ged2site::DB::intermarriages->new();
+my $heritage = Ged2site::DB::heritage->new();
 my $locations = Ged2site::DB::locations->new();
 my $places = Ged2site::DB::places->new();
 my $name_date = Ged2site::DB::name_date->new();
@@ -265,6 +267,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		# TODO - set logger on all databases
 		$info->set_logger($logger);
 		$people->set_logger($logger);
+		$heritage->set_logger($logger);
 		$locations->set_logger($logger);
 		$places->set_logger($logger);
 		$vwf_log->set_logger($logger);
@@ -291,6 +294,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 	$logger->info("Request $requestcount: ", $ENV{'REMOTE_ADDR'});
 	$info->set_logger($logger);
 	$people->set_logger($logger);
+	$heritage->set_logger($logger);
 	$locations->set_logger($logger);
 	$places->set_logger($logger);
 	$vwf_log->set_logger($logger);
@@ -678,6 +682,7 @@ sub doit
 			people => $people,
 			censuses => $censuses,
 			changes => $changes,
+			heritage => $heritage,
 			locations => $locations,
 			orphans => $orphans,
 			places => $places,
