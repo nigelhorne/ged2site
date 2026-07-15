@@ -1750,8 +1750,10 @@ if(open($csv, '>', 'dynamic-site/data/surname_date.csv')) {
 if($me && $me_birth_country && @heritage_candidates) {
 	my %heritage_by_country;
 	for my $c (@heritage_candidates) {
-		next if($c->{'birth_country'} eq $me_birth_country);
-		push @{$heritage_by_country{$c->{'birth_country'}}}, $c;
+		my $birth_country = $c->{birth_country};
+		next unless(defined($birth_country));
+		next if($birth_country eq $me_birth_country);
+		push @{$heritage_by_country{$birth_country}}, $c;
 	}
 
 	if(%heritage_by_country) {
@@ -9023,7 +9025,7 @@ sub print_person
 		print "Create parents\n" if($opts{'v'});
 		print $html '</p>';
 		if($mother || $father) {
-			print $html "<h2>Parents</h2><ol>";
+			print $html '<h2>Parents</h2><ol>';
 			if($father && (my $f = person_line_html({ person => $father, year => $year }))) {
 				print $html "<li>$f</li>";
 				print $csv person_line_csv({ person => $father, year => $year });
