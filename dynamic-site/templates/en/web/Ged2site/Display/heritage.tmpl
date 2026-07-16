@@ -1,7 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
     "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="en">
+<html lang="en" dir="ltr">
 	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta http-equiv="x-ua-compatible" content="ie=edge">
 		<title>Heritage for [% SiteTitle.Default.join(' ') %]</title>
 		<meta http-equiv="Content-Language" content="English">
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
@@ -12,7 +14,6 @@
 			<meta name="twitter:site" content="@[% twitter %]">
 			<meta name="twitter:title" content="[% SiteTitle.Default %]">
                 [% END %]
-                <link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 	</head>
 	<body>
 		<div id="header_container">
@@ -34,7 +35,6 @@
 				[ <a href="?page=calendar">Calendar</a> ] |
 				[ <a href="?page=reports">Reports</a> ]
 			</center>
-			<br>
 			[% IF heritage_by_country %]
 				[% FOREACH country IN heritage_by_country.keys.sort %]
 					<br>
@@ -43,8 +43,8 @@
 						<ul id="nav">
 							[% FOREACH person IN heritage_by_country.$country %]
 								<li>
-									<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a><br>
-									[% person.relationship %]<br>
+									<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
+									[% person.relationship %]
 									[% person.dob %]
 								</li>
 							[% END %]
