@@ -10103,6 +10103,7 @@ sub print_person
 			};
 			if($@) {
 				complain({ person => $person, warning => $@ });
+				print $csv '!!';
 			} else {
 				$map_head =~ s/\n\n*/\n/g;
 				$map_head =~ s/http:/https:/;
