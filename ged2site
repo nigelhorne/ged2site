@@ -1442,7 +1442,8 @@ if(scalar(%all_locations)) {	# opts{'m'} will be enabled
 	# $body =~ s/>/&gt;/g;
 	$body = wide_to_html($body);
 	$body =~ s/^\n+//;
-	$body =~ s/&copy;/&#x0A9;/g;
+	$body =~ s/&copy;/\&#x0A9;/g;
+	$body =~ s/&excl;/\&#x021;/g;	# Don't use &excl; as that's not known by XML
 	$body =~ s/\n+$//;
 	print $locations_xml "\t</maps>\n\t<body>$body</body>\n</locations>\n";
 	close $locations_xml;
@@ -10079,7 +10080,10 @@ sub print_person
 				}
 				$map = $maps_module->new(%args);
 				if(!$map->center($current_place)) {
-					warn "Couldn't centre the map on $current_place";
+					complain({
+						person => $person,
+						warning => "Couldn't centre the map on $current_place"
+					})
 				}
 			}
 			add_marker(person => $person, map => $map, place => HTML::Entities::decode($current_place), annotation => $annotation);
@@ -10093,34 +10097,41 @@ sub print_person
 			print "Create map HTML\n" if($opts{'v'});
 			# Can't put $head into the head since it's far too
 			# late now!
-			my ($map_head, $map_div) = $map->onload_render();
-			$map_head =~ s/\n\n*/\n/g;
-			$map_head =~ s/http:/https:/;
-			$map_head = wide_to_html({ string => $map_head, keep_hrefs => 1, keep_apos => 1 });
-			$map_head =~ s/(^|\n)[\n\s]*/$1/g;	# Remove blank lines
-			if($map_div =~ /[^[:ascii:]]/) {
-				# Fix the URL to not have wide characters
-				my $ufinder = URI::Find::Schemeless->new(sub {
-					# my($uri, $orig_uri) = @_;
-					my $orig_uri = $_[1];
+			my ($map_head, $map_div);
+			eval {
+				($map_head, $map_div) = $map->onload_render()
+			};
+			if($@) {
+				complain({ person => $person, warning => $@ });
+			} else {
+				$map_head =~ s/\n\n*/\n/g;
+				$map_head =~ s/http:/https:/;
+				$map_head = wide_to_html({ string => $map_head, keep_hrefs => 1, keep_apos => 1 });
+				$map_head =~ s/(^|\n)[\n\s]*/$1/g;	# Remove blank lines
+				if($map_div =~ /[^[:ascii:]]/) {
+					# Fix the URL to not have wide characters
+					my $ufinder = URI::Find::Schemeless->new(sub {
+						# my($uri, $orig_uri) = @_;
+						my $orig_uri = $_[1];
 
-					$orig_uri =~ s/á/a/g;
-					$orig_uri =~ s/ó/o/g;
-					return $orig_uri;
-				});
-				$ufinder->find(\$map_div);
-				$map_div = wide_to_html({ string => $map_div, keep_hrefs => 1, keep_apos => 1 });
+						$orig_uri =~ s/á/a/g;
+						$orig_uri =~ s/ó/o/g;
+						return $orig_uri;
+					});
+					$ufinder->find(\$map_div);
+					$map_div = wide_to_html({ string => $map_div, keep_hrefs => 1, keep_apos => 1 });
+				}
+				# utf8::encode($map_head);
+				$both_xmls->print("\n\t\t<map>\n\t\t\t<map_head>")
+					->print(MIME::Base64::encode_base64url($map_head))
+					->print("</map_head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>");
+				print $csv MIME::Base64::encode_base64url($map_head), '!', MIME::Base64::encode_base64url($map_div), '!';
+				# if($opts{'m'}) {
+					# # Don't include the key in the webpage.
+					# $map_head =~ s/\?key=\w+?"/"/;
+				# }
+				print $html "$map_head<h2>Map</h2><center>$map_div</center>\n";
 			}
-			# utf8::encode($map_head);
-			$both_xmls->print("\n\t\t<map>\n\t\t\t<map_head>")
-				->print(MIME::Base64::encode_base64url($map_head))
-				->print("</map_head>\n\t\t\t<body>", MIME::Base64::encode_base64url($map_div), "</body>\n\t\t</map>");
-			print $csv MIME::Base64::encode_base64url($map_head), '!', MIME::Base64::encode_base64url($map_div), '!';
-			# if($opts{'m'}) {
-				# # Don't include the key in the webpage.
-				# $map_head =~ s/\?key=\w+?"/"/;
-			# }
-			print $html "$map_head<h2>Map</h2><center>$map_div</center>\n";
 		} else {
 			print $csv '!!';
 		}
