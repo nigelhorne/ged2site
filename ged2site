@@ -12700,6 +12700,9 @@ sub complain
 	if(ref($params{'warning'}) eq 'ARRAY') {
 		$params{'warning'} = join('', @{$params{'warning'}});
 	}
+
+	$params{warning} =~ s/\n//g;
+
 	if($opts{'f'}) {
 		my @call_details = caller(0);
 		if($params{'person'}) {
