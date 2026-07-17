@@ -39,6 +39,7 @@
 		-->
 	</head>
 	[% IF person.map_body %]
+		<!-- FIXME: this is not needed if we are using HTML::OSM rather than Googlemaps -->
 		<body onload="html_googlemaps_initialize()">
 	[% ELSE %]
 		<body>

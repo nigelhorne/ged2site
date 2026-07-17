@@ -179,3 +179,33 @@ myButton:active {
   /*background-color: #f1f1f1;*/
   background-color: #ffffff;
 }
+
+/*
+   Prevent global image styling from affecting Leaflet map tiles and marker icons.
+   Leaflet draws its map using <img> elements, so borders/margins applied to
+   #container img would create white boxes and grid lines on the map.
+   Without this, OSM maps show white lines across them
+*/
+
+.leaflet-tile {
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: content-box !important;
+}
+#container img.leaflet-tile {
+    border: none !important;
+    margin: 0 !important;
+}
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: content-box !important;
+}
+#container img.leaflet-marker-icon,
+#container img.leaflet-marker-shadow {
+    border: none !important;
+    margin: 0 !important;
+}
