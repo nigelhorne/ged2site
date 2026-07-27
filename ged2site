@@ -32,6 +32,7 @@
 # TODO: data analysis of notes to find extra information
 # TODO: prune old entries from changes.psv (should be configurable how long ago)
 # TODO:	notes_locations already contain lat/long information, so use that in add_marker()
+# TODO: Something like: "$person was born on 1 Dec 1795, less than 9 months before his father died, leaving his mother 5 children to bring up by herself".  Optionally add "until she remarried on 15 Apr 1797".
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
