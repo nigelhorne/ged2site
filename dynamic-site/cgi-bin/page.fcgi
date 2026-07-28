@@ -847,6 +847,28 @@ sub filter
 	return 1;
 }
 
+sub vwflog
+# Escape a single value for safe inclusion in a double-quoted CSV field.
+# Follows RFC 4180 §2.7 and additionally neutralises spreadsheet formulas.
+sub _csv_escape
+{
+	my $v = shift // '';
+
+	# RFC 4180: a double-quote inside a quoted field is represented by two
+	# double-quote characters.  Without this, one embedded " would break the
+	# column boundary and corrupt every subsequent field on the row.
+	$v =~ s/"/""/g;
+
+	# SECURITY — CSV formula injection defence:
+	#   Spreadsheet applications (Excel, LibreOffice Calc) interpret cell values
+	#   that begin with = + - @ TAB or CR as formulas.  An attacker who controls
+	#   a logged field (e.g. the page parameter) could inject =cmd|'/C calc'!A0.
+	#   Prefix such values with a single-quote to force literal interpretation.
+	$v =~ s/^([=+\-@\t\r])/'$1/;
+
+	return $v;
+}
+
 # Write one access record to vwf.log (CSV format) and optionally to syslog.
 # All user-influenced fields are escaped through _csv_escape before output.
 sub vwflog
