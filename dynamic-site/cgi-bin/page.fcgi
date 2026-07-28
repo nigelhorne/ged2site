@@ -847,16 +847,19 @@ sub filter
 	return 1;
 }
 
-# Put something to vwf.log
+# Write one access record to vwf.log (CSV format) and optionally to syslog.
+# All user-influenced fields are escaped through _csv_escape before output.
 sub vwflog
 {
 	my ($vwflog, $info, $lingua, $syslog, $message, $log, $request_start) = @_;
 
+	# Calculate request duration in milliseconds if a start timer was supplied.
 	my $duration_ms = '';
 	if($request_start) {
 		$duration_ms = int((Time::HiRes::time() - $request_start) * 1000);
 	}
 
+	# Determine which template was rendered for this request (may be empty on error).
 	my $template;
 	if($log) {
 		$template = $log->template();
@@ -866,14 +869,15 @@ sub vwflog
 	}
 	$message ||= '';
 
+	# Create the log file with a header row on first use.
 	if(!-e $vwflog) {
-		# First run - put in the heading row
 		open(my $fout, '>', $vwflog);
 		print $fout '"domain_name","time","IP","country","type","language","http_code","template","args","messages","error","duration_ms"',
 			"\n";
 		close $fout;
 	}
 
+	# Collect any warn/notice-level messages emitted during this request.
 	my $warnings;
         if(my $messages = $info->messages()) {
                 $warnings = join('; ',
@@ -884,34 +888,45 @@ sub vwflog
 
 	my $country = $lingua->country() || 'unknown';
 
+	# Open the log in append mode.  If the open fails we skip logging silently
+	# so that a disk-full or permissions error does not crash the live request.
 	if(open(my $fout, '>>', $vwflog)) {
+		# SECURITY — CSV injection defence:
+		#   Every user-visible field is passed through _csv_escape so that
+		#   embedded double-quotes cannot break the CSV column structure, and
+		#   leading formula characters cannot trigger code execution when the
+		#   file is opened in a spreadsheet application.
 		print $fout
-			'"', $info->domain_name(), '",',
+			'"', _csv_escape($info->domain_name()), '",',
 			'"', strftime('%F %T', localtime), '",',
-			'"', ($ENV{REMOTE_ADDR} ? $ENV{REMOTE_ADDR} : ''), '",',
-			'"', $country, '",',
-			'"', $info->browser_type(), '",',
-			'"', ($lingua->language() || ''), '",',
+			'"', _csv_escape($ENV{REMOTE_ADDR} // ''), '",',
+			'"', _csv_escape($country), '",',
+			'"', _csv_escape($info->browser_type()), '",',
+			'"', _csv_escape($lingua->language() // ''), '",',
 			$info->status(), ',',
-			'"', $template, '",',
-			'"', $info->as_string(raw => 1), '",',
-			'"', $warnings, '",',
-			'"', $message, '",',
+			'"', _csv_escape($template), '",',
+			'"', _csv_escape($info->as_string(raw => 1)), '",',
+			'"', _csv_escape($warnings), '",',
+			'"', _csv_escape($message), '",',
 			$duration_ms,
 			"\n";
 		close($fout);
 	}
 
+	# Optionally mirror the record to syslog (configured via the syslog stanza).
 	if($syslog) {
 		unless(Sys::Syslog->can('openlog')) {
 			require Sys::Syslog;
 			Sys::Syslog->import();
 		}
 
+		# Configure the socket transport if a hash of options was provided.
 		if(ref($syslog) eq 'HASH') {
 			Sys::Syslog::setlogsock($syslog);
 		}
 		Sys::Syslog::openlog($script_name, 'cons,pid', 'user');
+		# Use positional %s/%d format args so that special characters in the
+		# values cannot be interpreted as syslog format directives.
 		Sys::Syslog::syslog('info|local0', '%s %s %s %s %s %d %s %s %d %s %s',
 			$info->domain_name() || '',
 			$ENV{REMOTE_ADDR} || '',
