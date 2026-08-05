@@ -5,16 +5,16 @@
 # Two bugs were reported:
 #
 #   Bug 1 — CONC leading-space lost:
-#     GEDCOM CONC lines conventionally begin with a space to act as a word
-#     separator when appended to the preceding line.  If that space is
-#     stripped by the parser (or collapsed by post-processing), adjacent
-#     sentences fuse: "September 30, 1923.Tragically" instead of
-#     "September 30, 1923. Tragically".
+#	 GEDCOM CONC lines conventionally begin with a space to act as a word
+#	 separator when appended to the preceding line.  If that space is
+#	 stripped by the parser (or collapsed by post-processing), adjacent
+#	 sentences fuse: "September 30, 1923.Tragically" instead of
+#	 "September 30, 1923. Tragically".
 #
 #   Bug 2 — empty CONT swallowed:
-#     An empty CONT record is the GEDCOM idiom for a paragraph break.
-#     The notes() routine calls s/\n+/<\/p><p>/g when paragraph=>1, so
-#     both newlines must survive full_value() for the break to appear.
+#	 An empty CONT record is the GEDCOM idiom for a paragraph break.
+#	 The notes() routine calls s/\n+/<\/p><p>/g when paragraph=>1, so
+#	 both newlines must survive full_value() for the break to appear.
 
 use strict;
 use warnings;
@@ -50,35 +50,35 @@ END
 close $fh;
 
 run ['./ged2site', '-h', 'Test Person', $gedfile],
-    '>', \my $stdout, '2>', \my $stderr;
+	'>', \my $stdout, '2>', \my $stderr;
 
 my $html_file = 'static-site/I1.html';
 
 ok(-f $html_file, 'Person HTML file was generated');
 
 SKIP: {
-    skip 'HTML file was not generated — cannot test note rendering', 4
-        unless -f $html_file;
+	skip 'HTML file was not generated — cannot test note rendering', 4
+		unless -f $html_file;
 
-    open(my $in, '<', $html_file) or BAIL_OUT("Cannot read $html_file: $!");
-    local $/;
-    my $html = <$in>;
-    close $in;
+	open(my $in, '<', $html_file) or BAIL_OUT("Cannot read $html_file: $!");
+	local $/;
+	my $html = <$in>;
+	close $in;
 
-    # Confirm the note content reached the HTML at all before checking detail.
-    like($html, qr/First sentence/, 'Note content is present in the HTML output');
+	# Confirm the note content reached the HTML at all before checking detail.
+	like($html, qr/First sentence/, 'Note content is present in the HTML output');
 
-    # Bug 1: the CONC line " Second..." has a leading space that is the sole
-    # separator; losing it fuses the two sentences into "here.Second".
-    unlike($html, qr/here\.Second/,
-        'Leading space on CONC line preserved — sentences not fused (issue #121 bug 1)');
+	# Bug 1: the CONC line " Second..." has a leading space that is the sole
+	# separator; losing it fuses the two sentences into "here.Second".
+	unlike($html, qr/here\.Second/,
+		'Leading space on CONC line preserved — sentences not fused (issue #121 bug 1)');
 
-    # The CONT paragraph text must also survive the pipeline.
-    like($html, qr/New paragraph text/, 'CONT continuation text is present in output');
+	# The CONT paragraph text must also survive the pipeline.
+	like($html, qr/New paragraph text/, 'CONT continuation text is present in output');
 
-    # Bug 2: the empty CONT between the two blocks must produce a <p> break.
-    # notes() substitutes \n+ → </p><p> when paragraph=>1, so if full_value()
-    # strips the empty-CONT newline the two blocks collapse into one paragraph.
-    like($html, qr{</p>.*?<p>}is,
-        'Paragraph break from empty CONT line (issue #121 bug 2)');
+	# Bug 2: the empty CONT between the two blocks must produce a <p> break.
+	# notes() substitutes \n+ → </p><p> when paragraph=>1, so if full_value()
+	# strips the empty-CONT newline the two blocks collapse into one paragraph.
+	like($html, qr{</p>.*?<p>}is,
+		'Paragraph break from empty CONT line (issue #121 bug 2)');
 }

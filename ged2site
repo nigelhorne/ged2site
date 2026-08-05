@@ -12106,6 +12106,43 @@ sub getaddress
 	return $rc;
 }
 
+# Rebuild the plain-text content of a GEDCOM NOTE (or any) record by walking
+# its CONC/CONT sub-items directly, bypassing Gedcom::Item::full_value().
+#
+# full_value() concatenates CONC values as stored in {value}, but the Gedcom
+# parser strips leading whitespace from those values at parse time.  That
+# whitespace is intentional: genealogy applications place a leading space on
+# each CONC line to provide the word boundary between the preceding line and
+# the continuation (e.g. "1923.\n1 CONC  Tragically" → "1923. Tragically").
+# Losing it produces run-on text like "1923.Tragically".
+# https://github.com/nigelhorne/ged2site/issues/121
+sub _gedcom_note_text {
+	my ($record) = @_;
+
+	my $text = $record->{value} // '';
+	$text =~ s/[\r\n]+$//;
+
+	for my $item (@{$record->_items()}) {
+		my $v = $item->{value} // '';
+		$v =~ s/[\r\n]+$//;
+		if($item->{tag} eq 'CONT') {
+			$text .= "\n$v";
+		} elsif($item->{tag} eq 'CONC') {
+			# The parser stripped the leading space that was the word separator.
+			# Re-insert one whenever the accumulated text ends with a non-space
+			# character and the continuation value is non-empty, so that
+			# "sentence ends here." + "Next sentence." → "…here. Next sentence."
+			# rather than the run-on "…here.Next sentence."
+			if(length($text) && $text !~ /\s$/ && length($v)) {
+				$text .= ' ';
+			}
+			$text .= $v;
+		}
+	}
+
+	return $text;
+}
+
 # paragraph => 0: ignore spacing and put it all into one paragraph
 # You may wish to apply this patch to Gedcom::Item
 #	https://github.com/pjcj/Gedcom.pm/compare/main...jhannah:Gedcom.pm:master
@@ -12138,12 +12175,12 @@ sub notes
 	foreach my $note(@notes) {
 		if($note) {
 			if(ref($note) eq 'Gedcom::Record') {
-				$note = $note->full_value();	# Include CONC records
+				$note = _gedcom_note_text($note);	# Include CONC/CONT records
 
 				# Handle linked notes
 				# https://github.com/nigelhorne/ged2site/issues/114
 				if(my $n = $ged->resolve_xref($note)) {
-					$note = $n->full_value();
+					$note = _gedcom_note_text($n);
 				}
 			# } else {
 				# complain("Note record is just description ($note), information may have been lost");
