@@ -826,7 +826,7 @@ sub blacklisted
 		}
 
 		if(my $string = $info->as_string()) {
-			# SECURITY — ReDoS defence:
+			# SECURITY - ReDoS defence:
 			#   The original patterns used greedy .+ between SQL keywords, which
 			#   causes catastrophic (exponential) backtracking when an attacker
 			#   sends a string that contains the opening keyword but not the
