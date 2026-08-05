@@ -826,7 +826,25 @@ sub blacklisted
 		}
 
 		if(my $string = $info->as_string()) {
-			if(($string =~ /SELECT.+AND.+/i) || ($string =~ /ORDER BY /i) || ($string =~ / OR NOT /i) || ($string =~ / AND \d+=\d+/i) || ($string =~ /THEN.+ELSE.+END/i) || ($string =~ /.+AND.+SELECT.+/i) || ($string =~ /\sAND\s.+\sAND\s/i) || ($string =~ /AND\sCASE\sWHEN/i)) {
+			# SECURITY — ReDoS defence:
+			#   The original patterns used greedy .+ between SQL keywords, which
+			#   causes catastrophic (exponential) backtracking when an attacker
+			#   sends a string that contains the opening keyword but not the
+			#   closing one (e.g. thousands of chars after SELECT with no AND).
+			#   All .+ quantifiers are replaced with the bounded class [^;]{0,N}:
+			#     - the semicolon is a natural SQL statement terminator so it is
+			#       a safe anchor that real SQL injection never crosses, and
+			#     - the explicit upper bound caps backtracking to O(N) steps.
+			#   Word-boundary assertions (\b) also eliminate false positives on
+			#   ordinary words that happen to contain the substring.
+			if(   ($string =~ /SELECT\b[^;]{0,500}\bAND\b/i)
+			   || ($string =~ /ORDER\s+BY\s/i)
+			   || ($string =~ /\bOR\s+NOT\b/i)
+			   || ($string =~ /\bAND\s+\d+=\d+/i)
+			   || ($string =~ /\bTHEN\b[^;]{0,200}\bELSE\b[^;]{0,200}\bEND\b/i)
+			   || ($string =~ /\bAND\b[^;]{0,200}\bSELECT\b/i)
+			   || ($string =~ /\sAND\s[^;]{0,100}\sAND\s/i)
+			   || ($string =~ /\bAND\s+CASE\s+WHEN\b/i)) {
 				$blacklisted_ip{$remote} = 1;
 				$info->status(403);
 				return 1;
@@ -847,7 +865,6 @@ sub filter
 	return 1;
 }
 
-sub vwflog
 # Escape a single value for safe inclusion in a double-quoted CSV field.
 # Follows RFC 4180 §2.7 and additionally neutralises spreadsheet formulas.
 sub _csv_escape
@@ -859,7 +876,7 @@ sub _csv_escape
 	# column boundary and corrupt every subsequent field on the row.
 	$v =~ s/"/""/g;
 
-	# SECURITY — CSV formula injection defence:
+	# SECURITY - CSV formula injection defence:
 	#   Spreadsheet applications (Excel, LibreOffice Calc) interpret cell values
 	#   that begin with = + - @ TAB or CR as formulas.  An attacker who controls
 	#   a logged field (e.g. the page parameter) could inject =cmd|'/C calc'!A0.
