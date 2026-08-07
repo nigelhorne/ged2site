@@ -14292,6 +14292,26 @@ sub parse_date
 			$about = 1;
 		}
 
+		# "Apr/May/Jun 1959" — a slash-separated run of month abbreviations
+		# followed by a year.  Return the full quarter/span as a GEDCOM bet range:
+		# "bet 1 Apr 1959 and 30 Jun 1959".
+		if($date =~ /^([A-Za-z]{3}(?:\/[A-Za-z]{3})+)\s+(\d{3,4})$/) {
+			my ($months_str, $year) = ($1, $2);
+			my @months = split(/\//, $months_str);
+			my %last_day = (
+				Jan => 31, Feb => 28, Mar => 31, Apr => 30,
+				May => 31, Jun => 30, Jul => 31, Aug => 31,
+				Sep => 30, Oct => 31, Nov => 30, Dec => 31,
+			);
+			# February gains a day in a leap year
+			if(($year % 4 == 0) && (($year % 100 != 0) || ($year % 400 == 0))) {
+				$last_day{Feb} = 29;
+			}
+			my $first    = ucfirst(lc($months[0]));
+			my $last     = ucfirst(lc($months[-1]));
+			my $end_day  = $last_day{$last} // 30;
+			return "bet 1 $first $year and $end_day $last $year";
+		}
 		if($date =~ /[A-Z]{4,}/i) {
 			if($date =~ /^(\d{1,2})\s([A-Z]{3,})(\d{3,4})/i) {
 				# 22 October1996
