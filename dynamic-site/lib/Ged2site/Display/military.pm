@@ -19,7 +19,9 @@ sub html {
 
 		# Lookup the full name of the person
 		foreach my $person(@military) {
-			$person->{'title'} //= $people->title(entry => $person->{'person'});
+			if(!exists($person->{title})) {
+				$person->{'title'} = $people->title(entry => $person->{'person'});
+			}
 		}
 
 		@military = sort { $a->{'title'} cmp $b->{'title'} } @military;
