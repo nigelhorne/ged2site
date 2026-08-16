@@ -5,6 +5,8 @@ use strict;
 
 # Display the people page
 
+# TODO: add ability to export a KML for the person being displayed
+
 use Data::Dumper;
 use Ged2site::Display;
 use MIME::Base64;

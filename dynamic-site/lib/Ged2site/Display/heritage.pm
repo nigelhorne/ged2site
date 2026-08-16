@@ -1,5 +1,9 @@
 package Ged2site::Display::heritage;
 
+# Display the heritage page
+
+# TODO: add ability to export a KML for each country
+
 use strict;
 use warnings;
 use autodie qw(:all);
