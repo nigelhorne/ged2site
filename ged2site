@@ -6647,6 +6647,7 @@ sub print_person
 							}
 							if(my $cousin = $living_with{"first cousin on his mother's side"}) {
 								push @{$living_with{'cousin'}}, $cousin;
+								delete $living_with{"first cousin on his mother's side"};
 							}
 
 							# TODO: go through the keys when I'm sure it's all sensible
