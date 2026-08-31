@@ -6645,10 +6645,12 @@ sub print_person
 								}
 								delete $living_with{'sibling'};
 							}
-							if(my $cousin = $living_with{"first cousin on his mother's side"}) {
+
+							foreach my $cousin (@{$living_with{"first cousin on his mother's side"}}, @{$living_with{"first cousin on her mother's side"}}) {
 								push @{$living_with{'cousin'}}, $cousin;
-								delete $living_with{"first cousin on his mother's side"};
 							}
+							delete $living_with{"first cousin on his mother's side"};
+							delete $living_with{"first cousin on her mother's side"};
 
 							# TODO: go through the keys when I'm sure it's all sensible
 							foreach my $r('aunt', 'uncle', 'nephew', 'brother-in-law', 'sister-in-law', 'grandfather', 'grandmother', 'cousin') {
