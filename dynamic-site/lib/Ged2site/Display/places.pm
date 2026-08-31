@@ -34,6 +34,10 @@ sub html {
 		'lint_content' => qr/^\d$/,
 	};
 	if(my $places = $args{'places'}) {
+		# Store on $self so _normalize_country_to_english can reach it without
+		# needing to thread $places through every intermediate call.
+		$self->{_places} = $places;
+
 		my %params = %{$info->params({ allow => $allow })};
 
 		delete $params{'page'};
@@ -166,10 +170,10 @@ sub _get_person
 #               this routine is the bridge between what the visitor sends and what
 #               the database understands.
 #
-# Entry:        $self    - a Ged2site::Display::places object; must have {_places}
-#                          (a DB handle), {_lingua} (a CGI::Lingua object), and
-#                          optionally {lcm} (Locale::Country::Multilingual) already
-#                          set up by the html() dispatcher.
+# Entry:        $self    - a Ged2site::Display::places object; {_places}
+#                          (a DB handle) is assigned by html() before any call
+#                          here, {_lingua} (a CGI::Lingua object) must also be
+#                          present, and {lcm} is built lazily on first use.
 #               $country - the country name as the visitor supplied it, possibly in
 #                          a non-English language (e.g. "Osterreich" for Austria,
 #                          "Allemagne" for Germany).
