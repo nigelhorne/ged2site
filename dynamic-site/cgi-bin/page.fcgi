@@ -520,6 +520,10 @@ sub doit
 				$logger->info("Soft rate limit exceeded for $client_ip ($request_count requests) - CAPTCHA challenge issued");
 				$info->status(429);
 
+				unless(VWF::Display::captcha->can('new')) {
+					require VWF::Display::captcha;
+					VWF::Display::captcha->import();
+				}
 				my $display = VWF::Display::captcha->new({
 					cachedir => $cachedir,
 					info => $info,

@@ -102,7 +102,7 @@ use feature qw(signatures);
 no warnings qw(experimental::signatures);
 
 use Config::Abstraction;
-use CGI::Info;
+use CGI::Info 1.14;	# For is_ai()
 use Data::Dumper;
 use Digest::MD5 qw(md5_hex);
 use Crypt::URandom qw(urandom);		# CSPRNG for CSRF tokens; rand() is not safe
@@ -922,6 +922,9 @@ sub _types
 		push @rc, 'search', 'robot';
 	} elsif($info->is_mobile()) {
 		push @rc, 'mobile';
+	} elsif($info->is_ai()) {
+		# AI crawlers are robots, so fall back to the robot templates
+		push @rc, 'ai', 'robot', 'search';
 	} elsif($info->is_robot()) {
 		push @rc, 'robot', 'search';
 	}

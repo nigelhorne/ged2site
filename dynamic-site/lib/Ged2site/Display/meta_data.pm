@@ -1,6 +1,8 @@
 package Ged2site::Display::meta_data;
 
-# Display the meta-data page - the internal status of the server and Ged2site system
+# Display the meta-data page - the internal status of the server and VWF system
+
+# TODO:  Add breakdown by browser
 
 use strict;
 use warnings;
@@ -10,11 +12,16 @@ use parent 'VWF::Display';
 use Filesys::Df;
 use List::Util qw(max);
 use POSIX qw(strftime);
+use Readonly;
 use System::Info;
 use Sys::Uptime;
 use Sys::MemInfo;
 use Time::Piece;
 use Time::Seconds;
+
+# The browser types counted in the breakdown chart.
+# Keep this in step with VWF::Display::_types() and CGI::Info::browser_type().
+Readonly my @BROWSER_TYPES => ('web', 'mobile', 'search', 'robot', 'ai');
 
 sub html {
 	my $self = shift;
@@ -24,8 +31,8 @@ sub html {
 	my $domain_name = $self->{'info'}->domain_name();
 
 	# --- Browser breakdown for existing chart ---
-	my $datapoints;
-	foreach my $type ('web','mobile','search','robot') {
+	my $datapoints = '';
+	foreach my $type (@BROWSER_TYPES) {
 		my @entries = $vwf_log->type({ domain_name => $domain_name, type => $type });
 		$datapoints .= '{y: ' . scalar(@entries) . ", label: \"$type\"},\n";
 		if($self->{'logger'}) {
