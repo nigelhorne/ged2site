@@ -2,9 +2,9 @@ package Ged2site::Display::censuses;
 
 # Display the censuses page
 
-use Ged2site::Display;
+use VWF::Display;
 
-use parent 'Ged2site::Display';
+use parent 'VWF::Display';
 
 our $allowed = {
 	'page' => 'censuses',

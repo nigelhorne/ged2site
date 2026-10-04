@@ -1,4 +1,4 @@
-package Ged2site::CAPTCHA;
+package VWF::CAPTCHA;
 
 use strict;
 use warnings;

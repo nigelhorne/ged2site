@@ -5,7 +5,7 @@ package Ged2site::Display::meta_data;
 use strict;
 use warnings;
 
-use parent 'Ged2site::Display';
+use parent 'VWF::Display';
 
 use Filesys::Df;
 use List::Util qw(max);

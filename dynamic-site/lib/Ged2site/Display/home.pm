@@ -6,11 +6,11 @@ use strict;
 # Display the home page - list today's events
 # TODO: More than just BMD, for example baptisms and travelling
 
-use Ged2site::Display;
+use VWF::Display;
 use Data::Reuse;
 use DateTime;
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 sub html {
 	my $self = shift;

@@ -1,6 +1,6 @@
-package Ged2site::Config;
+package VWF::Config;
 
-# Ged2site is licensed under GPL2.0 for personal use only
+# VWF is licensed under GPL2.0 for personal use only
 # njh@bandsman.co.uk
 
 # Usage is subject to licence terms.
@@ -25,7 +25,7 @@ use Params::Get 0.13;
 
 =head1 NAME
 
-Ged2site::Config - Site-independent configuration file for the Versatile Web Framework
+VWF::Config - Site-independent configuration file for the Versatile Web Framework
 
 =head1 VERSION
 
@@ -39,7 +39,7 @@ our $VERSION = '0.01';
 
 =head2 new
 
-Creates a new Ged2site::Config instance with hierarchical configuration loading.
+Creates a new VWF::Config instance with hierarchical configuration loading.
 
 Takes four optional arguments:
 	info (CGI::Info object)
@@ -79,7 +79,7 @@ B<Directory Search Order:>
 5. $DOCUMENT_ROOT/../lib/conf
 6. $HOME/lib/conf
 
-B<Returns:> Blessed Ged2site::Config object
+B<Returns:> Blessed VWF::Config object
 
 B<Throws:> Error::Simple on configuration errors
 

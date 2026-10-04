@@ -7,7 +7,7 @@ use strict;
 
 use Data::Dumper qw(Dumper);
 
-use parent 'Ged2site::Display';
+use parent 'VWF::Display';
 
 sub html {
 	my $self = shift;

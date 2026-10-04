@@ -4,9 +4,9 @@ package Ged2site::Display::intermarriages;
 
 use warnings;
 use strict;
-use Ged2site::Display;
+use VWF::Display;
 
-use parent 'Ged2site::Display';
+use parent 'VWF::Display';
 
 sub html {
 	my $self = shift;

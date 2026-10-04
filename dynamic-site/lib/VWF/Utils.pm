@@ -1,6 +1,5 @@
-package Ged2site::Utils;
+package VWF::Utils;
 
-# Based on VWF::Utils (https://github.com/nigelhorne/vwf)
 # VWF is licensed under GPL2.0 for personal use only
 # njh@nigelhorne.com
 
@@ -8,7 +7,7 @@ package Ged2site::Utils;
 
 =head1 NAME
 
-Ged2site::Utils - Random subroutines for Ged2site
+VWF::Utils - Random subroutines for VWF
 
 =head1 DESCRIPTION
 
@@ -36,6 +35,7 @@ use CHI;
 use Data::Dumper;
 use DBI;
 use Error::Simple;
+use Module::Runtime qw(require_module);	# Safe dynamic loading; avoids string eval
 use Params::Get 0.13;
 use Try::Tiny;
 use Carp qw(croak carp);
@@ -243,7 +243,12 @@ sub _is_driver_available($driver) {
 	if($driver_modules{$driver}->can('new')) {
 		return 1;
 	}
-	eval "require $driver_modules{$driver}";
+	# SECURITY — string-eval elimination:
+	#   eval "require $module_name" is a string eval; if $driver ever escaped
+	#   the hash-key whitelist (e.g. through a future regression in the caller),
+	#   it could execute arbitrary code.  A block eval with require_module() is
+	#   semantically identical but has no string-eval surface.
+	eval { require_module($driver_modules{$driver}) };
 	if($@) {
 		return 0;
 	}
@@ -457,11 +462,11 @@ Please report any bugs or feature requests to the author.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Ged2site::Utils
+    perldoc VWF::Utils
 
 =head1 LICENSE AND COPYRIGHT
 
-Ged2site is licensed under GPL2.0 for personal use only.
+VWF is licensed under GPL2.0 for personal use only.
 Commercial users must apply in writing for a licence.
 
 =head1 SEE ALSO

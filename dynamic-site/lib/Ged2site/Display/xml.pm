@@ -5,10 +5,10 @@ package Ged2site::Display::xml;
 use warnings;
 use strict;
 use File::Slurp;
-use Ged2site::Display;
+use VWF::Display;
 use Ged2site::Utils;
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 sub http
 {

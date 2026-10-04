@@ -7,7 +7,7 @@ use autodie qw(:all);
 use Carp qw(croak carp);
 use Params::Get;
 use Readonly;
-use parent 'Ged2site::Display';
+use parent 'VWF::Display';
 
 our $VERSION = '0.01';
 

@@ -6,13 +6,13 @@ package Ged2site::Display::history;
 
 use warnings;
 use strict;
-use Ged2site::Display;
+use VWF::Display;
 use DateTime::Format::Genealogy;
 use Error;
 use File::Slurp;
 use XML::Simple;
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 # TODO: This would be much better if it could quickly get to the information in the XML file people.xml
 sub html

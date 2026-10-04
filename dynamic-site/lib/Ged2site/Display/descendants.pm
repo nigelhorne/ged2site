@@ -5,9 +5,9 @@ use warnings;
 
 # Display a person's descendants
 
-use Ged2site::Display;
+use VWF::Display;
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 sub html {
 	my $self = shift;

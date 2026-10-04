@@ -2,7 +2,7 @@ package Ged2site::Display::captcha;
 
 use strict;
 use warnings;
-use parent 'Ged2site::Display';
+use parent 'VWF::Display';
 
 sub html {
 	my $self = shift;

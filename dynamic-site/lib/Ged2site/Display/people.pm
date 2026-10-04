@@ -8,10 +8,10 @@ use strict;
 # TODO: add ability to export a KML for the person being displayed
 
 use Data::Dumper;
-use Ged2site::Display;
+use VWF::Display;
 use MIME::Base64;
 
-use parent 'Ged2site::Display';
+use parent 'VWF::Display';
 
 # Build the "people" page by validating incoming request parameters, querying the database for a matching person record, and preparing structured data (including Schema.org JSON-LD).
 # If no valid parameters are provided, or no record is found, it falls back to rendering the main index page with optional error information.

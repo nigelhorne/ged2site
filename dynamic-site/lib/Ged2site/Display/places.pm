@@ -5,7 +5,7 @@ package Ged2site::Display::places;
 use warnings;
 use strict;
 
-use Ged2site::Display;
+use VWF::Display;
 
 use File::Spec;
 use File::Slurp;
@@ -14,7 +14,7 @@ use Locale::Country::Multilingual { use_io_layer => 1 };
 use Locale::Language;
 use XML::Simple;
 
-use parent 'Ged2site::Display';
+use parent 'VWF::Display';
 
 sub html {
 	my $self = shift;

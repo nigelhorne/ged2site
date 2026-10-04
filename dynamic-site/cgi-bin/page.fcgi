@@ -60,9 +60,9 @@ use lib '../lib';
 use lib CGI::Info::script_dir() . '/../lib';
 use lib File::HomeDir->my_home() . '/lib/perl5';
 
-use Ged2site::Allow;
-use Ged2site::Config;
-use Ged2site::Utils;
+use VWF::Allow;
+use VWF::Config;
+use VWF::Utils;
 use Error::DB::Open;
 
 # $TAINT = 1;
@@ -358,7 +358,7 @@ sub doit
 
 	# Don't pass $info in since it was created before the connection, so it doesn't know the domain name
 	#	config file to read
-	$config ||= Ged2site::Config->new({
+	$config ||= VWF::Config->new({
 		logger => $logger,
 		info => $info,
 		debug => $params{'debug'},
@@ -530,14 +530,14 @@ sub doit
 			$reason = 'Blacklisted for attempting to break in';
 		} else {
 			try {
-				unless(Ged2site::Allow::allow({
+				unless(VWF::Allow::allow({
 					info   => $info,
 					lingua => $lingua,
 					logger => $logger,
 					cache  => $rate_limit_cache,
 					config => $config,
 				})) {
-					$reason = 'Blocked by Ged2site::Allow';
+					$reason = 'Blocked by VWF::Allow';
 				}
 			} catch Error with {
 				$reason = shift;

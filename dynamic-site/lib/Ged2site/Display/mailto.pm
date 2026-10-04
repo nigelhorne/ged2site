@@ -5,14 +5,14 @@ use warnings;
 
 # Driver for the page to send an e-mail
 
-use Ged2site::Display;
+use VWF::Display;
 use Data::Dumper;
 use Digest::SHA qw(sha256_hex);
 # use Email::Simple;
 # use Email::Sender::Simple qw(sendmail);
 # use Email::Sender::Transport::SMTP;	# Gives "Your vendor has not defined SSLeay macro SSL2_MT_REQUEST_CERTIFICATE"
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 our $mailfrom;	# Throttle emails being sent
 
 # Configuration

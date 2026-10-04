@@ -3,10 +3,10 @@ package Ged2site::Display::surnames;
 # Display the surnames page
 
 use Carp qw(croak);
-use Ged2site::Display;
+use VWF::Display;
 use Scalar::Util qw(blessed);
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 sub html {
 	my $self = shift;

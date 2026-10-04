@@ -4,11 +4,11 @@ package Ged2site::Display::facts;
 
 use warnings;
 use strict;
-use Ged2site::Display;
+use VWF::Display;
 use File::Spec;
 use JSON::MaybeXS;
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 sub html
 {

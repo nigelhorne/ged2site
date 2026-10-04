@@ -8,9 +8,9 @@ package Ged2site::Display::orphans;
 
 use warnings;
 use strict;
-use Ged2site::Display;
+use VWF::Display;
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 sub html {
 	my $self = shift;

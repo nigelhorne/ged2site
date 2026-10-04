@@ -4,10 +4,10 @@ package Ged2site::Display::ww2;
 
 use warnings;
 use strict;
-use Ged2site::Display;
+use VWF::Display;
 use Locale::Country;
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 sub html {
 	my $self = shift;

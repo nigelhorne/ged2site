@@ -11,9 +11,9 @@ use HTML::TagCloud;
 
 # Display some information about the family
 
-use Ged2site::Display;
+use VWF::Display;
 
-our @ISA = ('Ged2site::Display');
+our @ISA = ('VWF::Display');
 
 use constant BUCKETYEARS => 5;
 use constant BUCKETDISTANCE => 5;
