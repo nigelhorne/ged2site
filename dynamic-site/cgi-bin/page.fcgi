@@ -61,6 +61,7 @@ use lib CGI::Info::script_dir() . '/../lib';
 use lib File::HomeDir->my_home() . '/lib/perl5';
 
 use VWF::Allow;
+use VWF::Blacklist;
 use VWF::Config;
 use VWF::Utils;
 use Error::DB::Open;
@@ -126,11 +127,6 @@ Log::WarnDie->dispatcher($logger);
 # use Ged2site::Display::meta_data;
 
 use Ged2site::DB::people;
-if($@) {
-	$logger->error($@) if($logger);
-	Log::WarnDie->dispatcher(undef);
-	die $@;
-}
 use Ged2site::Data::changes;
 use Ged2site::Data::censuses;
 use Ged2site::Data::history;
@@ -176,10 +172,17 @@ my $surname_date = Ged2site::DB::surname_date->new();
 my $twins = Ged2site::DB::twins->new();
 my $military = Ged2site::DB::military->new();
 
-# FIXME - support $config->vwflog();
-my $vwf_log = Ged2site::Data::vwf_log->new({ directory => $info->logdir(), filename => 'vwf.log', no_entry => 1 });
-
 # http://www.fastcgi.com/docs/faq.html#PerlSignals
+# Reader for the CSV access log, used by the meta_data page.  Created in doit()
+# from the same path that vwflog() writes to, which needs $config.
+my $vwf_log;
+
+# The pages that may be loaded; worked out in doit() since it needs $config
+my @valid_pages;
+
+# FastCGI signal handling: the FCGI process lives across many requests so we
+# cannot exit immediately on SIGTERM/SIGUSR1 — we set a flag and exit cleanly
+# after the current request finishes.  See http://fastcgi.com/docs/faq.html#PerlSignals
 my $requestcount = 0;
 my $handling_request = 0;
 my $exit_requested = 0;
@@ -190,12 +193,9 @@ my %blacklisted_ip;
 my $rate_limit_cache;	# Rate limit clients by IP address
 Readonly my @rate_limit_trusted_ips => ('127.0.0.1', '192.168.1.1');
 
-Readonly my @blacklist_country_list => (
-	'BY', 'MD', 'RU', 'CN', 'BR', 'UY', 'TR', 'MA', 'VE', 'SA', 'CY',
-	'CO', 'MX', 'IN', 'RS', 'PK', 'UA', 'XH'
-);
-
-my $acl = CGI::ACL->new()->deny_cloud()->deny_country(country => \@blacklist_country_list)->allow_ip('108.44.193.70')->allow_ip('127.0.0.1');
+# The CGI::ACL object is built on the first request, once $config is loaded,
+# because the country blacklist (VWF::Blacklist) can come from the config file.
+my $acl;
 
 sub sig_handler {
 	$exit_requested = 1;
@@ -270,7 +270,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 		$heritage->set_logger($logger);
 		$locations->set_logger($logger);
 		$places->set_logger($logger);
-		$vwf_log->set_logger($logger);
+		$vwf_log->set_logger($logger) if($vwf_log);
 		# $Config::Auto::Debug = 1;
 
 		$Error::Debug = 1;
@@ -297,7 +297,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 	$heritage->set_logger($logger);
 	$locations->set_logger($logger);
 	$places->set_logger($logger);
-	$vwf_log->set_logger($logger);
+	$vwf_log->set_logger($logger) if($vwf_log);
 
 	# TODO:	Make this neater
 	try {
@@ -356,8 +356,8 @@ sub doit
 
 	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
-	# Don't pass $info in since it was created before the connection, so it doesn't know the domain name
-	#	config file to read
+	# $config is built once per process and reused.  We cannot build it before
+	# the first Accept() because the domain name is not known until then.
 	$config ||= VWF::Config->new({
 		logger => $logger,
 		info => $info,
@@ -365,6 +365,17 @@ sub doit
 		lingua => CGI::Lingua->new({ supported => [ 'en-gb' ], info => $info, logger => $logger })	# Use a temporary CGI::Lingua
 	});
 
+	# deny_cloud() blocks all known cloud provider address ranges (AWS, GCP,
+	# Azure) which generate almost no legitimate human traffic but are a
+	# common origin for automated scanning.  Geo-blocking is a blunt
+	# instrument but effective at reducing noise.
+	$acl ||= CGI::ACL->new()
+		->deny_cloud()
+		->deny_country(country => VWF::Blacklist->new(countries => $config->{'blacklist_countries'})->countries())
+		->allow_ip('108.44.193.70')
+		->allow_ip('127.0.0.1');
+
+	@valid_pages = valid_pages($config) unless(@valid_pages);
 	# Stores things for a day or longer
 	$info_cache ||= create_disc_cache(config => $config, logger => $logger, namespace => 'CGI::Info');
 
@@ -395,9 +406,15 @@ sub doit
 	# Check and increment request count
 	my $request_count = $rate_limit_cache->get("$script_name:rate_limit:$client_ip") || 0;
 
-	# Get rate limit thresholds
+	# Allow the thresholds to be tuned via the config file; fall back to the
+	# compile-time constants if the stanza is missing.
 	my $max_requests = $config->{'security'}->{'rate_limiting'}->{'max_requests'} || $MAX_REQUESTS;
 	my $max_requests_hard = $config->{'security'}->{'rate_limiting'}->{'max_requests_hard'} || ($max_requests * 1.5);
+
+	# The rate-limit window, as a CHI duration for the counter's TTL, and in
+	# seconds for the Retry-After header (RFC 9110 section 10.2.3)
+	my $time_window = $config->{'security'}->{'rate_limiting'}->{'time_window'} || $TIME_WINDOW;
+	my $retry_after = duration_seconds($time_window);
 
 	# Check if this is a CAPTCHA verification attempt
 	if ($info->param('g-recaptcha-response')) {
@@ -434,8 +451,13 @@ sub doit
 		}
 	}
 
-	# TODO: update the vwf_log variable to point here
 	$vwflog ||= $config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log');
+	$vwf_log ||= VWF::Data::vwf_log->new({
+		directory => dirname($vwflog),
+		filename => basename($vwflog),
+		no_entry => 1,
+		logger => $logger,
+	});
 	my $log = Class::Simple->new();
 
 	# Stores things for a month or longer
@@ -472,9 +494,10 @@ sub doit
 					config => $config,
 				});
 
-				# print "Pragma: no-cache\n\n";
+				print 'Status: 429 ', HTTP::Status::status_message(429), "\n";
 				print $display->as_string({
-					Retry_After => 60,
+					'Retry-After' => $retry_after,
+					Retry_After => $retry_after,
 					hard_block => 1,
 					request_count => $request_count,
 				});
@@ -482,6 +505,13 @@ sub doit
 				vwflog($vwflog, $info, $lingua, $syslog, 'Hard rate limit - CAPTCHA shown', $log, $request_start);
 				return;
 			}
+
+			# No CAPTCHA to offer, so block until the window expires
+			$logger->warn("Hard rate limit exceeded for $client_ip ($request_count requests)");
+			$info->status(429);
+			send_error(429, "Too many requests - try again later\n", "Retry-After: $retry_after\n");
+			vwflog($vwflog, $info, $lingua, $syslog, 'Hard rate limit', $log, $request_start);
+			return;
 		} elsif ($request_count >= $max_requests) {
 			# Soft limit exceeded - show CAPTCHA
 			my $recaptcha_config = $config->recaptcha();
@@ -500,7 +530,8 @@ sub doit
 
 				# print "Pragma: no-cache\n\n";
 				print $display->as_string({
-					Retry_After => 60,
+					'Retry-After' => $retry_after,
+					Retry_After => $retry_after,
 					hard_block => 0,
 					request_count => $request_count,
 				});
@@ -511,8 +542,8 @@ sub doit
 		}
 	}
 
-	# Increment request count
-	my $time_window = $config->{'security'}->{'rate_limiting'}->{'time_window'} || $TIME_WINDOW;
+	# Commit the incremented request count back to the sliding-window cache.
+	# The TTL is the rate-limit window; the counter expires automatically.
 	$rate_limit_cache->set("$script_name:rate_limit:$client_ip", $request_count + 1, $time_window);
 
 	if(!defined($info->param('page'))) {
@@ -544,14 +575,9 @@ sub doit
 			};
 		}
 		if($reason) {
-			# Client has been blocked
-			print "Status: 403 Forbidden\n",
-				"Content-type: text/plain\n",
-				"Pragma: no-cache\n\n";
-
-			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "Access Denied\n";
-			}
+			# Return a minimal plain-text 403 - no template rendering so that
+			# a blocked attacker receives no information about site structure.
+			send_error(403, "Access Denied\n");
 			$logger->info("$remote_addr: access denied: $reason");
 			$info->status(403);
 			vwflog($vwflog, $info, $lingua, $syslog, $reason, $log, $request_start);
@@ -619,16 +645,36 @@ sub doit
 			$log->status(403);
 			$invalidpage = 1;
 		} else {
-			# Remove all non alphanumeric characters in the name of the page to be loaded
+			# Strip every non-word character so that the page name can only
+			# contain [A-Za-z0-9_] - safe to use as a Perl package suffix.
 			$page =~ s/\W//g;
 			$page =~ s/\s//g;
+		}
+
+		if($invalidpage) {
+			# Already rejected above
+		} elsif(!grep { $_ eq $page } @valid_pages) {
+			# Only pages on the allow-list are loaded, so that no other
+			# Ged2site::Display::* module that happens to be on @INC (e.g. under
+			# ~/lib/perl5) can be reached from the query string.
+			$logger->info("Unknown page $page");
+			$invalidpage = 1;
+			if($info->status() == 200) {
+				$info->status(404);
+			}
+		} else {
 			my $display_module = "Ged2site::Display::$page";
 
-			# TODO: consider creating a whitelist of valid modules
 			$logger->debug("doit(): Loading module $display_module from @INC");
 			unless($display_module->can('new')) {
-				eval "require $display_module; 1";
-				$display_module->import();
+				# String-eval elimination:
+				#   The original code used eval "require $display_module" which is a
+				#   string eval on a user-derived value.  Although $page has been
+				#   stripped of \W characters, a Unicode or locale edge-case could
+				#   allow a bypass.  Module::Runtime::require_module() loads a module
+				#   by name using a block eval internally, with no string-eval surface.
+				eval { require_module($display_module) };
+				$display_module->import() unless $@;
 			}
 			if($@) {
 				$logger->debug("Failed to load module $display_module: $@");
@@ -698,8 +744,15 @@ sub doit
 		});
 		vwflog($vwflog, $info, $lingua, $syslog, '', $log, $request_start);
 	} elsif($invalidpage) {
-		choose();
-		vwflog($vwflog, $info, $lingua, $syslog, 'Unknown page', $log, $request_start);
+		if($info->status() == 429) {
+			# Throttled by VWF::Display
+			my $interval = $config->{'throttle'}->{'interval'} // 90;
+			send_error(429, "Too many requests - try again later\n", "Retry-After: $interval\n");
+			vwflog($vwflog, $info, $lingua, $syslog, 'Throttled', $log, $request_start);
+		} else {
+			choose();
+			vwflog($vwflog, $info, $lingua, $syslog, 'Unknown page', $log, $request_start);
+		}
 		return;
 	} else {
 		$logger->debug('disabling cache');
@@ -707,50 +760,22 @@ sub doit
 			cache => undef,
 		);
 		# Handle errors gracefully
+		my ($status, $body);
 		if($error eq 'Unknown page to display') {
-			print "Status: 400 Bad Request\n",
-				"Content-type: text/plain\n",
-				"Pragma: no-cache\n\n";
-
-			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "I don't know what you want me to display.\n";
-			}
-			$info->status(400);
-			$log->status(400);
+			($status, $body) = (400, "I don't know what you want me to display.\n");
 		} elsif($error =~ /Can\'t locate .* in \@INC/) {
 			$logger->error($error);
-			print "Status: 500 Internal Server Error\n",
-				"Content-type: text/plain\n",
-				"Pragma: no-cache\n\n";
-
-			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "Software error - contact the webmaster\n";
-			}
-			$info->status(500);
-			$log->status(500);
+			($status, $body) = (500, "Software error - contact the webmaster\n");
 		} elsif(($info->status() == 200) || ($info->status() == 403)) {
 			# No permission to show this page
-			print "Status: 403 Forbidden\n",
-				"Content-type: text/plain\n",
-				"Pragma: no-cache\n\n";
-
-			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "Access Denied\n";
-			}
-			$info->status(403);
-			$log->status(403);
+			($status, $body) = (403, "Access Denied\n");
 		} else {
-			my $status = $info->status();
-			print "Status: $status ",
-				HTTP::Status::status_message($status),
-				"Content-type: text/plain\n",
-				"Pragma: no-cache\n\n";
-
-			unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-				print "Page unavailable - something is wrong at your end, please fix and try again\n";
-			}
-			$log->status($status);
+			$status = $info->status();
+			$body = "Page unavailable - something is wrong at your end, please fix and try again\n";
 		}
+		send_error($status, $body);
+		$info->status($status);
+		$log->status($status);
 		vwflog($vwflog, $info, $lingua, $syslog, $error ? $error : 'Access denied', $log, $request_start);
 		throw Error::Simple($error ? $error : $info->as_string());
 	}
@@ -786,33 +811,63 @@ sub choose
 
 	print "\n";
 
-	# Print available pages unless it's a HEAD request
+	# RFC 7231 §4.3.2: a HEAD response must not include a body.
 	unless($ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD')) {
-		print "/cgi-bin/page.fcgi?page=people\n",
-			"/cgi-bin/page.fcgi?page=ancestors\n",
-			"/cgi-bin/page.fcgi?page=home\n",
-			"/cgi-bin/page.fcgi?page=censuses\n",
-			"/cgi-bin/page.fcgi?page=changes\n",
-			"/cgi-bin/page.fcgi?page=surnames\n",
-			"/cgi-bin/page.fcgi?page=history\n",
-			"/cgi-bin/page.fcgi?page=todo\n",
-			"/cgi-bin/page.fcgi?page=calendar\n",
-			"/cgi-bin/page.fcgi?page=descendants\n",
-			"/cgi-bin/page.fcgi?page=graphs\n",
-			"/cgi-bin/page.fcgi?page=emigrants\n",
-			"/cgi-bin/page.fcgi?page=heritage\n",
-			"/cgi-bin/page.fcgi?page=intermarriages\n",
-			"/cgi-bin/page.fcgi?page=ww1\n",
-			"/cgi-bin/page.fcgi?page=ww2\n",
-			"/cgi-bin/page.fcgi?page=military\n",
-			"/cgi-bin/page.fcgi?page=orphans\n",
-			"/cgi-bin/page.fcgi?page=twins\n",
-			"/cgi-bin/page.fcgi?page=reports\n",
-			"/cgi-bin/page.fcgi?page=facts\n",
-			"/cgi-bin/page.fcgi?page=mailto\n",
-			"/cgi-bin/page.fcgi?page=meta_data\n",
-			"/cgi-bin/page.fcgi?page=xml\n";
+		# The same list that doit() allows, so the two cannot differ
+		print map { "/cgi-bin/page.fcgi?page=$_\n" } @valid_pages;
 	}
+}
+
+# Send a short plain-text error response.  $extra_headers, if given, is one or
+# more complete header lines (each ending in "\n") to add, e.g. Retry-After.
+sub send_error
+{
+	my ($status, $body, $extra_headers) = @_;
+
+	print "Status: $status ", HTTP::Status::status_message($status), "\n",
+		$extra_headers // '',
+		"Content-type: text/plain\n",
+		"Pragma: no-cache\n\n";
+
+	# RFC 9110 §9.3.2: a HEAD response must not include a body.
+	my $is_head = $ENV{'REQUEST_METHOD'} && ($ENV{'REQUEST_METHOD'} eq 'HEAD');
+	print $body if(defined($body) && !$is_head);
+
+	return 1;
+}
+
+# The pages that ?page= may load.  Sites can list them in the config file
+# (<pages>index, meta_data</pages>); otherwise every ../lib/VWF/Display/*.pm
+# next to this script is allowed, except captcha, which only the rate limiter
+# shows.
+sub valid_pages
+{
+	my $config = shift;
+
+	if(my $pages = $config->{'pages'}) {
+		$pages = [split /[\s,]+/, $pages] unless(ref($pages));
+		return grep { /\A\w+\z/ } @{$pages};
+	}
+
+	my $dir = File::Spec->catdir($script_dir, File::Spec->updir(), 'lib', 'VWF', 'Display');
+	return sort(grep { $_ ne 'captcha' } map { basename($_, '.pm') } glob(File::Spec->catfile($dir, '*.pm')));
+}
+
+# Convert a CHI-style duration ('60s', '2 minutes', '90') to whole seconds
+sub duration_seconds
+{
+	my $duration = shift;
+
+	return $duration if($duration =~ /\A\d+\z/);
+
+	require Time::Duration::Parse;
+
+	my $seconds = eval { Time::Duration::Parse::parse_duration($duration) };
+	if(!defined($seconds)) {
+		$logger->warn("Can't parse duration '$duration', using 60 seconds");
+		return 60;
+	}
+	return int($seconds);
 }
 
 # Is this client trying to attack us?
