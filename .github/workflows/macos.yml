@@ -4,15 +4,14 @@ name: OS/X
 on:
   push:
     branches:
-      - '*'
+      - "*"
     tags-ignore:
-      - '*'
+      - "*"
   pull_request:
 permissions:
   contents: read
 jobs:
   perl:
-
     runs-on: macOS-latest
 
     steps:

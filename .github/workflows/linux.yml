@@ -1,18 +1,16 @@
 ---
-
 name: Linux
 on:
   push:
     branches:
-      - '*'
+      - "*"
     tags-ignore:
-      - '*'
+      - "*"
   pull_request:
 permissions:
   contents: read
 jobs:
   perl:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -21,7 +19,7 @@ jobs:
           # - '5.16'
           # - '5.22'
           # - '5.32'
-          - 'latest'
+          - "latest"
 
     container:
       image: perl:${{ matrix.perl-version }}

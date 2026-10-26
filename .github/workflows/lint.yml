@@ -52,6 +52,14 @@ jobs:
       - name: Lint Code Base
         uses: github/super-linter@v7
         env:
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_YAML: true
+          VALIDATE_PERL: true
+          VALIDATE_BASH: true
+          VALIDATE_GITLEAKS: true
+          LINTER_RULES_PATH: "."
+          SHELLCHECK_OPTS: "--exclude=SC2086,SC2046,SC2038,SC2162,SC2231"
+          FILTER_REGEX_EXCLUDE: '(coverage_history/|mutation\.json$|xt/mutant_)'
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

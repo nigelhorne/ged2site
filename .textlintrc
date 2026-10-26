@@ -1,0 +1,31 @@
+{
+  "filters": {
+    "comments": true
+  },
+  "rules": {
+    "terminology": {
+      "exclude": [
+        "hard[- ]cod(e|ed|ing)",
+        "web[- ]?site(s)?",
+        "run[- ]time",
+        "API",
+        "host[- ]name(s)?",
+        "regexp?(s)?",
+        "XML",
+        "smartphone(s)?",
+        "built ?in(s)?",
+        "file[- ]name(s)?",
+        "file-?type(s)?",
+        "e[- ]mail(s)?",
+        "to-?do(s)?(?=[ ,.])",
+        "GIF",
+        "URL",
+        "key[/ ]?value",
+        "pre[- ]load(ing|ed)?",
+        "sub[- ]class((?:es|ing)?)",
+        "id['’]?s",
+        "Git"
+      ]
+    }
+  }
+}

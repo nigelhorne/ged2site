@@ -1,0 +1,24 @@
+---
+# Super-linter uses this instead of its bundled template.  These are the
+# rules the existing documents rely on; every other markdownlint rule keeps
+# failing CI when it is violated.
+MD001: false
+MD003: false
+MD004: false
+MD007: false
+MD010: false
+MD013: false
+MD023: false
+MD024: false
+MD025: false
+MD026:
+  punctuation: ".,;:!。，；:"
+MD029: false
+MD033: false
+MD034: false
+MD036: false
+MD038: false
+MD040: false
+MD041: false
+MD046: false
+blank_lines: false

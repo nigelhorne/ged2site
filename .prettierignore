@@ -1,0 +1,4 @@
+# Markdown is linted by markdownlint/textlint, not prettier: prettier's
+# markdown printer rewrites these documents' indented code examples in ways
+# that change how they render, so it must not claim them.
+*.md

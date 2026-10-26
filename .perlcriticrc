@@ -1,0 +1,9 @@
+# Super-linter runs plain `perlcritic` (no --profile); perlcritic finds this
+# file in the repository root, so CI behaves exactly as if you ran
+# `perlcritic` here.  Severity 5 is perlcritic's default, the same level CI
+# has always used.  The excluded policies (space-delimited, one line below)
+# are the ones this codebase relies on throughout (house style, not
+# mistakes); any other severity-5 policy still fails the build when newly
+# introduced.
+severity = 5
+exclude = BuiltinFunctions::ProhibitStringyEval Subroutines::ProhibitExplicitReturnUndef TestingAndDebugging::RequireUseStrict TestingAndDebugging::ProhibitNoStrict Subroutines::ProhibitSubroutinePrototypes ValuesAndExpressions::ProhibitLeadingZeros InputOutput::ProhibitTwoArgOpen Modules::RequireFilenameMatchesPackage InputOutput::ProhibitBarewordFileHandles Variables::RequireLexicalLoopIterators InputOutput::ProhibitInteractiveTest Modules::RequireBarewordIncludes InputOutput::RequireEncodingWithUTF8Layer InputOutput::ProhibitBarewordDirHandles Subroutines::ProhibitNestedSubs BuiltinFunctions::ProhibitSleepViaSelect

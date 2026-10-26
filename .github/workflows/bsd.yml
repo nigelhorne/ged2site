@@ -5,9 +5,9 @@ name: Test Code on BSD
 on:
   push:
     branches:
-      - '*'
+      - "*"
     tags-ignore:
-      - '*'
+      - "*"
   pull_request:
 permissions:
   contents: read
@@ -19,10 +19,10 @@ jobs:
       matrix:
         os:
           - name: freebsd
-            version: '13.3'
+            version: "13.3"
             pkginstall: pkg install -y p5-LWP-UserAgent-Cached p5-CHI p5-autodie p5-Date-Manip p5-Data-Section p5-Sort-Key-DateTime p5-GIS-Distance p5-Marpa p5-Lingua-EN-Numbers-Ordinate p5-JSON p5-Net-OAuth p5-LWP-Protocol-https p5-CPAN-DistnameInfo p5-Array-Iterator p5-HTML-Parser expat
           - name: openbsd
-            version: '7.5'
+            version: "7.5"
             pkginstall: pkg_add p5-LWP-Protocol-https luaexpat
 
     steps:

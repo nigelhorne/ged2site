@@ -32,7 +32,6 @@ use Exporter qw(import);
 our @EXPORT = qw(create_disc_cache create_memory_cache distance);
 
 use CHI;
-use Data::Dumper;
 use DBI;
 use Error::Simple;
 use Module::Runtime qw(require_module);	# Safe dynamic loading; avoids string eval
@@ -155,7 +154,7 @@ sub _create_cache($cache_type, $args) {
 	unless (_is_driver_available($driver)) {
 		my $fallback = _get_fallback_driver($cache_type);
 		if ($logger) {
-			$logger->warn("Driver $driver not available, falling back to $fallback");
+			$logger->warn("CHI driver $driver not available, falling back to $fallback");
 		}
 		$driver = $fallback;
 	}
@@ -243,7 +242,7 @@ sub _is_driver_available($driver) {
 	if($driver_modules{$driver}->can('new')) {
 		return 1;
 	}
-	# SECURITY — string-eval elimination:
+	# SECURITY - string-eval elimination:
 	#   eval "require $module_name" is a string eval; if $driver ever escaped
 	#   the hash-key whitelist (e.g. through a future regression in the caller),
 	#   it could execute arbitrary code.  A block eval with require_module() is

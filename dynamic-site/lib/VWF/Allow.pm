@@ -264,14 +264,14 @@ sub allow {
 		eval {
 			my $dshield_url = DSHIELD_BASE . $today;
 			if(my $string = LWP::Simple::WithCache::get($dshield_url)) {
-                                $xml = XML::LibXML->load_xml(string => $string);
+				$xml = XML::LibXML->load_xml(string => $string);
 			} elsif($logger) {
 				$logger->warn("Couldn't download $dshield_url");
 				return 1;
-                        } else {
-                                warn $dshield_url;
+			} else {
+				warn "Couldn't download $dshield_url\n";
 				return 1;
-                        }
+			}
 		};
 		unless($@ || !defined($xml)) {
 			foreach my $source ($xml->findnodes('/sources/data')) {
