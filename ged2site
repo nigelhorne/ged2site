@@ -8946,6 +8946,14 @@ sub print_person
 		$bio .= cite(@deathcitations);
 		$phrase->append(cite(@deathcitations));
 
+		# Spouse died on the same day, e.g. in an accident or a disaster
+		if((!$dateofbirth) || ($dateofdeath ne $dateofbirth)) {
+			if(my $str = spouse_death_string({ person => $person, spouses => \@spouses, date => $dateofdeath, static => 1 })) {
+				$bio .= $str;
+				$phrase->append(spouse_death_string({ person => $person, spouses => \@spouses, date => $dateofdeath }));
+			}
+		}
+
 		# Cause of death
 		if(my $cause = $person->cause()) {
 			$cause = lc($cause);
@@ -12717,6 +12725,54 @@ sub sibling_baptism_string
 		push @baptisms, $baptism;
 	}
 	return ', ' . i18n('the same day as ') . conjunction(@baptisms);
+}
+
+# Return a phrase such as ", the same day as his wife Mary" when one or more of
+#	the person's spouses died on the given date, otherwise return ''
+# Only full dates (day, month and year) are compared, to avoid false positives
+#	when only the year or month is known
+# Set 'static' to link to the static site's pages rather than the dynamic site's
+sub spouse_death_string
+{
+	my $params = Params::Get::get_params(undef, \@_);
+
+	my $person = $params->{'person'};
+	my $date = $params->{'date'};
+
+	return '' if((!defined($date)) || ($date !~ /^\d{1,2}\s+[a-z]{3}\s+\d{3,4}$/i));
+
+	my %seen;
+	my @onsameday;
+	foreach my $spouse(@{$params->{'spouses'}}) {
+		next if($seen{$spouse->xref()}++);	# Married more than once to the same person
+		my $spdod = dateofdeath($spouse);
+		if($spdod && (lc($spdod) eq lc($date))) {
+			push @onsameday, $spouse;
+		}
+	}
+	return '' if(scalar(@onsameday) == 0);
+
+	my @spouses;
+	foreach my $spouse(@onsameday) {
+		my $name = given_names($spouse) || $spouse->as_string();
+		if($opts{'l'} || !is_alive($spouse)) {
+			my $href = $params->{'static'} ?
+				make_filename_from_person(person => $spouse) :
+				('?page=people&entry=' . $spouse->xref());
+			$name = "<a href=\"$href\">$name</a>";
+		}
+
+		# Use the spouse's sex rather than assuming it's the opposite of the person's
+		my $relationship = ($spouse->sex() eq 'F') ? 'wife' : 'husband';
+		my $possessive;
+		if($language eq 'French') {
+			$possessive = ($spouse->sex() eq 'F') ? 'sa' : 'son';
+		} else {
+			$possessive = lcfirst($person->possessive());
+		}
+		push @spouses, "$possessive " . i18n($relationship) . " $name";
+	}
+	return ', ' . i18n('the same day as ') . conjunction(@spouses);
 }
 
 sub complain
