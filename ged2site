@@ -1597,6 +1597,19 @@ foreach my $entry(sort keys(%intermarriages)) {
 }
 close $csv;
 
+print "Creating cemeteries database\n";
+
+open($csv, '>', 'dynamic-site/data/cemeteries.csv');
+print $csv "entry!xrefs\n";
+
+foreach my $entry(sort keys(%cemeteries)) {
+	my $people = $cemeteries{$entry};
+	print $csv "$entry!",
+		join(',', @{$cemeteries{$entry}}),
+		"\n";
+}
+close $csv;
+
 print "Creating twins database\n";
 
 open($csv, '>', 'dynamic-site/data/twins.csv');
