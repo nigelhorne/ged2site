@@ -33,7 +33,6 @@
 # TODO: prune old entries from changes.psv (should be configurable how long ago)
 # TODO:	notes_locations already contain lat/long information, so use that in add_marker()
 # TODO: Something like: "$person was born on 1 Dec 1795, less than 9 months before his father died, leaving his mother 5 children to bring up by herself".  Optionally add "until she remarried on 15 Apr 1797".
-# TODO: Are related people all buried/cremated at the same place?
 # TODO: i18n to Mandarin will need work because maternal and paternal
 #	grandparents differ, as do older and younger siblings
 
@@ -498,6 +497,7 @@ my %changes;	# If the -x option is given, tracks changes between the previous ru
 my $facts;
 my %intermarriages;	# People who've married a relative
 my %all_residences;
+my %cemeteries;	# Maps places to people buried/cremated there
 # my $pi = atan2(1,1) * 4;
 
 if($opts{'W'} && !$opts{'w'}) {
@@ -2953,6 +2953,11 @@ sub print_person
 
 	if($is_alive && ($placeofburial || $dateofburial)) {
 		die "BUG: $title is marked as alive yet we have burial information";
+	}
+
+	# Record where this person is buried/cremated, keyed on the cemetery's name and address
+	if(my $cemetery = cemetery_of($person)) {
+		push @{$cemeteries{$cemetery->{'name'}}}, $person->xref();
 	}
 
 	# Don't match date ranges
@@ -8401,6 +8406,10 @@ sub print_person
 					$record = $cremation;
 					$parse_tree->{'cremation'}->{'date'} = year({ date => $dateofcremation });
 				}
+				if(my $str = same_cemetery_string({ person => $person, static => 1 })) {
+					$bio .= $str;
+					$phrase->append(same_cemetery_string({ person => $person }));
+				}
 				if(my $n = notes({ record => $record, paragraph => 0, note_locations => \@note_locations })) {
 					$n =~ s/\.$//;
 					$n =~ tr/\r//;
@@ -8442,6 +8451,10 @@ sub print_person
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage });
 				$phrase->append("$pronoun is buried" .
 					place({ person => $person, record => $burial, places_printed => \%places_printed, there => $placeofmarriage }));
+			}
+			if((!$dateofburial) && (my $str = same_cemetery_string({ person => $person, static => 1 }))) {
+				$bio .= $str;
+				$phrase->append(same_cemetery_string({ person => $person }));
 			}
 			$bio .= '. ';
 			$end_of_sentence = 1;
@@ -8514,7 +8527,7 @@ sub print_person
 			}
 			my $opts = {
 				person => $person,
-				place => $placeofburial,
+				place => $placeofburial // $placeofcremation,
 				there => $placeofdeath,
 				places_printed => \%places_printed,
 				must_postdate => $birth_dt,
@@ -8590,6 +8603,11 @@ sub print_person
 					$phrase->append(' ' . year({ person => $person, date => $dateofcremation, must_postdate => $must_postdate }));
 					$record = $cremation;
 				}
+				# Before the funeral, so that "the same place" can't be read as the funeral's place
+				if(my $str = same_cemetery_string({ person => $person, static => 1 })) {
+					$bio .= $str;
+					$phrase->append(same_cemetery_string({ person => $person }));
+				}
 				if(defined($record)) {
 					# Prefer burial date, but use funeral if that is available instead
 					if($funeral &&
@@ -8650,6 +8668,10 @@ sub print_person
 					$bio .= ' is buried there at ' . $burial->address();
 					$phrase->append(' is buried there at ' . $burial->address());
 				}
+				if(my $str = same_cemetery_string({ person => $person, static => 1 })) {
+					$bio .= $str;
+					$phrase->append(same_cemetery_string({ person => $person }));
+				}
 			} elsif(my $b = place($opts)) {
 				if($diedathome) {
 					$bio .= " $pronoun ";
@@ -8674,7 +8696,7 @@ sub print_person
 					}
 					if($b eq ' there') {
 						if($b = $burial->address()) {
-							$bio .= i18n(' at ')->append($b);
+							$bio .= i18n(' at ') . $b;
 							$phrase->append(i18n(' at '))->append($b);
 						}
 						$bio .= ' ';
@@ -8689,17 +8711,11 @@ sub print_person
 					}
 					$weather = weather({ person => $person, record => $burial, meteo => $meteo });
 				} else {
-					$bio .= "was cremated$b";
-					$phrase->append("was cremated$b");
+					$bio .= 'was cremated';
+					$phrase->append('was cremated');
 					if($b eq ' there') {
 						if($b = $cremation->address()) {
-							$bio .= i18n(' at ')->append($b);
-							$phrase->append(i18n(' at '))->append($b);
-						}
-					}
-					if($b eq ' there') {
-						if($b = $cremation->address()) {
-							$bio .= i18n(' at ')->append($b);
+							$bio .= i18n(' at ') . $b;
 							$phrase->append(i18n(' at '))->append($b);
 						}
 						$bio .= ' ';
@@ -8709,14 +8725,18 @@ sub print_person
 						$phrase->append("$b ");
 					}
 					if($dateofcremation) {
-						$bio .= ' ' . year({ person => $person, date => $dateofcremation });
-						$phrase->append(' ' . year({ person => $person, date => $dateofcremation }));
+						$bio .= year({ person => $person, date => $dateofcremation });
+						$phrase->append(year({ person => $person, date => $dateofcremation }));
 					}
 					$weather = weather({ person => $person, record => $cremation, meteo => $meteo });
 				}
 				if(defined($weather)) {
 					$bio .= " ($weather)";
 					$phrase->append(" ($weather)");
+				}
+				if(my $str = same_cemetery_string({ person => $person, static => 1 })) {
+					$bio .= $str;
+					$phrase->append(same_cemetery_string({ person => $person }));
 				}
 			}
 
@@ -12777,6 +12797,151 @@ sub spouse_death_string
 	return ', ' . i18n('the same day as ') . conjunction(@spouses);
 }
 
+# Return a hashref of { name => ..., type => 'burial'|'cremation' } describing
+#	where the person was buried or cremated, or undef if not known
+# The name combines the burial/cremation address and place, so that it identifies
+#	a cemetery rather than just a town.  Only places that look like a cemetery,
+#	or that have an address, are returned, otherwise everyone buried in the same
+#	town would be treated as being in the same cemetery
+sub cemetery_of
+{
+	my $person = shift;
+
+	my $type;
+	my $record;
+	if($record = $person->get_record('burial')) {
+		$type = 'burial';
+	} elsif($record = $person->get_record('cremation')) {
+		$type = 'cremation';
+	} else {
+		return;
+	}
+
+	my $place = get_value({ person => $person, value => "$type place" }) || $record->place();
+	my $address = $record->address();
+	my $name;
+	if($address && $place) {
+		# Avoid repeating the address when the place already includes it
+		$name = ($place =~ /^\Q$address\E\b/i) ? $place : "$address, $place";
+	} elsif($address) {
+		$name = $address;
+	} elsif($place && ($place =~ /^[^,]*(cemetery|churchyard|crematorium|graveyard|burial ground|necropolis|cimeti|friedhof|kirkyard|memorial park)/i)) {
+		$name = $place;
+	} else {
+		return;
+	}
+	$name =~ s/\s+/ /g;
+	$name =~ s/^\s+|\s+$//g;
+
+	return { name => $name, type => $type };
+}
+
+# Return the person's close relatives as a list of [ person, relationship ],
+#	nearest first: spouses, parents, children, siblings, grandparents,
+#	aunts and uncles, then first cousins
+# Relatives whose sex isn't known are skipped, since the relationship can't be named
+sub close_relatives
+{
+	my $person = shift;
+
+	my %seen = ($person->xref() => 1);
+	my @rc;
+
+	my $add = sub {
+		my ($relative, $male, $female) = @_;
+
+		return if(!defined($relative) || $seen{$relative->xref()}++);
+		my $sex = get_value({ person => $relative, value => 'sex' });
+		return if(!defined($sex));
+		if($sex eq 'M') {
+			push @rc, [ $relative, $male ];
+		} elsif($sex eq 'F') {
+			push @rc, [ $relative, $female ];
+		}
+	};
+
+	$add->($_, 'husband', 'wife') foreach($person->spouse());
+
+	my @parents = grep { defined } ($person->father(), $person->mother());
+	$add->($_, 'father', 'mother') foreach(@parents);
+	$add->($_, 'son', 'daughter') foreach($person->children());
+	$add->($_, 'brother', 'sister') foreach($person->siblings());
+
+	foreach my $parent(@parents) {
+		$add->($_, 'grandfather', 'grandmother') foreach(grep { defined } ($parent->father(), $parent->mother()));
+	}
+
+	my @auntsanduncles = map { $_->siblings() } @parents;
+	$add->($_, 'uncle', 'aunt') foreach(@auntsanduncles);
+	foreach my $auntoruncle(@auntsanduncles) {
+		$add->($_, 'cousin', 'cousin') foreach($auntoruncle->children());
+	}
+
+	return @rc;
+}
+
+# Return a phrase such as ", the same place as his wife, Mary Smith, who was also buried there"
+#	when one or more of the person's close relatives were buried or cremated in the
+#	same cemetery as the person, otherwise return ''
+# Set 'static' to link to the static site's pages rather than the dynamic site's
+sub same_cemetery_string
+{
+	my $params = Params::Get::get_params(undef, \@_);
+
+	my $person = $params->{'person'};
+
+	my $cemetery = cemetery_of($person) or return '';
+
+	my @relatives;
+	my %types;
+	my $last;	# The gender of a sole relative determines the agreement in some languages
+	foreach my $r(close_relatives($person)) {
+		my ($relative, $relationship) = @{$r};
+		my $theirs = cemetery_of($relative) or next;
+		next if(lc($theirs->{'name'}) ne lc($cemetery->{'name'}));
+
+		my $href = $params->{'static'} ?
+			make_filename_from_person(person => $relative) :
+			('?page=people&entry=' . $relative->xref());
+		my $name = '<a href="' . $href . '">' . $relative->as_string() . '</a>';
+
+		my $possessive;
+		if($language eq 'French') {
+			$possessive = (get_value({ person => $relative, value => 'sex' }) eq 'F') ? 'sa' : 'son';
+		} else {
+			$possessive = lcfirst($person->possessive());
+		}
+		push @relatives, "$possessive " . i18n({ person => $relative, format => $relationship }) . ", $name";
+		$types{$theirs->{'type'}} = 1;
+		$last = $relative;
+	}
+	return '' if(scalar(@relatives) == 0);
+
+	my $format;
+	if(scalar(@relatives) == 1) {
+		$format = ($types{'burial'}) ? 'who was also buried there' : 'who was also cremated there';
+	} elsif(scalar(keys %types) > 1) {
+		$format = 'who were also laid to rest there';
+	} else {
+		$format = ($types{'burial'}) ? 'who were also buried there' : 'who were also cremated there';
+	}
+
+	# Each item already contains a comma ("his wife, Mary Smith"), so separate them
+	#	with semicolons when there are more than two, to keep the list readable
+	my $list;
+	if(scalar(@relatives) == 1) {
+		$list = $relatives[0];
+	} elsif(scalar(@relatives) == 2) {
+		$list = join(', ' . i18n('and') . ' ', @relatives);
+	} else {
+		my $final = pop @relatives;
+		$list = join('; ', @relatives) . '; ' . i18n('and') . " $final";
+	}
+
+	return ', ' . i18n('the same place as ') . "$list, " .
+		i18n({ person => $last, format => $format });
+}
+
 sub complain
 {
 	my %params;
@@ -15428,6 +15593,7 @@ sisters::sisters
 son::son
 sons::sons
 the same day as::the same day as
+the same place as::the same place as
 the husband::the husband
 the wife::the wife
 they::they
@@ -15444,6 +15610,11 @@ was born::was born
 was living::was living
 was married to::was married to
 when::when
+who was also buried there::who was also buried there
+who was also cremated there::who was also cremated there
+who were also buried there::who were also buried there
+who were also cremated there::who were also cremated there
+who were also laid to rest there::who were also laid to rest there
 wife::wife
 with::with
 with %s::with %s
@@ -15546,6 +15717,18 @@ was married to:M:a été marié à
 was married to:F:a été mariée à
 when::lorsque
 wife::femme
+the same place as::au même endroit que
+aunt::tante
+grandfather::grand-père
+grandmother::grand-mère
+uncle::oncle
+who was also buried there:M:qui y a aussi été inhumé
+who was also buried there:F:qui y a aussi été inhumée
+who was also cremated there:M:qui y a aussi été incinéré
+who was also cremated there:F:qui y a aussi été incinérée
+who were also buried there::qui y ont aussi été inhumés
+who were also cremated there::qui y ont aussi été incinérés
+who were also laid to rest there::qui y reposent aussi
 with::avec
 with %s::avec %s
 your::votre
@@ -15615,6 +15798,7 @@ son::Sohn
 sons::Söhne
 the head of household::der Haushaltsvorstand
 the same day as::die gleichen Tag als
+the same place as::am selben Ort wie
 times::fache
 the husband::der Mann
 the wife::die Frau
@@ -15627,6 +15811,17 @@ was born::wurde geboren
 was married to %s::war mit %s verheiratet
 when::wenn
 wife::Frau
+aunt::Tante
+grandfather::Großvater
+grandmother::Großmutter
+uncle::Onkel
+who was also buried there:M:der dort ebenfalls begraben wurde
+who was also buried there:F:die dort ebenfalls begraben wurde
+who was also cremated there:M:der dort ebenfalls eingeäschert wurde
+who was also cremated there:F:die dort ebenfalls eingeäschert wurde
+who were also buried there::die dort ebenfalls begraben wurden
+who were also cremated there::die dort ebenfalls eingeäschert wurden
+who were also laid to rest there::die dort ebenfalls ruhen
 with::mit
 with %s::mit %s
 youngest::jüngsten
