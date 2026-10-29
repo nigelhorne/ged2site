@@ -14,14 +14,24 @@
 #	 Once reachable, the cremation branch appended the place twice
 #	 ("cremated in X in X").
 #
-# Must be run from the top-level directory, since ged2site writes static-site/
-#	and dynamic-site/ relative to the current directory
-
 use strict;
 use warnings;
 use Test::More;
-use File::Temp qw(tempfile);
+use FindBin;
+use File::Temp qw(tempfile tempdir);
 use IPC::Run qw(run);
+
+# Run ged2site in a directory of our own.  ged2site removes and recreates
+#	static-site/ and dynamic-site/data in the current directory, so running in
+#	the repo would destroy a real generated site, and with HARNESS_OPTIONS=j<n>
+#	the tests would destroy each other's output
+my $ged2site = "$FindBin::Bin/../ged2site";
+my $workdir = tempdir(CLEANUP => 1);
+mkdir("$workdir/dynamic-site") or BAIL_OUT("$workdir/dynamic-site: $!");
+chdir($workdir) or BAIL_OUT("$workdir: $!");
+
+# Leave the work directory so that it can be removed
+END { chdir('/') }
 
 # Family tree:
 #
@@ -163,7 +173,7 @@ print $fh <<'END';
 END
 close $fh;
 
-run ['./ged2site', '-h', 'John Smith', $gedfile],
+run [$ged2site, '-h', 'John Smith', $gedfile],
 	'>', \my $stdout, '2>', \my $stderr;
 
 # Return the text of a person's static page, with the markup removed so that

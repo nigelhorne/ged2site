@@ -498,6 +498,7 @@ my $facts;
 my %intermarriages;	# People who've married a relative
 my %all_residences;
 my %cemeteries;	# Maps places to people buried/cremated there
+my %object_filenames;	# Filenames given to media objects that have no xref
 # my $pi = atan2(1,1) * 4;
 
 if($opts{'W'} && !$opts{'w'}) {
@@ -9623,6 +9624,7 @@ sub print_person
 										# name
 										complain({ person => $person, warning => "duplicate filename: $localfile" });
 									}
+									ensure_image_dir($localfile);
 									my $tmp;
 									if($jpegtran) {
 										open($tmp, '|-', "$jpegtran -progressive -outfile '$localfile'");
@@ -9638,6 +9640,7 @@ sub print_person
 									close $tmp;
 									$form = 'JPG';
 									$images{$key} = 1;
+									ensure_image_dir('dynamic-site/img/');
 									if($^O eq 'MSWin32') {
 										copy($localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg');
 									} else {
@@ -9660,6 +9663,7 @@ sub print_person
 							}
 							my $localfile = 'static-site/img/' . make_filename_from_object(object => $obje) . '.jpg';
 							if(!-r $localfile) {
+								ensure_image_dir($localfile);
 								if($jpegtran) {
 									system("$jpegtran -progressive -outfile '$localfile' '$srcfile'");
 								} elsif($jpegoptim) {
@@ -9668,6 +9672,7 @@ sub print_person
 								} else {
 									copy($srcfile, $localfile);
 								}
+								ensure_image_dir('dynamic-site/img/');
 								if($^O eq 'MSWin32') {
 									copy($localfile, 'dynamic-site/img/' . make_filename_from_object(object => $obje) . '.jpg');
 								} else {
@@ -9713,6 +9718,7 @@ sub print_person
 
 								print "Download image $file\n" if($opts{'v'});
 								my $localfile = 'img/' . make_filename_from_object(object => $obje) . '.jpg';
+								ensure_image_dir("static-site/$localfile");
 								my $rc;
 								if((-r "static-site/$localfile") ||
 								   LWP::Simple::WithCache::is_success($rc = LWP::Simple::WithCache::getstore($file, "static-site/$localfile"))) {
@@ -9842,6 +9848,7 @@ sub print_person
 		if(defined($dot)) {
 			print "Create family tree\n" if($opts{'v'});
 			my $png = 'static-site/img/family-tree-' . $person->xref() . '.png';
+			ensure_image_dir($png);
 			my $tmp = File::Temp->new();
 			my $filename = $tmp->filename();
 			if(open(my $fout, '|-', "$dot -Tpng -o$png -Tcmapx -o$filename")) {
@@ -9909,6 +9916,7 @@ sub print_person
 				}
 			}
 			$png = 'dynamic-site/img/family-tree-' . $person->xref() . '.png';
+			ensure_image_dir($png);
 			$tmp = File::Temp->new();
 			$filename = $tmp->filename();
 			binmode($tmp, ':utf8');
@@ -10256,6 +10264,7 @@ sub print_person
 			$localfile = "dynamic-site/img/thumb-$profile_thumbnail";
 			$localfile =~ s/thumbs\///;
 			unless(-r $localfile) {
+				ensure_image_dir($localfile);
 				if($^O eq 'MSWin32') {
 					copy($profile_thumbnail, $localfile);
 				} else {
@@ -13329,6 +13338,28 @@ sub is_alive
 	return 1;	# Default to alive if no conditions matched
 }
 
+# Make sure that the directory an image is about to be written into exists
+# The image directories are created at startup, but another ged2site run in the
+#	same directory removes static-site/ and dynamic-site/img when it starts.
+#	Without this check, that shows up as an obscure "sh: cannot create ...:
+#	Directory nonexistent" error from jpegoptim, or as silently missing images
+# If the whole of static-site/ or dynamic-site/ has gone, the pages already written
+#	have been lost, so die rather than carry on and produce an incomplete site
+sub ensure_image_dir
+{
+	my $file = shift;
+
+	my ($dir) = $file =~ m{^(.+)/[^/]*$};
+	return if(-d $dir);
+
+	my ($top) = $dir =~ m{^([^/]+)};
+	if(!-d $top) {
+		die "$0: $top/ was removed while running - is another ged2site, or a test, running in this directory?";
+	}
+	mkdir $dir;
+	warn "$0: $dir was removed while running - is another ged2site, or a test, running in this directory?\n";
+}
+
 sub make_filename_from_person
 {
 	my $params = Params::Get::get_params('person', @_);
@@ -13413,7 +13444,10 @@ sub make_filename_from_object
 		return Unicode::Diacritic::Strip::strip_diacritics($object->xref() . "-$rc");
 	}
 	# Why would an object not have an xref?
-	return String::Random->new()->randpattern('ssssss') . "-$rc";
+	# Inline OBJE records have none, so a random prefix keeps their names unique.
+	#	Remember it, since the static and dynamic copies of an image, and the
+	#	pages that refer to them, each call this and must agree on the name
+	return $object_filenames{Scalar::Util::refaddr($object)} //= String::Random->new()->randregex('[A-Za-z0-9]{6}') . "-$rc";
 }
 
 # Parse Gedcom format dates
@@ -14074,6 +14108,18 @@ sub obituaries
 	my $yob = delete $params{'yob'};
 	my $yod = delete $params{'yod'};
 	my $person = delete $params{'person'};
+
+	# Genealogy::Obituary::Lookup::search() croaks on arguments outside its schema,
+	#	so skip names it can't search for, e.g. a husband with no surname, or
+	#	"O'Brien" and "&ouml;" (from wide_to_html()), rather than abort the run
+	if((!defined($params{'last'})) || ($params{'last'} !~ /\A[\w-]{1,100}\z/)) {
+		print 'obituaries: skipping unsearchable surname "', $params{'last'} // '', "\"\n" if($opts{'v'});
+		return;
+	}
+	delete $params{'first'} if((!defined($params{'first'})) || !length($params{'first'}));
+	# A wrong date of birth or death can give an age the schema rejects
+	delete $params{'age'} if(defined($params{'age'}) && (($params{'age'} < 0) || ($params{'age'} > 120)));
+
 	my @obituaries = $obituaries->search(\%params);
 
 	print scalar(@obituaries), " obituaries found\n" if($opts{'v'});
@@ -14128,6 +14174,17 @@ sub wills
 	print Data::Dumper->new([\%params])->Dump() if($opts{'v'});
 
 	my $person = delete $params{'person'};
+
+	# Genealogy::Wills::search() croaks on arguments outside its schema: its
+	#	surnames are ASCII only, and HTML entities from wide_to_html() such as
+	#	"&ouml;" are rejected in both names
+	if((!defined($params{'last'})) || ($params{'last'} !~ /\A[\w-]{1,100}\z/a)) {
+		print 'wills: skipping unsearchable surname "', $params{'last'} // '', "\"\n" if($opts{'v'});
+		return;
+	}
+	delete $params{'first'} if(defined($params{'first'}) && ($params{'first'} !~ /\A[\w '.-]{1,100}\z/));
+	delete $params{'year'} if(defined($params{'year'}) && (($params{'year'} < 1) || ($params{'year'} > (localtime)[5] + 1900)));
+
 	my @wills = $wills->search(\%params);
 
 	print scalar(@wills), " wills found\n" if($opts{'v'});
