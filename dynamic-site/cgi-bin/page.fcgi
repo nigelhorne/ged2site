@@ -133,6 +133,7 @@ use Ged2site::Data::censuses;
 use Ged2site::Data::history;
 use Ged2site::Data::orphans;
 use Ged2site::DB::surnames;
+use Ged2site::DB::cemeteries;
 use Ged2site::DB::intermarriages;
 use Ged2site::DB::todo;
 use Ged2site::DB::name_date;
@@ -164,6 +165,7 @@ my $surnames = Ged2site::DB::surnames->new();
 my $history = Ged2site::Data::history->new(no_fixate => 1);
 my $orphans = Ged2site::Data::orphans->new();
 my $todo = Ged2site::DB::todo->new();
+my $cemeteries = Ged2site::DB::cemeteries->new();
 my $intermarriages = Ged2site::DB::intermarriages->new();
 my $heritage = Ged2site::DB::heritage->new();
 my $locations = Ged2site::DB::locations->new();
@@ -739,6 +741,7 @@ sub doit
 			places => $places,
 			surnames => $surnames,
 			history => $history,
+			cemeteries => $cemeteries,
 			intermarriages => $intermarriages,
 			todo => $todo,
 			name_date => $name_date,

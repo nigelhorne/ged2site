@@ -52,13 +52,13 @@
 		<title>[% title %]</title>
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
-			<meta name="twitter:title" content="[% SiteTitle.Default %]">
+			<meta name="twitter:title" content="[% SiteTitle %]">
 		[% END %]
 		<!--
 			<meta http-equiv="Content-Language" content="English">
 		-->
-		<meta name="description" content="[% SiteTitle.Default.join(' ') %] [% title %] - A Ged2Site webpage">
-		<meta name="Copyright" content="Copyright (C) 2025 Nigel Horne">
+		<meta name="description" content="[% SiteTitle %] [% title %] - A Ged2Site webpage">
+		<meta name="Copyright" content="Copyright (C) 2026 Nigel Horne">
 		<style type="text/css">
 			/* Two columns */
 			.column {
@@ -684,6 +684,17 @@
 				</center>
 			</div>
 			<div id="container">
+				<center>
+					[ <a href="?page=people&amp;home=1">Home</a> ] |
+					[ <a href="?page=censuses">Census Index</a> ] |
+					[ <a href="?page=surnames">Surname Index</a> ] |
+					[ <a href="?page=history">Family History</a> ] |
+					[ <a href="?page=todo">To Do</a> ] |
+					[ <a href="?page=calendar">Calendar</a> ] |
+					[ <a href="?page=emigrants">Emigrants</a> ] |
+					[ <a href="?page=reports">Reports</a> ] |
+					[ <a href="/visjs.html">Timeline</a> ]
+				</center>
 				<h1>Choose a Graph</h1>
 				<br>
 				<ul id="nav">
