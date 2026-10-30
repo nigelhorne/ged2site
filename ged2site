@@ -33,8 +33,8 @@
 # TODO: prune old entries from changes.psv (should be configurable how long ago)
 # TODO:	notes_locations already contain lat/long information, so use that in add_marker()
 # TODO: Something like: "$person was born on 1 Dec 1795, less than 9 months before his father died, leaving his mother 5 children to bring up by herself".  Optionally add "until she remarried on 15 Apr 1797".
-# TODO: i18n to Mandarin will need work because maternal and paternal
-#	grandparents differ, as do older and younger siblings
+# TODO: i18n to Mandarin, Syuba etc. will need work because maternal and
+#	paternal grandparents differ, as do older and younger siblings
 
 # -d:	Download copies of objects rather than link to them, useful if the
 #	objects are on pay sites such as FMP
@@ -12329,15 +12329,17 @@ sub notes
 				$region = get_value({ person => $person, value => 'death place' });
 			}
 		}
-		if($region && ($region =~ /^.+,\s([[a-z\s]+)$/i)) {
-			if($1 =~ /(England|United Kingdom)/i) {
+		if($region && ($region =~ /^.+,\s([a-z\s]+)$/i)) {
+			if($1 =~ /^(England|Scotland|Wales|Northern Ireland|United Kingdom)$/i) {
 				$region = 'GB';
-			} elsif($1 =~ /(USA|US|United States)/i) {
+			} elsif($1 =~ /^(USA|US|United States)$/i) {
 				$region = 'US';
-			} elsif(lc($1) eq 'Canada') {
+			} elsif(lc($1) eq 'canada') {
 				$region = 'CA';
-			} elsif(lc($1) eq 'Australia') {
+			} elsif(lc($1) eq 'australia') {
 				$region = 'AU';
+			} elsif(lc($1) eq 'ireland') {
+				$region = 'IE';
 			} else {
 				$region = undef;
 			}
@@ -12370,7 +12372,7 @@ sub notes
 					my $matches = $hr;
 					if($matches->{'match'}) {
 						$matches = $matches->{'match'};
-						warn '(DEBUG) ', Data::Dumper->new([$matches])->Dump();
+						warn '(DEBUG) ', Data::Dumper->new([$matches])->Dump() if($opts{'v'});
 					}
 					if(ref($matches) eq 'ARRAY') {
 						my $text;
@@ -12384,7 +12386,7 @@ sub notes
 							# my $place = $match->{'location'};
 							# print "$place\n";
 							$match->{'text'} = wide_to_html($text);
-							warn '(DEBUG) ', Data::Dumper->new([$match])->Dump();
+							warn '(DEBUG) ', Data::Dumper->new([$match])->Dump() if($opts{'v'});
 							push @{$note_locations}, $match;
 						}
 					} elsif(ref($matches) eq 'HASH') {
@@ -12396,7 +12398,7 @@ sub notes
 							} else {
 								$match->{'text'} = $rc;
 							}
-							warn "(DEBUG)\n\t$rc\n\t", Data::Dumper->new([$match])->Dump();
+							warn "(DEBUG)\n\t$rc\n\t", Data::Dumper->new([$match])->Dump() if($opts{'v'});
 							push @{$note_locations}, $match;
 						}
 					}
@@ -12405,7 +12407,7 @@ sub notes
 				warn 'TODO: ', Data::Dumper->new([$hr])->Dump();
 			} elsif($hr->can('lat') && defined($region) && $hr->country() && ($hr->country() eq $region)) {
 				# Geo::Location::Point
-				warn '(DEBUG): ', Data::Dumper->new([$hr])->Dump(), "\n\t", ref($hr), "\n\t", $hr->as_string();
+				warn '(DEBUG): ', Data::Dumper->new([$hr])->Dump(), "\n\t", ref($hr), "\n\t", $hr->as_string() if($opts{'v'});
 				push @{$note_locations}, {
 					confidence => $hr->confidence(),
 					location => $hr->location(),

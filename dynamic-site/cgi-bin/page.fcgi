@@ -45,6 +45,7 @@ use Error qw(:try);
 use File::Spec;
 use POSIX qw(strftime);
 use Readonly;
+use Module::Runtime qw(require_module);	# Safe dynamic module loading; avoids string eval
 use Timer::Simple;
 use Time::HiRes;
 
@@ -141,7 +142,7 @@ use Ged2site::DB::military;
 use Ged2site::DB::heritage;
 use Ged2site::DB::locations;
 use Ged2site::DB::places;
-use Ged2site::Data::vwf_log;
+use VWF::Data::vwf_log;
 
 my $database_dir = "$script_dir/../data";
 Database::Abstraction::init({
@@ -841,7 +842,7 @@ sub send_error
 }
 
 # The pages that ?page= may load.  Sites can list them in the config file
-# (<pages>index, meta_data</pages>); otherwise every ../lib/VWF/Display/*.pm
+# (<pages>index, meta_data</pages>); otherwise every ../lib/Ged2site/Display/*.pm
 # next to this script is allowed, except captcha, which only the rate limiter
 # shows.
 sub valid_pages
@@ -853,7 +854,7 @@ sub valid_pages
 		return grep { /\A\w+\z/ } @{$pages};
 	}
 
-	my $dir = File::Spec->catdir($script_dir, File::Spec->updir(), 'lib', 'VWF', 'Display');
+	my $dir = File::Spec->catdir($script_dir, File::Spec->updir(), 'lib', 'Ged2site', 'Display');
 	return sort(grep { $_ ne 'captcha' } map { basename($_, '.pm') } glob(File::Spec->catfile($dir, '*.pm')));
 }
 
