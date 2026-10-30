@@ -39,11 +39,6 @@
 					[% FOREACH person IN cemetery.people %]
 						<li>
 							<a href="?page=people&amp;entry=[%- person.entry %]">[% person.title %]</a>
-							[% IF person.dob %]
-								([% person.dob %] - [% person.dod %])
-							[% ELSE %]
-								(d. [% person.dod %])
-							[% END %]
 						</li>
 					[% END %]
 				</ul>

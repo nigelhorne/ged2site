@@ -46,7 +46,6 @@ use File::Spec;
 use POSIX qw(strftime);
 use Readonly;
 use Module::Runtime qw(require_module);	# Safe dynamic module loading; avoids string eval
-use Timer::Simple;
 use Time::HiRes;
 
 # FIXME: Sometimes gives Insecure dependency in require while running with -T switch in Module/Runtime.pm
@@ -252,8 +251,6 @@ my $request = FCGI::Request();
 while($handling_request = ($request->Accept() >= 0)) {
 	unless($ENV{'REMOTE_ADDR'}) {
 		# debugging from the command line
-		my $timer = Timer::Simple->new();
-
 		$ENV{'NO_CACHE'} = 1;
 		if((!defined($ENV{'HTTP_ACCEPT_LANGUAGE'})) && defined($ENV{'LANG'})) {
 			my $lang = $ENV{'LANG'};
@@ -285,10 +282,6 @@ while($handling_request = ($request->Accept() >= 0)) {
 			warn "$msg\n", $msg->stacktrace();
 			$logger->error($msg);
 		};
-
-		my @elapsed_time = $timer->hms();
-		my $timetaken = int($elapsed_time[2] * 1000);
-		$logger->info("$script_name completed in ${timetaken}ms");
 
 		last;
 	}
@@ -350,7 +343,8 @@ exit(0);
 # Create and send response to the client for each request
 sub doit
 {
-	my $request_start = Timer::Simple->new();
+	# Record the wall-clock start time so we can report request duration later.
+	my $request_start = Time::HiRes::time();
 
 	CGI::Info->reset();
 
