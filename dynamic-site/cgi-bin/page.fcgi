@@ -361,9 +361,9 @@ sub doit
 
 	# $config is built once per process and reused.  We cannot build it before
 	# the first Accept() because the domain name is not known until then.
+	# So don't pass $info in since it was created before the connection
 	$config ||= VWF::Config->new({
 		logger => $logger,
-		info => $info,
 		debug => $params{'debug'},
 		lingua => CGI::Lingua->new({ supported => [ 'en-gb' ], info => $info, logger => $logger })	# Use a temporary CGI::Lingua
 	});
