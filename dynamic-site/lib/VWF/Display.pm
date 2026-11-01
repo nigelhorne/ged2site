@@ -15,7 +15,7 @@ Version 0.01
 
 =head2 CSRF Protection
 
-VWF automatically issues a CSRF token as a cookie on every page load so
+VWF automatically issues a CSRF token as a cookie on every page with a form so
 that forms can protect against cross-site request forgery.  The token is
 signed with an HMAC secret.  B<You must supply that secret in your site's
 XML configuration file.>
@@ -417,6 +417,7 @@ sub as_string {
 		$cache = create_memory_cache(config => $self->{config}, logger => $self->{'logger'}, namespace => ref($self));
 		$key = cache_key_from_hashref($args);
 		if(my $rc = $cache->get($key)) {
+			$self->_send_csrf_token($rc);
 			return $rc;
 		}
 	}
@@ -433,6 +434,7 @@ sub as_string {
 		return $rc;
 	}
 	$rc .= $self->html($args);
+	$self->_send_csrf_token($rc);
 	if($cache) {
 		$self->{cache_duration} ||= '5 minutes';
 		$cache->set($key, $rc, $self->{cache_duration});
@@ -723,7 +725,7 @@ Returns the HTTP header section, terminated by an empty line
 
 # Generate and return the HTTP response headers (without the blank-line
 # terminator - FCGI::Buffer appends that).  Also emits Set-Cookie lines
-# for session cookies and the CSRF token, plus Link: rel=preload headers
+# for session cookies, plus Link: rel=preload headers
 # for any assets registered via add_preload().
 sub http
 {
@@ -754,14 +756,6 @@ sub http
 			my $secure = ($self->{'info'}->protocol() eq 'https') ? '; Secure' : '';
 			print "Set-Cookie: $cookie=$value; path=/; HttpOnly; SameSite=Strict$secure\n";
 		}
-	}
-
-	# Issue a fresh CSRF token on every page load so that forms can embed it.
-	# The token is validated server-side when the form is submitted.
-	# CSRF protection is enabled by default and can be turned off in config.
-	if($self->{config}->{security}->{csrf}->{enable} // 1) {
-		my $csrf_token = $self->_generate_csrf_token();
-		print "Set-Cookie: csrf_token=$csrf_token; path=/; HttpOnly; SameSite=Strict\n";
 	}
 
 	# Choose Content-Type from the template extension, or use the caller's
@@ -935,6 +929,19 @@ sub _types
 	}
 
 	return @rc;
+}
+
+# Issue a fresh CSRF token to a page that has a form, so that the form can embed it.
+# The token is validated server-side when the form is submitted.
+# CSRF protection is enabled by default and can be turned off in config.
+# Other pages aren't sent one: FCGI::Buffer won't cache or save a page that has a
+# Set-Cookie header, since it would give that cookie to everyone.
+sub _send_csrf_token($self, $page) {
+	return unless($page =~ /<form\b/i);
+	return unless($self->{config}->{security}->{csrf}->{enable} // 1);
+
+	my $csrf_token = $self->_generate_csrf_token();
+	print "Set-Cookie: csrf_token=$csrf_token; path=/; HttpOnly; SameSite=Strict\n";
 }
 
 sub _generate_csrf_token($self) {

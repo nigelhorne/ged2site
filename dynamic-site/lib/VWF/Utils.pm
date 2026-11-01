@@ -322,6 +322,10 @@ sub _configure_dbi($chi_args, $config, $args, $logger) {
 		croak $error;
 	};
 
+	# CHI::Driver::DBI uses the namespace in the table's name.
+	# Keep to letters, digits and underscores, otherwise tools such as
+	# Database::BI can't open it
+	$chi_args->{namespace} =~ s/\W/_/g;
 	$chi_args->{dbh} = $dbh;
 	$chi_args->{create_table} = $config->{create_table} // 1;
 }
