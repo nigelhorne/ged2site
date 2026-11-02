@@ -793,6 +793,9 @@ sub http
 	# Content-Security-Policy: whitelists script and style origins.
 	#   'unsafe-inline' is present for legacy templates; tighten this once
 	#   all inline scripts have been migrated to external files.
+	#   Maps made by HTML::OSM load Leaflet from unpkg.com and tiles from
+	#   openstreetmap.org.  Only the version of Leaflet that HTML::OSM uses is
+	#   allowed, since unpkg.com serves every package on npm.
 	# Strict-Transport-Security: instructs the browser to use HTTPS for the
 	#   next year; includeSubDomains covers all sub-sites.
 	return $rc .
@@ -800,7 +803,10 @@ sub http
 		"X-Content-Type-Options: nosniff\n" .
 		"X-XSS-Protection: 1; mode=block\n" .
 		"Referrer-Policy: strict-origin-when-cross-origin\n" .
-		"Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'\n" .
+		"Content-Security-Policy: default-src 'self'; " .
+			"script-src 'self' 'unsafe-inline' https://unpkg.com/leaflet\@1.9.4/; " .
+			"style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet\@1.9.4/; " .
+			"img-src 'self' data: https://unpkg.com/leaflet\@1.9.4/ https://*.tile.openstreetmap.org\n" .
 		"Strict-Transport-Security: max-age=31536000; includeSubDomains\n\n";
 }
 

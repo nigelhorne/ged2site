@@ -35,6 +35,7 @@ requires 'Getopt::Std';
 requires 'Gzip::Faster';
 requires 'HTML::Entities';
 requires 'HTML::GoogleMaps::V3';
+requires 'HTML::OSM';
 requires 'HTML::SocialMedia';
 requires 'HTML::TagCloud';
 requires 'HTTP::Cache::Transparent';

@@ -59,6 +59,7 @@ use warnings;
 no lib '.';
 
 use	constant	ASSUME_NOT_LIVING => 120;
+use	constant	CEMETERY_MAX_KM_FROM_TOWN => 50;	# Further than this from its town, a cemetery has been misidentified
 
 sub datecmp($$);
 
@@ -1601,13 +1602,17 @@ close $csv;
 print "Creating cemeteries database\n";
 
 open($csv, '>', 'dynamic-site/data/cemeteries.csv');
-print $csv "entry!xrefs\n";
+print $csv "entry!xrefs!latitude!longitude\n";
 
 foreach my $entry(sort keys(%cemeteries)) {
-	my $people = $cemeteries{$entry};
+	my ($latitude, $longitude) = ('', '');
+	if(my $location = cemetery_location($entry)) {
+		$latitude = $location->lat();
+		$longitude = $location->long();
+	}
 	print $csv "$entry!",
 		join(',', @{$cemeteries{$entry}}),
-		"\n";
+		"!$latitude!$longitude\n";
 }
 close $csv;
 
@@ -12858,6 +12863,31 @@ sub cemetery_of
 	$name =~ s/^\s+|\s+$//g;
 
 	return { name => $name, type => $type };
+}
+
+# Return the location of a cemetery, for its marker on the cemeteries map, or undef if it can't be found
+# Geocoders rarely know a cemetery by name, and can answer with one of the same name elsewhere
+#	("St Peter's Churchyard, Ramsgate, Kent, England" has been placed in Illinois), so
+#	only believe an answer that is close to the town in the same address, and otherwise
+#	use the town.  Stop at the town: a marker in the middle of a county would be misleading
+sub cemetery_location
+{
+	my $cemetery = shift;
+
+	my @parts = split(/,\s*/, $cemetery);
+	my $town_parts = (scalar(@parts) < 3) ? scalar(@parts) : 3;
+	my $town = get_location(join(', ', @parts[-$town_parts..-1]));
+	return if((!$town) || (!defined($town->lat())) || !defined($town->long()));
+
+	while(scalar(@parts) > $town_parts) {
+		my $location = get_location(join(', ', @parts));
+		if($location && defined($location->lat()) && defined($location->long()) &&
+		   ($location->distance($town)->km() <= CEMETERY_MAX_KM_FROM_TOWN)) {
+			return $location;
+		}
+		shift @parts;
+	}
+	return $town;
 }
 
 # Return the person's close relatives as a list of [ person, relationship ],

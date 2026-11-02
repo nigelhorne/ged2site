@@ -10,6 +10,9 @@
 		<link rel="stylesheet" href="/css/web.css" type="text/css" media="screen">
 		<meta name="description" content="Cemeteries in [% SiteTitle %] - A Ged2Site webpage">
 		<meta name="Copyright" content="Copyright (C) 2026 Nigel Horne">
+		[% IF map_head %]
+			[% map_head %]
+		[% END %]
 	</head>
 	<body>
 		<div id="header_container">
@@ -33,6 +36,9 @@
 				[ <a href="/visjs.html">Timeline</a> ]
 			</center>
 			<br>
+			[% IF map_body %]
+				[% map_body %]
+			[% END %]
 			[% FOREACH cemetery IN cemeteries %]
 				<h2>[% cemetery.cemetery %]</h2>
 				<ul id="nav">
