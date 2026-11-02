@@ -93,6 +93,16 @@ Modify the **template files** to change the website’s design and layout to mat
 #### **3. Upload to Your Web Server**
 Copy the entire `dynamic-site` directory to your web server.
 
+The web server also needs the CPAN modules that the dynamic site uses, even if you run `ged2site` on another machine.
+In particular, **the map on the Cemeteries page needs [HTML::OSM](https://metacpan.org/pod/HTML::OSM)**.
+Without it the page still works and lists the cemeteries, but **the map is silently left out, with no error message**.
+
+Install it on the web server, using the same Perl that runs `page.fcgi`, and then restart any running FastCGI processes:
+
+```
+cpanm HTML::OSM
+```
+
 #### **4. Optimize Your Database (Optional)**
 The dynamic site stores data in **CSV files**, but for faster performance, you can **convert them to SQLite** using [`csv2sqlite`](http://search.cpan.org/~rwstauner/App-csv2sqlite/).
 
