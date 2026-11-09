@@ -322,7 +322,7 @@ while($handling_request = ($request->Accept() >= 0)) {
 
 # Clean up resources before shutdown
 $logger->info('Shutting down');
-if($buffercache) {
+if($buffercache && !$exit_requested) {
 	$buffercache->purge();
 }
 if($rate_limit_cache) {

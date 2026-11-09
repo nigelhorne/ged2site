@@ -15615,6 +15615,20 @@ sub individual_to_hash
 }
 
 # Must all be in lower case
+# A few more to add
+# Afrikaans	Moeder, ma	Vader
+# Asturian	Ma	pá
+# Cambodian	Madai, Mák	ba
+# Hindi	Ma, Maji	Pita, Baap, Babuji
+# Luo	Miyo	baba
+# Mandarin	mama	baba
+# Punjabi	Mai, Mtaji	pita
+# Quechua	Mama	Papa, tayta
+# Swahili	Mama, Mzazi, Mzaa	baba
+# Swedish	Mor	Far, Pappa
+# Vietnamese	me	Bo, ba
+# Welsh	mam	Tad
+# Yiddish	Muter	Tatti, tay, foter, tateh
 __DATA__
 @@ English
 a %s::a %s
