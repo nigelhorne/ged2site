@@ -8,7 +8,7 @@ use warnings;
 use autodie qw(:all);
 
 use Carp qw(croak);
-use Database::Join;
+use Database::Join 0.011002;
 use HTML::Entities ();
 use Params::Get;
 use Readonly;
@@ -21,10 +21,6 @@ our $VERSION = '0.01';
 # military.csv refers to a person by this column, people.csv calls it 'entry'
 Readonly::Scalar my $JOIN_COLUMN => 'person';
 Readonly::Scalar my $PEOPLE_KEY => 'entry';
-
-# Database::Abstraction's spelling.  Database::Join documents 'IN', but
-#	Database::Abstraction croaks "Unknown operator 'IN'" on it
-Readonly::Scalar my $IN => '-in';
 
 # Database::Abstraction's documented message when a table has no file.
 #	ged2site only writes military.csv when someone has a military record,
@@ -133,8 +129,8 @@ where C<key> is the level 1 Unicode collation key of the decoded HTML.
 
 	if no military database: render the empty page
 	croak unless there is a people database
-	xrefs := the people in military, or none if it has no file
-	rows := inner join of military.person to people.entry, for those xrefs
+	rows := inner join of military.person to people.entry, or none if
+		military has no file
 	keep the first row for each person, as (person, title)
 	sort by name (Unicode collation of the decoded HTML)
 	render the page with the rows, or the empty page if there are none
@@ -179,24 +175,17 @@ sub _people_with_records
 {
 	my ($military, $people) = @_;
 
+	# Database::Join 0.011.2 and later ask people.csv for only the xrefs in
+	#	military.csv, rather than reading all of it
 	my $rows = eval {
-		# Database::Join fetches every row of a secondary table that has no
-		#	criteria, i.e. all of people.csv, which took 0.32s of the 0.34s
-		#	join.  Giving it the keys, which it passes to both tables, makes
-		#	it fetch only the people it needs.  Remove this when Database::Join
-		#	passes the primary's keys to the secondaries by itself
-		my %xrefs = map { $_->{$JOIN_COLUMN} => 1 } @{$military->selectall_arrayref() // []};
-
-		# A military.csv with no rows: an empty -in list could match nothing
-		#	or be an SQL syntax error, depending on the backend
-		scalar(keys %xrefs) ? Database::Join->new(
+		Database::Join->new(
 			databases => [ $military, $people ],
 			join_column => $JOIN_COLUMN,
 			join_map => { 1 => $PEOPLE_KEY },
 			join_type => 'inner',
 			# Both tables have a notes column, so keep them apart
 			collision_prefix => { 1 => 'people' },
-		)->selectall_arrayref($JOIN_COLUMN => { $IN => [ sort keys %xrefs ] }) : [];
+		)->selectall_arrayref();
 	};
 	if(my $error = $@) {
 		# Re-throw anything other than there being no military records
@@ -248,12 +237,12 @@ The date, place and notes of each record are in military.csv but are not
 shown.  Showing them would mean grouping the records by person instead of
 keeping only the first.
 
-=item military.csv is read twice
+=item Needs Database::Join 0.011.2
 
-Database::Join reads all of a secondary table that has no criteria: on a tree
-of 3,800 people that is 0.32s of a 0.34s join.  So the people with records are
-found first and their xrefs passed to the join, which costs a second read of
-the small military table.  That should be done by Database::Join itself.
+Earlier versions read all of people.csv for the join: on a tree of 3,800
+people that was 0.32s of a 0.34s join.  0.011.2 asks people.csv for only the
+xrefs in military.csv, but only up to 999 of them; a tree with more people
+with military records than that is read in full.
 
 Looking up each title with C<< $people->title(entry => $xref) >> is not an
 alternative: it fails because Database::Abstraction's rows are read-only
