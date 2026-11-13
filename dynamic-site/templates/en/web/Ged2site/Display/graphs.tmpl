@@ -52,12 +52,12 @@
 		<title>[% title %]</title>
 		[% IF twitter %]
 			<meta name="twitter:site" content="@[% twitter %]">
-			<meta name="twitter:title" content="[% SiteTitle %]">
+			<meta name="twitter:title" content="[% SiteTitle.Default.join(' ') %]">
 		[% END %]
 		<!--
 			<meta http-equiv="Content-Language" content="English">
 		-->
-		<meta name="description" content="[% SiteTitle %] [% title %] - A Ged2Site webpage">
+		<meta name="description" content="[% SiteTitle.Default.join(' ') %] [% title %] - A Ged2Site webpage">
 		<meta name="Copyright" content="Copyright (C) 2026 Nigel Horne">
 		<style type="text/css">
 			/* Two columns */

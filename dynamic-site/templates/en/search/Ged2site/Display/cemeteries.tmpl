@@ -10,14 +10,14 @@
 		<meta name="owner" content="Nigel Horne">
 		<meta name="Author" content="Nigel Horne">
 		<meta name="Copyright" content="Copyright (C) 2026 Nigel Horne, all rights reserved">
-		<title>Cemeteries in [% SiteTitle %]</title>
-		<meta name="description" content="Cemeteries in [% SiteTitle %] - A Ged2Site webpage">
+		<title>Cemeteries in [% SiteTitle.Default.join(' ') %]</title>
+		<meta name="description" content="Cemeteries in [% SiteTitle.Default.join(' ') %] - A Ged2Site webpage">
 		<!--
 			<meta name="msvalidate.01" content="deadbeef" />
 		-->
 	</head>
 	<body>
-		<h1>Cemeteries in [% SiteTitle %]</h1>
+		<h1>Cemeteries in [% SiteTitle.Default.join(' ') %]</h1>
 		[% IF error %]
 			<p><font color="red" size="+2">[% error %]</font></p>
 		[% END %]

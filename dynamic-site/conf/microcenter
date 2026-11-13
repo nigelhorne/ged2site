@@ -1,5 +1,7 @@
 root_dir: /home/njh/src/njh/ged2site/dynamic-site
-SiteTitle: The Family Tree of Nigel Horne
+SiteTitle:
+  English: The Family Tree of Nigel Horne
+  Default: The Family Tree of Nigel Horne
 Files: a=b
 Files: c=d
 # cache: driver=BerkeleyDB root_dir=/tmp/cache
