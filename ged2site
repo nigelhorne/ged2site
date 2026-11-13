@@ -220,6 +220,7 @@ use autodie qw(:all);
 
 # use Lingua::EN::AddressParse;
 # use Memoize;
+use Encode ();	# name_to_html()
 use POSIX;
 
 sub get_location($);
@@ -2411,7 +2412,7 @@ sub print_person
 	# my $surname = $name_components{'surname_2'} || $name_components{'surname_1'};
 	my $surname = $person->surname(); # RT109786
 	if($surname) {
-		$surname = ucfirst(lc(wide_to_html($surname)));
+		$surname = name_to_html($surname);
 	}
 
 	if($opts{'w'}) {
@@ -2467,7 +2468,7 @@ sub print_person
 
 	if((!defined($firstname)) && ($name =~ /(.+)\s(.+)/)) {
 		# $firstname = $1;
-		$firstname = ucfirst(lc(wide_to_html(given_names($person)))); # RT109786
+		$firstname = name_to_html(given_names($person));	# RT109786
 		if(!defined($surname)) {
 			$surname = $2;
 		}
@@ -15303,6 +15304,34 @@ sub wide_to_html
 	my $params = Params::Get::get_params('string', @_);
 
 	return Encode::Wide::wide_to_html({ complain => \&complain, %{$params} });
+}
+
+# Purpose:      Turn a name into HTML with only its first letter a capital,
+#               e.g. "&Eacute;mile" for "ÉMILE" or "émile" (RT109786).
+#
+# Entry:        $name - a name from the GEDCOM: UTF-8 bytes, decoded text, or
+#               bytes in another encoding.
+#
+# Exit:         The name as HTML.
+#
+# Side Effects: None.
+#
+# Notes:        The case must be changed before making entities, since lc()
+#               lowercases the entity ("&Eacute;" -> "&eacute;") and ucfirst()
+#               only sees the "&".  It must also be done on characters, not
+#               UTF-8 bytes, which lc() treats as Latin-1 letters ("Zoë" ->
+#               "Zoã").  So valid UTF-8 is decoded first; anything else is
+#               left as it is, as wide_to_html() would.
+sub name_to_html
+{
+	my $name = shift;
+
+	if(!utf8::is_utf8($name)) {
+		my $bytes = $name;
+		my $chars = eval { Encode::decode('UTF-8', $bytes, Encode::FB_CROAK) };
+		$name = $chars if(defined($chars));
+	}
+	return wide_to_html(ucfirst(lc($name)));
 }
 
 # See https://www.compart.com/en/unicode/U+0161 etc.
