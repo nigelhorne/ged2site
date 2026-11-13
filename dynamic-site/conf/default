@@ -19,7 +19,7 @@
 	-->
 	<disc_cache>
 		<driver>File</driver>
-		<root_dir>/tmp/cache</root_dir>
+		<root_dir>/var/tmp/cache</root_dir>
 	</disc_cache>
 
 	<!--

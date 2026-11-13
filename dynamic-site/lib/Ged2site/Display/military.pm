@@ -4,6 +4,8 @@ package Ged2site::Display::military;
 
 use warnings;
 use strict;
+
+use Data::Reuse;
 use VWF::Display;
 
 our @ISA = ('VWF::Display');
@@ -17,10 +19,19 @@ sub html {
 
 		my $people = $args{'people'} || die;
 
+		# Don't use yet as both tables have a "notes" column
+		# use Database::Join;
+		# my $xx = Database::Join->new(databases => [ $military, $people ], join_column => 'person', join_map => { 1 => 'entry' });
+		# my @xxx = $xx->selectall_hash();
+		# use Data::Dumper;
+		# print Data::Dumper->new([\$xxx[0]])->Dump();
+
 		# Lookup the full name of the person
 		foreach my $person(@military) {
 			if(!exists($person->{title})) {
-				$person->{'title'} = $people->title(entry => $person->{'person'});
+				if(my $title = $people->title(entry => $person->{'person'})) {
+					$person->{'title'} = $title;
+				}
 			}
 		}
 
@@ -28,6 +39,7 @@ sub html {
 
 		return $self->SUPER::html({ military => \@military, updated => $people->updated() });
 	}
+
 	# No military database
 	return $self->SUPER::html();
 }
