@@ -1,9 +1,14 @@
 package Ged2site::DB::military;
 
-# The database associated with the military template file
+# The database associated with the military template file:
+#	military.csv, one row per military record, entry!person!date!place!notes
 
-use Database::Abstraction;
+use strict;
+use warnings;
+use autodie qw(:all);
 
-our @ISA = ('Database::Abstraction');
+use parent 'Database::Abstraction';
+
+our $VERSION = '0.02';
 
 1;
