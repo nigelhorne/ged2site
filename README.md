@@ -200,6 +200,7 @@ Here’s what each option does:
 | `-l` | Include living people in the generated site. |
 | `-L n` | Limit the output to **n** records. |
 | `-m` | Add an interactive map to each page showing event locations. |
+| `-p people` | Only print these people: a comma-separated list of xrefs or names (e.g. `-p I1025,'Jane Smith'`). Everyone is still read, but the site is incomplete, so use this to debug a person's page quickly, not to update a site. |
 | `-J` | Provide a Google Maps JavaScript API key for displaying maps. The key should have an application restriction for your website. If omitted, OpenStreetMaps is used. |
 | `-G` | Provide a Google Maps Geolocation API key for mapping event locations. |
 | `-w` | Enable warnings for inconsistent data (like a lint tool for Gedcom files). |
@@ -207,6 +208,8 @@ Here’s what each option does:
 | `-x f` | Use a previous `people.xml` file to track changes and generate a blog (TODO feature). |
 
 ### Important Notes
+
+- If a person's data can't be processed, Ged2Site reports them (with their xref and the error), skips them, and carries on with everyone else. At the end it lists everyone it couldn't print and exits with a non-zero status, since the site is then incomplete. Fix their data, then check it quickly with `-p` before running on the whole tree again. With `-f` it stops at the first problem instead.
 
 - If you use the `-m` option (maps), **your Google API key will be included in the website’s code**. To protect it, restrict the key’s use to your host’s IP address.
 - By default, Ged2Site is designed to **protect the privacy of living individuals**.

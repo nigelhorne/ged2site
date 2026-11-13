@@ -225,9 +225,9 @@ use POSIX;
 sub get_location($);
 
 my %opts;
-getopts('cdfFG:g:h:J:lL:mwWvx:', \%opts);
+getopts('cdfFG:g:h:J:lL:mp:wWvx:', \%opts);
 
-die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w [ -W ] ] [ -x current_people.xml ] filename [ filename2 ]\n" unless($ARGV[0]);
+die "Usage: $0 [ -c ] [ -d ] [ -F ] [ -f ] [ -g google-search-verification ] [ -h home-person-name ] [ -l ] [ -L max_records ] [ -p xref,... ] [ -m [-G Google-Maps-GeoLocation-key ] [ -J Google-Maps-JavaScript-key ] ] [ -w [ -W ] ] [ -x current_people.xml ] filename [ filename2 ]\n" unless($ARGV[0]);
 
 print "Starting\n" if($opts{'v'});
 
@@ -1171,9 +1171,21 @@ print $visjs_html <<'BODY';
 	var items = new vis.DataSet([
 BODY
 
-# TODO: Add a -p option to do something like this - it's useful in debugging
-# foreach my $person($ged->get_individual('Dolly Cowell')) {
-# foreach my $person($ged->get_individual('Ruth Marie Bixler')) {
+# -p xref,name,...: only print these people, to find out quickly why their
+#	pages fail without waiting for everyone else.  Everyone is still read,
+#	since a page refers to relatives, but the site is incomplete
+my %only_people;
+if(defined(my $wanted = $opts{'p'})) {
+	foreach my $who(split(/\s*,\s*/, $wanted)) {
+		my $person = $ged->get_individual($who);
+		die "$0: Can't find '$who' in $ARGV[0]" if((!defined($person)) || !ref($person));
+		$only_people{$person->xref()} = 1;
+	}
+	die "$0: -p: no one given" unless(scalar(keys %only_people));
+}
+
+# People whose pages couldn't be made, reported at the end
+my @failed_people;
 
 # Build name lookup hashes once per generate() call to avoid
 # the O(n**2) duplicate detection scan in print_person().
@@ -1211,16 +1223,61 @@ foreach my $person(@everyone) {
 		complain({ person => $person, warning => 'has no xref' });
 		next;
 	}
-	if(!$printed{$person->xref()}) {
-		print $xml "\n\t<person person_id=\"$index\">";
-		print_person({
-			person => $person,
-			people_by_name => \%people_by_name,
-			people_by_soundex => \%people_by_soundex,
-		});
+	# -p: skip everyone not asked for
+	next if(scalar(keys %only_people) && !$only_people{$person->xref()});
 
-		print $xml "\n\t</person>";
-		print $csv "\n";
+	if(!$printed{$person->xref()}) {
+		# Write this person's share of the shared files to memory first, so
+		#	that if print_person() dies, they don't get half a row
+		my %real = (xml => $xml, csv => $csv, timeline => $timeline_xml, visjs => $visjs_html);
+		my %buffer = map { $_ => '' } keys %real;
+
+		# Undef first, since opening a handle that's open would close the
+		#	real file, which %real is keeping open
+		undef $xml;
+		undef $csv;
+		undef $timeline_xml;
+		undef $visjs_html;
+		open($xml, '>', \$buffer{'xml'});
+		open($csv, '>', \$buffer{'csv'});
+		open($timeline_xml, '>', \$buffer{'timeline'});
+		open($visjs_html, '>', \$buffer{'visjs'});
+
+		my $ok = eval {
+			print $xml "\n\t<person person_id=\"$index\">";
+			print_person({
+				person => $person,
+				people_by_name => \%people_by_name,
+				people_by_soundex => \%people_by_soundex,
+			});
+
+			print $xml "\n\t</person>";
+			print $csv "\n";
+			1;
+		};
+		my $error = $@;
+
+		close($_) foreach($xml, $csv, $timeline_xml, $visjs_html);
+		($xml, $csv, $timeline_xml, $visjs_html) = @real{'xml', 'csv', 'timeline', 'visjs'};
+
+		if($ok) {
+			print $xml $buffer{'xml'};
+			print $csv $buffer{'csv'};
+			print $timeline_xml $buffer{'timeline'};
+			print $visjs_html $buffer{'visjs'};
+		} elsif($opts{'f'}) {
+			# -f is documented to stop at the first problem
+			die $error;
+		} else {
+			# Carry on with everyone else, so that one run finds every
+			#	person whose data can't be processed, instead of stopping at
+			#	the first.  Pages that link to this person will have a broken
+			#	link, which is why the run still fails at the end
+			$error =~ s/\s+$//;
+			my $failure = $person->xref() . ' (' . $person->as_string({ include_years => 1 }) . "): $error";
+			push @failed_people, $failure;
+			print STDERR "\n$0: $failure\n";
+		}
 
 		dump_geocoder_log();
 	}
@@ -2194,6 +2251,15 @@ if($facts && open(my $json, '>', 'dynamic-site/data/facts.json')) {
 	close $json;
 
 	undef $facts;
+}
+
+if(scalar(keys %only_people)) {
+	print STDERR "$0: only some people were printed (-p), so the site is incomplete\n";
+}
+if(my $count = scalar(@failed_people)) {
+	print STDERR "\n$0: ", ($count == 1 ? '1 person' : "$count people"), " couldn't be printed, so the site is incomplete:\n",
+		map { "\t$_\n" } @failed_people;
+	exit(1);
 }
 
 sub print_person
