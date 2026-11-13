@@ -60,11 +60,12 @@ use lib '../lib';
 use lib CGI::Info::script_dir() . '/../lib';
 use lib File::HomeDir->my_home() . '/lib/perl5';
 
+use Error::DB::Open;
 use VWF::Allow;
 use VWF::Blacklist;
-use VWF::Config;
-use VWF::Utils;
-use Error::DB::Open;
+use Web::VWF::Config;
+use Web::VWF::Utils;
+use Web::VWF::Data::vwf_log;
 
 # $TAINT = 1;
 # taint_env();
@@ -142,7 +143,6 @@ use Ged2site::DB::military;
 use Ged2site::DB::heritage;
 use Ged2site::DB::locations;
 use Ged2site::DB::places;
-use VWF::Data::vwf_log;
 
 my $database_dir = "$script_dir/../data";
 Database::Abstraction::init({
@@ -356,7 +356,7 @@ sub doit
 	# $config is built once per process and reused.  We cannot build it before
 	# the first Accept() because the domain name is not known until then.
 	# So don't pass $info in since it was created before the connection
-	$config ||= VWF::Config->new({
+	$config ||= Web::VWF::Config->new({
 		logger => $logger,
 		debug => $params{'debug'},
 		lingua => CGI::Lingua->new({ supported => [ 'en-gb' ], info => $info, logger => $logger })	# Use a temporary CGI::Lingua
@@ -449,7 +449,7 @@ sub doit
 	}
 
 	$vwflog ||= $config->vwflog() || File::Spec->catfile($info->logdir(), 'vwf.log');
-	$vwf_log ||= VWF::Data::vwf_log->new({
+	$vwf_log ||= Web::VWF::Data::vwf_log->new({
 		directory => dirname($vwflog),
 		filename => basename($vwflog),
 		no_entry => 1,
