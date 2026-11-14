@@ -62,7 +62,7 @@ use lib File::HomeDir->my_home() . '/lib/perl5';
 
 use Error::DB::Open;
 use VWF::Allow;
-use VWF::Blacklist;
+use Web::VWF::Blacklist;
 use Web::VWF::Config;
 use Web::VWF::Utils;
 use Web::VWF::Data::vwf_log;
@@ -196,7 +196,7 @@ my $rate_limit_cache;	# Rate limit clients by IP address
 Readonly my @rate_limit_trusted_ips => ('127.0.0.1', '192.168.1.1');
 
 # The CGI::ACL object is built on the first request, once $config is loaded,
-# because the country blacklist (VWF::Blacklist) can come from the config file.
+# because the country blacklist (Web::VWF::Blacklist) can come from the config file.
 my $acl;
 
 sub sig_handler {
@@ -368,7 +368,7 @@ sub doit
 	# instrument but effective at reducing noise.
 	$acl ||= CGI::ACL->new()
 		->deny_cloud()
-		->deny_country(country => VWF::Blacklist->new(countries => $config->{'blacklist_countries'})->countries())
+		->deny_country(country => Web::VWF::Blacklist->new(countries => $config->{'blacklist_countries'})->countries())
 		->allow_ip('108.44.193.70')
 		->allow_ip('127.0.0.1');
 
